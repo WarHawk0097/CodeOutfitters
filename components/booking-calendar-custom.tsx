@@ -85,6 +85,7 @@ export function BookingCalendarCustom() {
       .then((result) => {
         if (cancelled) return
         if (result.error) {
+          console.error("[Booking availability]", result.error)
           setSlotsError(result.error)
           setSlots([])
         } else {
@@ -94,7 +95,9 @@ export function BookingCalendarCustom() {
       })
       .catch((err: unknown) => {
         if (cancelled) return
-        setSlotsError(err instanceof Error ? err.message : 'Failed to load available slots')
+        const msg = err instanceof Error ? err.message : 'Failed to load available slots'
+        console.error("[Booking availability]", msg)
+        setSlotsError(msg)
         setSlots([])
       })
       .finally(() => {
@@ -309,6 +312,8 @@ export function BookingCalendarCustom() {
               {slotsError && (
                 <p className="text-sm text-red-500 mb-4" role="alert">
                   Could not load availability. Please try again later.
+                  <br />
+                  <span className="text-xs text-red-400/80">{slotsError}</span>
                 </p>
               )}
               {slotsLoading && !slotsError && (
