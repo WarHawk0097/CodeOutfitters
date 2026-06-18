@@ -415,7 +415,11 @@ export default {
       if (!originAllowed(requestOrigin, allowed)) {
         return jsonResponse({ error: 'origin_not_allowed' }, 403, null)
       }
-      return jsonResponse({}, 204, requestOrigin)
+      const preflightHeaders = {
+        ...CORS_HEADERS,
+        'Access-Control-Allow-Origin': requestOrigin,
+      }
+      return new Response(null, { status: 204, headers: preflightHeaders })
     }
 
     if (request.method !== 'POST') {
