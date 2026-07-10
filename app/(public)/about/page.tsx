@@ -1,25 +1,19 @@
-import { PageHero } from '@/components/page-hero'
-import { Process } from '@/components/process'
+import type { Metadata } from 'next'
+import { AboutMission, AboutHowWeWork } from '@/components/about-mission'
 import { AboutValues } from '@/components/about-values'
 import { CTABanner } from '@/components/cta-banner'
-import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'About — CodeOutfitters',
-  description: 'Learn how CodeOutfitters works: our 4-step process, values, and why we focus exclusively on US small businesses.',
+  description: 'CodeOutfitters builds custom automation systems for US small businesses — fixed scope, fully documented, fully owned by you.',
 }
 
 export default function AboutPage() {
   return (
     <>
-      <PageHero
-        label="How We Work"
-        title="From Discovery to Deployed in 7 Days"
-        description="We built CodeOutfitters because small businesses deserve enterprise-grade automation without the enterprise price tag or complexity."
-        breadcrumb="About"
-      />
-      <Process />
+      <AboutMission />
       <AboutValues />
+      <AboutHowWeWork />
       <CTABanner />
     </>
   )

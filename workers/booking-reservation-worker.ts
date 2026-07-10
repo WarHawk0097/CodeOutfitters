@@ -444,7 +444,7 @@ export default {
       }
       const preflightHeaders: Record<string, string> = {
         ...CORS_HEADERS,
-        'Access-Control-Allow-Origin': requestOrigin,
+        'Access-Control-Allow-Origin': requestOrigin!,
       }
       return new Response(null, { status: 204, headers: preflightHeaders })
     }

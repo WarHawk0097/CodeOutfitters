@@ -43,7 +43,7 @@
 
   --text-display: clamp(2.5rem, 6vw, 5rem);
   --text-h1: clamp(2rem, 4.5vw, 3.75rem);
-  --text-h2: clamp(1.75rem, 3.5vw, 3rem);
+  --text-h2: clamp(1.75rem, 4vw, 3.25rem);
   --text-h3: clamp(1.25rem, 2vw, 1.5rem);
   --text-lead: clamp(1rem, 1.5vw, 1.125rem);
   --text-body: 1rem;
@@ -514,3 +514,27 @@ input[type='range']::-moz-range-thumb {
 .section-white { background: #FFFFFF; }
 .section-dark { background: #1C1612; color: #FAFAF7; }
 .section-dark-teal { background: linear-gradient(160deg, #1C1612 0%, #1C3D32 100%); color: #FAFAF7; }
+
+.shadow-premium {
+  box-shadow:
+    0 1px 2px rgba(42,107,90,0.04),
+    0 4px 12px rgba(42,107,90,0.04),
+    0 16px 32px rgba(42,107,90,0.06),
+    0 32px 64px rgba(42,107,90,0.04);
+}
+.shadow-premium-lg {
+  box-shadow:
+    0 2px 4px rgba(42,107,90,0.06),
+    0 8px 16px rgba(42,107,90,0.06),
+    0 24px 48px rgba(42,107,90,0.08),
+    0 48px 96px rgba(42,107,90,0.06);
+}
+.glass-deep {
+  background: rgba(250,250,247,0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(250,250,247,0.1);
+}
+.text-shadow-glow {
+  text-shadow: 0 0 40px rgba(200,169,110,0.15);
+}

@@ -1,16 +1,19 @@
 ﻿'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import useNavScroll from '@/lib/animations/useNavScroll'
+import { gsap } from '@/lib/animations/gsap-setup'
 
 const navLinks = [
+  { label: 'Home', href: '/' },
   { label: 'Services', href: '/services' },
-  { label: 'Get a Quote', href: '/pricing' },
-  { label: 'Portfolio', href: '/portfolio' },
+  { label: 'Industries', href: '/industries' },
+  { label: 'Process', href: '/process' },
+  { label: 'Case Studies', href: '/case-studies' },
   { label: 'About', href: '/about' },
   { label: 'Contact', href: '/contact' },
 ]
@@ -19,10 +22,25 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const pathname = usePathname()
   const { isHidden } = useNavScroll()
+  const innerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setMobileOpen(false)
   }, [pathname])
+
+  useEffect(() => {
+    if (!innerRef.current) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline({ defaults: { duration: 0.5, ease: 'power2.out' } })
+      tl.fromTo('.nav-logo', { opacity: 0, x: -6 }, { opacity: 1, x: 0 }, 0)
+        .fromTo('.nav-link', { opacity: 0, y: -4 }, { opacity: 1, y: 0, stagger: 0.05 }, 0.15)
+        .fromTo('.nav-cta', { opacity: 0, scale: 0.95 }, { opacity: 1, scale: 1 }, 0.4)
+    }, innerRef.current)
+
+    return () => ctx.revert()
+  }, [])
 
   return (
     <>
@@ -31,9 +49,9 @@ export function Navbar() {
           isHidden ? '-translate-y-full' : 'translate-y-0'
         }`}
       >
-        <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8">
+        <div ref={innerRef} className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-2 group flex-shrink-0" aria-label="CodeOutfitters home">
+            <Link href="/" className="nav-logo flex items-center gap-2 group flex-shrink-0" aria-label="CodeOutfitters home">
               <div className="w-9 h-9 rounded-lg bg-[#2A6B5A] flex items-center justify-center group-hover:shadow-[0_4px_12px_rgba(42,107,90,0.35)] transition-all duration-300">
                 <Zap className="w-5 h-5 text-white" fill="white" />
               </div>
@@ -49,7 +67,7 @@ export function Navbar() {
                   <Link
                     key={link.label}
                     href={link.href}
-                    className={`whitespace-nowrap text-sm font-medium transition-colors duration-200 ${
+                    className={`nav-link whitespace-nowrap text-sm font-medium transition-colors duration-200 ${
                       isActive
                         ? 'text-[#2A6B5A]'
                         : 'text-[#6B6155] hover:text-[#1C1612]'
@@ -62,7 +80,7 @@ export function Navbar() {
             </nav>
 
             <div className="hidden md:block flex-shrink-0">
-              <Link href="/contact" className="btn-primary">
+              <Link href="/contact" className="nav-cta btn-primary">
                 Get Free Audit
               </Link>
             </div>

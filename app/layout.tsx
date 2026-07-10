@@ -1,7 +1,7 @@
 ﻿import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
-import AOSProvider from '@/components/aos-provider'
+import GSAPProvider from '@/components/gsap-provider'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -48,7 +48,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className="font-sans antialiased">
-        <AOSProvider>{children}</AOSProvider>
+        <GSAPProvider>{children}</GSAPProvider>
       </body>
     </html>
   )

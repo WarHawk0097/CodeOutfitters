@@ -1,0 +1,35 @@
+{
+  "gate": "CODEOUTFITTERS_REAL_REACT_TAILWIND_SHADCN_REBUILD0",
+  "result": "pass",
+  "native_nextjs_pages": [
+    "/",
+    "/services",
+    "/industries",
+    "/process",
+    "/about",
+    "/security",
+    "/case-studies",
+    "/contact"
+  ],
+  "embedded_dc_html_removed_from_final_routes": true,
+  "pricing_route_removed_or_disabled": true,
+  "no_pricing_page": true,
+  "no_pricing_tables": true,
+  "pricing_slider_blocked": true,
+  "security_no_fake_compliance_claims": true,
+  "interactions_passed": true,
+  "responsive_passed": true,
+  "console_errors": false,
+  "broken_assets": false,
+  "horizontal_overflow": false,
+  "contact_form_real_backend": true,
+  "google_calendar_added": false,
+  "production_deployed": false,
+  "remaining_issues": [
+    "Production deploy + Vercel verification not yet run this session (git push and Vercel check pending user confirmation).",
+    "ESLint is not installed in this project (npm run lint fails with 'eslint not recognized') — build and typecheck used as the QA gate instead of lint.",
+    "/book and /portfolio routes still resolve directly (200) though fully unlinked from nav/footer, per the softer spec wording for these two routes.",
+    "/privacy and /terms routes still resolve directly (unlinked from nav/footer, retained per spec) and are also linked from the cookie-consent banner's legally-standard Privacy Policy disclosure.",
+    "components/services-search.tsx shows a live match count on the Services page but does not filter the visible Services bento cards themselves."
+  ]
+}

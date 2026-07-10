@@ -28,3 +28,7 @@ tsconfig.tsbuildinfo
 pnpm-lock.yaml
 
 .claude/
+.vercel
+.env*
+.tokensave/
+graphify-out/
