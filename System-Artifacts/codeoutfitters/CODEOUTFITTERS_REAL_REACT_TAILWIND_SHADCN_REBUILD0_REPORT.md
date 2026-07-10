@@ -73,14 +73,14 @@ PASS (local). Production deploy not yet run — pending user go-ahead before pus
 - No Google Calendar integration added or claimed
 
 ## Git/deploy
-Not yet run this turn — awaiting explicit confirmation before `git add`/`commit`/`push` and Vercel production verification, per the safety-first policy on pushing/deploying.
+- Committed as `4391e39` on `main`, pushed to `origin/main`
+- Vercel auto-deploy from GitHub confirmed live at `https://codeoutfitters.vercel.app` — all 8 required routes return 200, `/pricing` returns 404
 
 ## Evidence
 - `System-Artifacts/codeoutfitters/CODEOUTFITTERS_REAL_REACT_TAILWIND_SHADCN_REBUILD0_REPORT.md` (this file)
 - `System-Artifacts/codeoutfitters/CODEOUTFITTERS_REAL_REACT_TAILWIND_SHADCN_REBUILD0_result.json`
 
 ## Remaining issues
-1. Production deploy + Vercel verification not run yet.
-2. ESLint not installed — lint step skipped, build/typecheck used instead.
-3. `/book`, `/portfolio`, `/privacy`, `/terms` still resolve directly (intentionally unlinked, not disabled, per spec).
-4. Services search shows a count but does not filter the rendered service cards.
+1. ESLint not installed — lint step skipped, build/typecheck used instead.
+2. `/book`, `/portfolio`, `/privacy`, `/terms` still resolve directly (intentionally unlinked, not disabled, per spec).
+3. Services search shows a count but does not filter the rendered service cards.

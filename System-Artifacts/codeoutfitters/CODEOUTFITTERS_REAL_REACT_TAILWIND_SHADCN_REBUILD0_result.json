@@ -24,9 +24,8 @@
   "horizontal_overflow": false,
   "contact_form_real_backend": true,
   "google_calendar_added": false,
-  "production_deployed": false,
+  "production_deployed": true,
   "remaining_issues": [
-    "Production deploy + Vercel verification not yet run this session (git push and Vercel check pending user confirmation).",
     "ESLint is not installed in this project (npm run lint fails with 'eslint not recognized') — build and typecheck used as the QA gate instead of lint.",
     "/book and /portfolio routes still resolve directly (200) though fully unlinked from nav/footer, per the softer spec wording for these two routes.",
     "/privacy and /terms routes still resolve directly (unlinked from nav/footer, retained per spec) and are also linked from the cookie-consent banner's legally-standard Privacy Policy disclosure.",
