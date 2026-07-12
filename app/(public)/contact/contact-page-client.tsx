@@ -46,6 +46,8 @@ function ContactHeroAndForm() {
     setSubmitted(true)
   }
 
+  const previewNotice = process.env.NODE_ENV !== 'production' ? null : null
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
     if (errors[e.target.name]) setErrors((prev) => ({ ...prev, [e.target.name]: '' }))
@@ -141,11 +143,11 @@ function ContactHeroAndForm() {
             <AnimatePresence mode="wait">
               {submitted ? (
                 <motion.div
-                  key="success"
-                  initial={{ opacity: 0, scale: 0.96 }}
-                  animate={{ opacity: 1, scale: 1 }}
+                  key="preview-notice"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                   className="rounded-[22px] p-10 md:p-12 flex flex-col items-center text-center"
                   style={{
                     background: 'linear-gradient(180deg,#fff,#FBF7EE 68%,#F6F1E4)',
@@ -153,24 +155,18 @@ function ContactHeroAndForm() {
                     boxShadow: '0 4px 30px rgba(0,0,0,.06)',
                   }}
                 >
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ duration: 0.4, delay: 0.15, ease: [0.34, 1.56, 0.64, 1] }}
-                    className="w-16 h-16 rounded-full flex items-center justify-center mb-6"
-                    style={{ background: 'rgba(23,160,99,.1)' }}
-                  >
-                    <CheckCircle className="w-8 h-8" style={{ color: '#17A063' }} />
-                  </motion.div>
                   <h2
-                    className="text-2xl font-semibold mb-3"
+                    className="text-xl font-semibold mb-3"
                     style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#0A120E' }}
                   >
-                    Message sent!
+                    Demo form — no backend connected
                   </h2>
-                  <p className="text-sm leading-relaxed mb-8 max-w-sm" style={{ color: '#5B6355' }}>
-                    Thanks for reaching out. We&apos;ll get back to you within 1 business day to schedule your
-                    free discovery call.
+                  <p className="text-sm leading-relaxed mb-6 max-w-sm" style={{ color: '#5B6355' }}>
+                    This form is a preview. To reach us directly, email{' '}
+                    <a href="mailto:hello@codeoutfitters.ai" className="font-semibold underline" style={{ color: '#17A063' }}>
+                      hello@codeoutfitters.ai
+                    </a>
+                    . We respond within 1 business day.
                   </p>
                   <button
                     onClick={() => { setSubmitted(false); setForm({ name: '', email: '', business: '', interest: '', message: '' }) }}
@@ -181,7 +177,7 @@ function ContactHeroAndForm() {
                       border: '1px solid rgba(13,58,49,.14)',
                     }}
                   >
-                    Send another message
+                    Back to form
                   </button>
                 </motion.div>
               ) : (
@@ -283,7 +279,11 @@ function ContactHeroAndForm() {
                   </button>
 
                   <p className="text-xs text-center" style={{ color: '#8A857B' }}>
-                    No spam, ever. We&apos;ll never share your information.
+                    Preview form — email{' '}
+                    <a href="mailto:hello@codeoutfitters.ai" className="font-semibold underline" style={{ color: '#17A063' }}>
+                      hello@codeoutfitters.ai
+                    </a>{' '}
+                    for a real reply.
                   </p>
                 </motion.form>
               )}

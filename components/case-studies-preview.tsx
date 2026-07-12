@@ -86,7 +86,7 @@ export function CaseStudiesPreview() {
             font: '600 clamp(28px,3.8vw,42px)/1.15 "Space Grotesk",sans-serif',
             color: '#0A120E', letterSpacing: '-.02em', maxWidth: '700px', margin: '0 auto',
           }}>
-            Real Businesses, <span style={{ color: '#128A54' }}>Real Results</span>
+            Representative <span style={{ color: '#128A54' }}>Automation Outcomes</span>
           </h2>
           <p style={{
             font: '400 15px/1.6 "Instrument Sans",sans-serif',

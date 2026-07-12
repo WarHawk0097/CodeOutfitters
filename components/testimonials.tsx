@@ -1,47 +1,41 @@
 ﻿'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Star } from 'lucide-react'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
 
 const featuredTestimonials = [
   {
-    name: 'Marcus T.',
-    role: 'Owner, Sunrise Realty · Austin, TX',
-    text: 'We were losing leads every weekend when the office was closed. CodeOutfitters built a WhatsApp bot that now qualifies and responds to every inquiry instantly. We closed 3 deals last month that we would have lost before.',
-    stars: 5,
-    result: '3 extra deals closed',
+    text: 'The automation systems have helped our team reduce manual follow-ups significantly. The WhatsApp bot ensures no lead goes unanswered, even after hours.',
+    handle: '— Owner, real estate agency',
+    result: 'Faster lead response',
   },
   {
-    name: 'Jennifer K.',
-    role: 'Operations Mgr, FreshBite Co. · Chicago, IL',
-    text: 'Invoice processing was killing us — 4 hours a day just entering data. The automation they built handles 200+ orders daily with zero errors. My team finally focuses on actual work.',
-    stars: 5,
-    result: '20+ hrs reclaimed weekly',
+    text: 'Invoice processing that used to take hours now happens automatically. The team can focus on actual client work instead of data entry.',
+    handle: '— Operations manager, e-commerce brand',
+    result: 'Reduced manual data entry',
   },
   {
-    name: 'Dr. Samuel R.',
-    role: 'Practice Director, ClearView Clinic · Miami, FL',
-    text: 'The appointment bot cut our phone calls by 90%. Patients love booking 24/7. No-shows dropped 40% because of the automated reminders. Setup was done in 5 days exactly as promised.',
-    stars: 5,
-    result: '90% fewer phone calls',
+    text: 'Automated appointment booking cut our phone call volume substantially. Patients appreciate being able to book 24/7 without waiting on hold.',
+    handle: '— Practice director, healthcare clinic',
+    result: '24/7 self-service booking',
   },
 ]
 
 const marqueeTestimonials = [
-  { name: 'Lisa M.', text: 'Setup was seamless. They handled everything — I just showed them how we work and it was live in 6 days.' },
-  { name: 'Tom K.', text: 'Our response time went from 4 hours to 12 seconds. Clients keep asking what we changed.' },
-  { name: 'Rachel S.', text: 'I was skeptical but the ROI was clear in the first month. We have saved 60+ hours already.' },
-  { name: 'David P.', text: 'The team actually understood our business. Not just tech — they got the workflow.' },
-  { name: 'Amanda W.', text: 'Zero coding on our end. They integrated with our legacy CRM without a single issue.' },
-  { name: 'James R.', text: 'We used to lose leads after hours. Now our WhatsApp bot catches every single one.' },
-  { name: 'Sophia L.', text: 'The 7-day timeline seemed impossible. They shipped in 5. Absolute pros.' },
-  { name: 'Michael B.', text: 'Our support team handles 3x the volume without hiring. Game changer.' },
-  { name: 'Emma D.', text: 'They found automations I didn\'t even know were possible. Worth every penny.' },
-  { name: 'Chris N.', text: 'Onboarding was quick, the documentation was clear, and the results speak for themselves.' },
-  { name: 'Olivia T.', text: 'I wish we had done this years ago. The time savings are transformational.' },
-  { name: 'Alex H.', text: 'They don\'t just build and leave. The post-launch support has been incredible.' },
+  'Setup was seamless — they handled everything end to end.',
+  'Response times improved dramatically after the automation went live.',
+  'The ROI was clear within the first month of using the system.',
+  'They took the time to understand our actual workflow before building anything.',
+  'No coding required on our end. They integrated with our existing tools.',
+  'Leads that used to slip through after hours are now captured automatically.',
+  'The 7-day timeline was accurate — they delivered exactly when promised.',
+  'Support volume is more manageable now that common questions are handled automatically.',
+  'They found automation opportunities we had not considered ourselves.',
+  'The documentation was clear and the handoff was smooth.',
+  'The time savings have been significant — we can redirect focus to growth.',
+  'Post-launch support has been responsive whenever we had questions.',
 ]
 
 function SectionLabel({ text }: { text: string }) {
@@ -56,7 +50,7 @@ function SectionLabel({ text }: { text: string }) {
   )
 }
 
-function MarqueeRow({ dir, items }: { dir: 'left' | 'right'; items: typeof marqueeTestimonials }) {
+function MarqueeRow({ dir, items }: { dir: 'left' | 'right'; items: string[] }) {
   return (
     <div
       style={{
@@ -70,19 +64,12 @@ function MarqueeRow({ dir, items }: { dir: 'left' | 'right'; items: typeof marqu
         animate={{ x: dir === 'left' ? [0, -900] : [-900, 0] }}
         transition={{ repeat: Infinity, duration: 40, ease: 'linear' }}
       >
-        {items.map((t, i) => (
-          <div
-            key={`${t.name}-${i}`}
+        {items.map((text, i) => (
+          <div key={i}
             style={{
-              background: 'rgba(255,255,255,.05)',
-              border: '1px solid rgba(255,255,255,.12)',
-              borderRadius: '18px',
-              padding: '16px 20px',
-              width: '280px',
-              flexShrink: 0,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '8px',
+              background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.12)',
+              borderRadius: '18px', padding: '16px 20px', width: '280px', flexShrink: 0,
+              display: 'flex', flexDirection: 'column', gap: '8px',
             }}
           >
             <div style={{ display: 'flex', gap: '3px' }}>
@@ -90,27 +77,17 @@ function MarqueeRow({ dir, items }: { dir: 'left' | 'right'; items: typeof marqu
                 <Star key={si} size={11} color="#D9B36A" fill="#D9B36A" />
               ))}
             </div>
-            <p style={{ font: '400 12.5px/1.5 "Instrument Sans",sans-serif', color: 'rgba(245,240,232,.7)', margin: 0 }}>
-              &ldquo;{t.text}&rdquo;
+            <p style={{ font: '400 12.5px/1.5 "Instrument Sans",sans-serif', color: 'rgba(245,240,232,.7)', margin: 0, fontStyle: 'italic' }}>
+              &ldquo;{text}&rdquo;
             </p>
-            <span style={{ font: '600 11px/1.4 "Instrument Sans",sans-serif', color: 'rgba(245,240,232,.45)' }}>
-              — {t.name}
-            </span>
           </div>
         ))}
-        {items.map((t, i) => (
-          <div
-            key={`dup-${t.name}-${i}`}
+        {items.map((text, i) => (
+          <div key={`dup-${i}`}
             style={{
-              background: 'rgba(255,255,255,.05)',
-              border: '1px solid rgba(255,255,255,.12)',
-              borderRadius: '18px',
-              padding: '16px 20px',
-              width: '280px',
-              flexShrink: 0,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '8px',
+              background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.12)',
+              borderRadius: '18px', padding: '16px 20px', width: '280px', flexShrink: 0,
+              display: 'flex', flexDirection: 'column', gap: '8px',
             }}
           >
             <div style={{ display: 'flex', gap: '3px' }}>
@@ -118,12 +95,9 @@ function MarqueeRow({ dir, items }: { dir: 'left' | 'right'; items: typeof marqu
                 <Star key={si} size={11} color="#D9B36A" fill="#D9B36A" />
               ))}
             </div>
-            <p style={{ font: '400 12.5px/1.5 "Instrument Sans",sans-serif', color: 'rgba(245,240,232,.7)', margin: 0 }}>
-              &ldquo;{t.text}&rdquo;
+            <p style={{ font: '400 12.5px/1.5 "Instrument Sans",sans-serif', color: 'rgba(245,240,232,.7)', margin: 0, fontStyle: 'italic' }}>
+              &ldquo;{text}&rdquo;
             </p>
-            <span style={{ font: '600 11px/1.4 "Instrument Sans",sans-serif', color: 'rgba(245,240,232,.45)' }}>
-              — {t.name}
-            </span>
           </div>
         ))}
       </motion.div>
@@ -162,11 +136,10 @@ export function Testimonials() {
               letterSpacing: '-.02em',
             }}
           >
-            What our clients say
+            What teams value in an automation partner
           </h2>
         </div>
 
-        {/* Featured testimonial */}
         <div style={{ maxWidth: '700px', margin: '0 auto 48px', position: 'relative', minHeight: '200px' }}>
           <AnimatePresence mode="wait">
             <motion.div
@@ -183,7 +156,7 @@ export function Testimonials() {
               }}
             >
               <div style={{ display: 'flex', gap: '4px', marginBottom: '16px' }}>
-                {Array.from({ length: featuredTestimonials[current].stars }).map((_, i) => (
+                {Array.from({ length: 5 }).map((_, i) => (
                   <Star key={i} size={16} color="#D9B36A" fill="#D9B36A" />
                 ))}
               </div>
@@ -192,18 +165,14 @@ export function Testimonials() {
                   font: '400 17px/1.7 "Instrument Sans",sans-serif',
                   color: 'rgba(245,240,232,.8)',
                   margin: '0 0 20px',
+                  fontStyle: 'italic',
                 }}
               >
                 &ldquo;{featuredTestimonials[current].text}&rdquo;
               </blockquote>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-                <div>
-                  <div style={{ font: '600 14px/1.4 "Space Grotesk",sans-serif', color: '#F5F0E8' }}>
-                    {featuredTestimonials[current].name}
-                  </div>
-                  <div style={{ font: '400 12px "Instrument Sans",sans-serif', color: 'rgba(245,240,232,.45)' }}>
-                    {featuredTestimonials[current].role}
-                  </div>
+                <div style={{ font: '400 13px "Instrument Sans",sans-serif', color: 'rgba(245,240,232,.55)' }}>
+                  {featuredTestimonials[current].handle}
                 </div>
                 <span
                   style={{
@@ -221,7 +190,6 @@ export function Testimonials() {
             </motion.div>
           </AnimatePresence>
 
-          {/* Dot nav */}
           <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '20px' }}>
             {featuredTestimonials.map((_, i) => (
               <button
@@ -243,7 +211,6 @@ export function Testimonials() {
           </div>
         </div>
 
-        {/* Marquee rows */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <MarqueeRow dir="left" items={marqueeTestimonials.slice(0, 6)} />
           <MarqueeRow dir="right" items={marqueeTestimonials.slice(6)} />

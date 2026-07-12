@@ -348,93 +348,75 @@ function IntegrationsMarquee() {
         </motion.div>
       </div>
 
-      <div className="relative overflow-hidden">
+      <div style={{ overflow: 'hidden' }}>
         <div
-          className="flex gap-4 marquee-track"
+          className="marquee-track"
           style={{
-            animation: 'marqueeL 48s linear infinite',
-            width: 'max-content',
+            display: 'flex', gap: '14px', width: 'max-content',
+            animation: 'securityMarquee 48s linear infinite',
           }}
         >
-          {[...Array(2)].map((_, setIdx) => (
-            <div key={setIdx} className="flex gap-4">
-              {integrationLogos.map((name) => (
-                <div
-                  key={`${setIdx}-${name}`}
-                  className="flex items-center gap-3 px-5 py-3 rounded-xl whitespace-nowrap"
-                  style={{
-                    background: 'rgba(255,255,255,.04)',
-                    border: '1px solid rgba(255,255,255,.08)',
-                    transition: 'background .2s, border-color .2s',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(255,255,255,.08)'
-                    e.currentTarget.style.borderColor = 'rgba(217,179,106,.3)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(255,255,255,.04)'
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,.08)'
-                  }}
-                >
-                  <img
-                    src={`/assets/integrations/${name.toLowerCase().replace(/\s+/g, '-')}.svg`}
-                    alt={name}
-                    width={20}
-                    height={20}
-                    className="w-5 h-5 object-contain"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-                  />
-                  <span className="text-sm font-medium" style={{ color: 'rgba(245,240,232,.7)' }}>{name}</span>
-                </div>
-              ))}
+          {integrationLogos.map((name) => (
+            <div key={name}
+              className="flex items-center gap-3 px-5 py-3 rounded-xl whitespace-nowrap"
+              style={{
+                background: 'rgba(255,255,255,.04)',
+                border: '1px solid rgba(255,255,255,.08)',
+                transition: 'background .2s, border-color .2s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,.08)'
+                e.currentTarget.style.borderColor = 'rgba(217,179,106,.3)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,.04)'
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,.08)'
+              }}
+            >
+              <img
+                src={`/assets/integrations/${name.toLowerCase().replace(/\s+/g, '-')}.svg`}
+                alt={name} width={20} height={20}
+                className="w-5 h-5 object-contain"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+              />
+              <span className="text-sm font-medium" style={{ color: 'rgba(245,240,232,.7)' }}>{name}</span>
+            </div>
+          ))}
+          {integrationLogos.map((name) => (
+            <div key={`dup-${name}`}
+              className="flex items-center gap-3 px-5 py-3 rounded-xl whitespace-nowrap"
+              style={{
+                background: 'rgba(255,255,255,.04)',
+                border: '1px solid rgba(255,255,255,.08)',
+                transition: 'background .2s, border-color .2s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,.08)'
+                e.currentTarget.style.borderColor = 'rgba(217,179,106,.3)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,.04)'
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,.08)'
+              }}
+            >
+              <img
+                src={`/assets/integrations/${name.toLowerCase().replace(/\s+/g, '-')}.svg`}
+                alt={name} width={20} height={20}
+                className="w-5 h-5 object-contain"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+              />
+              <span className="text-sm font-medium" style={{ color: 'rgba(245,240,232,.7)' }}>{name}</span>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="relative overflow-hidden mt-4">
-        <div
-          className="flex gap-4 marquee-track"
-          style={{
-            animation: 'marqueeR 48s linear infinite',
-            width: 'max-content',
-          }}
-        >
-          {[...Array(2)].map((_, setIdx) => (
-            <div key={setIdx} className="flex gap-4">
-              {[...integrationLogos].reverse().map((name) => (
-                <div
-                  key={`rev-${setIdx}-${name}`}
-                  className="flex items-center gap-3 px-5 py-3 rounded-xl whitespace-nowrap"
-                  style={{
-                    background: 'rgba(255,255,255,.04)',
-                    border: '1px solid rgba(255,255,255,.08)',
-                    transition: 'background .2s, border-color .2s',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(255,255,255,.08)'
-                    e.currentTarget.style.borderColor = 'rgba(217,179,106,.3)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(255,255,255,.04)'
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,.08)'
-                  }}
-                >
-                  <img
-                    src={`/assets/integrations/${name.toLowerCase().replace(/\s+/g, '-')}.svg`}
-                    alt={name}
-                    width={20}
-                    height={20}
-                    className="w-5 h-5 object-contain"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-                  />
-                  <span className="text-sm font-medium" style={{ color: 'rgba(245,240,232,.7)' }}>{name}</span>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
+      <style>{`
+        @keyframes securityMarquee {
+          from { transform: translateX(0); }
+          to { transform: translateX(-50%); }
+        }
+      `}</style>
     </section>
   )
 }

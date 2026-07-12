@@ -3,10 +3,10 @@
 import { useScrollReveal } from '@/hooks/useScrollReveal'
 
 const stats = [
-  { value: '50K+', label: 'hours automated', color: '#2BD483' },
-  { value: '120+', label: 'automations shipped', color: '#F5F0E8' },
-  { value: '12', label: 'industries served', color: '#F5F0E8' },
-  { value: '98%', label: 'client retention', color: '#D9B36A' },
+  { value: '50K+', label: 'representative hours automated', color: '#2BD483' },
+  { value: '120+', label: 'representative automations shipped', color: '#F5F0E8' },
+  { value: '12', label: 'industries (sample range)', color: '#F5F0E8' },
+  { value: '98%', label: 'representative retention metric', color: '#D9B36A' },
 ]
 
 export function StatsStrip() {

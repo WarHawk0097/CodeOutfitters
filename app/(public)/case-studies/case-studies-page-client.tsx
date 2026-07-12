@@ -151,7 +151,7 @@ function CaseStudiesHero() {
           className="text-[clamp(2rem,4.5vw,3.5rem)] font-semibold leading-[1.1] text-[#F5F0E8] -tracking-[.02em] mb-6"
           style={{ fontFamily: "'Space Grotesk', sans-serif" }}
         >
-          Real businesses. <span style={{ color: '#2BD483' }}>Real results.</span>
+          Representative <span style={{ color: '#2BD483' }}>automation outcomes.</span>
         </motion.h1>
 
         <motion.p
