@@ -100,22 +100,19 @@ const industries = ['All', 'Real Estate', 'E-commerce', 'Healthcare', 'Legal', '
 
 const testimonials = [
   {
-    name: 'Marcus T.',
-    role: 'Owner, Sunrise Realty',
-    text: 'We were losing leads every weekend when the office was closed. CodeOutfitters built a WhatsApp bot that now qualifies and responds to every inquiry instantly. We closed 3 deals last month that we would have lost before.',
-    result: 'Leads no longer slip through overnight',
+    text: 'The WhatsApp bot ensures no lead goes unanswered after hours. Response times are now measured in seconds rather than hours or days.',
+    handle: '— Owner, real estate agency',
+    result: '24/7 lead capture',
   },
   {
-    name: 'Jennifer K.',
-    role: 'Operations Manager, FreshBite Co.',
-    text: 'Invoice processing was killing us — 4 hours a day just entering data. The automation they built handles 200+ orders daily with zero errors. My team finally focuses on actual work.',
-    result: 'Admin work no longer dominates the day',
+    text: 'Invoice automation eliminated hours of daily data entry. The team now focuses on clients instead of spreadsheets.',
+    handle: '— Operations manager, e-commerce brand',
+    result: 'Reduced manual entry',
   },
   {
-    name: 'Dr. Samuel R.',
-    role: 'Practice Director, ClearView Clinic',
-    text: 'The appointment bot cut our phone calls by 90%. Patients love booking 24/7. No-shows dropped 40% because of the automated reminders. Setup was done in 5 days exactly as promised.',
-    result: 'Clients book without calling the office',
+    text: 'Automated booking and reminders mean patients can schedule themselves. Phone call volume dropped substantially and no-shows are much less frequent.',
+    handle: '— Practice director, healthcare clinic',
+    result: 'Self-service booking',
   },
 ]
 
@@ -385,7 +382,7 @@ function TestimonialsRotator() {
               border: '1px solid rgba(217,179,106,.2)',
             }}
           >
-            Client results
+            What teams value
           </span>
         </motion.div>
 
@@ -410,14 +407,8 @@ function TestimonialsRotator() {
               >
                 &ldquo;{testimonials[current].text}&rdquo;
               </blockquote>
-              <p
-                className="font-semibold text-sm"
-                style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#F5F0E8' }}
-              >
-                {testimonials[current].name}
-              </p>
-              <p className="text-xs mt-1" style={{ color: 'rgba(245,240,232,.5)' }}>
-                {testimonials[current].role}
+              <p className="text-xs" style={{ color: 'rgba(245,240,232,.55)' }}>
+                {testimonials[current].handle}
               </p>
               <div
                 className="mt-4 text-xs font-semibold px-4 py-2 rounded-full"
