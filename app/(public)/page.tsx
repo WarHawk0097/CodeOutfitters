@@ -1,22 +1,24 @@
 import { Hero } from '@/components/hero'
+import { StatsStrip } from '@/components/stats-strip'
+import { ToolsMarquee } from '@/components/tools-marquee'
+import { ServicesBento } from '@/components/services-bento'
+import { ProcessPreview } from '@/components/process-preview'
 import { ROICalculator } from '@/components/roi-calculator'
-import { Services } from '@/components/services'
-import { Process } from '@/components/process'
-import { Portfolio } from '@/components/portfolio'
+import { CaseStudiesPreview } from '@/components/case-studies-preview'
 import { Testimonials } from '@/components/testimonials'
 import { FAQ } from '@/components/faq'
 import { CTABanner } from '@/components/cta-banner'
-import { ToolsStrip } from '@/components/tools-strip'
 
 export default function HomePage() {
   return (
     <>
       <Hero />
-      <ToolsStrip />
-      <Services preview hideHeader={false} />
-      <Process />
+      <StatsStrip />
+      <ToolsMarquee />
+      <ServicesBento />
+      <ProcessPreview />
       <ROICalculator />
-      <Portfolio hideHeader={false} />
+      <CaseStudiesPreview />
       <Testimonials />
       <FAQ />
       <CTABanner />

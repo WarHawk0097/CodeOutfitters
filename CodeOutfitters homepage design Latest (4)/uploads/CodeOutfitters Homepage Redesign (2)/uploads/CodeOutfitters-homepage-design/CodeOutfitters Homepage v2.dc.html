@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;padding:0;background:#071E1A;font-family:'Instrument Sans',sans-serif;-webkit-font-smoothing:antialiased}
+@keyframes v2Rise{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+@keyframes v2Orb{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(4%,6%) scale(1.12)}}
+@keyframes v2OrbB{0%,100%{transform:translate(0,0) scale(1.05)}50%{transform:translate(-5%,-4%) scale(1)}}
+@keyframes v2Marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes v2Pulse{0%{box-shadow:0 0 0 0 rgba(20,184,160,.55)}70%{box-shadow:0 0 0 9px rgba(20,184,160,0)}100%{box-shadow:0 0 0 0 rgba(20,184,160,0)}}
+@keyframes v2Sonar{0%,100%{opacity:.14}50%{opacity:.7}}
+@keyframes v2Draw{0%{stroke-dashoffset:340}55%{stroke-dashoffset:0}100%{stroke-dashoffset:0}}
+@keyframes v2AreaFade{0%{opacity:0}55%{opacity:.9}100%{opacity:.9}}
+@keyframes v2Float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes v2FloatB{0%,100%{transform:translateY(0)}50%{transform:translateY(9px)}}
+@keyframes v2Blink{0%,100%{opacity:.25}50%{opacity:1}}
+@keyframes v2Shimmer{from{background-position:200% center}to{background-position:-200% center}}
+</style>
+</helmet>
+
+<div ref="{{ registerRoot }}" style="background:#FAF5EB;min-width:1280px">
+
+<!-- ============ NAV ============ -->
+<div data-screen-label="Nav" style="position:sticky;top:0;z-index:50;background:rgba(7,30,26,.86);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.08)">
+<div style="max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:76px;padding:0 32px">
+<div style="display:flex;align-items:center;gap:10px">
+<img src="assets/logo-mark.svg" style="width:30px;height:30px;filter:brightness(1.6)" alt="">
+<span style="font:600 19px 'Instrument Sans',sans-serif;color:#FAF5EB;letter-spacing:-.01em">CodeOutfitters</span>
+</div>
+<div style="display:flex;align-items:center;gap:34px">
+<a href="#services" style="font:500 15px 'Instrument Sans',sans-serif;color:rgba(250,245,235,.72);text-decoration:none" style-hover="color:#FAF5EB">Services</a>
+<a href="#hermes" style="font:500 15px 'Instrument Sans',sans-serif;color:rgba(250,245,235,.72);text-decoration:none" style-hover="color:#FAF5EB">Hermes AI</a>
+<a href="#process" style="font:500 15px 'Instrument Sans',sans-serif;color:rgba(250,245,235,.72);text-decoration:none" style-hover="color:#FAF5EB">Process</a>
+<a href="#results" style="font:500 15px 'Instrument Sans',sans-serif;color:rgba(250,245,235,.72);text-decoration:none" style-hover="color:#FAF5EB">Results</a>
+</div>
+<button style="font:600 15px 'Instrument Sans',sans-serif;color:#071E1A;background:#14B8A0;border:none;border-radius:10px;padding:12px 22px;cursor:pointer;transition:transform .15s ease, box-shadow .15s ease" style-hover="transform:translateY(-1px);box-shadow:0 10px 26px rgba(20,184,160,.35)">Book a Free Audit</button>
+</div>
+</div>
+
+<!-- ============ HERO ============ -->
+<div data-screen-label="Hero" style="position:relative;background:radial-gradient(1100px 620px at 78% -10%, rgba(20,184,160,.16), transparent 62%), radial-gradient(800px 500px at 8% 110%, rgba(227,176,75,.10), transparent 60%), #071E1A;overflow:hidden">
+<div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);background-size:56px 56px;mask-image:radial-gradient(900px 600px at 60% 30%, #000 30%, transparent 75%);pointer-events:none"></div>
+<div style="position:absolute;top:-160px;right:-120px;width:520px;height:520px;border-radius:999px;background:radial-gradient(circle, rgba(20,184,160,.22), transparent 68%);filter:blur(50px);animation:v2Orb 16s ease-in-out infinite;pointer-events:none"></div>
+<div style="position:absolute;bottom:-180px;left:-100px;width:440px;height:440px;border-radius:999px;background:radial-gradient(circle, rgba(227,176,75,.16), transparent 68%);filter:blur(56px);animation:v2OrbB 19s ease-in-out infinite;pointer-events:none"></div>
+
+<div style="position:relative;max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center;padding:88px 32px 104px">
+
+<div style="display:flex;flex-direction:column;align-items:flex-start;gap:28px">
+<div style="display:flex;align-items:center;gap:9px;background:rgba(20,184,160,.10);border:1px solid rgba(20,184,160,.35);border-radius:999px;padding:8px 16px;animation:v2Rise .8s cubic-bezier(.16,1,.3,1) both">
+<img src="assets/icon-sparkle-badge.svg" style="width:14px;height:14px;filter:brightness(1.8)" alt="">
+<span style="font:700 12px 'Instrument Sans',sans-serif;letter-spacing:.1em;color:#2BD4BA;text-transform:uppercase">AI automation, built for impact</span>
+</div>
+<h1 style="margin:0;font:600 66px/1.05 'Fraunces',serif;color:#FAF5EB;letter-spacing:-.015em;animation:v2Rise .8s cubic-bezier(.16,1,.3,1) .12s both">Automation that pays for itself in <em style="font-style:italic;color:transparent;background:linear-gradient(90deg,#E3B04B 20%,#F4D68A 40%,#E3B04B 60%);background-size:200% auto;-webkit-background-clip:text;background-clip:text;animation:v2Shimmer 5s linear infinite">90 days.</em></h1>
+<p style="margin:0;font:400 19px/1.6 'Instrument Sans',sans-serif;color:rgba(250,245,235,.68);max-width:480px;animation:v2Rise .8s cubic-bezier(.16,1,.3,1) .24s both">We connect your data, deploy intelligent agents, and automate the workflows that eat your team's week — measured in tickets resolved, hours saved, and revenue kept.</p>
+<div style="display:flex;align-items:center;gap:16px;animation:v2Rise .8s cubic-bezier(.16,1,.3,1) .36s both">
+<button style="display:flex;align-items:center;gap:10px;font:600 16px 'Instrument Sans',sans-serif;color:#071E1A;background:#14B8A0;border:none;border-radius:12px;padding:16px 28px;cursor:pointer;box-shadow:0 14px 34px rgba(20,184,160,.30);transition:transform .15s ease, box-shadow .15s ease" style-hover="transform:translateY(-2px);box-shadow:0 20px 44px rgba(20,184,160,.42)">Book a Free Audit
+<img src="assets/icon-arrow-right.svg" style="width:15px;height:15px" alt=""></button>
+<button style="font:600 16px 'Instrument Sans',sans-serif;color:#FAF5EB;background:transparent;border:1px solid rgba(250,245,235,.25);border-radius:12px;padding:15px 26px;cursor:pointer;transition:border-color .15s ease, background .15s ease" style-hover="border-color:rgba(250,245,235,.55);background:rgba(255,255,255,.04)">See how it works</button>
+</div>
+<div style="display:flex;align-items:center;gap:22px;animation:v2Rise .8s cubic-bezier(.16,1,.3,1) .48s both">
+<div style="display:flex;align-items:center;gap:7px"><img src="assets/icon-automate.svg" style="width:16px;height:16px;filter:brightness(2)" alt=""><span style="font:500 14px 'Instrument Sans',sans-serif;color:rgba(250,245,235,.6)">Automate</span></div>
+<div style="display:flex;align-items:center;gap:7px"><img src="assets/icon-orchestrate.svg" style="width:16px;height:16px;filter:brightness(2)" alt=""><span style="font:500 14px 'Instrument Sans',sans-serif;color:rgba(250,245,235,.6)">Orchestrate</span></div>
+<div style="display:flex;align-items:center;gap:7px"><img src="assets/icon-scale.svg" style="width:16px;height:16px;filter:brightness(2)" alt=""><span style="font:500 14px 'Instrument Sans',sans-serif;color:rgba(250,245,235,.6)">Scale</span></div>
+</div>
+</div>
+
+<div style="position:relative;animation:v2Rise .9s cubic-bezier(.16,1,.3,1) .3s both">
+<div style="position:relative;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:24px;padding:26px;backdrop-filter:blur(6px);box-shadow:0 40px 90px rgba(0,0,0,.45)">
+<img src="assets/hero-visual.png" style="width:100%;height:auto;display:block;border-radius:14px" alt="AI Agents, Workflows and Data platform visual">
+</div>
+<div style="position:absolute;top:-22px;left:-30px;display:flex;align-items:center;gap:12px;background:#FFFDF8;border-radius:16px;padding:14px 18px;box-shadow:0 22px 50px rgba(0,0,0,.35);animation:v2Float 6s ease-in-out infinite">
+<svg viewBox="0 0 120 68" width="66" height="37"><path d="M8 60A52 52 0 0 1 112 60" stroke="#E8F5F1" stroke-width="10" fill="none" stroke-linecap="round"></path><path d="M8 60A52 52 0 0 1 112 60" stroke="#078A7B" stroke-width="10" fill="none" stroke-linecap="round" stroke-dasharray="163" stroke-dashoffset="13"></path></svg>
+<div><div data-count style="font:700 22px 'Instrument Sans',sans-serif;color:#10100E">92%</div><div style="font:500 11px 'Instrument Sans',sans-serif;color:#8A857B">tickets auto-resolved</div></div>
+</div>
+<div style="position:absolute;bottom:-20px;right:-24px;display:flex;align-items:center;gap:10px;background:#FFFDF8;border-radius:14px;padding:12px 16px;box-shadow:0 22px 50px rgba(0,0,0,.35);animation:v2FloatB 7s ease-in-out infinite">
+<span style="width:9px;height:9px;border-radius:999px;background:#14B8A0;animation:v2Pulse 1.9s ease-out infinite"></span>
+<span style="font:600 13px 'Instrument Sans',sans-serif;color:#10100E">Hermes is live — 38 conversations now</span>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ============ LOGO MARQUEE ============ -->
+<div data-screen-label="Trust" style="background:#071E1A;border-top:1px solid rgba(255,255,255,.06);padding:26px 0 34px;overflow:hidden">
+<div style="max-width:1200px;margin:0 auto 18px;padding:0 32px;text-align:center">
+<span style="font:700 11.5px 'Instrument Sans',sans-serif;letter-spacing:.18em;color:rgba(250,245,235,.42);text-transform:uppercase">Trusted by growing businesses</span>
+</div>
+<div style="position:relative">
+<div style="position:absolute;left:0;top:0;bottom:0;width:140px;background:linear-gradient(90deg,#071E1A,transparent);z-index:2;pointer-events:none"></div>
+<div style="position:absolute;right:0;top:0;bottom:0;width:140px;background:linear-gradient(270deg,#071E1A,transparent);z-index:2;pointer-events:none"></div>
+<div style="display:flex;width:max-content;gap:72px;animation:v2Marquee 26s linear infinite;padding:6px 0">
+<sc-for list="{{ marqueeLogos }}" as="logo" hint-placeholder-count="12">
+<span style="font:600 19px 'Fraunces',serif;color:rgba(250,245,235,.5);white-space:nowrap;letter-spacing:.01em">{{ logo }}</span>
+</sc-for>
+</div>
+</div>
+</div>
+
+<!-- ============ METRICS BAND ============ -->
+<div data-screen-label="Metrics" id="results" style="background:#FAF5EB;border-bottom:1px solid #EADFC9">
+<div style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);padding:56px 32px">
+<div style="display:flex;flex-direction:column;gap:6px;padding:0 36px;border-right:1px solid #EADFC9">
+<span data-count style="font:600 46px 'Fraunces',serif;color:#10100E">1,248</span>
+<span style="font:500 14px 'Instrument Sans',sans-serif;color:#8A857B">tickets resolved weekly</span>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px;padding:0 36px;border-right:1px solid #EADFC9">
+<span data-count style="font:600 46px 'Fraunces',serif;color:#10100E">92%</span>
+<span style="font:500 14px 'Instrument Sans',sans-serif;color:#8A857B">auto-resolution rate</span>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px;padding:0 36px;border-right:1px solid #EADFC9">
+<span data-count style="font:600 46px 'Fraunces',serif;color:#078A7B">28%</span>
+<span style="font:500 14px 'Instrument Sans',sans-serif;color:#8A857B">average cost reduction</span>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px;padding:0 36px">
+<span data-count style="font:600 46px 'Fraunces',serif;color:#10100E">50K+</span>
+<span style="font:500 14px 'Instrument Sans',sans-serif;color:#8A857B">hours automated to date</span>
+</div>
+</div>
+</div>
+
+<!-- ============ SERVICES ============ -->
+<div data-screen-label="Services" id="services" style="background:#FAF5EB">
+<div style="max-width:1200px;margin:0 auto;padding:96px 32px">
+<div style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:56px;text-align:center">
+<span style="font:700 12px 'Instrument Sans',sans-serif;letter-spacing:.14em;color:#078A7B;text-transform:uppercase">What we build</span>
+<h2 style="margin:0;font:600 46px/1.12 'Fraunces',serif;color:#10100E;letter-spacing:-.01em;max-width:640px">Intelligent systems for <em style="font-style:italic;color:#078A7B">modern business.</em></h2>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px">
+
+<div style="background:#FFFDF8;border:1px solid #EADFC9;border-radius:20px;padding:30px;display:flex;flex-direction:column;gap:14px;transition:transform .2s ease, box-shadow .2s ease" style-hover="transform:translateY(-4px);box-shadow:0 24px 50px rgba(32,24,12,.12)">
+<div style="display:flex;align-items:center;justify-content:space-between">
+<h3 style="margin:0;font:600 21px 'Instrument Sans',sans-serif;color:#10100E">AI Helpdesk</h3>
+<span style="display:inline-flex;align-items:center;gap:7px;font:600 12px 'Instrument Sans',sans-serif;color:#05766B;background:#E8F5F1;border:1px solid rgba(7,138,123,.25);border-radius:999px;padding:6px 11px"><span style="width:8px;height:8px;border-radius:999px;background:#14B8A0;animation:v2Pulse 1.9s ease-out infinite"></span>Live now</span>
+</div>
+<p style="margin:0;font:400 15px/1.55 'Instrument Sans',sans-serif;color:#68645D">Smart agents resolve routine tickets end-to-end and hand off the rest with full context.</p>
+<div style="display:flex;align-items:center;gap:18px;margin-top:auto;padding-top:8px">
+<svg viewBox="0 0 120 68" width="104" height="59"><path d="M8 60A52 52 0 0 1 112 60" stroke="#E8F5F1" stroke-width="10" fill="none" stroke-linecap="round"></path><path d="M8 60A52 52 0 0 1 112 60" stroke="#078A7B" stroke-width="10" fill="none" stroke-linecap="round" stroke-dasharray="163" stroke-dashoffset="13"></path></svg>
+<div><div data-count style="font:700 26px 'Instrument Sans',sans-serif;color:#10100E">92%</div><div style="font:500 12px 'Instrument Sans',sans-serif;color:#8A857B">resolved · 1,248 tickets</div></div>
+</div>
+</div>
+
+<div style="background:#FFFDF8;border:1px solid #EADFC9;border-radius:20px;padding:30px;display:flex;flex-direction:column;gap:14px;transition:transform .2s ease, box-shadow .2s ease" style-hover="transform:translateY(-4px);box-shadow:0 24px 50px rgba(32,24,12,.12)">
+<h3 style="margin:0;font:600 21px 'Instrument Sans',sans-serif;color:#10100E">Booking Automation</h3>
+<p style="margin:0;font:400 15px/1.55 'Instrument Sans',sans-serif;color:#68645D">Scheduling, confirmations and follow-ups run themselves — no-shows drop, calendars fill.</p>
+<div style="display:flex;flex-direction:column;gap:9px;margin-top:auto;padding-top:8px">
+<div style="display:flex;align-items:center;justify-content:space-between;background:#F6EFE0;border-radius:10px;padding:10px 14px">
+<span style="font:500 13px 'Instrument Sans',sans-serif;color:#26231E">Tue 10:30 — Discovery call</span>
+<span style="display:flex;align-items:center;gap:6px;font:600 11.5px 'Instrument Sans',sans-serif;color:#05766B"><img src="assets/icon-confirmed-dot.svg" style="width:10px;height:10px" alt="">Confirmed</span>
+</div>
+<div style="display:flex;align-items:center;justify-content:space-between;background:#F6EFE0;border-radius:10px;padding:10px 14px">
+<span style="font:500 13px 'Instrument Sans',sans-serif;color:#26231E">Tue 14:00 — Onboarding</span>
+<span style="display:flex;align-items:center;gap:6px;font:600 11.5px 'Instrument Sans',sans-serif;color:#05766B"><img src="assets/icon-confirmed-dot.svg" style="width:10px;height:10px" alt="">Confirmed</span>
+</div>
+<div style="display:flex;align-items:center;justify-content:space-between;border:1px dashed #D9CDB4;border-radius:10px;padding:10px 14px">
+<span style="font:500 13px 'Instrument Sans',sans-serif;color:#8A857B">Wed 09:00 — Follow-up</span>
+<span style="font:600 11.5px 'Instrument Sans',sans-serif;color:#B9791F;animation:v2Blink 2.2s ease-in-out infinite">Sending reminder…</span>
+</div>
+</div>
+</div>
+
+<div style="background:#FFFDF8;border:1px solid #EADFC9;border-radius:20px;padding:30px;display:flex;flex-direction:column;gap:14px;transition:transform .2s ease, box-shadow .2s ease" style-hover="transform:translateY(-4px);box-shadow:0 24px 50px rgba(32,24,12,.12)">
+<h3 style="margin:0;font:600 21px 'Instrument Sans',sans-serif;color:#10100E">Data &amp; Workflows</h3>
+<p style="margin:0;font:400 15px/1.55 'Instrument Sans',sans-serif;color:#68645D">Your tools, connected. Pipelines and analytics that surface what matters, when it matters.</p>
+<div style="margin-top:auto;padding-top:8px">
+<svg viewBox="0 0 260 96" width="100%" height="96" preserveAspectRatio="none">
+<line x1="0" y1="24" x2="260" y2="24" stroke="#EADFC9" stroke-width="1"></line>
+<line x1="0" y1="48" x2="260" y2="48" stroke="#EADFC9" stroke-width="1"></line>
+<line x1="0" y1="72" x2="260" y2="72" stroke="#EADFC9" stroke-width="1"></line>
+<path d="M0 80 C30 74 44 60 66 58 C92 56 104 66 128 56 C152 46 166 30 196 26 C222 22 240 18 260 12 L260 96 L0 96 Z" fill="rgba(7,138,123,.10)" style="animation:v2AreaFade 7s ease-in-out infinite"></path>
+<path d="M0 80 C30 74 44 60 66 58 C92 56 104 66 128 56 C152 46 166 30 196 26 C222 22 240 18 260 12" stroke="#078A7B" stroke-width="2.5" fill="none" stroke-dasharray="340" style="animation:v2Draw 7s ease-in-out infinite"></path>
+</svg>
+<div style="display:flex;align-items:center;gap:8px;margin-top:6px"><span data-count style="font:700 22px 'Instrument Sans',sans-serif;color:#078A7B">↑28%</span><span style="font:500 12.5px 'Instrument Sans',sans-serif;color:#8A857B">pipeline efficiency this quarter</span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ============ HERMES SPOTLIGHT ============ -->
+<div data-screen-label="Hermes" id="hermes" style="position:relative;background:radial-gradient(900px 520px at 20% 0%, rgba(20,184,160,.14), transparent 60%), #071E1A;overflow:hidden">
+<div style="position:absolute;bottom:-140px;right:-80px;width:420px;height:420px;border-radius:999px;background:radial-gradient(circle, rgba(20,184,160,.16), transparent 68%);filter:blur(52px);animation:v2Orb 18s ease-in-out infinite;pointer-events:none"></div>
+<div style="position:relative;max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center;padding:100px 32px">
+
+<div style="display:flex;flex-direction:column;align-items:flex-start;gap:22px">
+<span style="font:700 12px 'Instrument Sans',sans-serif;letter-spacing:.14em;color:#2BD4BA;text-transform:uppercase">Meet Hermes</span>
+<h2 style="margin:0;font:600 46px/1.12 'Fraunces',serif;color:#FAF5EB;letter-spacing:-.01em">Your support team's <em style="font-style:italic;color:#E3B04B">tireless first responder.</em></h2>
+<p style="margin:0;font:400 17px/1.65 'Instrument Sans',sans-serif;color:rgba(250,245,235,.66);max-width:460px">Hermes reads context, checks your systems, and answers customers in seconds — escalating to humans only when it should, with the full conversation attached.</p>
+<div style="display:flex;flex-direction:column;gap:13px;margin-top:4px">
+<div style="display:flex;align-items:center;gap:11px"><img src="assets/hermes-shield-check.svg" style="width:19px;height:19px" alt=""><span style="font:500 15px 'Instrument Sans',sans-serif;color:rgba(250,245,235,.82)">Answers grounded in your docs and order data</span></div>
+<div style="display:flex;align-items:center;gap:11px"><img src="assets/hermes-shield-check.svg" style="width:19px;height:19px" alt=""><span style="font:500 15px 'Instrument Sans',sans-serif;color:rgba(250,245,235,.82)">Takes action: refunds, reschedules, status checks</span></div>
+<div style="display:flex;align-items:center;gap:11px"><img src="assets/hermes-shield-check.svg" style="width:19px;height:19px" alt=""><span style="font:500 15px 'Instrument Sans',sans-serif;color:rgba(250,245,235,.82)">Escalates with full context, never a cold handoff</span></div>
+</div>
+</div>
+
+<div style="position:relative">
+<svg viewBox="0 0 200 200" style="position:absolute;top:-46px;right:-40px;width:170px;height:170px;pointer-events:none">
+<circle cx="100" cy="100" r="40" fill="none" stroke="#2BD4BA" stroke-width="1" style="animation:v2Sonar 3s ease-in-out infinite"></circle>
+<circle cx="100" cy="100" r="64" fill="none" stroke="#2BD4BA" stroke-width="1" style="animation:v2Sonar 3s ease-in-out .55s infinite"></circle>
+<circle cx="100" cy="100" r="88" fill="none" stroke="#2BD4BA" stroke-width="1" style="animation:v2Sonar 3s ease-in-out 1.1s infinite"></circle>
+<circle cx="100" cy="100" r="6" fill="#2BD4BA"></circle>
+</svg>
+<div style="background:#FFFDF8;border-radius:20px;padding:22px;box-shadow:0 40px 90px rgba(0,0,0,.5)">
+<div style="display:flex;align-items:center;gap:11px;padding-bottom:14px;border-bottom:1px solid #EFE7D6">
+<img src="assets/icon-ai-agent-face.svg" style="width:34px;height:34px" alt="">
+<div style="display:flex;flex-direction:column">
+<span style="font:600 15px 'Instrument Sans',sans-serif;color:#10100E">Hermes</span>
+<span style="display:flex;align-items:center;gap:6px;font:500 12px 'Instrument Sans',sans-serif;color:#05766B"><span style="width:7px;height:7px;border-radius:999px;background:#14B8A0;animation:v2Pulse 1.9s ease-out infinite"></span>Online · avg reply 4s</span>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:11px;padding-top:16px;min-height:238px">
+<sc-for list="{{ chatMessages }}" as="msg" hint-placeholder-count="2">
+<div style="display:flex" dir-style="{{ msg.align }}">
+<div style="max-width:78%;border-radius:14px;padding:11px 15px;font:400 14px/1.5 'Instrument Sans',sans-serif;animation:v2Rise .45s cubic-bezier(.16,1,.3,1) both" dir-style="{{ msg.bubble }}">{{ msg.text }}</div>
+</div>
+</sc-for>
+<sc-if value="{{ typing }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex">
+<div style="display:flex;gap:5px;background:#F1EADB;border-radius:14px;padding:14px 16px;animation:v2Rise .3s ease both">
+<span style="width:7px;height:7px;border-radius:999px;background:#8A857B;animation:v2Blink 1s ease-in-out infinite"></span>
+<span style="width:7px;height:7px;border-radius:999px;background:#8A857B;animation:v2Blink 1s ease-in-out .2s infinite"></span>
+<span style="width:7px;height:7px;border-radius:999px;background:#8A857B;animation:v2Blink 1s ease-in-out .4s infinite"></span>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ resolved }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;justify-content:center;margin-top:2px">
+<span style="display:inline-flex;align-items:center;gap:7px;font:600 12px 'Instrument Sans',sans-serif;color:#05766B;background:#E8F5F1;border:1px solid rgba(7,138,123,.25);border-radius:999px;padding:7px 14px;animation:v2Rise .45s ease both"><img src="assets/icon-check-square.svg" style="width:12px;height:12px" alt="">Resolved automatically · CSAT 5/5</span>
+</div>
+</sc-if>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ============ PROCESS ============ -->
+<div data-screen-label="Process" id="process" style="background:#FAF5EB">
+<div style="max-width:1200px;margin:0 auto;padding:96px 32px">
+<div style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:64px;text-align:center">
+<span style="font:700 12px 'Instrument Sans',sans-serif;letter-spacing:.14em;color:#078A7B;text-transform:uppercase">How we work</span>
+<h2 style="margin:0;font:600 46px/1.12 'Fraunces',serif;color:#10100E;letter-spacing:-.01em">Audit to impact, <em style="font-style:italic;color:#078A7B">in four steps.</em></h2>
+</div>
+<div style="position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:28px">
+<div style="position:absolute;top:27px;left:12%;right:12%;height:2px;background:repeating-linear-gradient(90deg,#D9CDB4 0 8px,transparent 8px 16px)"></div>
+<sc-for list="{{ processSteps }}" as="step" hint-placeholder-count="4">
+<div style="position:relative;display:flex;flex-direction:column;gap:14px">
+<div style="width:54px;height:54px;border-radius:999px;background:#071E1A;color:#2BD4BA;display:flex;align-items:center;justify-content:center;font:600 20px 'Fraunces',serif;box-shadow:0 10px 24px rgba(7,30,26,.25)">{{ step.n }}</div>
+<h3 style="margin:0;font:600 19px 'Instrument Sans',sans-serif;color:#10100E">{{ step.title }}</h3>
+<p style="margin:0;font:400 14.5px/1.6 'Instrument Sans',sans-serif;color:#68645D">{{ step.body }}</p>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+
+<!-- ============ TESTIMONIAL ============ -->
+<div data-screen-label="Testimonial" style="background:#FAF5EB;border-top:1px solid #EADFC9">
+<div style="max-width:900px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:26px;padding:88px 32px;text-align:center">
+<div style="display:flex;gap:5px">
+<img src="assets/icon-star-filled.svg" style="width:20px;height:20px" alt=""><img src="assets/icon-star-filled.svg" style="width:20px;height:20px" alt=""><img src="assets/icon-star-filled.svg" style="width:20px;height:20px" alt=""><img src="assets/icon-star-filled.svg" style="width:20px;height:20px" alt=""><img src="assets/icon-star-filled.svg" style="width:20px;height:20px" alt="">
+</div>
+<blockquote style="margin:0;font:500 30px/1.45 'Fraunces',serif;color:#10100E;letter-spacing:-.005em">“CodeOutfitters automated our entire intake flow in six weeks. Our team stopped drowning in tickets and started talking to customers who actually need a human.”</blockquote>
+<div style="display:flex;flex-direction:column;gap:3px">
+<span style="font:600 15px 'Instrument Sans',sans-serif;color:#10100E">Maya Okafor</span>
+<span style="font:500 13.5px 'Instrument Sans',sans-serif;color:#8A857B">COO, Harbor Health</span>
+</div>
+</div>
+</div>
+
+<!-- ============ CTA ============ -->
+<div data-screen-label="CTA" style="position:relative;background:radial-gradient(800px 400px at 50% -20%, rgba(20,184,160,.20), transparent 65%), #071E1A;overflow:hidden">
+<div style="position:absolute;top:-120px;left:20%;width:380px;height:380px;border-radius:999px;background:radial-gradient(circle, rgba(227,176,75,.12), transparent 68%);filter:blur(50px);animation:v2OrbB 17s ease-in-out infinite;pointer-events:none"></div>
+<div style="position:relative;max-width:760px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:24px;padding:100px 32px;text-align:center">
+<h2 style="margin:0;font:600 52px/1.1 'Fraunces',serif;color:#FAF5EB;letter-spacing:-.01em">Find out what your week costs you.</h2>
+<p style="margin:0;font:400 17px/1.6 'Instrument Sans',sans-serif;color:rgba(250,245,235,.66);max-width:480px">A free 45-minute audit. We map your workflows, find the three biggest automation wins, and hand you the plan — yours to keep either way.</p>
+<button style="display:flex;align-items:center;gap:10px;font:600 17px 'Instrument Sans',sans-serif;color:#071E1A;background:#14B8A0;border:none;border-radius:12px;padding:18px 34px;cursor:pointer;box-shadow:0 16px 40px rgba(20,184,160,.32);transition:transform .15s ease, box-shadow .15s ease" style-hover="transform:translateY(-2px);box-shadow:0 24px 52px rgba(20,184,160,.45)">Book a Free Audit
+<img src="assets/icon-arrow-right.svg" style="width:16px;height:16px" alt=""></button>
+</div>
+</div>
+
+<!-- ============ FOOTER ============ -->
+<div data-screen-label="Footer" style="background:#051512;border-top:1px solid rgba(255,255,255,.06)">
+<div style="max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:34px 32px">
+<div style="display:flex;align-items:center;gap:9px">
+<img src="assets/logo-mark.svg" style="width:22px;height:22px;filter:brightness(1.6)" alt="">
+<span style="font:600 15px 'Instrument Sans',sans-serif;color:rgba(250,245,235,.85)">CodeOutfitters</span>
+</div>
+<div style="display:flex;align-items:center;gap:28px">
+<a href="#services" style="font:500 13.5px 'Instrument Sans',sans-serif;color:rgba(250,245,235,.5);text-decoration:none" style-hover="color:rgba(250,245,235,.9)">Services</a>
+<a href="#hermes" style="font:500 13.5px 'Instrument Sans',sans-serif;color:rgba(250,245,235,.5);text-decoration:none" style-hover="color:rgba(250,245,235,.9)">Hermes AI</a>
+<a href="#process" style="font:500 13.5px 'Instrument Sans',sans-serif;color:rgba(250,245,235,.5);text-decoration:none" style-hover="color:rgba(250,245,235,.9)">Process</a>
+<a href="#results" style="font:500 13.5px 'Instrument Sans',sans-serif;color:rgba(250,245,235,.5);text-decoration:none" style-hover="color:rgba(250,245,235,.9)">Results</a>
+</div>
+<span style="font:400 13px 'Instrument Sans',sans-serif;color:rgba(250,245,235,.35)">© 2026 CodeOutfitters</span>
+</div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+class Component extends DCLogic {
+  state = { chatStep: 0 };
+
+  registerRoot = (el) => { this.rootEl = el; };
+
+  _script = [
+    { role: 'user', text: 'Hi — where is my order #4821? It was supposed to arrive yesterday.' },
+    { role: 'bot', text: 'Checking with the carrier now… your package cleared the local hub at 7:40 AM and is out for delivery today before 6 PM.' },
+    { role: 'user', text: 'Great — can you also update the delivery address for my next order?' },
+    { role: 'bot', text: 'Done. Order #4830 will now ship to your Maple St address. Anything else?' }
+  ];
+
+  renderVals() {
+    const step = this.state.chatStep;
+    const shown = this._script.slice(0, Math.floor(step / 2) + (step % 2 === 0 ? 0 : 0) + Math.ceil(step / 2));
+    // step encoding: even = typing before message (step/2 messages shown), odd = (step+1)/2 messages shown
+    const msgCount = Math.floor((step + 1) / 2);
+    const typing = step % 2 === 0 && step < this._script.length * 2;
+    const messages = this._script.slice(0, msgCount).map(m => ({
+      text: m.text,
+      align: m.role === 'user' ? { justifyContent: 'flex-end' } : { justifyContent: 'flex-start' },
+      bubble: m.role === 'user'
+        ? { background: '#071E1A', color: '#FAF5EB', borderBottomRightRadius: '4px' }
+        : { background: '#F1EADB', color: '#26231E', borderBottomLeftRadius: '4px' }
+    }));
+    return {
+      registerRoot: this.registerRoot,
+      chatMessages: messages,
+      typing: typing && msgCount < this._script.length,
+      resolved: msgCount >= this._script.length,
+      marqueeLogos: this._marquee,
+      processSteps: [
+        { n: '1', title: 'Audit', body: 'We map your workflows and data, and price out where the hours actually go.' },
+        { n: '2', title: 'Design', body: 'A blueprint of agents, integrations and automations — scoped to ROI, not hype.' },
+        { n: '3', title: 'Build', body: 'We ship in weekly increments you can test, on your stack, with your data.' },
+        { n: '4', title: 'Scale', body: 'We monitor, tune and expand what works. You see the numbers move.' }
+      ]
+    };
+  }
+
+  get _marquee() {
+    const names = ['Harbor Health', 'Fieldstone Legal', 'Nova Retail', 'Brightpath Realty', 'Lumen Logistics', 'Atlas Clinics'];
+    return names.concat(names); // duplicated for seamless loop
+  }
+
+  componentDidMount() {
+    this._timers = [];
+
+    // ---- Chat conversation loop (typing -> message -> ... -> resolved -> restart) ----
+    const totalSteps = this._script.length * 2; // typing+message per line
+    const advance = () => {
+      this.setState(s => {
+        let next = s.chatStep + 1;
+        if (next > totalSteps + 2) next = 0; // hold on resolved, then restart
+        return { chatStep: next };
+      });
+      const cur = this.state.chatStep;
+      const isTypingNext = cur % 2 === 1; // after increment, even steps show typing
+      const delay = cur >= totalSteps ? 2600 : (isTypingNext ? 1900 : 1300);
+      this._timers.push(setTimeout(advance, delay));
+    };
+    this._timers.push(setTimeout(advance, 1400));
+
+    // ---- Count-up stats (interval-driven, rAF-safe) ----
+    const NUM = /^([↑↓]\s*)?([$£€]?)(\d[\d,]*)(K)?(\+)?(%)?$/;
+    const root = this.rootEl;
+    if (root) {
+      root.querySelectorAll('[data-count]').forEach(el => {
+        const raw = el.textContent.trim();
+        const m = raw.match(NUM);
+        if (!m) return;
+        const arrow = m[1] || '', cur = m[2] || '', digits = m[3], K = m[4] || '', plus = m[5] || '', pct = m[6] || '';
+        const target = parseInt(digits.replace(/,/g, ''), 10);
+        if (!isFinite(target) || target === 0) return;
+        const comma = digits.indexOf(',') !== -1;
+        const fmt = (n) => arrow + cur + (comma ? n.toLocaleString('en-US') : String(n)) + K + plus + pct;
+        const steps = 36, dur = 1500;
+        let i = 0;
+        el.textContent = fmt(0);
+        const iv = setInterval(() => {
+          i++;
+          const t = Math.min(1, i / steps);
+          const e = 1 - Math.pow(1 - t, 3);
+          el.textContent = fmt(Math.round(target * e));
+          if (t >= 1) { clearInterval(iv); el.textContent = raw; }
+        }, dur / steps);
+        this._timers.push(iv);
+      });
+    }
+  }
+
+  componentWillUnmount() {
+    if (this._timers) this._timers.forEach(t => { clearTimeout(t); clearInterval(t); });
+  }
+}
+</script>
+</body>
+</html>

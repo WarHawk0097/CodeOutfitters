@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, Zap } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import useNavScroll from '@/lib/animations/useNavScroll'
@@ -45,48 +45,49 @@ export function Navbar() {
   return (
     <>
       <nav
-        className={`sticky top-0 z-40 bg-[rgba(250,250,247,0.92)] backdrop-blur-md border-b border-[rgba(28,22,18,0.06)] transition-transform duration-300 ${
+        className={`sticky top-0 z-50 bg-[rgba(247,242,234,.92)] backdrop-blur-[14px] border-b border-[#E5DCCB] transition-transform duration-300 ${
           isHidden ? '-translate-y-full' : 'translate-y-0'
         }`}
       >
-        <div ref={innerRef} className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/" className="nav-logo flex items-center gap-2 group flex-shrink-0" aria-label="CodeOutfitters home">
-              <div className="w-9 h-9 rounded-lg bg-[#2A6B5A] flex items-center justify-center group-hover:shadow-[0_4px_12px_rgba(42,107,90,0.35)] transition-all duration-300">
-                <Zap className="w-5 h-5 text-white" fill="white" />
-              </div>
-              <span className="font-heading text-lg font-bold tracking-tight text-[#1C1612]">
-                Code<span className="text-[#2A6B5A]">Outfitters</span>
+        <div ref={innerRef} className="max-w-[1180px] mx-auto px-5 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between min-h-[68px] gap-3.5">
+            <Link href="/" className="nav-logo flex items-center gap-2.5 flex-shrink-0" aria-label="CodeOutfitters home">
+              <img src="/assets/logo-mark.svg" className="w-7 h-7" alt="" />
+              <span className="font-heading text-[19px] tracking-tight text-[#0A120E]">
+                Code<span className="text-[#17A063]">Outfitters</span>
               </span>
             </Link>
 
-            <nav className="hidden md:flex items-center gap-6 absolute left-1/2 -translate-x-1/2" aria-label="Main navigation">
-              {navLinks.map((link) => {
+            <div className="hidden md:flex items-center gap-[clamp(14px,2vw,28px)]" aria-label="Main navigation">
+              {navLinks.filter(l => l.label !== 'Home').map((link) => {
                 const isActive = pathname === link.href
                 return (
                   <Link
                     key={link.label}
                     href={link.href}
-                    className={`nav-link whitespace-nowrap text-sm font-medium transition-colors duration-200 ${
+                    className={`nav-link whitespace-nowrap font-body text-[15px] font-medium transition-colors duration-200 ${
                       isActive
-                        ? 'text-[#2A6B5A]'
-                        : 'text-[#6B6155] hover:text-[#1C1612]'
+                        ? 'text-[#0A120E]'
+                        : 'text-[#4A5248] hover:text-[#0A120E]'
                     }`}
                   >
                     {link.label}
                   </Link>
                 )
               })}
-            </nav>
+            </div>
 
             <div className="hidden md:block flex-shrink-0">
-              <Link href="/contact" className="nav-cta btn-primary">
-                Get Free Audit
+              <Link
+                href="/contact"
+                className="nav-cta inline-flex items-center font-body font-semibold text-[14px] text-[#F7F2EA] bg-[#0E2A1D] rounded-[10px] px-[18px] py-[11px] whitespace-nowrap transition-all duration-150 hover:bg-[#17A063] hover:-translate-y-0.5"
+              >
+                Book a Call
               </Link>
             </div>
 
             <button
-              className="md:hidden p-2 text-[#1C1612]"
+              className="md:hidden p-2 text-[#0A120E]"
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
             >
@@ -103,7 +104,7 @@ export function Navbar() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
             transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-            className="fixed inset-0 z-40 bg-[#FAFAF7] flex flex-col pt-16 px-5 sm:px-8 md:hidden"
+            className="fixed inset-0 z-40 bg-[#F7F2EA] flex flex-col pt-16 px-5 sm:px-8 md:hidden"
           >
             <nav className="flex flex-col mt-8" aria-label="Mobile navigation">
               {navLinks.map((link, i) => {
@@ -117,8 +118,8 @@ export function Navbar() {
                   >
                     <Link
                       href={link.href}
-                      className={`text-xl font-heading font-bold transition-colors py-4 px-6 min-h-[52px] flex items-center ${
-                        isActive ? 'text-[#2A6B5A]' : 'text-[#1C1612] hover:text-[#2A6B5A]'
+                      className={`text-xl font-heading transition-colors py-4 px-6 min-h-[52px] flex items-center ${
+                        isActive ? 'text-[#17A063]' : 'text-[#0A120E] hover:text-[#17A063]'
                       }`}
                     >
                       {link.label}
@@ -126,19 +127,6 @@ export function Navbar() {
                   </motion.div>
                 )
               })}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4, duration: 0.4 }}
-                className="px-6 mt-4"
-              >
-                <Link
-                  href="/contact"
-                  className="btn-primary w-full text-center block py-3"
-                >
-                  Get Free Audit
-                </Link>
-              </motion.div>
             </nav>
           </motion.div>
         )}

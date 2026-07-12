@@ -1,12 +1,18 @@
 ﻿import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
+import { Space_Grotesk, Instrument_Sans } from 'next/font/google'
 import './globals.css'
-import GSAPProvider from '@/components/gsap-provider'
 
-const inter = Inter({
+const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800', '900'],
-  variable: '--font-inter',
+  weight: ['500', '600', '700'],
+  variable: '--font-space-grotesk',
+  display: 'swap',
+})
+
+const instrumentSans = Instrument_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-instrument-sans',
   display: 'swap',
 })
 
@@ -35,7 +41,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#FAFAF7',
+  themeColor: '#F7F2EA',
   width: 'device-width',
   initialScale: 1,
 }
@@ -46,9 +52,9 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body className="font-sans antialiased">
-        <GSAPProvider>{children}</GSAPProvider>
+    <html lang="en" className={`${spaceGrotesk.variable} ${instrumentSans.variable}`}>
+      <body className="font-body antialiased" style={{ fontFamily: "'Instrument Sans', sans-serif" }}>
+        {children}
       </body>
     </html>
   )

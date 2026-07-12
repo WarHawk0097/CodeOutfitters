@@ -1,0 +1,30 @@
+{
+  "gate": "CODEOUTFITTERS_FINAL_FRONTEND_PUBLISH0",
+  "result": "PASSED",
+  "source_folder": "F:\\CodeOutfitters\\CodeOutfitters homepage design Latest (4)",
+  "native_nextjs_pages": true,
+  "embedded_html_dependency": false,
+  "routes": {
+    "/": true,
+    "/services": true,
+    "/industries": true,
+    "/process": true,
+    "/about": true,
+    "/security": true,
+    "/case-studies": true,
+    "/contact": true
+  },
+  "pricing_route_removed": true,
+  "contact_in_desktop_nav": true,
+  "contact_in_mobile_nav": true,
+  "faq_component_verified": true,
+  "homepage_marquee_verified": true,
+  "security_marquee_verified": true,
+  "reduced_motion_verified": true,
+  "responsive_verified": true,
+  "console_errors": false,
+  "broken_assets": false,
+  "horizontal_overflow": false,
+  "production_deployed": true,
+  "remaining_issues": []
+}

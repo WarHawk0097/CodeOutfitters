@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="./motion.js"></script>
+<style>
+:root{--ease-premium:cubic-bezier(.16,1,.3,1);--ease-soft:cubic-bezier(.22,1,.36,1);--ease-spring:cubic-bezier(.34,1.56,.64,1)}
+html,body{margin:0;padding:0;background:#0A120E;font-family:'Instrument Sans',sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#128A54}a:hover{color:#0E7A4E}
+.overflow-safe-site,.overflow-safe-site *{min-width:0}
+@keyframes v3Pulse{0%{box-shadow:0 0 0 0 rgba(43,212,131,.55)}70%{box-shadow:0 0 0 9px rgba(43,212,131,0)}100%{box-shadow:0 0 0 0 rgba(43,212,131,0)}}
+@keyframes chevronPop{0%{transform:scale(1)}40%{transform:scale(.82)}100%{transform:scale(1)}}
+@keyframes quoteMark{0%,100%{opacity:.5}50%{opacity:1}}
+.nav-links-site{display:flex;align-items:center;gap:clamp(14px,2vw,28px);flex-wrap:nowrap;min-width:0}
+.nav-links-site a{white-space:nowrap;font:500 15px 'Instrument Sans',sans-serif;color:#4A5248;text-decoration:none}
+.nav-links-site a:hover{color:#0A120E}
+@media(max-width:960px){.nav-links-site{display:none}}
+.spot-card{position:relative;background:linear-gradient(178deg,#fff,#FBF7EE 68%,#F6F1E4);border:1px solid rgba(13,58,49,.14);border-radius:22px;box-shadow:0 20px 54px rgba(18,32,27,.10),inset 0 1px 0 rgba(255,255,255,.8);transition:transform .5s var(--ease-premium),box-shadow .5s var(--ease-premium),border-color .5s var(--ease-premium);overflow:hidden;min-width:0;--sx:50%;--sy:50%;--sglow:0}
+.spot-card:hover{transform:translateY(-6px);border-color:rgba(23,160,99,.34);box-shadow:0 34px 82px rgba(18,32,27,.16),0 0 0 1px rgba(23,160,99,.10)}
+.spot-card::before{content:'';position:absolute;inset:0;background:radial-gradient(380px circle at var(--sx) var(--sy),rgba(43,212,131,.16),transparent 70%);opacity:var(--sglow);transition:opacity .35s ease;pointer-events:none;z-index:0}
+.spot-card>*{position:relative;z-index:1}
+.chip-site{display:inline-flex;align-items:center;border-radius:999px;font:600 11.5px 'Instrument Sans',sans-serif;padding:5px 12px;white-space:nowrap}
+.filter-pill{font:600 13.5px 'Instrument Sans',sans-serif;border-radius:999px;padding:9px 17px;cursor:pointer;white-space:nowrap;border:1px solid transparent;transition:all .25s ease}
+.filter-pill:hover{transform:translateY(-1px);border-color:rgba(13,58,49,.28)}
+.cta-sweep{position:relative;overflow:hidden}
+.cta-sweep::before{content:'';position:absolute;top:0;bottom:0;left:-60%;width:40%;background:linear-gradient(110deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-18deg);transition:left .65s var(--ease-premium)}
+.cta-sweep:hover::before{left:120%}
+.cta-v7,.cta-v7 *{box-sizing:border-box;min-width:0}
+.cta-v7{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(28px,4vw,56px);align-items:center;max-width:1060px;margin:0 auto;background:linear-gradient(160deg,#10301F,#0A1C12);border:1px solid rgba(255,253,246,.14);border-radius:28px;padding:clamp(26px,4.5vw,54px);box-shadow:0 44px 100px rgba(0,0,0,.45)}
+.cta-title-v7,.cta-button-v7,.cta-chip-v7{overflow-wrap:normal;word-break:normal}
+.cta-title-v7{margin:0;font:600 clamp(30px,3.8vw,46px)/1.12 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.02em}
+.cta-action-card-v7{display:flex;flex-direction:column;gap:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:clamp(20px,2.6vw,30px);min-width:0}
+.cta-button-v7{white-space:nowrap;position:relative;display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-top:4px;font:600 16px 'Instrument Sans',sans-serif;color:#0A120E;background:linear-gradient(160deg,#E7C57E,#D9B36A);border:none;border-radius:13px;padding:17px 20px;cursor:pointer;box-shadow:0 16px 40px rgba(217,179,106,.3),inset 0 1px 0 rgba(255,255,255,.4);transition:transform .3s var(--ease-premium),box-shadow .3s var(--ease-premium);text-decoration:none}
+.cta-button-v7:hover{transform:translateY(-3px);box-shadow:0 24px 56px rgba(217,179,106,.46),inset 0 1px 0 rgba(255,255,255,.5)}
+.cta-chip-row-v7{display:flex;flex-wrap:wrap;gap:10px}
+.cta-chip-v7{display:inline-flex;align-items:center;gap:8px;font:600 13.5px/1.4 'Instrument Sans',sans-serif;color:rgba(245,240,232,.78);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:9px 15px;white-space:nowrap}
+@media(max-width:860px){.cta-v7{grid-template-columns:1fr;align-items:stretch}}
+@media(max-width:640px){.cta-v7{grid-template-columns:1fr;padding:24px 20px}.cta-button-v7{width:100%;font-size:15px;padding:16px 14px}.cta-chip-row-v7{flex-wrap:wrap;gap:8px}.cta-chip-v7{font-size:12.5px;padding:8px 12px}.cta-title-v7{font-size:29px}}
+.mobile-safe-v7{overflow-x:hidden}
+.mobile-safe-v7 img{max-width:100%}
+@media(max-width:760px){.cases-grid-site{grid-template-columns:1fr !important}}
+</style>
+</helmet>
+
+<div ref="{{ registerRoot }}" class="overflow-safe-site mobile-safe-v7" style="background:#F7F2EA;overflow-x:hidden">
+
+<!-- ============ NAV ============ -->
+<div data-screen-label="Nav" style="position:sticky;top:0;z-index:50;background:rgba(247,242,234,.92);backdrop-filter:blur(14px);border-bottom:1px solid #E5DCCB">
+<div style="max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;min-height:68px;gap:14px;padding:10px clamp(16px,3vw,32px)">
+<a href="CodeOutfitters%20Homepage%20v8.dc.html" style="display:flex;align-items:center;gap:10px;white-space:nowrap;flex-shrink:0;text-decoration:none">
+<img src="assets/logo-mark.svg" style="width:28px;height:28px" alt="">
+<span style="font:600 19px 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.01em">Code<span style="color:#17A063">Outfitters</span></span>
+</a>
+<div class="nav-links-site">
+<a href="CodeOutfitters%20Services.dc.html">Services</a>
+<a href="CodeOutfitters%20Industries.dc.html">Industries</a>
+<a href="CodeOutfitters%20Process.dc.html">Process</a>
+<span style="font:600 15px 'Instrument Sans',sans-serif;color:#128A54">Case Studies</span>
+<a href="CodeOutfitters%20About.dc.html">About</a>
+</div>
+<a href="CodeOutfitters%20Contact.dc.html" style="font:600 14px 'Instrument Sans',sans-serif;color:#F7F2EA;background:#0E2A1D;border-radius:10px;padding:11px 18px;white-space:nowrap;flex-shrink:0;text-decoration:none;transition:transform .15s ease, background .15s ease;display:inline-flex" style-hover="background:#17A063;transform:translateY(-1px)">Book a Call</a>
+</div>
+</div>
+
+<!-- ============ HERO + FILTERS ============ -->
+<div data-screen-label="Case Studies Hero" style="position:relative;background:radial-gradient(1000px 600px at 78% -15%, rgba(23,160,99,.20), transparent 60%), #0A120E;overflow:hidden">
+<div style="position:relative;max-width:820px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:22px;text-align:center;padding:clamp(56px,8vw,88px) clamp(20px,3vw,32px) clamp(36px,5vw,52px)">
+<div class="fm-rv" style="display:flex;align-items:center;gap:9px;background:rgba(217,179,106,.10);border:1px solid rgba(217,179,106,.4);border-radius:999px;padding:8px 16px">
+<span style="width:7px;height:7px;border-radius:999px;background:#D9B36A"></span>
+<span style="font:700 11.5px 'Instrument Sans',sans-serif;letter-spacing:.14em;color:#D9B36A;text-transform:uppercase;white-space:nowrap">Sample work</span>
+</div>
+<h1 class="fm-rv" style="margin:0;font:600 clamp(34px,4.6vw,56px)/1.1 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.025em;text-wrap:balance">Real businesses. <span style="color:#2BD483">Real results.</span></h1>
+<p class="fm-rv" style="margin:0;font:400 18px/1.65 'Instrument Sans',sans-serif;color:rgba(245,240,232,.62);max-width:560px">Six industries, six automations, one shared outcome — hours of manual work handed back every week.</p>
+</div>
+</div>
+
+<!-- ============ FILTER + GRID ============ -->
+<div data-screen-label="Case Studies Grid" style="background-image:radial-gradient(rgba(14,42,29,.06) 1px,transparent 1.5px);background-size:26px 26px;background-color:#F7F2EA">
+<div style="max-width:1180px;margin:0 auto;padding:clamp(40px,6vw,56px) clamp(20px,3vw,32px) clamp(56px,8vw,92px)">
+
+<div style="display:flex;flex-wrap:wrap;gap:9px;justify-content:center;margin-bottom:40px">
+<sc-for list="{{ filters }}" as="f" hint-placeholder-count="7">
+<button onClick="{{ f.select }}" style="{{ f.style }}" class="filter-pill">{{ f.label }}</button>
+</sc-for>
+</div>
+
+<div class="cases-grid-site" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px">
+<sc-for list="{{ visibleCases }}" as="c" hint-placeholder-count="6">
+<div ref="{{ c.registerCard }}" onMouseMove="{{ c.onMove }}" onMouseEnter="{{ c.onEnter }}" onMouseLeave="{{ c.onLeave }}" class="spot-card" style="padding:clamp(24px,2.6vw,30px);display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+<span style="font:700 10px ui-monospace,monospace;letter-spacing:.12em;color:#A39C8C;text-transform:uppercase">Case {{ c.num }}</span>
+<span class="chip-site" style="color:#8A857B;background:rgba(255,255,255,.65);border:1px solid rgba(13,58,49,.16)">Sample project</span>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:7px">
+<span class="chip-site" style="color:#68705F;background:#F4EEE2">{{ c.industry }}</span>
+<span class="chip-site" style="color:#128A54;background:#EAF6EF">{{ c.system }}</span>
+</div>
+<h3 style="margin:0;font:600 clamp(20px,2vw,24px)/1.28 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.01em;text-wrap:balance">{{ c.title }}</h3>
+<p style="margin:0;font:400 14.5px/1.62 'Instrument Sans',sans-serif;color:#5B6355">{{ c.summary }}</p>
+
+<div style="{{ c.storyBodyStyle }}">
+<div style="display:flex;flex-direction:column;gap:12px;padding-top:6px;border-top:1px solid rgba(13,58,49,.1);margin-top:4px">
+<div><span style="font:700 10.5px 'Instrument Sans',sans-serif;letter-spacing:.1em;color:#B08A3E;text-transform:uppercase">The problem</span><p style="margin:4px 0 0;font:400 14px/1.6 'Instrument Sans',sans-serif;color:#5B6355">{{ c.problem }}</p></div>
+<div><span style="font:700 10.5px 'Instrument Sans',sans-serif;letter-spacing:.1em;color:#128A54;text-transform:uppercase">The build</span><p style="margin:4px 0 0;font:400 14px/1.6 'Instrument Sans',sans-serif;color:#5B6355">{{ c.solution }}</p></div>
+</div>
+</div>
+
+<div style="display:flex;align-items:stretch;background:linear-gradient(165deg,#0E2A1D,#08160F);border-radius:14px;margin-top:2px">
+<sc-for list="{{ c.metrics }}" as="m" hint-placeholder-count="3">
+<div style="flex:1;padding:14px 8px;text-align:center;display:flex;flex-direction:column;gap:2px;min-width:0">
+<span style="font:700 21px 'Space Grotesk',sans-serif;letter-spacing:-.01em;color:#2BD483">{{ m.num }}</span>
+<span style="font:600 9.5px/1.3 'Instrument Sans',sans-serif;letter-spacing:.05em;text-transform:uppercase;color:rgba(245,240,232,.55)">{{ m.label }}</span>
+</div>
+</sc-for>
+</div>
+
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:4px">
+<button onClick="{{ c.toggleStory }}" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;gap:7px;font:600 13.5px 'Instrument Sans',sans-serif;color:#0E2A1D">{{ c.storyLabel }}<span style="{{ c.chevStyle }}">⌄</span></button>
+<a href="CodeOutfitters%20Contact.dc.html" style="display:flex;align-items:center;gap:8px;font:600 13.5px 'Instrument Sans',sans-serif;color:#0E2A1D;text-decoration:none;border-bottom:2px solid #D9B36A;padding-bottom:3px;white-space:nowrap">Get a similar system <img src="assets/icon-arrow-right.svg" style="width:12px;height:12px" alt=""></a>
+</div>
+</div>
+</sc-for>
+</div>
+
+<sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}">
+<div style="text-align:center;padding:60px 20px;font:500 16px 'Instrument Sans',sans-serif;color:#8A857B">No case studies in this industry yet — but we'd love to build yours. <a href="CodeOutfitters%20Contact.dc.html" style="color:#128A54;font-weight:700">Get in touch →</a></div>
+</sc-if>
+
+</div>
+</div>
+
+<!-- ============ TESTIMONIALS ============ -->
+<div data-screen-label="Testimonials" style="background:#0E241A;overflow:hidden">
+<div style="max-width:880px;margin:0 auto;padding:clamp(56px,7vw,88px) clamp(20px,3vw,32px);display:flex;flex-direction:column;align-items:center;gap:26px;text-align:center">
+<div class="fm-rv" style="display:flex;flex-direction:column;align-items:center;gap:12px">
+<span style="font:700 12px 'Instrument Sans',sans-serif;letter-spacing:.18em;color:#2BD483;text-transform:uppercase">In their words</span>
+<h2 style="margin:0;font:600 clamp(26px,3.2vw,38px)/1.15 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.02em">What working with us feels like.</h2>
+</div>
+<div style="position:relative;width:100%;min-height:250px">
+<sc-for list="{{ testimonials }}" as="t" hint-placeholder-count="3">
+<div style="{{ t.style }}">
+<span style="font:700 56px/0.6 'Space Grotesk',sans-serif;color:#D9B36A;animation:quoteMark 4s ease-in-out infinite">"</span>
+<p style="margin:0;font:500 clamp(19px,2.4vw,26px)/1.5 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.01em;text-wrap:balance;max-width:680px">{{ t.quote }}</p>
+<span style="font:600 15px 'Instrument Sans',sans-serif;color:#2BD483">{{ t.who }}</span>
+</div>
+</sc-for>
+</div>
+<div style="display:flex;align-items:center;justify-content:center;gap:9px">
+<sc-for list="{{ tDots }}" as="d" hint-placeholder-count="3">
+<button onClick="{{ d.pick }}" aria-label="{{ d.label }}" style="{{ d.style }}"></button>
+</sc-for>
+</div>
+<span style="font:400 12.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.4)">Illustrative feedback based on the sample projects above.</span>
+</div>
+</div>
+
+<!-- ============ CTA ============ -->
+<div data-screen-label="CTA" style="position:relative;background:radial-gradient(760px 420px at 50% -15%, rgba(23,160,99,.18), transparent 62%), #0A120E;overflow:hidden">
+<div style="position:relative;max-width:1180px;margin:0 auto;padding:clamp(56px,8vw,96px) clamp(20px,3vw,32px)">
+<div class="cta-v7 fm-rv">
+<div style="display:flex;flex-direction:column;align-items:flex-start;gap:18px;min-width:0">
+<span style="font:700 12px 'Instrument Sans',sans-serif;letter-spacing:.18em;color:#D9B36A;text-transform:uppercase">Your business, next</span>
+<h2 class="cta-title-v7">Book a <span style="white-space:nowrap">Discovery Call</span></h2>
+<p style="margin:0;font:400 17px/1.65 'Instrument Sans',sans-serif;color:rgba(245,240,232,.62);max-width:440px">Every case study above started with the same 30-minute call. Let's map your biggest time drain next.</p>
+<div style="display:flex;flex-wrap:wrap;gap:16px">
+<a href="CodeOutfitters%20Services.dc.html" style="font:600 13.5px 'Instrument Sans',sans-serif;color:#D9B36A;text-decoration:underline;text-underline-offset:3px">Explore Services</a>
+<a href="CodeOutfitters%20Process.dc.html" style="font:600 13.5px 'Instrument Sans',sans-serif;color:#D9B36A;text-decoration:underline;text-underline-offset:3px">See Our Process</a>
+</div>
+<div class="cta-chip-row-v7">
+<span class="cta-chip-v7"><span style="color:#2BD483">✓</span>Free audit included</span>
+<span class="cta-chip-v7"><span style="color:#2BD483">✓</span>No long contracts</span>
+<span class="cta-chip-v7"><span style="color:#2BD483">✓</span>30-day support</span>
+</div>
+</div>
+<div class="cta-action-card-v7">
+<span style="font:700 10.5px 'Instrument Sans',sans-serif;letter-spacing:.14em;color:rgba(245,240,232,.5);text-transform:uppercase">What you get in 30 minutes</span>
+<div style="display:flex;flex-direction:column;gap:11px">
+<span style="display:flex;align-items:flex-start;gap:10px;font:500 14.5px/1.5 'Instrument Sans',sans-serif;color:rgba(245,240,232,.8)"><span style="color:#2BD483;font-weight:700;flex-shrink:0">✓</span>A map of your biggest time drains</span>
+<span style="display:flex;align-items:flex-start;gap:10px;font:500 14.5px/1.5 'Instrument Sans',sans-serif;color:rgba(245,240,232,.8)"><span style="color:#2BD483;font-weight:700;flex-shrink:0">✓</span>An honest automation-fit assessment</span>
+<span style="display:flex;align-items:flex-start;gap:10px;font:500 14.5px/1.5 'Instrument Sans',sans-serif;color:rgba(245,240,232,.8)"><span style="color:#2BD483;font-weight:700;flex-shrink:0">✓</span>A fixed quote — before we build anything</span>
+</div>
+<a href="CodeOutfitters%20Contact.dc.html" class="cta-sweep cta-button-v7"><span style="white-space:nowrap">Book Free Discovery Call</span><img src="assets/icon-arrow-right.svg" style="width:15px;height:15px;flex-shrink:0" alt=""></a>
+<span style="display:flex;align-items:center;justify-content:center;gap:8px;font:600 13px 'Instrument Sans',sans-serif;color:#D9B36A"><span style="width:8px;height:8px;border-radius:999px;background:#D9B36A;animation:v3Pulse 1.8s ease-out infinite;flex-shrink:0"></span>3 build slots left for July</span>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ============ FOOTER ============ -->
+<div data-screen-label="Footer" style="background:#070D0A;border-top:1px solid rgba(255,255,255,.06)">
+<div style="max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:40px;padding:56px 32px 40px">
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;gap:9px">
+<img src="assets/logo-mark.svg" style="width:24px;height:24px;filter:brightness(1.5)" alt="">
+<span style="font:600 17px 'Space Grotesk',sans-serif;color:#F5F0E8">Code<span style="color:#2BD483">Outfitters</span></span>
+</div>
+<p style="margin:0;font:400 15px/1.65 'Instrument Sans',sans-serif;color:rgba(245,240,232,.45);max-width:300px">AI automation for US small businesses. We eliminate repetitive work so you can focus on what actually grows your business.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<span style="font:700 11.5px 'Instrument Sans',sans-serif;letter-spacing:.16em;color:rgba(245,240,232,.4);text-transform:uppercase">Services</span>
+<a href="CodeOutfitters%20Services.dc.html#whatsapp" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">WhatsApp Automation</a>
+<a href="CodeOutfitters%20Services.dc.html#email" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Email Workflows</a>
+<a href="CodeOutfitters%20Services.dc.html#support" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">AI Chatbots</a>
+<a href="CodeOutfitters%20Services.dc.html#booking" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Booking Bots</a>
+<a href="CodeOutfitters%20Services.dc.html#invoice" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Invoice Automation</a>
+<a href="CodeOutfitters%20Services.dc.html#custom" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Custom Builds</a>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<span style="font:700 11.5px 'Instrument Sans',sans-serif;letter-spacing:.16em;color:rgba(245,240,232,.4);text-transform:uppercase">Company</span>
+<a href="CodeOutfitters%20Homepage%20v8.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Home</a>
+<a href="CodeOutfitters%20About.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">About</a>
+<a href="CodeOutfitters%20Industries.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Industries</a>
+<a href="CodeOutfitters%20Process.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Process</a>
+<span style="font:500 14.5px 'Instrument Sans',sans-serif;color:#F5F0E8">Case Studies</span>
+<a href="CodeOutfitters%20Security%20Reliability.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Security & Reliability</a>
+<a href="CodeOutfitters%20Contact.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Contact</a>
+</div>
+</div>
+<div style="max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:20px 32px;border-top:1px solid rgba(255,255,255,.06)">
+<span style="font:400 12.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.35)">© 2026 CodeOutfitters LLC. All rights reserved.</span>
+<span style="display:flex;align-items:center;gap:7px;font:500 12.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.5)"><span style="width:7px;height:7px;border-radius:999px;background:#2BD483;animation:v3Pulse 1.8s ease-out infinite"></span>All systems operational</span>
+</div>
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { activeFilter: 'All', openStory: -1, tIndex: 0 };
+
+  _testimonials = [
+    { quote: 'We used to lose weekend leads to whoever replied first on Monday. Now the bot has already booked the viewing before I\u2019ve had my coffee.', who: 'Principal broker, 3-agent real estate office' },
+    { quote: 'Invoicing used to be my entire afternoon. Now it\u2019s an eight-minute check of a dashboard, and I get my afternoons back.', who: 'Operations lead, online retailer' },
+    { quote: 'The front desk finally talks to the patients in the room instead of the ones on hold. That alone was worth the build.', who: 'Practice manager, family clinic' }
+  ];
+
+  _cases = [
+    { industry: 'Real Estate', system: 'WhatsApp Automation', title: 'How a Real Estate Agency Doubled Lead Response Rate',
+      summary: 'A 3-agent office was losing leads to faster competitors. We built a WhatsApp bot that qualifies, responds, and books viewings 24/7.',
+      problem: 'Leads emailed or texted after hours went unanswered until the next morning — by then, competing agencies had often already booked the viewing.',
+      solution: 'A WhatsApp bot now answers instantly, qualifies buyer intent, checks listing availability, and books viewing slots straight into the team calendar.',
+      metrics: [{ num: '2x', label: 'Response rate' }, { num: '87%', label: 'Faster follow-ups' }, { num: '18 hrs', label: 'Saved / week' }] },
+    { industry: 'E-commerce', system: 'Invoice Automation', title: 'Invoice Processing Reduced from 4 Hours to 8 Minutes Daily',
+      summary: 'An online retailer was manually creating invoices and reconciling orders. Our pipeline now handles 200+ invoices per day, error-free.',
+      problem: 'A single ops person spent close to half her day copying order data into invoices and manually checking payments against orders.',
+      solution: 'Orders now flow automatically into templated invoices, matched against incoming payments, with exceptions flagged for a quick human check.',
+      metrics: [{ num: '97%', label: 'Time saved' }, { num: '0', label: 'Data-entry errors' }, { num: '$1,200', label: 'Saved / mo' }] },
+    { industry: 'Healthcare', system: 'Booking Bot', title: 'Medical Clinic Eliminates 90% of Phone-Based Scheduling',
+      summary: 'A busy clinic was overwhelmed by appointment calls. We deployed an AI booking bot that syncs with their calendar and sends reminders automatically.',
+      problem: 'Front-desk staff spent most of the day on the phone booking and rebooking appointments, with no time left for patients in the office.',
+      solution: 'An AI booking bot now handles scheduling by chat, checks real-time calendar availability, and sends automatic reminder texts to cut no-shows.',
+      metrics: [{ num: '90%', label: 'Fewer calls' }, { num: '40%', label: 'Drop in no-shows' }, { num: '24/7', label: 'Booking' }] },
+    { industry: 'Legal', system: 'Intake Automation', title: 'Law Firm Cuts Client Intake From Half a Week to Minutes',
+      summary: 'A busy practice had a paralegal manually processing every new client intake form by hand, delaying case starts.',
+      problem: 'New client intake — forms, conflict checks, document requests — consumed a significant chunk of a paralegal\u2019s week, and nothing moved forward until it was done.',
+      solution: 'An automated intake flow now collects client information, runs conflict checks, and requests missing documents the moment a new client signs on.',
+      metrics: [{ num: '80%', label: 'Faster intake' }, { num: '0', label: 'Missed forms' }, { num: '12 hrs', label: 'Saved / week' }] },
+    { industry: 'Logistics', system: 'Dispatch Automation', title: 'Logistics Company Automates Dispatch in Six Days',
+      summary: 'A regional carrier was coordinating drivers and jobs through phone calls and spreadsheets, with no reliable record of what was assigned.',
+      problem: 'Dispatch decisions lived in one coordinator\u2019s head and a shared spreadsheet — assignments were slow, and nothing was tracked automatically.',
+      solution: 'We mapped the full dispatch workflow and built an automation that assigns jobs to available drivers and logs every assignment automatically.',
+      metrics: [{ num: '35%', label: 'Faster dispatch' }, { num: '100%', label: 'Jobs logged' }, { num: '22 hrs', label: 'Saved / week' }] },
+    { industry: 'Home Services', system: 'WhatsApp Automation', title: 'HVAC Company Triples Review Volume With an Automated Follow-Up',
+      summary: 'An HVAC business was quoting and booking jobs by phone, and rarely remembered to ask happy customers for a review.',
+      problem: 'Job quoting happened over scattered phone calls, and review requests were an afterthought that usually never got sent.',
+      solution: 'A WhatsApp bot now quotes common jobs instantly, books technicians into the calendar, and automatically follows up for a review after each job.',
+      metrics: [{ num: '3x', label: 'More reviews' }, { num: '24/7', label: 'Quoting' }, { num: '15 hrs', label: 'Saved / week' }] }
+  ];
+
+  registerRoot = (el) => { this.rootEl = el; };
+
+  componentDidMount() {
+    // Card reveals handled by motion.js; only carousel autoplay lives here.
+    this._startTestimonialTimer();
+  }
+
+  componentWillUnmount() {
+    if (this._tTimer) clearInterval(this._tTimer);
+  }
+
+  _startTestimonialTimer() {
+    if (this._tTimer) clearInterval(this._tTimer);
+    this._tTimer = setInterval(() => {
+      this.setState(s => ({ tIndex: (s.tIndex + 1) % this._testimonials.length }));
+    }, 5200);
+  }
+
+  renderVals() {
+    const active = this.state.activeFilter;
+    const openStory = this.state.openStory;
+    const industries = ['All', ...Array.from(new Set(this._cases.map(c => c.industry)))];
+
+    const pillStyle = (label) => {
+      const on = label === active;
+      return { background: on ? '#0E2A1D' : '#F4EEE2', color: on ? '#F7F2EA' : '#5B6355', border: on ? '1px solid #0E2A1D' : '1px solid rgba(13,58,49,.12)' };
+    };
+
+    const filtered = active === 'All' ? this._cases : this._cases.filter(c => c.industry === active);
+
+    const tIndex = this.state.tIndex;
+    const testimonials = this._testimonials.map((t, i) => ({
+      quote: t.quote, who: '— ' + t.who,
+      style: {
+        position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center',
+        justifyContent: 'center', gap: '18px', padding: '0 8px',
+        opacity: tIndex === i ? 1 : 0,
+        transform: tIndex === i ? 'translateY(0)' : 'translateY(16px)',
+        pointerEvents: tIndex === i ? 'auto' : 'none',
+        transition: 'opacity .6s cubic-bezier(.16,1,.3,1), transform .6s cubic-bezier(.16,1,.3,1)'
+      }
+    }));
+    const tDots = this._testimonials.map((t, i) => ({
+      label: 'Testimonial ' + (i + 1),
+      pick: () => { this.setState({ tIndex: i }); this._startTestimonialTimer(); },
+      style: {
+        width: tIndex === i ? '26px' : '9px', height: '9px', borderRadius: '999px', border: 'none', cursor: 'pointer', padding: 0,
+        background: tIndex === i ? '#2BD483' : 'rgba(255,255,255,.22)',
+        transition: 'width .4s cubic-bezier(.16,1,.3,1), background .3s ease'
+      }
+    }));
+
+    return {
+      registerRoot: this.registerRoot,
+      testimonials, tDots,
+      filters: industries.map(label => ({ label, style: pillStyle(label), select: () => this.setState({ activeFilter: label, openStory: -1 }) })),
+      noResults: filtered.length === 0,
+      visibleCases: filtered.map((c, i) => {
+        const open = openStory === i;
+        return {
+          num: String(i + 1).padStart(2, '0'), industry: c.industry, system: c.system, title: c.title, summary: c.summary,
+          problem: c.problem, solution: c.solution, metrics: c.metrics,
+          registerCard: () => {},
+          onMove: (e) => {
+            const el = e.currentTarget, r = el.getBoundingClientRect();
+            el.style.setProperty('--sx', ((e.clientX - r.left) / r.width * 100) + '%');
+            el.style.setProperty('--sy', ((e.clientY - r.top) / r.height * 100) + '%');
+          },
+          onEnter: (e) => e.currentTarget.style.setProperty('--sglow', '1'),
+          onLeave: (e) => e.currentTarget.style.setProperty('--sglow', '0'),
+          toggleStory: () => this.setState(s => ({ openStory: s.openStory === i ? -1 : i })),
+          storyLabel: open ? 'Hide full story' : 'Read the full story',
+          chevStyle: { display: 'inline-block', transition: 'transform .35s cubic-bezier(.34,1.56,.64,1)', transform: open ? 'rotate(180deg)' : 'rotate(0deg)', animation: open ? 'chevronPop .4s cubic-bezier(.34,1.56,.64,1)' : 'none' },
+          storyBodyStyle: { maxHeight: open ? '520px' : '0px', opacity: open ? 1 : 0, overflow: 'hidden', transition: 'max-height .5s cubic-bezier(.16,1,.3,1), opacity .4s ease' }
+        };
+      })
+    };
+  }
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ease-premium:cubic-bezier(.16,1,.3,1);--ease-soft:cubic-bezier(.22,1,.36,1);--ease-spring:cubic-bezier(.34,1.56,.64,1);--motion-fast:220ms;--motion-med:520ms;--motion-slow:900ms;--motion-liquid:18s;--mouse-x:50%;--mouse-y:50%}
+html,body{margin:0;padding:0;background:#0A120E;font-family:'Instrument Sans',sans-serif;-webkit-font-smoothing:antialiased}
+.motion-card{transition:transform var(--motion-med) var(--ease-premium), box-shadow var(--motion-med) var(--ease-premium), border-color var(--motion-med) var(--ease-premium);position:relative}
+.motion-card:hover{transform:translateY(-9px) scale(1.016);box-shadow:0 44px 90px rgba(32,24,12,.24)}
+.motion-card::after{content:'';position:absolute;inset:0;border-radius:inherit;background:linear-gradient(135deg,rgba(23,160,99,.08),transparent 55%);opacity:0;transition:opacity var(--motion-med) var(--ease-soft);pointer-events:none}
+.motion-card:hover::after{opacity:1}
+.motion-card .mc-chip{transition:background var(--motion-med) var(--ease-spring), box-shadow var(--motion-med) var(--ease-soft), transform var(--motion-med) var(--ease-spring)}
+.motion-card:hover .mc-chip{transform:scale(1.12) rotate(-3deg);box-shadow:0 10px 26px rgba(23,160,99,.28)}
+.motion-card:hover .mc-stars{animation:starGlow .9s var(--ease-soft)}
+.liquid-blob{position:absolute;border-radius:999px;pointer-events:none;will-change:transform}
+.spotlight{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .4s ease;background:radial-gradient(520px 520px at var(--mouse-x) var(--mouse-y), rgba(43,212,131,.14), transparent 62%);z-index:1}
+.spotlight.is-active{opacity:1}
+.cta-sweep{position:relative;overflow:hidden}
+.cta-sweep::before{content:'';position:absolute;top:0;bottom:0;left:-60%;width:40%;background:linear-gradient(110deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-18deg);transition:left .65s var(--ease-premium)}
+.cta-sweep:hover::before{left:120%}
+.reveal-line{transform-origin:left;transform:scaleX(0)}
+.reveal-line.is-drawn{animation:lineDraw 1.05s var(--ease-premium) forwards}
+.node-activate{outline:0 solid rgba(23,160,99,0);transition:outline-color .5s var(--ease-spring), outline-width .5s var(--ease-spring)}
+.node-activate.is-active{outline:5px solid rgba(23,160,99,.35)}
+.calc-panel{transition:box-shadow var(--motion-med) var(--ease-soft)}
+.calc-panel.calc-pulse{animation:valuePulse .6s var(--ease-soft)}
+.calc-slider{-webkit-appearance:none;appearance:none;background:linear-gradient(90deg,#17A063 var(--fill,50%),#EDE6D8 var(--fill,50%));border-radius:999px;outline-offset:4px;transition:box-shadow var(--motion-fast) var(--ease-soft)}
+.calc-slider:hover,.calc-slider:focus-visible{box-shadow:0 0 0 6px rgba(23,160,99,.14)}
+.calc-slider::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:999px;background:#17A063;border:3px solid #fff;box-shadow:0 2px 8px rgba(23,160,99,.4);cursor:pointer;transition:transform var(--motion-fast) var(--ease-spring),box-shadow var(--motion-fast) var(--ease-spring)}
+.calc-slider:active::-webkit-slider-thumb{transform:scale(1.25);box-shadow:0 0 0 8px rgba(23,160,99,.22)}
+.calc-slider::-moz-range-thumb{width:20px;height:20px;border-radius:999px;background:#17A063;border:3px solid #fff;box-shadow:0 2px 8px rgba(23,160,99,.4);cursor:pointer;transition:transform var(--motion-fast) var(--ease-spring)}
+.calc-slider:active::-moz-range-thumb{transform:scale(1.25)}
+.calc-value{transition:transform var(--motion-fast) var(--ease-spring),color var(--motion-fast) var(--ease-soft)}
+.calc-value.calc-value-bump{animation:softPulse .5s var(--ease-spring)}
+@keyframes liquidDrift1{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(4%,6%) scale(1.08)}66%{transform:translate(-3%,4%) scale(.96)}}
+@keyframes liquidDrift2{0%,100%{transform:translate(0,0) scale(1.04)}40%{transform:translate(-5%,-4%) scale(.94)}75%{transform:translate(4%,-3%) scale(1.1)}}
+@keyframes liquidDrift3{0%,100%{transform:translate(0,0) rotate(0deg) scale(1)}50%{transform:translate(3%,-5%) rotate(6deg) scale(1.05)}}
+@keyframes shimmerSweep{0%{background-position:-160% 0}55%,100%{background-position:160% 0}}
+@keyframes badgeGlow{0%,100%{box-shadow:0 0 0 0 rgba(217,179,106,.35)}50%{box-shadow:0 0 14px 3px rgba(217,179,106,.28)}}
+@keyframes floatSoft{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+@keyframes chevronPop{0%{transform:scale(1)}40%{transform:scale(.82)}100%{transform:scale(1)}}
+@keyframes v3Word{from{opacity:0;transform:translateY(26px);filter:blur(8px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}
+@keyframes v3Rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes v3Under{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes v3Orb{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(5%,7%) scale(1.14)}}
+@keyframes v3OrbB{0%,100%{transform:translate(0,0) scale(1.06)}50%{transform:translate(-6%,-5%) scale(1)}}
+@keyframes v3MarqueeL{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes v3MarqueeR{from{transform:translateX(-50%)}to{transform:translateX(0)}}
+@keyframes v3Pulse{0%{box-shadow:0 0 0 0 rgba(43,212,131,.55)}70%{box-shadow:0 0 0 9px rgba(43,212,131,0)}100%{box-shadow:0 0 0 0 rgba(43,212,131,0)}}
+@keyframes v3Bar{from{width:8%}to{width:100%}}
+@keyframes pFill{0%{width:0%}92%{width:100%}100%{width:100%}}
+@keyframes pDot{0%{left:0%}92%{left:97%}100%{left:97%}}
+@keyframes pT1{0%,2%{background:#0E2A1D;transform:translateY(0);box-shadow:0 6px 18px rgba(10,18,14,.18)}5%,16%{background:#17A063;transform:translateY(-8px);box-shadow:0 20px 40px rgba(23,160,99,.45)}22%,100%{background:#0E2A1D;transform:translateY(0);box-shadow:0 6px 18px rgba(10,18,14,.18)}}
+@keyframes pT2{0%,30%{background:#0E2A1D;transform:translateY(0);box-shadow:0 6px 18px rgba(10,18,14,.18)}33%,44%{background:#17A063;transform:translateY(-8px);box-shadow:0 20px 40px rgba(23,160,99,.45)}50%,100%{background:#0E2A1D;transform:translateY(0);box-shadow:0 6px 18px rgba(10,18,14,.18)}}
+@keyframes pT3{0%,60%{background:#0E2A1D;transform:translateY(0);box-shadow:0 6px 18px rgba(10,18,14,.18)}63%,74%{background:#17A063;transform:translateY(-8px);box-shadow:0 20px 40px rgba(23,160,99,.45)}80%,100%{background:#0E2A1D;transform:translateY(0);box-shadow:0 6px 18px rgba(10,18,14,.18)}}
+@keyframes pT4{0%,86%{background:#0E2A1D;transform:translateY(0);box-shadow:0 6px 18px rgba(10,18,14,.18)}89%,97%{background:#17A063;transform:translateY(-8px);box-shadow:0 20px 40px rgba(23,160,99,.45)}100%{background:#0E2A1D;transform:translateY(0);box-shadow:0 6px 18px rgba(10,18,14,.18)}}
+@keyframes pB1{0%,2%{opacity:0;transform:translate(-50%,8px) scale(.8)}5%,95%{opacity:1;transform:translate(-50%,0) scale(1)}99%,100%{opacity:0;transform:translate(-50%,0) scale(1)}}
+@keyframes pB2{0%,30%{opacity:0;transform:translate(-50%,8px) scale(.8)}33%,95%{opacity:1;transform:translate(-50%,0) scale(1)}99%,100%{opacity:0;transform:translate(-50%,0) scale(1)}}
+@keyframes pB3{0%,60%{opacity:0;transform:translate(-50%,8px) scale(.8)}63%,95%{opacity:1;transform:translate(-50%,0) scale(1)}99%,100%{opacity:0;transform:translate(-50%,0) scale(1)}}
+@keyframes pB4{0%,86%{opacity:0;transform:translate(-50%,8px) scale(.8)}89%,95%{opacity:1;transform:translate(-50%,0) scale(1)}99%,100%{opacity:0;transform:translate(-50%,0) scale(1)}}
+@keyframes pC1{0%,17%{opacity:0;transform:scale(.3)}20%,95%{opacity:1;transform:scale(1)}99%,100%{opacity:0}}
+@keyframes pC2{0%,45%{opacity:0;transform:scale(.3)}48%,95%{opacity:1;transform:scale(1)}99%,100%{opacity:0}}
+@keyframes pC3{0%,75%{opacity:0;transform:scale(.3)}78%,95%{opacity:1;transform:scale(1)}99%,100%{opacity:0}}
+@keyframes pC4{0%,95%{opacity:0;transform:scale(.3)}97%,99%{opacity:1;transform:scale(1)}100%{opacity:0}}
+@keyframes w1{0%,2%{opacity:0;transform:translateY(14px) scale(.86)}4.5%{opacity:1;transform:translateY(-2px) scale(1.04)}6%,90%{opacity:1;transform:translateY(0) scale(1)}95%,100%{opacity:0;transform:translateY(-8px) scale(.98)}}
+@keyframes w2{0%,9%{opacity:0}12%,20%{opacity:1}23%,100%{opacity:0}}
+@keyframes w3{0%,21%{opacity:0;transform:translateY(14px) scale(.86)}23.5%{opacity:1;transform:translateY(-2px) scale(1.04)}25%,90%{opacity:1;transform:translateY(0) scale(1)}95%,100%{opacity:0;transform:translateY(-8px) scale(.98)}}
+@keyframes w4{0%,33%{opacity:0;transform:translateY(14px) scale(.86)}35.5%{opacity:1;transform:translateY(-2px) scale(1.04)}37%,90%{opacity:1;transform:translateY(0) scale(1)}95%,100%{opacity:0;transform:translateY(-8px) scale(.98)}}
+@keyframes w5{0%,39%{opacity:0}42%,50%{opacity:1}53%,100%{opacity:0}}
+@keyframes w6{0%,51%{opacity:0;transform:translateY(16px) scale(.8)}54%{opacity:1;transform:translateY(-3px) scale(1.06)}56%,90%{opacity:1;transform:translateY(0) scale(1)}95%,100%{opacity:0;transform:translateY(-8px) scale(.98)}}
+@keyframes w7{0%,60%{opacity:0;transform:rotate(-10deg) scale(1.6)}63%{opacity:1;transform:rotate(2deg) scale(.96)}65%,90%{opacity:1;transform:rotate(0deg) scale(1)}95%,100%{opacity:0;transform:rotate(0deg) scale(1)}}
+@keyframes w8{0%,68%{opacity:0;transform:translateY(8px)}71%,90%{opacity:1;transform:translateY(0)}95%,100%{opacity:0;transform:translateY(0)}}
+@keyframes wRead{0%,8%{color:#9AA79E}11%,93%{color:#2D9CDB}96%,100%{color:#9AA79E}}
+@keyframes eFlow{from{background-position:0 0}to{background-position:24px 0}}
+@keyframes eOrb{0%{left:2%;opacity:0}5%{left:2%;opacity:1}28%{left:48%}40%{left:48%}64%{left:94%}88%{left:94%;opacity:1}94%,100%{left:94%;opacity:0}}
+@keyframes eN1{0%,3%{background:#EAF6EF;border-color:#CFE8DA;color:#128A54;transform:scale(1)}6%,28%{background:#17A063;border-color:#17A063;color:#fff;transform:scale(1.12)}34%,100%{background:#EAF6EF;border-color:#CFE8DA;color:#128A54;transform:scale(1)}}
+@keyframes eN2{0%,28%{background:#EAF6EF;border-color:#CFE8DA;color:#128A54;transform:scale(1)}32%,58%{background:#17A063;border-color:#17A063;color:#fff;transform:scale(1.12)}64%,100%{background:#EAF6EF;border-color:#CFE8DA;color:#128A54;transform:scale(1)}}
+@keyframes eN3{0%,60%{background:#EAF6EF;border-color:#CFE8DA;color:#128A54;transform:scale(1)}64%,90%{background:#17A063;border-color:#17A063;color:#fff;transform:scale(1.12)}96%,100%{background:#EAF6EF;border-color:#CFE8DA;color:#128A54;transform:scale(1)}}
+@keyframes eR1{0%,4%{opacity:0;transform:scale(.4)}7%{opacity:.6;transform:scale(1.3)}14%,100%{opacity:0;transform:scale(1.9)}}
+@keyframes eR2{0%,30%{opacity:0;transform:scale(.4)}33%{opacity:.6;transform:scale(1.3)}40%,100%{opacity:0;transform:scale(1.9)}}
+@keyframes eR3{0%,62%{opacity:0;transform:scale(.4)}65%{opacity:.6;transform:scale(1.3)}72%,100%{opacity:0;transform:scale(1.9)}}
+@keyframes eC1{0%,7%{opacity:0;transform:translateY(10px)}11%,90%{opacity:1;transform:translateY(0)}96%,100%{opacity:0;transform:translateY(0)}}
+@keyframes eC2{0%,34%{opacity:0;transform:translateY(10px)}38%,90%{opacity:1;transform:translateY(0)}96%,100%{opacity:0;transform:translateY(0)}}
+@keyframes eC3{0%,66%{opacity:0;transform:translateY(10px)}70%,90%{opacity:1;transform:translateY(0)}96%,100%{opacity:0;transform:translateY(0)}}
+@keyframes cL1{0%,2%{width:0;opacity:1;animation-timing-function:steps(41,end)}14%{width:41ch}90%{width:41ch;opacity:1}95%,100%{width:41ch;opacity:0}}
+@keyframes cL2{0%,16%{opacity:0;transform:translateX(-6px)}19%,90%{opacity:1;transform:translateX(0)}95%,100%{opacity:0;transform:translateX(0)}}
+@keyframes cL3{0%,24%{width:0;opacity:1;animation-timing-function:steps(37,end)}36%{width:37ch}90%{width:37ch;opacity:1}95%,100%{width:37ch;opacity:0}}
+@keyframes cL4{0%,40%{opacity:0;transform:translateX(-6px)}43%,90%{opacity:1;transform:translateX(0)}95%,100%{opacity:0;transform:translateX(0)}}
+@keyframes cL5{0%,48%{opacity:0;transform:scale(.92)}51%,90%{opacity:1;transform:scale(1)}95%,100%{opacity:0;transform:scale(1)}}
+@keyframes cFlash{0%,48%{background-position:-150% 0}62%{background-position:150% 0}100%{background-position:150% 0}}
+@keyframes cScan{0%{top:-14%;opacity:0}12%{opacity:.6}88%{opacity:.6}100%{top:106%;opacity:0}}
+@keyframes v3Blink{0%,100%{opacity:.25}50%{opacity:1}}
+@keyframes v3Glow{0%,100%{box-shadow:0 14px 40px rgba(217,179,106,.28)}50%{box-shadow:0 18px 60px rgba(217,179,106,.55)}}
+@keyframes v4Spin{to{transform:rotate(1turn)}}
+@keyframes liquidFloat{0%,100%{transform:translateY(0) translateX(0)}50%{transform:translateY(-16px) translateX(6px)}}
+@keyframes softPulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.05)}}
+@keyframes lightSweep{0%{background-position:-160% 0}100%{background-position:160% 0}}
+@keyframes lineDraw{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes cardReveal{from{opacity:0;transform:translateY(30px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes gaugeDraw{from{stroke-dashoffset:188.5}to{stroke-dashoffset:var(--gauge-offset,40)}}
+@keyframes chartDraw{from{stroke-dashoffset:240}to{stroke-dashoffset:0}}
+@keyframes nodeActivate{0%{transform:scale(1);box-shadow:0 6px 18px rgba(10,18,14,.18)}45%{transform:scale(1.16);box-shadow:0 22px 46px rgba(23,160,99,.5)}100%{transform:scale(1.06);box-shadow:0 14px 32px rgba(23,160,99,.32)}}
+@keyframes radarSweep{to{transform:rotate(1turn)}}
+@keyframes starGlow{0%,100%{opacity:.4;filter:drop-shadow(0 0 0 rgba(217,179,106,0))}50%{opacity:1;filter:drop-shadow(0 0 6px rgba(217,179,106,.7))}}
+@keyframes valuePulse{0%{box-shadow:0 0 0 0 rgba(43,212,131,.5)}60%{box-shadow:0 0 0 10px rgba(43,212,131,0)}100%{box-shadow:0 0 0 0 rgba(43,212,131,0)}}
+@keyframes tileReveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes ctaArrowShift{0%,100%{transform:translateX(0)}50%{transform:translateX(3px)}}
+@keyframes cursorBlinkSoft{0%,100%{opacity:1}50%{opacity:.15}}
+.premium-card{position:relative;background:linear-gradient(178deg,rgba(255,255,255,.98),rgba(250,247,239,.95) 60%,rgba(246,241,229,.92));border:1px solid rgba(13,58,49,.16);border-radius:22px;box-shadow:0 30px 80px rgba(18,32,27,.13),0 2px 6px rgba(18,32,27,.05),inset 0 1px 0 rgba(255,255,255,.8);transition:transform .55s var(--ease-premium),box-shadow .55s var(--ease-premium),border-color .55s var(--ease-premium)}
+.premium-card:hover{transform:translateY(-14px) scale(1.018);border-color:rgba(13,58,49,.26);box-shadow:0 54px 130px rgba(18,32,27,.26),0 10px 24px rgba(18,32,27,.10),inset 0 1px 0 rgba(255,255,255,.9)}
+.card-accent{position:absolute;top:0;left:0;right:0;height:4px;border-radius:22px 22px 0 0;background:linear-gradient(90deg,transparent,var(--accent,#17A063) 15%,var(--accent,#17A063) 85%,transparent);opacity:.7;transition:opacity .55s var(--ease-soft),filter .55s var(--ease-soft),height .55s var(--ease-soft)}
+.premium-card:hover .card-accent{opacity:1;height:5px;filter:drop-shadow(0 0 10px var(--accent,#17A063))}
+.premium-chip{border-radius:999px;font:700 10px 'Instrument Sans',sans-serif;letter-spacing:.09em;text-transform:uppercase;padding:5px 11px;transition:transform .4s var(--ease-spring),box-shadow .4s var(--ease-soft)}
+.premium-card:hover .premium-chip{transform:translateY(-1px)}
+.icon-chip-premium{position:relative;box-shadow:0 10px 24px rgba(18,32,27,.16),inset 0 1px 0 rgba(255,255,255,.65);transition:transform .5s var(--ease-spring),box-shadow .5s var(--ease-soft)}
+.premium-card:hover .icon-chip-premium{transform:scale(1.1) rotate(-3deg);box-shadow:0 18px 38px rgba(23,160,99,.34),inset 0 1px 0 rgba(255,255,255,.75)}
+.metric-tile{position:relative;background:linear-gradient(155deg,#fff,#FBF8F1 55%,#F7F1E4);border:1px solid rgba(13,58,49,.11);border-radius:14px;padding:16px 10px 14px;text-align:center;box-shadow:0 6px 16px rgba(18,32,27,.07),inset 0 1px 0 rgba(255,255,255,.85);overflow:hidden;transition:box-shadow .5s var(--ease-soft),transform .5s var(--ease-soft),border-color .5s var(--ease-soft)}
+.metric-tile::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:3px 3px 0 0;background:linear-gradient(90deg,transparent,var(--accent,#17A063),transparent);opacity:.7}
+.metric-tile::after{content:'';position:absolute;left:50%;bottom:8px;width:26px;height:1px;background:var(--accent,#17A063);opacity:.3;transform:translateX(-50%)}
+.metric-tile>div:first-child{font-size:26px !important;letter-spacing:-.01em}
+.premium-card:hover .metric-tile{box-shadow:0 16px 34px rgba(18,32,27,.14),inset 0 1px 0 rgba(255,255,255,.9);transform:translateY(-3px);border-color:rgba(13,58,49,.18)}
+.metric-tile[data-reveal-tile]{animation:tileReveal .5s var(--ease-soft) both}
+.card-cta-arrow{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:999px;background:#EAF6EF;border:1px solid rgba(18,138,84,.25);transition:background .4s var(--ease-soft),transform .4s var(--ease-soft),box-shadow .4s var(--ease-soft)}
+.card-cta-arrow img{width:12px;height:12px;transition:transform .4s var(--ease-soft)}
+a:hover .card-cta-arrow{background:#128A54;border-color:#128A54;box-shadow:0 10px 22px rgba(23,160,99,.4);transform:scale(1.06)}
+a:hover .card-cta-arrow img{filter:brightness(0) invert(1);transform:translateX(3px)}
+.demo-panel{position:relative;border-radius:15px;box-shadow:0 16px 40px rgba(18,32,27,.13),inset 0 1px 0 rgba(255,255,255,.45);transition:box-shadow .55s var(--ease-soft)}
+.premium-card:hover .demo-panel{box-shadow:0 22px 52px rgba(18,32,27,.18),inset 0 1px 0 rgba(255,255,255,.5)}
+.service-card-premium .benefit-row{position:relative;border-top:1px solid rgba(13,58,49,.1);padding-top:12px;margin-top:2px}
+.case-card .sample-pill{border:1px solid rgba(13,58,49,.16);background:rgba(255,255,255,.65)}
+*{box-sizing:border-box}
+@keyframes bandSlideIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes iconTileGlow{0%,100%{box-shadow:0 10px 24px rgba(18,32,27,.16),inset 0 1px 0 rgba(255,255,255,.65)}50%{box-shadow:0 14px 34px rgba(23,160,99,.32),inset 0 1px 0 rgba(255,255,255,.75)}}
+.overflow-safe-v35,.overflow-safe-v35 *{min-width:0}
+.overflow-safe-v35 p,.overflow-safe-v35 h3,.overflow-safe-v35 h2,.overflow-safe-v35 span{max-width:100%;overflow-wrap:anywhere}
+.service-card-v35,.case-card-v35{position:relative;min-width:0;overflow-wrap:anywhere;display:flex;flex-direction:column}
+.accent-band-v35{position:absolute;top:0;left:0;right:0;height:5px;border-radius:22px 22px 0 0;background:linear-gradient(90deg,transparent,var(--accent,#17A063) 12%,var(--accent,#17A063) 88%,transparent);opacity:.85}
+.premium-card:hover .accent-band-v35{opacity:1;filter:drop-shadow(0 0 10px var(--accent,#17A063))}
+.header-row-v35{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
+.icon-tile-v35{position:relative;flex-shrink:0;width:50px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 24px rgba(18,32,27,.16),inset 0 1px 0 rgba(255,255,255,.65);transition:transform .5s var(--ease-spring),box-shadow .5s var(--ease-soft)}
+.premium-card:hover .icon-tile-v35{transform:scale(1.1) rotate(-3deg);animation:iconTileGlow 1.6s ease-in-out infinite}
+.tag-chip-v35{border-radius:999px;font:700 10px 'Instrument Sans',sans-serif;letter-spacing:.09em;text-transform:uppercase;padding:5px 11px;white-space:nowrap;flex-shrink:0}
+.tag-row-v35{display:flex;flex-wrap:wrap;gap:7px;min-width:0}
+.demo-panel-v35{position:relative;border-radius:15px;box-shadow:0 16px 40px rgba(18,32,27,.13),inset 0 1px 0 rgba(255,255,255,.45);flex:1 1 auto;min-height:0;overflow:hidden;transition:box-shadow .55s var(--ease-soft)}
+.premium-card:hover .demo-panel-v35{box-shadow:0 22px 52px rgba(18,32,27,.18),inset 0 1px 0 rgba(255,255,255,.5)}
+.metric-band-v35{position:relative;display:grid;grid-template-columns:repeat(3,1fr);background:linear-gradient(155deg,#fff,#FBF8F1 55%,#F7F1E4);border:1px solid rgba(13,58,49,.12);border-radius:16px;box-shadow:0 10px 26px rgba(18,32,27,.09),inset 0 1px 0 rgba(255,255,255,.85);overflow:hidden;animation:bandSlideIn .55s var(--ease-soft) both}
+.metric-band-v35::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--accent,#17A063),transparent);opacity:.75}
+.metric-cell-v35{position:relative;min-width:0;padding:18px 8px 16px;text-align:center;display:flex;flex-direction:column;gap:4px;align-items:center;transition:background .4s var(--ease-soft)}
+.metric-cell-v35+.metric-cell-v35{border-left:1px solid rgba(13,58,49,.1)}
+.metric-cell-v35 .metric-num-v35{font:700 25px 'Space Grotesk',sans-serif;letter-spacing:-.01em;color:var(--accent,#128A54);max-width:100%;overflow-wrap:anywhere}
+.metric-cell-v35 .metric-lbl-v35{font:600 10px/1.3 'Instrument Sans',sans-serif;letter-spacing:.04em;color:#8A857B;text-transform:uppercase;max-width:100%;overflow-wrap:anywhere}
+.premium-card:hover .metric-band-v35{box-shadow:0 18px 40px rgba(18,32,27,.15),inset 0 1px 0 rgba(255,255,255,.9)}
+.premium-card:hover .metric-cell-v35{background:rgba(255,255,255,.4)}
+.action-row-v35{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;padding-top:2px}
+.action-row-v35 span:first-child{min-width:0;overflow-wrap:anywhere}
+.case-card .sample-pill{border:1px solid rgba(13,58,49,.16);background:rgba(255,255,255,.65)}
+@media (max-width:640px){
+.metric-band-v35{grid-template-columns:1fr}
+.metric-cell-v35+.metric-cell-v35{border-left:none;border-top:1px solid rgba(13,58,49,.1)}
+.header-row-v35{flex-wrap:wrap}
+.tag-row-v35{gap:6px}
+}
+@media (prefers-reduced-motion: reduce){
+.metric-band-v35{animation:none !important}
+.premium-card:hover .icon-tile-v35{animation:none !important}
+*,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;scroll-behavior:auto !important}
+[data-reveal] > *,.reveal-line,.is-hidden-before-reveal{opacity:1 !important;transform:none !important;filter:none !important}
+.spotlight{display:none !important}
+.motion-card:hover{transform:none !important}
+.premium-card:hover{transform:none !important}
+.metric-tile[data-reveal-tile]{animation:none !important}
+}
+@media (max-width:760px){
+.liquid-blob{filter:blur(34px) !important}
+.spotlight{display:none !important}
+}
+.patch-proof-badge {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 999999;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(224, 168, 68, 0.85);
+  background: rgba(3, 32, 28, 0.96);
+  color: #ffffff;
+  font: 800 12px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(12px);
+}
+</style>
+</helmet>
+
+<div ref="{{ registerRoot }}" style="background:#F7F2EA;overflow-x:hidden">
+
+<!-- ============ ANNOUNCEMENT ============ -->
+<sc-if value="{{ showAnnouncement }}" hint-placeholder-val="{{ true }}">
+<div data-screen-label="Announcement" style="background:#0E2A1D;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 20px">
+<span style="font:500 14px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.85)">Limited time: Free workflow audit with every Discovery Call</span>
+<a href="#cta" style="font:700 13.5px 'Instrument Sans',sans-serif;color:#D9B36A;text-decoration:underline;text-underline-offset:3px">Book yours</a>
+</div>
+</sc-if>
+
+<!-- ============ NAV ============ -->
+<div data-screen-label="Nav" style="position:sticky;top:0;z-index:50;background:rgba(247,242,234,.92);backdrop-filter:blur(14px);border-bottom:1px solid #E5DCCB">
+<div style="max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;min-height:70px;gap:10px;padding:10px clamp(16px,3vw,32px)">
+<div style="display:flex;align-items:center;gap:10px">
+<img src="assets/logo-mark.svg" style="width:28px;height:28px" alt="">
+<span style="font:600 19px 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.01em">Code<span style="color:#17A063">Outfitters</span></span>
+</div>
+<div style="display:flex;align-items:center;gap:30px">
+<a href="#services" style="font:500 15.5px 'Instrument Sans',sans-serif;color:#4A5248;text-decoration:none" style-hover="color:#0A120E">Services</a>
+<a href="#math" style="font:500 15.5px 'Instrument Sans',sans-serif;color:#4A5248;text-decoration:none" style-hover="color:#0A120E">Get a Quote</a>
+<a href="#results" style="font:500 15.5px 'Instrument Sans',sans-serif;color:#4A5248;text-decoration:none" style-hover="color:#0A120E">Portfolio</a>
+<a href="#process" style="font:500 15.5px 'Instrument Sans',sans-serif;color:#4A5248;text-decoration:none" style-hover="color:#0A120E">About</a>
+<a href="#cta" style="font:500 15.5px 'Instrument Sans',sans-serif;color:#4A5248;text-decoration:none" style-hover="color:#0A120E">Contact</a>
+</div>
+<button style="font:600 14.5px 'Instrument Sans',sans-serif;color:#F7F2EA;background:#0E2A1D;border:none;border-radius:10px;padding:11px 20px;cursor:pointer;transition:transform .15s ease, background .15s ease" style-hover="background:#17A063;transform:translateY(-1px)">Get Free Audit</button>
+</div>
+<div ref="{{ registerProgress }}" style="height:2px;width:0%;background:linear-gradient(90deg,#17A063,#D9B36A)"></div>
+</div>
+
+<!-- ============ HERO ============ -->
+<div data-screen-label="Hero" data-spot="1" style="position:relative;background:radial-gradient(1000px 600px at 75% -15%, rgba(23,160,99,.22), transparent 60%), radial-gradient(700px 460px at 5% 115%, rgba(217,179,106,.10), transparent 60%), #0A120E;overflow:hidden">
+<div class="spotlight"></div>
+<div data-para="5" style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);background-size:52px 52px;mask-image:radial-gradient(860px 560px at 62% 32%, #000 25%, transparent 74%);pointer-events:none"></div>
+<div style="position:absolute;top:-170px;right:-110px;width:540px;height:540px;border-radius:999px;background:radial-gradient(circle, rgba(23,160,99,.26), transparent 68%);filter:blur(52px);animation:v3Orb 15s ease-in-out infinite;pointer-events:none"></div>
+<div style="position:absolute;bottom:-190px;left:-110px;width:460px;height:460px;border-radius:999px;background:radial-gradient(circle, rgba(217,179,106,.15), transparent 68%);filter:blur(56px);animation:v3OrbB 18s ease-in-out infinite;pointer-events:none"></div>
+<div class="liquid-blob" style="top:22%;left:38%;width:360px;height:360px;background:radial-gradient(circle, rgba(43,212,131,.10), transparent 70%);filter:blur(64px);animation:liquidDrift3 22s ease-in-out infinite;pointer-events:none"></div>
+<div class="liquid-blob" style="top:60%;right:12%;width:300px;height:300px;background:radial-gradient(circle, rgba(217,179,106,.13), transparent 70%);filter:blur(58px);animation:liquidDrift2 19s ease-in-out infinite,liquidFloat 9s ease-in-out infinite;pointer-events:none"></div>
+<div class="liquid-blob" style="bottom:8%;left:22%;width:260px;height:260px;background:radial-gradient(circle, rgba(23,160,99,.16), transparent 70%);filter:blur(50px);animation:liquidDrift1 16s ease-in-out infinite reverse;pointer-events:none"></div>
+<div style="position:absolute;inset:0;background:radial-gradient(1100px 700px at 50% 40%, transparent 55%, rgba(10,18,14,.55) 100%);pointer-events:none"></div>
+
+<div style="position:relative;max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:clamp(32px,5vw,64px);align-items:center;padding:clamp(48px,7vw,84px) clamp(20px,3vw,32px) clamp(56px,8vw,100px)">
+
+<div style="display:flex;flex-direction:column;align-items:flex-start;gap:26px">
+<div style="position:relative;display:flex;align-items:center;gap:9px;background:rgba(217,179,106,.10);border:1px solid rgba(217,179,106,.4);border-radius:999px;padding:8px 16px;overflow:hidden;animation:v3Rise .7s cubic-bezier(.16,1,.3,1) both, badgeGlow 4s ease-in-out 1.2s infinite">
+<span style="position:absolute;inset:0;background-image:linear-gradient(110deg,transparent 40%,rgba(217,179,106,.35) 50%,transparent 60%);background-size:200% 100%;animation:shimmerSweep 3.2s ease-in-out 1.5s infinite;pointer-events:none"></span>
+<span style="width:7px;height:7px;border-radius:999px;background:#D9B36A"></span>
+<span style="font:700 11.5px 'Instrument Sans',sans-serif;letter-spacing:.14em;color:#D9B36A;text-transform:uppercase">AI Automation Agency</span>
+</div>
+<h1 style="margin:0;font:600 clamp(38px,5vw,64px)/1.06 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.025em">
+<span style="display:inline-block;animation:v3Word .7s cubic-bezier(.16,1,.3,1) .08s both">We</span> <span style="display:inline-block;animation:v3Word .7s cubic-bezier(.16,1,.3,1) .16s both">automate</span> <span style="display:inline-block;animation:v3Word .7s cubic-bezier(.16,1,.3,1) .24s both">the</span> <span style="display:inline-block;animation:v3Word .7s cubic-bezier(.16,1,.3,1) .32s both">work</span><br>
+<span style="display:inline-block;animation:v3Word .7s cubic-bezier(.16,1,.3,1) .40s both;color:#2BD483">you</span> <span style="display:inline-block;animation:v3Word .7s cubic-bezier(.16,1,.3,1) .48s both;color:#2BD483">shouldn't</span> <span style="display:inline-block;animation:v3Word .7s cubic-bezier(.16,1,.3,1) .56s both;color:#2BD483">be</span> <span style="position:relative;display:inline-block;animation:v3Word .7s cubic-bezier(.16,1,.3,1) .64s both;color:#2BD483">doing<span style="position:absolute;left:0;right:0;bottom:2px;height:4px;border-radius:2px;background:#D9B36A;transform-origin:left;animation:v3Under .7s cubic-bezier(.16,1,.3,1) 1.1s both"></span></span>
+</h1>
+<p style="margin:0;font:400 19.5px/1.65 'Instrument Sans',sans-serif;color:rgba(245,240,232,.64);max-width:460px;animation:v3Rise .7s cubic-bezier(.16,1,.3,1) .55s both">AI-powered automations for US small businesses — built in 7 days, zero coding required on your end.</p>
+<div style="display:flex;align-items:center;gap:14px;animation:v3Rise .7s cubic-bezier(.16,1,.3,1) .68s both">
+<button data-magnet="1" class="cta-sweep" style="display:flex;align-items:center;gap:10px;font:600 15.5px 'Instrument Sans',sans-serif;color:#0A120E;background:#2BD483;border:none;border-radius:11px;padding:15px 26px;cursor:pointer;box-shadow:0 14px 34px rgba(43,212,131,.28);transition:transform .15s ease, box-shadow .15s ease" style-hover="transform:translateY(-2px);box-shadow:0 20px 46px rgba(43,212,131,.4)">Get a Custom Quote
+<img src="assets/icon-arrow-right.svg" style="width:14px;height:14px" alt=""></button>
+<button style="font:600 15.5px 'Instrument Sans',sans-serif;color:#F5F0E8;background:transparent;border:1px solid rgba(245,240,232,.25);border-radius:11px;padding:14px 24px;cursor:pointer;transition:border-color .15s ease, background .15s ease" style-hover="border-color:rgba(245,240,232,.55);background:rgba(255,255,255,.04)">Book a Free Call</button>
+</div>
+<div style="display:flex;align-items:center;gap:20px;animation:v3Rise .7s cubic-bezier(.16,1,.3,1) .8s both">
+<span style="display:flex;align-items:center;gap:7px;font:500 14px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.55);animation:v3Rise .5s cubic-bezier(.16,1,.3,1) .95s both"><span style="color:#2BD483;font-weight:700">✓</span>No long contracts</span>
+<span style="display:flex;align-items:center;gap:7px;font:500 14px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.55);animation:v3Rise .5s cubic-bezier(.16,1,.3,1) 1.06s both"><span style="color:#2BD483;font-weight:700">✓</span>Results in 7 days</span>
+<span style="display:flex;align-items:center;gap:7px;font:500 14px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.55);animation:v3Rise .5s cubic-bezier(.16,1,.3,1) 1.17s both"><span style="color:#2BD483;font-weight:700">✓</span>30-day support</span>
+</div>
+</div>
+
+<!-- Live automation console -->
+<div style="position:relative;animation:v3Rise .9s cubic-bezier(.16,1,.3,1) .4s both">
+<div style="animation:floatSoft 6.5s ease-in-out 1.3s infinite">
+<div data-para="22" style="position:absolute;top:-16px;right:-14px;z-index:2;display:flex;align-items:center;gap:8px;background:#D9B36A;border-radius:999px;padding:9px 16px;box-shadow:0 16px 40px rgba(0,0,0,.4);animation:v3Glow 3s ease-in-out infinite">
+<span style="font:700 12.5px 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:.02em">Built in 7 days</span>
+</div>
+<div data-para="10" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:22px;padding:10px;backdrop-filter:blur(6px);box-shadow:0 44px 100px rgba(0,0,0,.5)">
+<div style="background:#FDFBF6;border-radius:15px;overflow:hidden">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #EDE6D8">
+<div style="display:flex;align-items:center;gap:10px">
+<img src="assets/logo-mark.svg" style="width:22px;height:22px" alt="">
+<span style="font:600 14.5px 'Space Grotesk',sans-serif;color:#0A120E">Automation Engine</span>
+<span style="display:flex;align-items:center;gap:6px;font:600 11.5px 'Instrument Sans',sans-serif;color:#128A54;background:#EAF6EF;border-radius:999px;padding:5px 10px"><span style="width:7px;height:7px;border-radius:999px;background:#2BD483;animation:v3Pulse 1.8s ease-out infinite"></span>Running</span>
+</div>
+<span style="font:600 12.5px ui-monospace,monospace;color:#8A857B">{{ hoursSaved }} hrs saved</span>
+</div>
+<div style="display:flex;flex-direction:column;min-height:252px;padding:10px 12px">
+<sc-for list="{{ consoleTasks }}" as="t" hint-placeholder-count="4">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 10px;border-bottom:1px solid #F1EBDE;animation:v3Rise .45s cubic-bezier(.16,1,.3,1) both">
+<div style="display:flex;align-items:center;gap:10px;min-width:0">
+<span style="{{ t.dotStyle }}"></span>
+<span style="font:500 13.5px 'Instrument Sans',sans-serif;color:#26312A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.label }}</span>
+</div>
+<sc-if value="{{ t.isQueued }}" hint-placeholder-val="{{ false }}">
+<span style="font:600 11.5px 'Instrument Sans',sans-serif;color:#8A857B;background:#F1EBDE;border-radius:999px;padding:5px 11px;flex-shrink:0">Queued</span>
+</sc-if>
+<sc-if value="{{ t.isProcessing }}" hint-placeholder-val="{{ false }}">
+<span style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+<span style="width:64px;height:5px;border-radius:3px;background:#EDE6D8;overflow:hidden;display:block"><span style="display:block;height:100%;border-radius:3px;background:#17A063;animation:v3Bar 1.3s linear infinite"></span></span>
+<span style="font:600 11.5px 'Instrument Sans',sans-serif;color:#128A54">Running</span>
+</span>
+</sc-if>
+<sc-if value="{{ t.isDone }}" hint-placeholder-val="{{ false }}">
+<span style="font:600 11.5px 'Instrument Sans',sans-serif;color:#128A54;background:#EAF6EF;border-radius:999px;padding:5px 11px;flex-shrink:0">Done ✓</span>
+</sc-if>
+</div>
+</sc-for>
+</div>
+<div style="display:flex;align-items:center;gap:18px;padding:13px 20px;background:#F4EEE2;border-top:1px solid #EDE6D8">
+<span style="font:500 12px 'Instrument Sans',sans-serif;color:#68705F">Today</span>
+<span style="font:600 12px ui-monospace,monospace;color:#128A54">{{ tasksToday }} tasks automated</span>
+<span style="font:600 12px ui-monospace,monospace;color:#B08A3E">$0 payroll spent</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ============ STATS STRIP ============ -->
+<div data-screen-label="Stats" style="background:#0A120E;border-top:1px solid rgba(255,255,255,.07)">
+<div data-reveal style="max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:rgba(255,255,255,.09)">
+<div style="background:#0A120E;padding:30px 24px;display:flex;flex-direction:column;gap:5px;text-align:center">
+<span data-count style="font:600 40px 'Space Grotesk',sans-serif;color:#2BD483;letter-spacing:-.02em">50K+</span>
+<span style="font:500 13.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.55)">hours automated for clients</span>
+</div>
+<div style="background:#0A120E;padding:30px 24px;display:flex;flex-direction:column;gap:5px;text-align:center">
+<span data-count style="font:600 40px 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.02em">120+</span>
+<span style="font:500 13.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.55)">automations shipped</span>
+</div>
+<div style="background:#0A120E;padding:30px 24px;display:flex;flex-direction:column;gap:5px;text-align:center">
+<span data-count style="font:600 40px 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.02em">12</span>
+<span style="font:500 13.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.55)">industries served</span>
+</div>
+<div style="background:#0A120E;padding:30px 24px;display:flex;flex-direction:column;gap:5px;text-align:center">
+<span data-count style="font:600 40px 'Space Grotesk',sans-serif;color:#D9B36A;letter-spacing:-.02em">98%</span>
+<span style="font:500 13.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.55)">client retention</span>
+</div>
+</div>
+</div>
+
+<!-- ============ TOOL MARQUEE ============ -->
+<div data-screen-label="Tools" style="background:#FDFBF6;border-bottom:1px solid #EDE6D8;padding:0;overflow:hidden">
+<div style="position:relative;background:#0E241A;padding:24px 0 28px">
+<div style="text-align:center;margin-bottom:16px">
+<span style="font:700 11.5px 'Instrument Sans',sans-serif;letter-spacing:.22em;color:rgba(245,240,232,.5);text-transform:uppercase">Powered by industry-leading AI infrastructure</span>
+</div>
+<div style="position:relative;display:flex;flex-direction:column;gap:12px">
+<div style="position:absolute;left:0;top:0;bottom:0;width:180px;background:linear-gradient(90deg,#0E241A,transparent);z-index:2;pointer-events:none"></div>
+<div style="position:absolute;right:0;top:0;bottom:0;width:180px;background:linear-gradient(270deg,#0E241A,transparent);z-index:2;pointer-events:none"></div>
+<div style="display:flex;width:max-content;gap:12px;animation:v3MarqueeL 60s linear infinite" style-hover="animation-play-state:paused">
+<sc-for list="{{ toolsRowA }}" as="tool" hint-placeholder-count="16">
+<span style="display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:8px 18px 8px 9px;transition:transform var(--motion-fast) var(--ease-soft), background var(--motion-fast) var(--ease-soft), border-color var(--motion-fast) var(--ease-soft), box-shadow var(--motion-fast) var(--ease-soft)" style-hover="transform:translateY(-3px);background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.22);box-shadow:0 10px 24px rgba(0,0,0,.25)">
+<span style="{{ tool.markStyle }}">{{ tool.letter }}</span>
+<span style="font:600 14px 'Instrument Sans',sans-serif;color:#F5F0E8;white-space:nowrap">{{ tool.name }}</span>
+</span>
+</sc-for>
+</div>
+<div style="display:flex;width:max-content;gap:12px;animation:v3MarqueeR 70s linear infinite" style-hover="animation-play-state:paused">
+<sc-for list="{{ toolsRowB }}" as="tool" hint-placeholder-count="16">
+<span style="display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:8px 18px 8px 9px;transition:transform var(--motion-fast) var(--ease-soft), background var(--motion-fast) var(--ease-soft), border-color var(--motion-fast) var(--ease-soft), box-shadow var(--motion-fast) var(--ease-soft)" style-hover="transform:translateY(-3px);background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.22);box-shadow:0 10px 24px rgba(0,0,0,.25)">
+<span style="{{ tool.markStyle }}">{{ tool.letter }}</span>
+<span style="font:600 14px 'Instrument Sans',sans-serif;color:#F5F0E8;white-space:nowrap">{{ tool.name }}</span>
+</span>
+</sc-for>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ============ WHAT WE BUILD ============ -->
+<div data-screen-label="Services" id="services" style="background-image:radial-gradient(rgba(14,42,29,.06) 1px,transparent 1.5px);background-size:26px 26px;background-color:#F7F2EA">
+<div style="max-width:1180px;margin:0 auto;padding:clamp(56px,8vw,92px) clamp(20px,3vw,32px)">
+<div data-reveal style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:52px;text-align:center">
+<div style="display:flex;align-items:center;gap:14px"><span style="width:38px;height:2px;background:#D9B36A"></span><span style="font:700 12px 'Instrument Sans',sans-serif;letter-spacing:.18em;color:#128A54;text-transform:uppercase">01 · What we build</span><span style="width:38px;height:2px;background:#D9B36A"></span></div>
+<h2 style="margin:0;font:600 clamp(32px,4.2vw,50px)/1.12 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.02em;max-width:720px">Each system is custom-built for your business — <span style="color:#128A54">deployed in 7 days.</span></h2>
+</div>
+
+<div data-reveal style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px">
+
+<!-- WhatsApp card with live chat demo -->
+<div data-tilt="1" class="motion-card premium-card service-card-premium service-card-v35 overflow-safe-v35" style="--accent:#17A063;padding:28px 26px 24px;display:flex;flex-direction:column;gap:14px;min-height:620px">
+<span class="card-accent accent-band-v35"></span>
+<div class="header-row-v35">
+<div class="mc-chip icon-chip-premium icon-tile-v35" style="background:linear-gradient(160deg,#EAF6EF,#DCF0E5)"><img src="assets/icon-chat-square.svg" style="width:21px;height:21px" alt=""></div>
+<span class="tag-chip-v35" style="color:#128A54;background:#EAF6EF;border:1px solid rgba(18,138,84,.2)">Live automation</span>
+</div>
+<h3 style="margin:0;font:600 22px 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.01em;max-width:100%;overflow-wrap:anywhere">WhatsApp Lead Automation</h3>
+<p style="margin:0;font:400 15.5px/1.65 'Instrument Sans',sans-serif;color:#5B6355;max-width:100%;overflow-wrap:anywhere">Instantly qualify and follow up with leads via WhatsApp. Never miss a sales opportunity again.</p>
+<div class="demo-panel demo-panel-v35" style="background:linear-gradient(180deg,#EFE8D8,#E6DEC9);min-height:300px">
+<div style="display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,#0E2A1D,#0A1F15);padding:10px 13px;box-shadow:inset 0 -1px 0 rgba(255,255,255,.06)">
+<div style="display:flex;align-items:center;gap:8px">
+<span style="width:27px;height:27px;border-radius:999px;background:linear-gradient(160deg,#E9C783,#D9B36A);display:flex;align-items:center;justify-content:center;font:700 10.5px 'Space Grotesk',sans-serif;color:#0A120E;box-shadow:0 3px 8px rgba(217,179,106,.4)">JM</span>
+<div style="display:flex;flex-direction:column">
+<span style="font:600 11.5px 'Instrument Sans',sans-serif;color:#F5F0E8">Jordan M. · New Lead</span>
+<span style="display:flex;align-items:center;gap:4px;font:500 9.5px 'Instrument Sans',sans-serif;color:#2BD483"><span style="width:5px;height:5px;border-radius:999px;background:#2BD483;box-shadow:0 0 6px rgba(43,212,131,.8);animation:v3Pulse 1.8s ease-out infinite"></span>online</span>
+</div>
+</div>
+<span style="font:700 9px 'Instrument Sans',sans-serif;letter-spacing:.08em;color:rgba(245,240,232,.5);text-transform:uppercase">Bot active</span>
+</div>
+<div style="position:relative;display:flex;flex-direction:column;gap:7px;padding:14px;min-height:300px;min-width:0">
+<div style="align-self:flex-start;max-width:88%;background:#fff;border-radius:10px 10px 10px 3px;padding:7px 10px;font:400 12px/1.45 'Instrument Sans',sans-serif;color:#26312A;box-shadow:0 1px 3px rgba(0,0,0,.08);animation:w1 13s ease infinite">Hi! Is the 2-bed on Maple St still available? Can I view it this week? <span style="font:600 9px 'Instrument Sans',sans-serif;animation:wRead 13s linear infinite">✓✓</span></div>
+<div style="align-self:flex-end;display:flex;gap:4px;background:#DCF0E5;border-radius:10px;padding:9px 11px;animation:w2 13s ease-in-out infinite"><span style="width:5px;height:5px;border-radius:999px;background:#128A54;animation:v3Blink 1s ease-in-out infinite"></span><span style="width:5px;height:5px;border-radius:999px;background:#128A54;animation:v3Blink 1s ease-in-out .2s infinite"></span><span style="width:5px;height:5px;border-radius:999px;background:#128A54;animation:v3Blink 1s ease-in-out .4s infinite"></span></div>
+<div style="align-self:flex-end;max-width:88%;background:#DCF0E5;border-radius:10px 10px 3px 10px;padding:7px 10px;font:400 12px/1.45 'Instrument Sans',sans-serif;color:#14532D;animation:w3 13s ease infinite">It is! I can book you a private viewing this week — which day suits you best?</div>
+<div style="align-self:flex-start;max-width:88%;background:#fff;border-radius:10px 10px 10px 3px;padding:7px 10px;font:400 12px/1.45 'Instrument Sans',sans-serif;color:#26312A;box-shadow:0 1px 3px rgba(0,0,0,.08);animation:w4 13s ease infinite">Thursday afternoon works best.</div>
+<div style="align-self:flex-end;display:flex;gap:4px;background:#DCF0E5;border-radius:10px;padding:9px 11px;animation:w5 13s ease-in-out infinite"><span style="width:5px;height:5px;border-radius:999px;background:#128A54;animation:v3Blink 1s ease-in-out infinite"></span><span style="width:5px;height:5px;border-radius:999px;background:#128A54;animation:v3Blink 1s ease-in-out .2s infinite"></span><span style="width:5px;height:5px;border-radius:999px;background:#128A54;animation:v3Blink 1s ease-in-out .4s infinite"></span></div>
+<div style="align-self:flex-end;width:88%;background:linear-gradient(180deg,#fff,#FBF8F1);border-left:3px solid #D9B36A;border-radius:10px;padding:9px 11px;display:flex;align-items:center;gap:9px;box-shadow:0 6px 16px rgba(0,0,0,.12);animation:w6 13s ease infinite">
+<img src="assets/icon-check-square.svg" style="width:18px;height:18px;flex-shrink:0" alt="">
+<div style="display:flex;flex-direction:column;gap:1px"><span style="font:700 11.5px 'Instrument Sans',sans-serif;color:#0A120E">Viewing booked — Thu 4:00 PM</span><span style="font:400 10.5px 'Instrument Sans',sans-serif;color:#8A857B">12 Maple St · calendar invites sent to both sides</span></div>
+</div>
+<div style="align-self:center;font:600 10px 'Instrument Sans',sans-serif;color:#128A54;background:#EAF6EF;border:1px solid rgba(18,138,84,.25);border-radius:999px;padding:4px 10px;box-shadow:0 2px 8px rgba(18,138,84,.14);animation:w8 13s ease-in-out infinite">Handled end-to-end in 26 seconds — no human needed</div>
+<span style="position:absolute;top:8px;right:10px;font:700 10px 'Space Grotesk',sans-serif;color:#0A120E;background:linear-gradient(160deg,#E9C783,#D9B36A);border-radius:999px;padding:5px 10px;box-shadow:0 6px 16px rgba(217,179,106,.5);animation:w7 13s ease infinite">★ Lead qualified · 9/10</span>
+</div>
+</div>
+<div class="action-row-v35">
+<span class="benefit-row" style="display:flex;align-items:center;gap:7px;font:600 13px 'Instrument Sans',sans-serif;color:#128A54"><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;background:#EAF6EF;color:#17A063;font:700 11px sans-serif;flex-shrink:0">✓</span>Never lose a lead to slow response time</span>
+</div>
+</div>
+
+<!-- Email card with pipeline demo -->
+<div data-tilt="1" class="motion-card premium-card service-card-premium service-card-v35 overflow-safe-v35" style="--accent:#D9B36A;padding:28px 26px 24px;display:flex;flex-direction:column;gap:14px;min-height:620px">
+<span class="card-accent accent-band-v35"></span>
+<div class="header-row-v35">
+<div class="mc-chip icon-chip-premium icon-tile-v35" style="background:linear-gradient(160deg,#F8EFDD,#F0E2C4)"><img src="assets/icon-edit-square.svg" style="width:21px;height:21px" alt=""></div>
+<span class="tag-chip-v35" style="color:#B08A3E;background:#F8EFDD;border:1px solid rgba(217,179,106,.35)">Live automation</span>
+</div>
+<h3 style="margin:0;font:600 22px 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.01em;max-width:100%;overflow-wrap:anywhere">Email Workflow Automation</h3>
+<p style="margin:0;font:400 15.5px/1.65 'Instrument Sans',sans-serif;color:#5B6355;max-width:100%;overflow-wrap:anywhere">Smart email sequences that nurture prospects, onboard clients, and re-engage customers automatically.</p>
+<div class="demo-panel demo-panel-v35" style="background:linear-gradient(180deg,#F6F0E4,#EFE6D2);padding:16px 16px 18px;display:flex;flex-direction:column;gap:16px;min-height:300px;min-width:0">
+<div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid rgba(176,138,62,.18)">
+<span style="font:700 10px ui-monospace,monospace;color:#8A857B;letter-spacing:.03em">WORKFLOW · lead-nurture-v2</span>
+<span style="display:flex;align-items:center;gap:5px;font:700 10px ui-monospace,monospace;color:#128A54;background:rgba(23,160,99,.1);border-radius:999px;padding:3px 9px"><span style="width:6px;height:6px;border-radius:999px;background:#2BD483;animation:v3Pulse 1.8s ease-out infinite"></span>412 sent this week</span>
+</div>
+<div style="position:relative;padding-top:4px">
+<div style="position:absolute;top:20px;left:9%;right:9%;height:4px;border-radius:2px;background:repeating-linear-gradient(90deg,#D9C9A8 0 6px,transparent 6px 12px);box-shadow:inset 0 1px 2px rgba(0,0,0,.06);animation:eFlow .7s linear infinite">
+<span style="position:absolute;top:-5px;width:14px;height:14px;border-radius:999px;background:linear-gradient(160deg,#E9C783,#D9B36A);box-shadow:0 0 18px rgba(217,179,106,.95);animation:eOrb 11s ease-in-out infinite"></span>
+</div>
+<div style="position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+<div style="display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0">
+<span style="position:relative;width:36px;height:36px;border-radius:999px;border:2px solid #CFE8DA;background:#EAF6EF;display:flex;align-items:center;justify-content:center;font:700 13px 'Space Grotesk',sans-serif;color:#128A54;animation:eN1 11s ease-in-out infinite;flex-shrink:0">1<span style="position:absolute;inset:-7px;border-radius:999px;border:2px solid #17A063;opacity:0;animation:eR1 11s ease-out infinite"></span></span>
+<span style="font:600 10.5px 'Instrument Sans',sans-serif;color:#68705F;text-align:center;max-width:100%;overflow-wrap:anywhere">Lead captured</span>
+<span style="font:600 9.5px/1.35 'Instrument Sans',sans-serif;color:#128A54;background:#fff;border-radius:8px;padding:5px 8px;text-align:center;box-shadow:0 2px 8px rgba(32,24,12,.08);animation:eC1 11s ease-in-out infinite;max-width:100%;overflow-wrap:anywhere">Tagged &amp; synced to CRM ✓</span>
+</div>
+<div style="display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0">
+<span style="position:relative;width:36px;height:36px;border-radius:999px;border:2px solid #CFE8DA;background:#EAF6EF;display:flex;align-items:center;justify-content:center;font:700 13px 'Space Grotesk',sans-serif;color:#128A54;animation:eN2 11s ease-in-out infinite;flex-shrink:0">2<span style="position:absolute;inset:-7px;border-radius:999px;border:2px solid #17A063;opacity:0;animation:eR2 11s ease-out infinite"></span></span>
+<span style="font:600 10.5px 'Instrument Sans',sans-serif;color:#68705F;text-align:center;max-width:100%;overflow-wrap:anywhere">Nurture sequence</span>
+<span style="font:600 9.5px/1.35 'Instrument Sans',sans-serif;color:#128A54;background:#fff;border-radius:8px;padding:5px 8px;text-align:center;box-shadow:0 2px 8px rgba(32,24,12,.08);animation:eC2 11s ease-in-out infinite;max-width:100%;overflow-wrap:anywhere">Email 2 sent · 68% opened</span>
+</div>
+<div style="display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0">
+<span style="position:relative;width:36px;height:36px;border-radius:999px;border:2px solid #CFE8DA;background:#EAF6EF;display:flex;align-items:center;justify-content:center;font:700 13px 'Space Grotesk',sans-serif;color:#128A54;animation:eN3 11s ease-in-out infinite;flex-shrink:0">3<span style="position:absolute;inset:-7px;border-radius:999px;border:2px solid #17A063;opacity:0;animation:eR3 11s ease-out infinite"></span></span>
+<span style="font:600 10.5px 'Instrument Sans',sans-serif;color:#68705F;text-align:center;max-width:100%;overflow-wrap:anywhere">Call booked</span>
+<span style="font:700 9.5px/1.35 'Instrument Sans',sans-serif;color:#B08A3E;background:#fff;border:1px solid rgba(217,179,106,.5);border-radius:8px;padding:5px 8px;text-align:center;box-shadow:0 4px 12px rgba(217,179,106,.25);animation:eC3 11s ease-in-out infinite;max-width:100%;overflow-wrap:anywhere">Booked · Tue 10:30 ✓</span>
+</div>
+</div>
+</div>
+</div>
+<div class="action-row-v35">
+<span class="benefit-row" style="display:flex;align-items:center;gap:7px;font:600 13px 'Instrument Sans',sans-serif;color:#128A54"><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;background:#F8EFDD;color:#B08A3E;font:700 11px sans-serif;flex-shrink:0">✓</span>Turn one-time buyers into repeat clients</span>
+</div>
+</div>
+
+<!-- Chatbot card with typing demo -->
+<div data-tilt="1" class="motion-card premium-card service-card-premium service-card-v35 overflow-safe-v35" style="--accent:#17A063;padding:28px 26px 24px;display:flex;flex-direction:column;gap:14px;min-height:620px">
+<span class="card-accent accent-band-v35"></span>
+<div class="header-row-v35">
+<div class="mc-chip icon-chip-premium icon-tile-v35" style="background:linear-gradient(160deg,#E8EDE9,#DBE3DC)"><img src="assets/icon-ai-agent-face.svg" style="width:23px;height:23px" alt=""></div>
+<span class="tag-chip-v35" style="color:#17A063;background:#E8EDE9;border:1px solid rgba(23,160,99,.25)">Live automation</span>
+</div>
+<h3 style="margin:0;font:600 22px 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.01em;max-width:100%;overflow-wrap:anywhere">Support Chat Systems</h3>
+<p style="margin:0;font:400 15.5px/1.65 'Instrument Sans',sans-serif;color:#5B6355;max-width:100%;overflow-wrap:anywhere">Intelligent chatbots that answer questions, collect data, and route hot leads to your team.</p>
+<div class="demo-panel demo-panel-v35" style="background:radial-gradient(120% 100% at 50% 0%,rgba(23,160,99,.10),transparent 60%),linear-gradient(180deg,#0D1C15,#0A1712);padding:13px 15px 15px;overflow:hidden;display:flex;flex-direction:column;gap:8px;min-height:300px;min-width:0;box-shadow:0 10px 30px rgba(18,32,27,.18),inset 0 1px 0 rgba(255,255,255,.06)">
+<span style="position:absolute;left:0;right:0;height:34px;background:linear-gradient(180deg,transparent,rgba(43,212,131,.07),transparent);animation:cScan 5s linear infinite;pointer-events:none"></span>
+<div style="display:flex;align-items:center;gap:6px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.09)">
+<span style="width:8px;height:8px;border-radius:999px;background:#E5734B"></span><span style="width:8px;height:8px;border-radius:999px;background:#D9B36A"></span><span style="width:8px;height:8px;border-radius:999px;background:#2BD483"></span>
+<span style="font:500 10px ui-monospace,monospace;color:rgba(245,240,232,.45);margin-left:6px">hermes@codeoutfitters — live session</span>
+</div>
+<div style="font:500 11.5px/1.5 ui-monospace,monospace;color:rgba(245,240,232,.85)"><span style="display:inline-block;overflow:hidden;white-space:nowrap;vertical-align:bottom;animation:cL1 12s infinite">&gt; visitor: "Do you install on weekends?"</span></div>
+<div style="font:500 11.5px/1.5 ui-monospace,monospace;color:#8FE3C0;animation:cL2 12s infinite">✓ intent detected: scheduling · 0.21s</div>
+<div style="font:500 11.5px/1.5 ui-monospace,monospace;color:rgba(245,240,232,.6)"><span style="display:inline-block;overflow:hidden;white-space:nowrap;vertical-align:bottom;animation:cL3 12s infinite">→ drafting reply from knowledge base…</span></div>
+<div style="font:500 11.5px/1.5 ui-monospace,monospace;color:#2BD483;animation:cL4 12s infinite">✓ replied in 3.8s — visitor satisfied</div>
+<div style="align-self:flex-start;font:700 11.5px ui-monospace,monospace;color:#D9B36A;background-color:rgba(217,179,106,.14);background-image:linear-gradient(110deg,transparent 35%,rgba(217,179,106,.5) 50%,transparent 65%);background-size:250% 100%;background-repeat:no-repeat;border:1px solid rgba(217,179,106,.45);border-radius:7px;padding:6px 10px;box-shadow:0 4px 14px rgba(217,179,106,.18);animation:cL5 12s ease infinite,cFlash 12s linear infinite">★ HOT LEAD — routed to sales team</div>
+<div style="display:flex;align-items:center;gap:6px;margin-top:auto">
+<span style="font:500 11.5px ui-monospace,monospace;color:rgba(245,240,232,.5)">&gt;</span><span style="display:inline-block;width:8px;height:13px;background:#2BD483;animation:cursorBlinkSoft 1.1s steps(2) infinite"></span>
+</div>
+<div style="display:flex;gap:8px">
+<span style="font:600 10.5px ui-monospace,monospace;color:rgba(245,240,232,.65);background:rgba(255,255,255,.08);border-radius:999px;padding:4px 10px">FAQ answered: 214</span>
+<span style="font:600 10.5px ui-monospace,monospace;color:#D9B36A;background:rgba(217,179,106,.14);border-radius:999px;padding:4px 10px">Leads routed: 38</span>
+</div>
+</div>
+<div class="action-row-v35">
+<span class="benefit-row" style="display:flex;align-items:center;gap:7px;font:600 13px 'Instrument Sans',sans-serif;color:#128A54"><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;background:#E8EDE9;color:#17A063;font:700 11px sans-serif;flex-shrink:0">✓</span>Your website works while you sleep</span>
+</div>
+</div>
+</div>
+
+<div data-reveal style="display:flex;justify-content:center;margin-top:36px">
+<a href="#results" style="display:flex;align-items:center;gap:9px;font:600 15px 'Instrument Sans',sans-serif;color:#0E2A1D;text-decoration:none;border-bottom:2px solid #D9B36A;padding-bottom:3px" style-hover="color:#128A54">View All Services <img src="assets/icon-arrow-right.svg" style="width:13px;height:13px" alt=""></a>
+</div>
+</div>
+</div>
+
+<!-- ============ PROCESS ============ -->
+<div data-screen-label="Process" id="process" style="position:relative;background:#FDFBF6;border-top:1px solid #EDE6D8;overflow:hidden">
+<div class="liquid-blob" style="top:-120px;right:6%;width:380px;height:380px;background:radial-gradient(circle, rgba(23,160,99,.07), transparent 70%);filter:blur(60px);animation:liquidDrift1 24s ease-in-out infinite"></div>
+<div style="position:relative;max-width:1180px;margin:0 auto;padding:clamp(56px,8vw,92px) clamp(20px,3vw,32px)">
+<div data-reveal style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:70px;text-align:center">
+<div style="display:flex;align-items:center;gap:14px"><span style="width:38px;height:2px;background:#D9B36A"></span><span style="font:700 12px 'Instrument Sans',sans-serif;letter-spacing:.18em;color:#128A54;text-transform:uppercase">02 · How it works</span><span style="width:38px;height:2px;background:#D9B36A"></span></div>
+<h2 style="margin:0;font:600 clamp(32px,4.2vw,50px)/1.12 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.02em">From Discovery to <span style="color:#128A54">Deployed in 7 Days</span></h2>
+<p style="margin:0;font:400 17.5px/1.6 'Instrument Sans',sans-serif;color:#68705F;max-width:460px">A streamlined process designed to minimize your time investment while maximizing results.</p>
+</div>
+
+<div data-reveal style="position:relative;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:40px;padding-top:44px;padding-bottom:8px">
+<div class="reveal-line" style="position:absolute;top:66px;left:11%;right:11%;height:4px;border-radius:2px;background:#E2D9C6;box-shadow:inset 0 1px 2px rgba(0,0,0,.06)">
+<span style="position:absolute;left:0;top:0;bottom:0;border-radius:2px;background:linear-gradient(90deg,#17A063,#D9B36A);animation:pFill 10s linear infinite;display:block"></span>
+<span style="position:absolute;top:-7px;width:18px;height:18px;border-radius:999px;background:#17A063;box-shadow:0 0 24px rgba(23,160,99,.95), -16px 0 20px rgba(23,160,99,.45);animation:pDot 10s linear infinite"></span>
+</div>
+<div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center">
+<div style="position:relative">
+<span style="position:absolute;top:-34px;left:50%;font:700 10.5px 'Space Grotesk',sans-serif;color:#0A120E;background:#D9B36A;border-radius:999px;padding:4px 11px;white-space:nowrap;opacity:0;animation:pB1 10s ease-in-out infinite">Day 1</span>
+<div class="node-activate" style="width:54px;height:54px;border-radius:15px;background:#0E2A1D;display:flex;align-items:center;justify-content:center;animation:pT1 10s ease-in-out infinite"><img src="assets/icon-chat-square.svg" style="width:22px;height:22px;filter:brightness(3)" alt=""></div>
+<span style="position:absolute;top:-5px;right:-7px;width:18px;height:18px;border-radius:999px;background:#2BD483;display:flex;align-items:center;justify-content:center;font:700 10px 'Instrument Sans',sans-serif;color:#0A120E;box-shadow:0 4px 10px rgba(43,212,131,.5);opacity:0;animation:pC1 10s ease-in-out infinite">✓</span>
+</div>
+<h3 style="margin:0;display:flex;align-items:center;gap:8px;font:600 20px 'Space Grotesk',sans-serif;color:#0A120E">Discovery Call <span style="color:#B8AF9E">→</span></h3>
+<p style="margin:0;font:400 15px/1.65 'Instrument Sans',sans-serif;color:#68705F">30 minutes — we map your exact workflow, find your biggest time drains, and tell you honestly whether automation is the right fit.</p>
+</div>
+<div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center">
+<div style="position:relative">
+<span style="position:absolute;top:-34px;left:50%;font:700 10.5px 'Space Grotesk',sans-serif;color:#0A120E;background:#D9B36A;border-radius:999px;padding:4px 11px;white-space:nowrap;opacity:0;animation:pB2 10s ease-in-out infinite">Day 2–3</span>
+<div class="node-activate" style="width:54px;height:54px;border-radius:15px;background:#0E2A1D;display:flex;align-items:center;justify-content:center;animation:pT2 10s ease-in-out infinite"><img src="assets/icon-edit-square.svg" style="width:22px;height:22px;filter:brightness(3)" alt=""></div>
+<span style="position:absolute;top:-5px;right:-7px;width:18px;height:18px;border-radius:999px;background:#2BD483;display:flex;align-items:center;justify-content:center;font:700 10px 'Instrument Sans',sans-serif;color:#0A120E;box-shadow:0 4px 10px rgba(43,212,131,.5);opacity:0;animation:pC2 10s ease-in-out infinite">✓</span>
+</div>
+<h3 style="margin:0;display:flex;align-items:center;gap:8px;font:600 20px 'Space Grotesk',sans-serif;color:#0A120E">Custom Scope <span style="color:#B8AF9E">→</span></h3>
+<p style="margin:0;font:400 15px/1.65 'Instrument Sans',sans-serif;color:#68705F">We design the automation architecture specific to your tools and business, then send you a clear scope with timeline and cost before we start.</p>
+</div>
+<div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center">
+<div style="position:relative">
+<span style="position:absolute;top:-34px;left:50%;font:700 10.5px 'Space Grotesk',sans-serif;color:#0A120E;background:#D9B36A;border-radius:999px;padding:4px 11px;white-space:nowrap;opacity:0;animation:pB3 10s ease-in-out infinite">Day 4–6</span>
+<div class="node-activate" style="width:54px;height:54px;border-radius:15px;background:#0E2A1D;display:flex;align-items:center;justify-content:center;animation:pT3 10s ease-in-out infinite"><img src="assets/icon-workflow-nodes.svg" style="width:22px;height:22px;filter:brightness(3)" alt=""></div>
+<span style="position:absolute;top:-5px;right:-7px;width:18px;height:18px;border-radius:999px;background:#2BD483;display:flex;align-items:center;justify-content:center;font:700 10px 'Instrument Sans',sans-serif;color:#0A120E;box-shadow:0 4px 10px rgba(43,212,131,.5);opacity:0;animation:pC3 10s ease-in-out infinite">✓</span>
+</div>
+<h3 style="margin:0;display:flex;align-items:center;gap:8px;font:600 20px 'Space Grotesk',sans-serif;color:#0A120E">We Build It <span style="color:#B8AF9E">→</span></h3>
+<p style="margin:0;font:400 15px/1.65 'Instrument Sans',sans-serif;color:#68705F">7–30 days depending on scope. We handle every technical detail — you just review and approve before anything goes live.</p>
+</div>
+<div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center">
+<div style="position:relative">
+<span style="position:absolute;top:-34px;left:50%;font:700 10.5px 'Space Grotesk',sans-serif;color:#0A120E;background:#D9B36A;border-radius:999px;padding:4px 11px;white-space:nowrap;opacity:0;animation:pB4 10s ease-in-out infinite">Day 7 — Live</span>
+<div class="node-activate" style="width:54px;height:54px;border-radius:15px;background:#0E2A1D;display:flex;align-items:center;justify-content:center;animation:pT4 10s ease-in-out infinite"><img src="assets/icon-check-square.svg" style="width:22px;height:22px;filter:brightness(3)" alt=""></div>
+<span style="position:absolute;top:-5px;right:-7px;width:18px;height:18px;border-radius:999px;background:#2BD483;display:flex;align-items:center;justify-content:center;font:700 10px 'Instrument Sans',sans-serif;color:#0A120E;box-shadow:0 4px 10px rgba(43,212,131,.5);opacity:0;animation:pC4 10s ease-in-out infinite">✓</span>
+</div>
+<h3 style="margin:0;font:600 20px 'Space Grotesk',sans-serif;color:#0A120E">You Save Time</h3>
+<p style="margin:0;font:400 15px/1.65 'Instrument Sans',sans-serif;color:#68705F">Ongoing support included. We monitor your automations, fix issues fast, and optimize as your business grows.</p>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ============ THE MATH ============ -->
+<div data-screen-label="Math" id="math" data-spot="1" style="position:relative;background:radial-gradient(800px 500px at 50% -10%, rgba(23,160,99,.16), transparent 62%), #0E241A;overflow:hidden">
+<div class="spotlight"></div>
+<div style="position:absolute;bottom:-150px;right:-90px;width:420px;height:420px;border-radius:999px;background:radial-gradient(circle, rgba(217,179,106,.10), transparent 68%);filter:blur(52px);animation:v3Orb 17s ease-in-out infinite;pointer-events:none"></div>
+<div class="liquid-blob" style="top:-100px;left:-80px;width:340px;height:340px;background:radial-gradient(circle, rgba(43,212,131,.09), transparent 70%);filter:blur(58px);animation:liquidDrift2 20s ease-in-out infinite"></div>
+<div style="position:relative;max-width:1180px;margin:0 auto;padding:clamp(56px,8vw,92px) clamp(20px,3vw,32px)">
+<div data-reveal style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:48px;text-align:center">
+<div style="display:flex;align-items:center;gap:14px"><span style="width:38px;height:2px;background:rgba(217,179,106,.6)"></span><span style="font:700 12px 'Instrument Sans',sans-serif;letter-spacing:.18em;color:#D9B36A;text-transform:uppercase">03 · The math</span><span style="width:38px;height:2px;background:rgba(217,179,106,.6)"></span></div>
+<h2 style="margin:0;font:600 clamp(32px,4.2vw,50px)/1.12 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.02em">How much is manual work <span style="color:#2BD483">costing you?</span></h2>
+<p style="margin:0;font:400 17px/1.6 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6)">Move the sliders to see your exact savings</p>
+</div>
+
+<div data-reveal style="display:flex;justify-content:center">
+<div style="width:min(720px,100%);background:#FDFBF6;border-radius:20px;padding:clamp(22px,4vw,36px);box-shadow:0 44px 100px rgba(0,0,0,.4);display:flex;flex-direction:column;gap:26px">
+
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:center;justify-content:space-between">
+<span style="font:500 16px 'Instrument Sans',sans-serif;color:#26312A">Team members doing repetitive tasks</span>
+<span class="calc-value" style="{{ teamValueStyle }}">{{ teamLabel }}</span>
+</div>
+<input type="range" class="calc-slider" min="1" max="50" step="1" value="{{ team }}" style="{{ teamFillStyle }};width:100%;height:22px;cursor:pointer" onChange="{{ setTeam }}">
+</div>
+
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:center;justify-content:space-between">
+<span style="font:500 16px 'Instrument Sans',sans-serif;color:#26312A">Hours wasted per person per week</span>
+<span class="calc-value" style="{{ hoursValueStyle }}">{{ hoursLabel }}</span>
+</div>
+<input type="range" class="calc-slider" min="1" max="40" step="1" value="{{ hoursWasted }}" style="{{ hoursFillStyle }};width:100%;height:22px;cursor:pointer" onChange="{{ setHours }}">
+</div>
+
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:center;justify-content:space-between">
+<span style="font:500 16px 'Instrument Sans',sans-serif;color:#26312A">Average hourly rate</span>
+<span class="calc-value" style="{{ rateValueStyle }}">{{ rateLabel }}</span>
+</div>
+<input type="range" class="calc-slider" min="10" max="150" step="5" value="{{ rate }}" style="{{ rateFillStyle }};width:100%;height:22px;cursor:pointer" onChange="{{ setRate }}">
+</div>
+
+<div data-calc-panel class="calc-panel" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;border-radius:16px">
+<div style="border:1px solid #EDE6D8;border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:5px;text-align:center">
+<span style="font:700 26px ui-monospace,monospace;color:#0A120E">{{ lostWeek }}</span>
+<span style="font:600 10.5px 'Instrument Sans',sans-serif;letter-spacing:.1em;color:#8A857B;text-transform:uppercase">Lost per week</span>
+</div>
+<div style="border:1px solid #EDE6D8;border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:5px;text-align:center">
+<span style="font:700 26px ui-monospace,monospace;color:#0A120E">{{ lostMonth }}</span>
+<span style="font:600 10.5px 'Instrument Sans',sans-serif;letter-spacing:.1em;color:#8A857B;text-transform:uppercase">Lost per month</span>
+</div>
+<div style="background:#0E2A1D;border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:5px;text-align:center">
+<span style="font:700 26px ui-monospace,monospace;color:#2BD483">{{ lostYear }}</span>
+<span style="font:600 10.5px 'Instrument Sans',sans-serif;letter-spacing:.1em;color:rgba(245,240,232,.6);text-transform:uppercase">Lost per year</span>
+</div>
+</div>
+
+<div style="background:#F4EEE2;border:1px dashed #D9CDB4;border-radius:14px;padding:18px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center">
+<span style="font:600 11.5px 'Instrument Sans',sans-serif;letter-spacing:.12em;color:#B08A3E;text-transform:uppercase">With CodeOutfitters automation</span>
+<span style="font:500 17px 'Instrument Sans',sans-serif;color:#26312A">You could save <span style="font:700 19px ui-monospace,monospace;color:#128A54">{{ saveMonth }}/month</span> or more.</span>
+</div>
+
+<button style="font:600 16px 'Instrument Sans',sans-serif;color:#F5F0E8;background:#128A54;border:none;border-radius:12px;padding:16px;cursor:pointer;transition:transform .15s ease, background .15s ease" style-hover="background:#17A063;transform:translateY(-1px)">Get a Custom Quote</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ============ REAL RESULTS ============ -->
+<div data-screen-label="Results" id="results" style="background-image:radial-gradient(rgba(14,42,29,.06) 1px,transparent 1.5px);background-size:26px 26px;background-color:#F7F2EA">
+<div style="max-width:1180px;margin:0 auto;padding:clamp(56px,8vw,92px) clamp(20px,3vw,32px)">
+<div data-reveal style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:52px;text-align:center">
+<div style="display:flex;align-items:center;gap:14px"><span style="width:38px;height:2px;background:#D9B36A"></span><span style="font:700 12px 'Instrument Sans',sans-serif;letter-spacing:.18em;color:#128A54;text-transform:uppercase">04 · Sample work</span><span style="width:38px;height:2px;background:#D9B36A"></span></div>
+<h2 style="margin:0;font:600 clamp(32px,4.2vw,50px)/1.12 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.02em">Real Businesses, <span style="color:#128A54">Real Results</span></h2>
+<p style="margin:0;font:400 17.5px/1.6 'Instrument Sans',sans-serif;color:#68705F;max-width:520px">Every automation we build is measured by one metric: time and money saved for our clients.</p>
+</div>
+
+<div data-reveal style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px">
+
+<div data-tilt="1" class="motion-card premium-card case-card case-card-v35 overflow-safe-v35" style="--accent:#17A063;padding:28px 26px 26px;display:flex;flex-direction:column;gap:15px;min-height:520px">
+<span class="card-accent accent-band-v35"></span>
+<div class="header-row-v35">
+<div class="mc-chip icon-chip-premium icon-tile-v35" style="background:linear-gradient(160deg,#EAF6EF,#DCF0E5)"><img src="assets/icon-lead-user.svg" style="width:21px;height:21px" alt=""></div>
+<span class="premium-chip sample-pill tag-chip-v35" style="color:#8A857B">Sample project</span>
+</div>
+<div class="tag-row-v35">
+<span class="premium-chip tag-chip-v35" style="color:#68705F;background:#F4EEE2">Real Estate</span>
+<span class="premium-chip tag-chip-v35" style="color:#128A54;background:#EAF6EF">WhatsApp Automation</span>
+</div>
+<h3 style="margin:0;font:600 21px/1.35 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.01em;max-width:100%;overflow-wrap:anywhere">How a Real Estate Agency Doubled Lead Response Rate</h3>
+<p style="margin:0;font:400 15px/1.65 'Instrument Sans',sans-serif;color:#5B6355;max-width:100%;overflow-wrap:anywhere">A 3-agent office was losing leads to faster competitors. We built a WhatsApp bot that qualifies, responds, and books viewings 24/7.</p>
+<div class="metric-band-v35" style="--accent:#17A063;margin-top:auto">
+<div class="metric-cell-v35"><span class="metric-num-v35">2x</span><span class="metric-lbl-v35">Lead response rate</span></div>
+<div class="metric-cell-v35"><span class="metric-num-v35" data-count>87%</span><span class="metric-lbl-v35">Faster follow-ups</span></div>
+<div class="metric-cell-v35"><span class="metric-num-v35">18 hrs</span><span class="metric-lbl-v35">Saved per week</span></div>
+</div>
+<div class="action-row-v35">
+<a href="#cta" style="display:flex;align-items:center;gap:9px;font:600 15px 'Instrument Sans',sans-serif;color:#0E2A1D;text-decoration:none" style-hover="color:#128A54">Get a Similar System <span class="card-cta-arrow"><img src="assets/icon-arrow-right.svg" alt=""></span></a>
+</div>
+</div>
+
+<div data-tilt="1" class="motion-card premium-card case-card case-card-v35 overflow-safe-v35" style="--accent:#D9B36A;padding:28px 26px 26px;display:flex;flex-direction:column;gap:15px;min-height:520px">
+<span class="card-accent accent-band-v35"></span>
+<div class="header-row-v35">
+<div class="mc-chip icon-chip-premium icon-tile-v35" style="background:linear-gradient(160deg,#F8EFDD,#F0E2C4)"><img src="assets/icon-database-stack.svg" style="width:21px;height:21px" alt=""></div>
+<span class="premium-chip sample-pill tag-chip-v35" style="color:#8A857B">Sample project</span>
+</div>
+<div class="tag-row-v35">
+<span class="premium-chip tag-chip-v35" style="color:#68705F;background:#F4EEE2">E-commerce</span>
+<span class="premium-chip tag-chip-v35" style="color:#B08A3E;background:#F8EFDD">Invoice Automation</span>
+</div>
+<h3 style="margin:0;font:600 21px/1.35 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.01em;max-width:100%;overflow-wrap:anywhere">Invoice Processing Reduced from 4 Hours to 8 Minutes Daily</h3>
+<p style="margin:0;font:400 15px/1.65 'Instrument Sans',sans-serif;color:#5B6355;max-width:100%;overflow-wrap:anywhere">An online retailer was manually creating invoices and reconciling orders. Our pipeline now handles 200+ invoices per day, error-free.</p>
+<div class="metric-band-v35" style="--accent:#D9B36A;margin-top:auto">
+<div class="metric-cell-v35"><span class="metric-num-v35" data-count style="color:#B08A3E">97%</span><span class="metric-lbl-v35">Time saved on invoicing</span></div>
+<div class="metric-cell-v35"><span class="metric-num-v35" style="color:#B08A3E">0</span><span class="metric-lbl-v35">Data-entry errors</span></div>
+<div class="metric-cell-v35"><span class="metric-num-v35" data-count style="color:#B08A3E">$1,200</span><span class="metric-lbl-v35">Admin cost saved/mo</span></div>
+</div>
+<div class="action-row-v35">
+<a href="#cta" style="display:flex;align-items:center;gap:9px;font:600 15px 'Instrument Sans',sans-serif;color:#0E2A1D;text-decoration:none" style-hover="color:#128A54">Get a Similar System <span class="card-cta-arrow"><img src="assets/icon-arrow-right.svg" alt=""></span></a>
+</div>
+</div>
+
+<div data-tilt="1" class="motion-card premium-card case-card case-card-v35 overflow-safe-v35" style="--accent:#0E2A1D;padding:28px 26px 26px;display:flex;flex-direction:column;gap:15px;min-height:520px">
+<span class="card-accent accent-band-v35"></span>
+<div class="header-row-v35">
+<div class="mc-chip icon-chip-premium icon-tile-v35" style="background:linear-gradient(160deg,#E8EDE9,#DBE3DC)"><img src="assets/icon-check-square.svg" style="width:21px;height:21px" alt=""></div>
+<span class="premium-chip sample-pill tag-chip-v35" style="color:#8A857B">Sample project</span>
+</div>
+<div class="tag-row-v35">
+<span class="premium-chip tag-chip-v35" style="color:#68705F;background:#F4EEE2">Healthcare</span>
+<span class="premium-chip tag-chip-v35" style="color:#0E2A1D;background:#E8EDE9">Booking Bot</span>
+</div>
+<h3 style="margin:0;font:600 21px/1.35 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.01em;max-width:100%;overflow-wrap:anywhere">Medical Clinic Eliminates 90% of Phone-Based Scheduling</h3>
+<p style="margin:0;font:400 15px/1.65 'Instrument Sans',sans-serif;color:#5B6355;max-width:100%;overflow-wrap:anywhere">A busy clinic was overwhelmed by appointment calls. We deployed an AI booking bot that syncs with their calendar and sends reminders automatically.</p>
+<div class="metric-band-v35" style="--accent:#0E2A1D;margin-top:auto">
+<div class="metric-cell-v35"><span class="metric-num-v35" data-count style="color:#0E2A1D">90%</span><span class="metric-lbl-v35">Fewer scheduling calls</span></div>
+<div class="metric-cell-v35"><span class="metric-num-v35" data-count style="color:#0E2A1D">40%</span><span class="metric-lbl-v35">Drop in no-shows</span></div>
+<div class="metric-cell-v35"><span class="metric-num-v35" style="color:#0E2A1D">24/7</span><span class="metric-lbl-v35">Booking availability</span></div>
+</div>
+<div class="action-row-v35">
+<a href="#cta" style="display:flex;align-items:center;gap:9px;font:600 15px 'Instrument Sans',sans-serif;color:#0E2A1D;text-decoration:none" style-hover="color:#128A54">Get a Similar System <span class="card-cta-arrow"><img src="assets/icon-arrow-right.svg" alt=""></span></a>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ============ TESTIMONIALS ============ -->
+<div data-screen-label="Testimonials" style="background:#0E241A;overflow:hidden;border-top:1px solid rgba(255,255,255,.06)">
+<div style="max-width:1180px;margin:0 auto;padding:clamp(56px,8vw,92px) clamp(20px,3vw,32px) 12px">
+<div data-reveal style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:40px;text-align:center">
+<div style="display:flex;align-items:center;gap:14px"><span style="width:38px;height:2px;background:rgba(217,179,106,.6)"></span><span style="font:700 12px 'Instrument Sans',sans-serif;letter-spacing:.18em;color:#D9B36A;text-transform:uppercase">05 · Client love</span><span style="width:38px;height:2px;background:rgba(217,179,106,.6)"></span></div>
+<h2 style="margin:0;font:600 clamp(32px,4.2vw,50px)/1.12 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.02em">Small teams. <span style="color:#2BD483">Big time savings.</span></h2>
+</div>
+</div>
+<div style="position:relative;display:flex;flex-direction:column;gap:16px;padding:4px 0 clamp(56px,8vw,84px)">
+<div style="position:absolute;left:0;top:0;bottom:0;width:120px;background:linear-gradient(90deg,#0E241A,transparent);z-index:2;pointer-events:none"></div>
+<div style="position:absolute;right:0;top:0;bottom:0;width:120px;background:linear-gradient(270deg,#0E241A,transparent);z-index:2;pointer-events:none"></div>
+<div style="display:flex;width:max-content;gap:16px;animation:v3MarqueeL 80s linear infinite" style-hover="animation-play-state:paused">
+<sc-for list="{{ testiRowA }}" as="t" hint-placeholder-count="8">
+<div class="motion-card" style="width:360px;flex-shrink:0;min-width:0;overflow-wrap:anywhere;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.11);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:14px">
+<div class="mc-stars" style="display:flex;gap:3px;font:600 13px 'Instrument Sans',sans-serif;color:#D9B36A">★★★★★</div>
+<p style="margin:0;font:400 15px/1.6 'Instrument Sans',sans-serif;color:rgba(245,240,232,.82)">{{ t.quote }}</p>
+<div style="display:flex;align-items:center;gap:11px;margin-top:auto">
+<span style="{{ t.avatarStyle }}">{{ t.initials }}</span>
+<div style="display:flex;flex-direction:column">
+<span style="font:600 14px 'Instrument Sans',sans-serif;color:#F5F0E8">{{ t.name }}</span>
+<span style="font:400 12.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.5)">{{ t.role }}</span>
+</div>
+</div>
+</div>
+</sc-for>
+</div>
+<div style="display:flex;width:max-content;gap:16px;animation:v3MarqueeR 90s linear infinite" style-hover="animation-play-state:paused">
+<sc-for list="{{ testiRowB }}" as="t" hint-placeholder-count="8">
+<div class="motion-card" style="width:360px;flex-shrink:0;min-width:0;overflow-wrap:anywhere;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.11);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:14px">
+<div class="mc-stars" style="display:flex;gap:3px;font:600 13px 'Instrument Sans',sans-serif;color:#D9B36A">★★★★★</div>
+<p style="margin:0;font:400 15px/1.6 'Instrument Sans',sans-serif;color:rgba(245,240,232,.82)">{{ t.quote }}</p>
+<div style="display:flex;align-items:center;gap:11px;margin-top:auto">
+<span style="{{ t.avatarStyle }}">{{ t.initials }}</span>
+<div style="display:flex;flex-direction:column">
+<span style="font:600 14px 'Instrument Sans',sans-serif;color:#F5F0E8">{{ t.name }}</span>
+<span style="font:400 12.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.5)">{{ t.role }}</span>
+</div>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+
+<!-- ============ FAQ ============ -->
+<div data-screen-label="FAQ" id="faq" style="background:#F7F2EA">
+<div style="max-width:820px;margin:0 auto;padding:clamp(56px,8vw,92px) clamp(20px,3vw,32px)">
+<div data-reveal style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:44px;text-align:center">
+<div style="display:flex;align-items:center;gap:14px"><span style="width:38px;height:2px;background:#D9B36A"></span><span style="font:700 12px 'Instrument Sans',sans-serif;letter-spacing:.18em;color:#128A54;text-transform:uppercase">06 · Questions</span><span style="width:38px;height:2px;background:#D9B36A"></span></div>
+<h2 style="margin:0;font:600 clamp(32px,4.2vw,50px)/1.12 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.02em">Everything clients <span style="color:#128A54">ask us first.</span></h2>
+</div>
+<div data-reveal style="display:flex;flex-direction:column;gap:12px">
+<sc-for list="{{ faqs }}" as="f" hint-placeholder-count="5">
+<div style="background:#fff;border:1px solid #EDE6D8;border-radius:14px;overflow:hidden;min-width:0;transition:box-shadow var(--motion-med) var(--ease-premium), border-color var(--motion-med) var(--ease-premium), transform var(--motion-med) var(--ease-premium)" style-hover="box-shadow:0 16px 40px rgba(32,24,12,.12);border-color:rgba(23,160,99,.35);transform:translateY(-2px)">
+<button onClick="{{ f.toggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;box-sizing:border-box;padding:19px 22px;cursor:pointer;background:transparent;border:none;text-align:left;font:600 17px 'Space Grotesk',sans-serif;color:#0A120E;min-width:0"><span style="min-width:0;overflow-wrap:anywhere">{{ f.q }}</span><span style="{{ f.chevStyle }};flex-shrink:0">⌄</span></button>
+<div style="{{ f.bodyStyle }}"><p style="margin:0;padding:0 22px 20px;font:400 15.5px/1.65 'Instrument Sans',sans-serif;color:#68705F;max-width:100%;overflow-wrap:anywhere">{{ f.a }}</p></div>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+
+<!-- ============ CTA ============ -->
+<div data-screen-label="CTA" id="cta" data-spot="1" style="position:relative;background:radial-gradient(760px 420px at 50% -15%, rgba(23,160,99,.2), transparent 62%), #0A120E;overflow:hidden">
+<div class="spotlight"></div>
+<div style="position:absolute;top:-130px;left:18%;width:400px;height:400px;border-radius:999px;background:radial-gradient(circle, rgba(217,179,106,.12), transparent 68%);filter:blur(52px);animation:v3OrbB 16s ease-in-out infinite;pointer-events:none"></div>
+<div class="liquid-blob" style="bottom:-140px;right:10%;width:360px;height:360px;background:radial-gradient(circle, rgba(43,212,131,.1), transparent 70%);filter:blur(60px);animation:liquidDrift3 26s ease-in-out infinite;pointer-events:none"></div>
+<div class="liquid-blob" style="top:20%;right:22%;width:260px;height:260px;background:radial-gradient(circle, rgba(217,179,106,.14), transparent 70%);filter:blur(52px);animation:liquidFloat 11s ease-in-out infinite;pointer-events:none"></div>
+<div data-reveal style="position:relative;max-width:720px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:22px;padding:96px 32px;text-align:center">
+<span style="font:700 12px 'Instrument Sans',sans-serif;letter-spacing:.18em;color:#D9B36A;text-transform:uppercase">Let's talk</span>
+<h2 style="margin:0;font:600 clamp(32px,4.2vw,50px)/1.1 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.02em">Book a Discovery Call</h2>
+<p style="margin:0;font:400 18px/1.65 'Instrument Sans',sans-serif;color:rgba(245,240,232,.62);max-width:480px">30 minutes. No sales pressure. We map your biggest time drains and show you exactly what automation looks like for your business — free.</p>
+<div style="position:relative;display:inline-flex">
+<span style="position:absolute;inset:-4px;border-radius:16px;background:conic-gradient(from 0deg,#17A063,#D9B36A,#2BD483,#17A063);animation:v4Spin 4s linear infinite;filter:blur(12px);opacity:.55"></span>
+<button data-magnet="1" class="cta-sweep" style="position:relative;display:flex;align-items:center;gap:10px;font:600 16.5px 'Instrument Sans',sans-serif;color:#0A120E;background:#D9B36A;border:none;border-radius:12px;padding:17px 32px;cursor:pointer;transition:transform var(--motion-fast) var(--ease-premium), box-shadow var(--motion-fast) var(--ease-premium)" style-hover="transform:translateY(-3px);box-shadow:0 20px 44px rgba(217,179,106,.35)">Book Free Discovery Call
+<img src="assets/icon-arrow-right.svg" style="width:15px;height:15px" alt=""></button>
+</div>
+<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:12px">
+<span style="display:flex;align-items:center;gap:7px;font:600 13px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.7);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:8px 15px;transition:transform var(--motion-fast) var(--ease-spring),border-color var(--motion-fast) var(--ease-soft),background var(--motion-fast) var(--ease-soft)" style-hover="transform:translateY(-3px) scale(1.03);border-color:rgba(43,212,131,.4);background:rgba(43,212,131,.1)"><span style="color:#2BD483">✓</span>Free audit included</span>
+<span style="display:flex;align-items:center;gap:7px;font:600 13px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.7);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:8px 15px;transition:transform var(--motion-fast) var(--ease-spring),border-color var(--motion-fast) var(--ease-soft),background var(--motion-fast) var(--ease-soft)" style-hover="transform:translateY(-3px) scale(1.03);border-color:rgba(43,212,131,.4);background:rgba(43,212,131,.1)"><span style="color:#2BD483">✓</span>No long contracts</span>
+<span style="display:flex;align-items:center;gap:7px;font:600 13px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.7);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:8px 15px;transition:transform var(--motion-fast) var(--ease-spring),border-color var(--motion-fast) var(--ease-soft),background var(--motion-fast) var(--ease-soft)" style-hover="transform:translateY(-3px) scale(1.03);border-color:rgba(43,212,131,.4);background:rgba(43,212,131,.1)"><span style="color:#2BD483">✓</span>30-day support</span>
+</div>
+<span style="display:flex;align-items:center;gap:8px;font:600 13.5px 'Instrument Sans',sans-serif;color:#D9B36A"><span style="width:8px;height:8px;border-radius:999px;background:#D9B36A;animation:v3Pulse 1.8s ease-out infinite"></span>3 build slots left for July</span>
+</div>
+</div>
+
+<!-- ============ FOOTER ============ -->
+<div data-screen-label="Footer" style="background:#070D0A;border-top:1px solid rgba(255,255,255,.06)">
+<div style="max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:40px;padding:56px 32px 40px">
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;gap:9px">
+<img src="assets/logo-mark.svg" style="width:24px;height:24px;filter:brightness(1.5)" alt="">
+<span style="font:600 17px 'Space Grotesk',sans-serif;color:#F5F0E8">Code<span style="color:#2BD483">Outfitters</span></span>
+</div>
+<p style="margin:0;font:400 15px/1.65 'Instrument Sans',sans-serif;color:rgba(245,240,232,.45);max-width:300px">AI automation for US small businesses. We eliminate repetitive work so you can focus on what actually grows your business.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<span style="font:700 11.5px 'Instrument Sans',sans-serif;letter-spacing:.16em;color:rgba(245,240,232,.4);text-transform:uppercase">Services</span>
+<a href="#services" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">WhatsApp Automation</a>
+<a href="#services" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Email Workflows</a>
+<a href="#services" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">AI Chatbots</a>
+<a href="#services" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Booking Bots</a>
+<a href="#services" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Invoice Automation</a>
+<a href="#services" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Custom Builds</a>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<span style="font:700 11.5px 'Instrument Sans',sans-serif;letter-spacing:.16em;color:rgba(245,240,232,.4);text-transform:uppercase">Company</span>
+<a href="#process" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">About</a>
+<a href="#results" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Portfolio</a>
+<a href="#math" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Get a Quote</a>
+<a href="#cta" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Contact</a>
+<a href="#" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Privacy Policy</a>
+<a href="#" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Terms of Service</a>
+</div>
+</div>
+<div style="max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:20px 32px;border-top:1px solid rgba(255,255,255,.06)">
+<span style="font:400 12.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.35)">© 2026 CodeOutfitters LLC. All rights reserved.</span>
+<span style="display:flex;align-items:center;gap:7px;font:500 12.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.5)"><span style="width:7px;height:7px;border-radius:999px;background:#2BD483;animation:v3Pulse 1.8s ease-out infinite"></span>All systems operational</span>
+</div>
+</div>
+
+</div>
+<div class="patch-proof-badge">STRICT VISUAL REBUILD — v3.5</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;showAnnouncement&quot;: {&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Header&quot;},
+  &quot;motion&quot;: {&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Full&quot;,&quot;Reduced&quot;],&quot;default&quot;:&quot;Full&quot;,&quot;tsType&quot;:&quot;'Full' | 'Reduced'&quot;,&quot;section&quot;:&quot;Motion&quot;}
+}">
+class Component extends DCLogic {
+  state = { tasks: null, hoursSaved: 1284.2, tasksToday: 312, team: 5, hoursWasted: 10, rate: 25, openFaq: 0 };
+
+  _faqs = [
+    { q: 'How much does an automation project cost?', a: 'Every build is scoped individually after the free discovery call. Most single-workflow automations land in the low four figures; you get a fixed quote before we start — no surprises, no hourly creep.' },
+    { q: 'Really — live in 7 days?', a: 'For a single well-defined workflow, yes. Larger multi-system builds take 2–4 weeks. Either way you get a working preview within the first week and approve everything before it goes live.' },
+    { q: 'Do I need a technical team on my side?', a: 'No. We handle every technical detail — integrations, hosting, monitoring. You only need to show us how the work happens today and approve the result.' },
+    { q: 'What tools do you work with?', a: 'WhatsApp Business, Anthropic Claude, n8n, Make, Zapier, Airtable, Notion, Google Workspace, and most CRMs. If your stack is unusual, we tell you on the discovery call whether we can connect it.' },
+    { q: 'What happens if something breaks?', a: 'Every build includes 30 days of support, and we monitor your automations continuously. Most issues are fixed before you notice them.' }
+  ];
+
+  _testis = [
+    { initials: 'MR', color: '#17A063', name: 'Marcus R.', role: 'Owner, real estate agency', quote: 'Leads used to sit unanswered overnight. Now the bot books viewings while I sleep — we doubled our response rate in the first month.' },
+    { initials: 'SK', color: '#D9B36A', name: 'Sarah K.', role: 'Founder, e-commerce brand', quote: 'Invoicing went from 4 hours a day to 8 minutes. I genuinely forgot invoices were ever a problem.' },
+    { initials: 'DP', color: '#4457C7', name: 'Dr. Patel', role: 'Clinic director', quote: 'Our front desk stopped drowning in scheduling calls. No-shows dropped 40% from the automated reminders alone.' },
+    { initials: 'JL', color: '#B4552F', name: 'James L.', role: 'Managing partner, law firm', quote: 'Client intake used to take a paralegal half her week. The intake bot does it in minutes, and nothing falls through the cracks.' },
+    { initials: 'AT', color: '#8B4F9E', name: 'Ana T.', role: 'Operations lead, logistics co.', quote: 'They mapped our whole dispatch workflow in one call and shipped the automation in six days. Easily paid for itself the first month.' },
+    { initials: 'BW', color: '#0E7490', name: 'Ben W.', role: 'Owner, HVAC services', quote: 'The WhatsApp bot quotes jobs, books techs, and chases reviews. My phone finally stopped ringing at dinner.' }
+  ];
+
+  registerRoot = (el) => { this.rootEl = el; };
+  registerProgress = (el) => { this.progressEl = el; };
+
+  _labels = [
+    'Qualify new WhatsApp lead',
+    'Send invoice #2041 reminder',
+    'Confirm Tuesday appointment',
+    'Sync order to Google Sheets',
+    'Follow up: abandoned cart',
+    'Reschedule no-show booking',
+    'Route hot lead to sales',
+    'Reconcile daily invoices',
+    'Send onboarding email #2',
+    'Update CRM contact record'
+  ];
+
+  _initTasks() {
+    this._nextIdx = 4;
+    this._id = 4;
+    return [
+      { id: 0, label: this._labels[0], status: 'done' },
+      { id: 1, label: this._labels[1], status: 'processing' },
+      { id: 2, label: this._labels[2], status: 'queued' },
+      { id: 3, label: this._labels[3], status: 'queued' }
+    ];
+  }
+
+  _pulseCalc() {
+    if (!this.rootEl) return;
+    const panel = this.rootEl.querySelector('[data-calc-panel]');
+    if (panel) {
+      panel.classList.remove('calc-pulse');
+      void panel.offsetWidth;
+      panel.classList.add('calc-pulse');
+    }
+    this.rootEl.querySelectorAll('.calc-value').forEach((el) => {
+      el.classList.remove('calc-value-bump');
+      void el.offsetWidth;
+      el.classList.add('calc-value-bump');
+    });
+  }
+
+  renderVals() {
+    const tasks = this.state.tasks || (this.state.tasks = this._initTasks());
+    const dot = (c, active) => ({ width: '8px', height: '8px', borderRadius: '999px', background: c, flexShrink: 0, animation: active ? 'nodeActivate .6s var(--ease-spring) both' : 'none' });
+    const money = (n) => '$' + Math.round(n).toLocaleString('en-US');
+    const t = this.state.team, h = this.state.hoursWasted, r = this.state.rate;
+    const week = t * h * r;
+
+    const tools = {
+      whatsapp: { name: 'WhatsApp', letter: 'W', bg: '#25D366' },
+      anthropic: { name: 'Anthropic', letter: 'A', bg: '#D97757' },
+      notion: { name: 'Notion', letter: 'N', bg: '#1F1F1F' },
+      airtable: { name: 'Airtable', letter: 'A', bg: '#2D7FF9' },
+      sheets: { name: 'Google Sheets', letter: 'S', bg: '#188038' },
+      n8n: { name: 'n8n', letter: 'n', bg: '#EA4B71' },
+      make: { name: 'Make', letter: 'M', bg: '#6D00CC' },
+      zapier: { name: 'Zapier', letter: 'Z', bg: '#FF4F00' }
+    };
+    const chip = (k) => ({
+      name: tools[k].name,
+      letter: tools[k].letter,
+      markStyle: { width: '26px', height: '26px', borderRadius: '8px', background: tools[k].bg, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', font: "700 13px 'Space Grotesk', sans-serif", flexShrink: 0 }
+    });
+    const rowA = ['whatsapp', 'anthropic', 'notion', 'airtable', 'sheets', 'n8n', 'make', 'zapier'].map(chip);
+    const rowB = ['zapier', 'make', 'n8n', 'sheets', 'airtable', 'notion', 'anthropic', 'whatsapp'].map(chip);
+
+    const openFaq = this.state.openFaq;
+    const testi = this._testis.map(x => ({
+      quote: '“' + x.quote + '”',
+      name: x.name,
+      role: x.role,
+      initials: x.initials,
+      avatarStyle: { width: '40px', height: '40px', borderRadius: '999px', background: x.color, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', font: "700 14px 'Space Grotesk', sans-serif", flexShrink: 0 }
+    }));
+
+    return {
+      registerRoot: this.registerRoot,
+      faqs: this._faqs.map((f, i) => ({
+        q: f.q,
+        a: f.a,
+        toggle: () => this.setState(s => ({ openFaq: s.openFaq === i ? -1 : i })),
+        chevStyle: { display: 'inline-block', flexShrink: 0, fontSize: '20px', color: '#128A54', transition: 'transform .4s cubic-bezier(.34,1.56,.64,1)', transform: openFaq === i ? 'rotate(180deg)' : 'rotate(0deg)', animation: openFaq === i ? 'chevronPop .4s cubic-bezier(.34,1.56,.64,1)' : 'none' },
+        bodyStyle: { maxHeight: openFaq === i ? '260px' : '0px', opacity: openFaq === i ? 1 : 0, overflow: 'hidden', transition: 'max-height .5s cubic-bezier(.16,1,.3,1), opacity .4s ease .05s' }
+      })),
+      testiRowA: testi.concat(testi, testi),
+      testiRowB: testi.slice().reverse().concat(testi.slice().reverse(), testi.slice().reverse()),
+      registerProgress: this.registerProgress,
+      showAnnouncement: this.props.showAnnouncement ?? true,
+      consoleTasks: tasks.map(x => ({
+        label: x.label,
+        isQueued: x.status === 'queued',
+        isProcessing: x.status === 'processing',
+        isDone: x.status === 'done',
+        dotStyle: dot(x.status === 'done' ? '#2BD483' : x.status === 'processing' ? '#D9B36A' : '#D5CDBC', x.status === 'processing')
+      })),
+      hoursSaved: this.state.hoursSaved.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
+      tasksToday: this.state.tasksToday.toLocaleString('en-US'),
+      toolsRowA: rowA.concat(rowA, rowA, rowA, rowA, rowA),
+      toolsRowB: rowB.concat(rowB, rowB, rowB, rowB, rowB),
+      team: t, hoursWasted: h, rate: r,
+      teamLabel: t + (t === 1 ? ' person' : ' people'),
+      hoursLabel: h + ' hrs/week',
+      rateLabel: '$' + r + '/hr',
+      teamFillStyle: '--fill:' + (((t - 1) / (50 - 1)) * 100).toFixed(1) + '%',
+      hoursFillStyle: '--fill:' + (((h - 1) / (40 - 1)) * 100).toFixed(1) + '%',
+      rateFillStyle: '--fill:' + (((r - 10) / (150 - 10)) * 100).toFixed(1) + '%',
+      teamValueStyle: '',
+      hoursValueStyle: '',
+      rateValueStyle: '',
+      setTeam: (e) => { this.setState({ team: +e.target.value }); this._pulseCalc(); },
+      setHours: (e) => { this.setState({ hoursWasted: +e.target.value }); this._pulseCalc(); },
+      setRate: (e) => { this.setState({ rate: +e.target.value }); this._pulseCalc(); },
+      lostWeek: money(week),
+      lostMonth: money(week * 4),
+      lostYear: money(week * 4 * 12),
+      saveMonth: money(week * 4)
+    };
+  }
+
+  componentDidMount() {
+    this._timers = [];
+    const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduced = this.props.motion === 'Reduced' || prefersReduced;
+
+    // ---- Console conveyor ----
+    if (!reduced) {
+      this._timers.push(setInterval(() => {
+        this.setState(s => {
+          let tasks = (s.tasks || this._initTasks()).filter(x => x.status !== 'done');
+          const p = tasks.find(x => x.status === 'processing');
+          if (p) p.status = 'done';
+          const q = tasks.find(x => x.status === 'queued');
+          if (q) q.status = 'processing';
+          while (tasks.length < 4) {
+            tasks.push({ id: this._id++, label: this._labels[this._nextIdx++ % this._labels.length], status: 'queued' });
+          }
+          return {
+            tasks: tasks.slice(),
+            hoursSaved: s.hoursSaved + 0.1,
+            tasksToday: s.tasksToday + 1
+          };
+        });
+      }, 1600));
+    }
+
+    // ---- Scroll reveals + count-ups (interval-driven: IO/rAF unreliable in canvas) ----
+    const root = this.rootEl;
+    if (!root) return;
+    const EASE = 'cubic-bezier(.16,1,.3,1)';
+    const groups = Array.from(root.querySelectorAll('[data-reveal]'));
+    groups.forEach(g => {
+      Array.from(g.children).forEach((el, i) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(34px) scale(.985)';
+        el.style.filter = 'blur(7px)';
+        el.style.transition = `opacity .8s ${EASE} ${i * 110}ms, transform .8s ${EASE} ${i * 110}ms, filter .8s ${EASE} ${i * 110}ms`;
+      });
+    });
+
+    const NUM = /^([↑↓]\s*)?([$£€]?)(\d[\d,]*)(K)?(\+)?(%)?$/;
+    const countUp = (el) => {
+      if (el._counted) return;
+      el._counted = true;
+      const raw = el.textContent.trim();
+      const m = raw.match(NUM);
+      if (!m) return;
+      const arrow = m[1] || '', cur = m[2] || '', digits = m[3], K = m[4] || '', plus = m[5] || '', pct = m[6] || '';
+      const target = parseInt(digits.replace(/,/g, ''), 10);
+      if (!isFinite(target) || target === 0) return;
+      const comma = digits.indexOf(',') !== -1;
+      const fmt = (n) => arrow + cur + (comma ? n.toLocaleString('en-US') : String(n)) + K + plus + pct;
+      const steps = 32, dur = 1300;
+      let i = 0;
+      el.textContent = fmt(0);
+      const iv = setInterval(() => {
+        i++;
+        const tt = Math.min(1, i / steps);
+        const e = 1 - Math.pow(1 - tt, 3);
+        el.textContent = fmt(Math.round(target * e));
+        if (tt >= 1) { clearInterval(iv); el.textContent = raw; }
+      }, dur / steps);
+      this._timers.push(iv);
+    };
+
+    const seen = new Set();
+    const check = () => {
+      const vh = window.innerHeight;
+      groups.forEach(g => {
+        if (seen.has(g)) return;
+        const rct = g.getBoundingClientRect();
+        if (rct.top < vh * 0.9 && rct.bottom > 0) {
+          seen.add(g);
+          Array.from(g.children).forEach(el => { el.style.opacity = '1'; el.style.transform = 'translateY(0) scale(1)'; el.style.filter = 'blur(0)'; });
+          g.querySelectorAll('[data-count]').forEach(countUp);
+          g.querySelectorAll('.reveal-line').forEach(l => l.classList.add('is-drawn'));
+          g.querySelectorAll('.node-activate').forEach((n, ni) => setTimeout(() => n.classList.add('is-active'), ni * 120));
+        }
+      });
+      // scroll progress bar
+      if (this.progressEl) {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const pc = max > 0 ? Math.min(100, Math.max(0, (window.scrollY / max) * 100)) : 0;
+        this.progressEl.style.width = pc + '%';
+      }
+    };
+    this._timers.push(setInterval(check, 280));
+    window.addEventListener('scroll', check, { passive: true });
+    this._onScroll = check;
+    check();
+
+    // ---- 3D tilt on cards ----
+    if (!reduced) {
+      root.querySelectorAll('[data-tilt]').forEach(card => {
+        card.style.willChange = 'transform';
+        card.addEventListener('mousemove', (e) => {
+          const r = card.getBoundingClientRect();
+          const x = (e.clientX - r.left) / r.width - 0.5;
+          const y = (e.clientY - r.top) / r.height - 0.5;
+          card.style.transition = 'transform .09s ease-out, box-shadow .2s ease';
+          card.style.transform = `perspective(900px) rotateX(${(-y * 6).toFixed(2)}deg) rotateY(${(x * 8).toFixed(2)}deg) translateY(-6px)`;
+        });
+        card.addEventListener('mouseleave', () => {
+          card.style.transition = 'transform .55s cubic-bezier(.16,1,.3,1), box-shadow .3s ease';
+          card.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0)';
+        });
+      });
+
+      // ---- Magnetic CTAs ----
+      root.querySelectorAll('[data-magnet]').forEach(btn => {
+        btn.addEventListener('mousemove', (e) => {
+          const r = btn.getBoundingClientRect();
+          const x = e.clientX - r.left - r.width / 2;
+          const y = e.clientY - r.top - r.height / 2;
+          btn.style.transition = 'transform .12s ease-out';
+          btn.style.transform = `translate(${(x * 0.18).toFixed(1)}px, ${(y * 0.3).toFixed(1)}px)`;
+        });
+        btn.addEventListener('mouseleave', () => {
+          btn.style.transition = 'transform .5s cubic-bezier(.16,1,.3,1)';
+          btn.style.transform = 'translate(0,0)';
+        });
+      });
+
+      // ---- Cursor spotlight (desktop/pointer-fine only) ----
+      if (window.matchMedia && window.matchMedia('(pointer: fine)').matches) {
+        root.querySelectorAll('[data-spot]').forEach(sec => {
+          const glow = sec.querySelector('.spotlight');
+          if (!glow) return;
+          sec.addEventListener('mousemove', (e) => {
+            const r = sec.getBoundingClientRect();
+            const x = ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%';
+            const y = ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%';
+            sec.style.setProperty('--mouse-x', x);
+            sec.style.setProperty('--mouse-y', y);
+            glow.classList.add('is-active');
+          });
+          sec.addEventListener('mouseleave', () => glow.classList.remove('is-active'));
+        });
+      }
+
+      // ---- Hero mouse parallax ----
+      const hero = root.querySelector('[data-screen-label="Hero"]');
+      if (hero) {
+        hero.addEventListener('mousemove', (e) => {
+          const r = hero.getBoundingClientRect();
+          const x = (e.clientX - r.left) / r.width - 0.5;
+          const y = (e.clientY - r.top) / r.height - 0.5;
+          hero.querySelectorAll('[data-para]').forEach(el => {
+            const s = +el.getAttribute('data-para') || 0;
+            el.style.transition = 'transform .35s cubic-bezier(.2,.8,.3,1)';
+            el.style.transform = `translate(${(-x * s).toFixed(1)}px, ${(-y * s).toFixed(1)}px)`;
+          });
+        });
+        hero.addEventListener('mouseleave', () => {
+          hero.querySelectorAll('[data-para]').forEach(el => {
+            el.style.transition = 'transform .8s cubic-bezier(.16,1,.3,1)';
+            el.style.transform = 'translate(0,0)';
+          });
+        });
+      }
+    }
+  }
+
+  componentWillUnmount() {
+    if (this._timers) this._timers.forEach(t => { clearTimeout(t); clearInterval(t); });
+    if (this._onScroll) window.removeEventListener('scroll', this._onScroll);
+  }
+}
+</script>
+</body>
+</html>

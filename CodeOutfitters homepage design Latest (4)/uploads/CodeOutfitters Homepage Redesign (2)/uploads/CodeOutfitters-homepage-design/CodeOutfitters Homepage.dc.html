@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#EDE9DC;font-family:'Inter',sans-serif}
+.co-btn-primary{transition:box-shadow .15s ease, transform .15s ease}
+.co-btn-primary-hover{box-shadow:0 12px 22px rgba(7,138,123,.30);transform:translateY(-1px)}
+.co-btn-secondary-hover{border-color:rgba(7,138,123,.55) !important}
+.co-navlink-hover{color:#078A7B !important}
+.co-card-hover{box-shadow:0 16px 34px rgba(32,24,12,.11) !important;transform:translateY(-2px)}
+@keyframes coBlobFloatA{0%,100%{transform:translate(-6%,-4%) scale(1)}50%{transform:translate(5%,4%) scale(1.09)}}
+@keyframes coBlobFloatB{0%,100%{transform:translate(4%,3%) scale(1)}50%{transform:translate(-6%,-6%) scale(1.1)}}
+@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(7,138,123,.5)}70%{box-shadow:0 0 0 8px rgba(7,138,123,0)}100%{box-shadow:0 0 0 0 rgba(7,138,123,0)}}
+@keyframes coSonar{0%,100%{opacity:.16}50%{opacity:.65}}
+</style>
+</helmet>
+
+<div ref="{{ registerRoot }}" style="display:flex;flex-direction:column;align-items:center;gap:56px;padding:56px 40px 120px;min-height:100%">
+
+<div style="display:flex;flex-direction:column;align-items:flex-start;gap:14px" data-screen-label="Tablet 768">
+<div style="font:600 12px/1 ui-monospace,monospace;color:#5A5D61;background:#fff;border:1px solid #DAD4C8;padding:6px 12px;border-radius:999px">TABLET — 768px</div>
+
+<div style="width:768px;background:#FBF6EF;border-radius:20px;border:1px solid #E7DBC5;box-shadow:0 22px 50px rgba(32,24,12,.13);overflow:hidden">
+<div style="padding:0 32px">
+
+<!-- NAVBAR -->
+<div style="display:flex;align-items:center;justify-content:space-between;height:72px">
+<div style="display:flex;align-items:center;gap:9px">
+<img src="assets/logo-mark.svg" style="width:26px;height:26px" alt="">
+<span style="font:600 17px 'Inter',sans-serif;color:#10100E;letter-spacing:-.01em">CodeOutfitters</span>
+</div>
+<div style="display:flex;align-items:center;gap:16px">
+<button style="font:600 13.5px 'Inter',sans-serif;color:#fff;background:linear-gradient(180deg,#0C8F80 0%,#06796E 100%);border:none;border-radius:10px;padding:10px 18px;box-shadow:0 8px 18px rgba(7,138,123,.20);cursor:pointer">Book a Free Audit</button>
+<button onClick="{{ toggleTabletMenu }}" style="display:flex;flex-direction:column;gap:4px;background:none;border:none;cursor:pointer;padding:6px">
+<span style="width:20px;height:2px;background:#10100E;border-radius:2px"></span>
+<span style="width:20px;height:2px;background:#10100E;border-radius:2px"></span>
+<span style="width:20px;height:2px;background:#10100E;border-radius:2px"></span>
+</button>
+</div>
+</div>
+<sc-if value="{{ tabletMenuOpen }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:2px;padding:6px 0 18px;border-bottom:1px solid #E7DBC5">
+<a href="#" style="font:500 14.5px 'Inter',sans-serif;color:#26231E;text-decoration:none;padding:10px 4px">Services</a>
+<a href="#" style="font:500 14.5px 'Inter',sans-serif;color:#26231E;text-decoration:none;padding:10px 4px">Solutions</a>
+<a href="#" style="font:500 14.5px 'Inter',sans-serif;color:#26231E;text-decoration:none;padding:10px 4px">Process</a>
+<a href="#" style="font:500 14.5px 'Inter',sans-serif;color:#26231E;text-decoration:none;padding:10px 4px">Resources</a>
+<a href="#" style="font:500 14.5px 'Inter',sans-serif;color:#26231E;text-decoration:none;padding:10px 4px">About</a>
+</div>
+</sc-if>
+
+<!-- HERO -->
+<div style="position:relative;overflow:hidden;border-radius:18px">
+<div style="position:absolute;top:-70px;left:-50px;width:280px;height:280px;border-radius:999px;background:radial-gradient(circle,rgba(7,138,123,.32),transparent 70%);filter:blur(38px);animation:coBlobFloatA 15s ease-in-out infinite;pointer-events:none;z-index:0"></div>
+<div style="position:absolute;bottom:-90px;right:-50px;width:240px;height:240px;border-radius:999px;background:radial-gradient(circle,rgba(217,164,65,.28),transparent 70%);filter:blur(40px);animation:coBlobFloatB 17s ease-in-out infinite;pointer-events:none;z-index:0"></div>
+<div data-hero-group style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:22px;padding:28px 0 44px;text-align:center">
+<div style="display:flex;align-items:center;gap:8px;background:#EEF9F6;border:1px solid rgba(7,138,123,.30);border-radius:999px;padding:7px 16px">
+<img src="assets/icon-sparkle-badge.svg" style="width:13px;height:13px" alt="">
+<span style="font:700 11px 'Inter',sans-serif;letter-spacing:.08em;color:#05766B;text-transform:uppercase">AI Automation, Built for Impact</span>
+</div>
+<h1 style="margin:0;font:600 42px/1.1 'Fraunces',serif;color:#10100E;letter-spacing:-.01em;max-width:520px">
+AI that works. Automation that scales. <span style="color:#078A7B">Outcomes that matter.</span>
+</h1>
+<p style="margin:0;font:400 16px/1.55 'Inter',sans-serif;color:#26231E;max-width:440px">We connect your data, build intelligent agents, and automate workflows that drive real impact.</p>
+<div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:center">
+<div style="display:flex;align-items:center;gap:6px"><img src="assets/icon-automate.svg" style="width:16px;height:16px" alt=""><span style="font:500 14px 'Inter',sans-serif;color:#26231E">Automate</span></div>
+<div style="display:flex;align-items:center;gap:6px"><img src="assets/icon-orchestrate.svg" style="width:16px;height:16px" alt=""><span style="font:500 14px 'Inter',sans-serif;color:#26231E">Orchestrate</span></div>
+<div style="display:flex;align-items:center;gap:6px"><img src="assets/icon-scale.svg" style="width:16px;height:16px" alt=""><span style="font:500 14px 'Inter',sans-serif;color:#26231E">Scale</span></div>
+</div>
+<div style="display:flex;align-items:center;gap:14px">
+<button style="font:600 15px 'Inter',sans-serif;color:#fff;background:linear-gradient(180deg,#0C8F80 0%,#06796E 100%);border:none;border-radius:11px;padding:14px 24px;box-shadow:0 8px 18px rgba(7,138,123,.20);cursor:pointer">Book a Free Audit</button>
+<button style="display:flex;align-items:center;gap:10px;font:600 15px 'Inter',sans-serif;color:#05766B;background:#FFFDF8;border:1px solid rgba(231,219,197,.9);border-radius:11px;padding:13px 20px;cursor:pointer">See How It Works
+<span style="display:flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:999px;background:#EEF9F6"><img src="assets/icon-chevron-right.svg" style="width:8px;height:8px" alt=""></span></button>
+</div>
+
+<div style="width:100%;max-width:440px;margin-top:8px;display:flex;justify-content:center">
+<img src="assets/hero-visual.png" ref="{{ registerParallax }}" style="width:100%;height:auto;display:block;will-change:transform" alt="AI automation platform: AI Agents, Workflows and Data on a glass pedestal">
+</div>
+</div>
+</div>
+
+<!-- TRUST STRIP -->
+<div style="border-top:1px solid #E7DBC5;border-bottom:1px solid #E7DBC5;padding:22px 0;display:flex;flex-direction:column;align-items:center;gap:14px">
+<span style="font:700 11px 'Inter',sans-serif;letter-spacing:.14em;color:#078A7B;text-transform:uppercase">Trusted by growing businesses</span>
+<div data-reveal-group style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px 24px;width:100%;justify-items:center">
+<sc-for list="{{ trustLogos }}" as="logo" hint-placeholder-count="6">
+<span style="font:600 15px 'Inter',sans-serif;color:#5A5D61">{{ logo.name }}</span>
+</sc-for>
+</div>
+</div>
+
+<!-- WHAT WE BUILD -->
+<div style="padding:44px 0;display:flex;flex-direction:column;align-items:center;gap:12px">
+<span style="font:700 11px 'Inter',sans-serif;letter-spacing:.08em;color:#078A7B;text-transform:uppercase">What we build</span>
+<h2 style="margin:0 0 26px;font:600 28px/1.18 'Fraunces',serif;color:#10100E;text-align:center">Intelligent systems for <span style="color:#078A7B">modern business.</span></h2>
+
+<div data-reveal-group style="display:grid;grid-template-columns:1fr 1fr;gap:18px;width:100%">
+
+<div style="background:linear-gradient(180deg,#FFFDF8 0%,#FBF7EE 100%);border:1px solid #E7DBC5;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:10px;box-shadow:0 4px 12px rgba(32,24,12,.07)">
+<h3 style="margin:0;font:600 16px 'Inter',sans-serif;color:#10100E">AI Helpdesk</h3>
+<p style="margin:0;font:400 13px/1.5 'Inter',sans-serif;color:#68645D">Resolve more tickets, faster with smart AI agents.</p>
+<div style="display:flex;align-items:center;gap:16px">
+<svg viewBox="0 0 120 68" width="90" height="50"><path d="M8 60A52 52 0 0 1 112 60" stroke="#EEF9F6" stroke-width="10" fill="none" stroke-linecap="round"/><path d="M8 60A52 52 0 0 1 112 60" stroke="#078A7B" stroke-width="10" fill="none" stroke-linecap="round" stroke-dasharray="163" stroke-dashoffset="13"/></svg>
+<div><div style="font:700 20px 'Inter',sans-serif;color:#10100E">92%</div><div style="font:500 10.5px 'Inter',sans-serif;color:#8A857B">Resolved · 1,248 tickets</div></div>
+</div>
+<span style="display:inline-flex;align-items:center;gap:6px;font:600 12px 'Inter',sans-serif;color:#05766B;background:#EEF9F6;border:1px solid rgba(7,138,123,.25);border-radius:999px;padding:6px 10px;width:fit-content"><img src="assets/icon-live-dot.svg" style="width:11px;height:11px" alt="">Live now</span>
+</div>
+
+<div style="background:linear-gradient(180deg,#FFFDF8 0%,#FBF7EE 100%);border:1px solid #E7DBC5;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:10px;box-shadow:0 4px 12px rgba(32,24,12,.07)">
+<h3 style="margin:0;font:600 16px 'Inter',sans-serif;color:#10100E">Booking Automation</h3>
+<p style="margin:0;font:400 13px/1.5 'Inter',sans-serif;color:#68645D">Automate scheduling, confirmations and follow-ups.</p>
+<div style="display:flex;align-items:center;justify-content:space-between">
+<div><div style="font:700 15px 'Inter',sans-serif;color:#10100E">32</div><div style="font:500 10px 'Inter',sans-serif;color:#8A857B">Captured</div></div>
+<span style="display:flex;align-items:center;gap:5px;font:600 11px 'Inter',sans-serif;color:#05766B;background:#EEF9F6;border-radius:999px;padding:5px 10px"><img src="assets/icon-confirmed-dot.svg" style="width:11px;height:11px" alt="">7 Confirmed</span>
+<div style="text-align:right"><div style="font:600 11px 'Inter',sans-serif;color:#10100E">No-Show</div><div style="font:500 10px 'Inter',sans-serif;color:#68645D">↓ 4%</div></div>
+</div>
+</div>
+
+<div style="background:linear-gradient(180deg,#FFFDF8 0%,#FBF7EE 100%);border:1px solid #E7DBC5;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:12px;box-shadow:0 4px 12px rgba(32,24,12,.07)">
+<h3 style="margin:0;font:600 16px 'Inter',sans-serif;color:#10100E">CRM Workflow</h3>
+<p style="margin:0;font:400 13px/1.5 'Inter',sans-serif;color:#68645D">Keep your CRM synced and your team aligned.</p>
+<div style="display:flex;align-items:center;gap:5px">
+<img src="assets/icon-check-square.svg" style="width:28px;height:28px" alt=""><img src="assets/icon-arrow-right.svg" style="width:16px;height:12px" alt=""><img src="assets/icon-check-square.svg" style="width:28px;height:28px" alt=""><img src="assets/icon-arrow-right.svg" style="width:16px;height:12px" alt=""><img src="assets/icon-chat-square.svg" style="width:28px;height:28px" alt=""><img src="assets/icon-arrow-right.svg" style="width:16px;height:12px" alt=""><img src="assets/icon-edit-square.svg" style="width:28px;height:28px" alt="">
+</div>
+<div style="display:flex;justify-content:space-between"><span style="font:600 12px 'Inter',sans-serif;color:#10100E">22 Captured</span><span style="font:600 12px 'Inter',sans-serif;color:#10100E">Qualified</span><span style="font:600 12px 'Inter',sans-serif;color:#10100E">Nurtured</span></div>
+</div>
+
+<div style="background:linear-gradient(180deg,#FFFDF8 0%,#FBF7EE 100%);border:1px solid #E7DBC5;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:10px;box-shadow:0 4px 12px rgba(32,24,12,.07)">
+<h3 style="margin:0;font:600 16px 'Inter',sans-serif;color:#10100E">Lead Capture</h3>
+<p style="margin:0;font:400 13px/1.5 'Inter',sans-serif;color:#68645D">Capture leads across channels and route instantly.</p>
+<div style="display:flex;align-items:center;gap:10px;border:1px solid #E7DBC5;border-radius:12px;padding:8px 12px">
+<span style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:999px;background:#EEF9F6"><img src="assets/icon-lead-user.svg" style="width:14px;height:14px" alt=""></span>
+<div style="flex:1"><div style="font:600 12.5px 'Inter',sans-serif;color:#10100E">New Lead</div><div style="font:400 10.5px 'Inter',sans-serif;color:#8A857B">Website</div></div>
+</div>
+</div>
+
+<div style="grid-column:span 2;background:linear-gradient(180deg,#FFFDF8 0%,#FBF7EE 100%);border:1px solid #E7DBC5;border-radius:18px;padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:center;box-shadow:0 4px 12px rgba(32,24,12,.07)">
+<div>
+<h3 style="margin:0 0 6px;font:600 16px 'Inter',sans-serif;color:#10100E">Analytics Dashboard</h3>
+<p style="margin:0 0 8px;font:400 13px/1.5 'Inter',sans-serif;color:#68645D">Real-time insights. Smarter decisions.</p>
+<span style="font:500 11px 'Inter',sans-serif;color:#8A857B">Opportunities </span><span style="font:700 14px 'Inter',sans-serif;color:#078A7B">↑ 28%</span>
+</div>
+<svg viewBox="0 0 280 100" width="100%" height="80" preserveAspectRatio="none"><path d="M0 85 L40 78 L80 82 L120 62 L160 66 L200 40 L240 30 L280 6 L280 100 L0 100 Z" fill="#DDF3EE" opacity="0.6"/><path d="M0 85 L40 78 L80 82 L120 62 L160 66 L200 40 L240 30 L280 6" fill="none" stroke="#078A7B" stroke-width="3" fill-rule="evenodd"/></svg>
+</div>
+
+<div style="grid-column:span 2;background:linear-gradient(180deg,#FFFDF8 0%,#FBF7EE 100%);border:1px solid #E7DBC5;border-radius:18px;padding:20px;display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;box-shadow:0 4px 12px rgba(32,24,12,.07)">
+<div><h3 style="margin:0 0 6px;font:600 16px 'Inter',sans-serif;color:#10100E">Hermes Agent Deployment</h3><p style="margin:0;font:400 13px/1.5 'Inter',sans-serif;color:#68645D">Deploy AI agents designed for your business.</p></div>
+<div style="position:relative;width:90px;height:90px">
+<svg viewBox="0 0 110 110" width="90" height="90"><circle cx="55" cy="55" r="50" fill="#EEF9F6"/><circle cx="55" cy="55" r="50" stroke="#078A7B" stroke-width="1" fill="none" opacity="0.3"/><circle cx="55" cy="55" r="36" stroke="#078A7B" stroke-width="1" fill="none" opacity="0.4"/><circle cx="55" cy="55" r="22" stroke="#078A7B" stroke-width="1" fill="none" opacity="0.5"/><circle cx="55" cy="55" r="6" fill="#078A7B"/></svg>
+<img src="assets/hermes-shield-check.svg" style="position:absolute;left:50%;bottom:-10px;transform:translateX(-50%);width:26px;height:34px" alt="">
+</div>
+</div>
+
+</div>
+</div>
+
+<!-- PROCESS -->
+<div style="padding:10px 0 44px;display:flex;flex-direction:column;align-items:center;gap:28px">
+<span style="font:700 11px 'Inter',sans-serif;letter-spacing:.08em;color:#078A7B;text-transform:uppercase;text-align:center">Our process. A proven path to impact.</span>
+<div data-reveal-group style="display:grid;grid-template-columns:1fr 1fr;gap:24px;width:100%">
+<sc-for list="{{ processSteps }}" as="step" hint-placeholder-count="5">
+<div style="display:flex;align-items:flex-start;gap:14px;text-align:left">
+<span style="flex-shrink:0;width:32px;height:32px;border-radius:999px;background:linear-gradient(180deg,#0C8F80,#06796E);color:#fff;font:600 12.5px 'Inter',sans-serif;display:flex;align-items:center;justify-content:center">{{ step.n }}</span>
+<div><div style="font:600 15px 'Inter',sans-serif;color:#10100E;margin-bottom:3px">{{ step.title }}</div><div style="font:400 13px/1.5 'Inter',sans-serif;color:#68645D">{{ step.desc }}</div></div>
+</div>
+</sc-for>
+</div>
+</div>
+
+<!-- CTA -->
+<div data-reveal-group style="background:#F8F2E6;border:1px solid #E7DBC5;border-radius:22px;padding:36px;margin-bottom:56px;display:flex;flex-direction:column;align-items:center;gap:24px;text-align:center">
+<div style="display:flex;flex-direction:column;gap:10px;max-width:460px">
+<h2 style="margin:0;font:600 27px/1.2 'Fraunces',serif;color:#10100E">Let's build your <span style="color:#078A7B">unfair advantage.</span></h2>
+<p style="margin:0;font:400 15px/1.5 'Inter',sans-serif;color:#68645D">Book your free audit and get a custom automation roadmap.</p>
+</div>
+<button style="font:600 15px 'Inter',sans-serif;color:#fff;background:linear-gradient(180deg,#0C8F80 0%,#06796E 100%);border:none;border-radius:11px;padding:14px 24px;box-shadow:0 8px 18px rgba(7,138,123,.20);cursor:pointer">Book a Free Audit</button>
+<div style="display:flex;align-items:center;gap:14px">
+<div style="display:flex">
+<sc-for list="{{ avatars }}" as="av" hint-placeholder-count="4">
+<span style="width:34px;height:34px;border-radius:999px;border:2px solid #F8F2E6;background:{{ av.bg }};color:#fff;font:600 11px 'Inter',sans-serif;display:flex;align-items:center;justify-content:center;margin-left:-10px">{{ av.initials }}</span>
+</sc-for>
+</div>
+<div style="display:flex;gap:2px"><img src="assets/icon-star-filled.svg" style="width:14px;height:14px" alt=""><img src="assets/icon-star-filled.svg" style="width:14px;height:14px" alt=""><img src="assets/icon-star-filled.svg" style="width:14px;height:14px" alt=""><img src="assets/icon-star-filled.svg" style="width:14px;height:14px" alt=""><img src="assets/icon-star-filled.svg" style="width:14px;height:14px" alt=""></div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:18px 28px;width:100%;max-width:420px">
+<sc-for list="{{ ctaStats }}" as="stat" hint-placeholder-count="4">
+<div><div style="font:700 21px 'Inter',sans-serif;color:#078A7B">{{ stat.value }}</div><div style="font:500 11px 'Inter',sans-serif;color:#68645D">{{ stat.label }}</div></div>
+</sc-for>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;align-items:flex-start;gap:14px" data-screen-label="Mobile 390">
+<div style="font:600 12px/1 ui-monospace,monospace;color:#5A5D61;background:#fff;border:1px solid #DAD4C8;padding:6px 12px;border-radius:999px">MOBILE — 390px</div>
+
+<div style="width:390px;background:#FBF6EF;border-radius:16px;border:1px solid #E7DBC5;box-shadow:0 22px 50px rgba(32,24,12,.13);overflow:hidden">
+<div style="padding:0 20px">
+
+<!-- NAVBAR -->
+<div style="display:flex;align-items:center;justify-content:space-between;height:64px">
+<div style="display:flex;align-items:center;gap:8px">
+<img src="assets/logo-mark.svg" style="width:24px;height:24px" alt="">
+<span style="font:600 15px 'Inter',sans-serif;color:#10100E;letter-spacing:-.01em">CodeOutfitters</span>
+</div>
+<button onClick="{{ toggleMobileMenu }}" style="display:flex;flex-direction:column;gap:4px;background:none;border:none;cursor:pointer;padding:10px">
+<span style="width:20px;height:2px;background:#10100E;border-radius:2px"></span>
+<span style="width:20px;height:2px;background:#10100E;border-radius:2px"></span>
+<span style="width:20px;height:2px;background:#10100E;border-radius:2px"></span>
+</button>
+</div>
+<sc-if value="{{ mobileMenuOpen }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:2px;padding:6px 0 18px;border-bottom:1px solid #E7DBC5">
+<a href="#" style="font:500 15px 'Inter',sans-serif;color:#26231E;text-decoration:none;padding:12px 4px">Services</a>
+<a href="#" style="font:500 15px 'Inter',sans-serif;color:#26231E;text-decoration:none;padding:12px 4px">Solutions</a>
+<a href="#" style="font:500 15px 'Inter',sans-serif;color:#26231E;text-decoration:none;padding:12px 4px">Process</a>
+<a href="#" style="font:500 15px 'Inter',sans-serif;color:#26231E;text-decoration:none;padding:12px 4px">Resources</a>
+<a href="#" style="font:500 15px 'Inter',sans-serif;color:#26231E;text-decoration:none;padding:12px 4px">About</a>
+<button style="margin-top:8px;font:600 15px 'Inter',sans-serif;color:#fff;background:linear-gradient(180deg,#0C8F80 0%,#06796E 100%);border:none;border-radius:10px;padding:14px;box-shadow:0 8px 18px rgba(7,138,123,.20);cursor:pointer;min-height:44px">Book a Free Audit</button>
+</div>
+</sc-if>
+
+<!-- HERO -->
+<div style="position:relative;overflow:hidden;border-radius:16px">
+<div style="position:absolute;top:-60px;left:-60px;width:220px;height:220px;border-radius:999px;background:radial-gradient(circle,rgba(7,138,123,.32),transparent 70%);filter:blur(32px);animation:coBlobFloatA 15s ease-in-out infinite;pointer-events:none;z-index:0"></div>
+<div style="position:absolute;bottom:-80px;right:-50px;width:200px;height:200px;border-radius:999px;background:radial-gradient(circle,rgba(217,164,65,.28),transparent 70%);filter:blur(34px);animation:coBlobFloatB 17s ease-in-out infinite;pointer-events:none;z-index:0"></div>
+<div data-hero-group style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:flex-start;gap:18px;padding:24px 0 36px">
+<div style="display:flex;align-items:center;gap:7px;background:#EEF9F6;border:1px solid rgba(7,138,123,.30);border-radius:999px;padding:6px 13px">
+<img src="assets/icon-sparkle-badge.svg" style="width:12px;height:12px" alt="">
+<span style="font:700 10px 'Inter',sans-serif;letter-spacing:.06em;color:#05766B;text-transform:uppercase">AI Automation, Built for Impact</span>
+</div>
+<h1 style="margin:0;font:600 36px/1.12 'Fraunces',serif;color:#10100E;letter-spacing:-.01em">
+AI that works. Automation that scales. <span style="color:#078A7B">Outcomes that matter.</span>
+</h1>
+<p style="margin:0;font:400 15.5px/1.55 'Inter',sans-serif;color:#26231E">We connect your data, build intelligent agents, and automate workflows that drive real impact.</p>
+<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+<div style="display:flex;align-items:center;gap:5px"><img src="assets/icon-automate.svg" style="width:15px;height:15px" alt=""><span style="font:500 13px 'Inter',sans-serif;color:#26231E">Automate</span></div>
+<div style="display:flex;align-items:center;gap:5px"><img src="assets/icon-orchestrate.svg" style="width:15px;height:15px" alt=""><span style="font:500 13px 'Inter',sans-serif;color:#26231E">Orchestrate</span></div>
+<div style="display:flex;align-items:center;gap:5px"><img src="assets/icon-scale.svg" style="width:15px;height:15px" alt=""><span style="font:500 13px 'Inter',sans-serif;color:#26231E">Scale</span></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;width:100%">
+<button style="font:600 15px 'Inter',sans-serif;color:#fff;background:linear-gradient(180deg,#0C8F80 0%,#06796E 100%);border:none;border-radius:11px;padding:14px;box-shadow:0 8px 18px rgba(7,138,123,.20);cursor:pointer;min-height:44px;width:100%">Book a Free Audit</button>
+<button style="display:flex;align-items:center;justify-content:center;gap:10px;font:600 15px 'Inter',sans-serif;color:#05766B;background:#FFFDF8;border:1px solid rgba(231,219,197,.9);border-radius:11px;padding:13px;cursor:pointer;min-height:44px;width:100%">See How It Works
+<span style="display:flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:999px;background:#EEF9F6"><img src="assets/icon-chevron-right.svg" style="width:8px;height:8px" alt=""></span></button>
+</div>
+
+<div style="width:100%;margin-top:8px;align-self:center;display:flex;justify-content:center">
+<img src="assets/hero-visual.png" ref="{{ registerParallax }}" style="width:100%;height:auto;display:block;will-change:transform" alt="AI automation platform: AI Agents, Workflows and Data on a glass pedestal">
+</div>
+</div>
+</div>
+
+<!-- TRUST STRIP -->
+<div style="border-top:1px solid #E7DBC5;border-bottom:1px solid #E7DBC5;padding:20px 0;display:flex;flex-direction:column;align-items:center;gap:12px">
+<span style="font:700 10px 'Inter',sans-serif;letter-spacing:.12em;color:#078A7B;text-transform:uppercase;text-align:center">Trusted by growing businesses</span>
+<div data-reveal-group style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px 20px;width:100%;justify-items:center">
+<sc-for list="{{ trustLogos }}" as="logo" hint-placeholder-count="6">
+<span style="font:600 14px 'Inter',sans-serif;color:#5A5D61">{{ logo.name }}</span>
+</sc-for>
+</div>
+</div>
+
+<!-- WHAT WE BUILD -->
+<div style="padding:36px 0;display:flex;flex-direction:column;align-items:center;gap:10px">
+<span style="font:700 10px 'Inter',sans-serif;letter-spacing:.08em;color:#078A7B;text-transform:uppercase">What we build</span>
+<h2 style="margin:0 0 22px;font:600 26px/1.2 'Fraunces',serif;color:#10100E;text-align:center">Intelligent systems for <span style="color:#078A7B">modern business.</span></h2>
+
+<div data-reveal-group style="display:flex;flex-direction:column;gap:16px;width:100%">
+
+<div style="background:linear-gradient(180deg,#FFFDF8 0%,#FBF7EE 100%);border:1px solid #E7DBC5;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:10px;box-shadow:0 4px 12px rgba(32,24,12,.07)">
+<h3 style="margin:0;font:600 16px 'Inter',sans-serif;color:#10100E">AI Helpdesk</h3>
+<p style="margin:0;font:400 13px/1.5 'Inter',sans-serif;color:#68645D">Resolve more tickets, faster with smart AI agents.</p>
+<div style="display:flex;align-items:center;gap:14px">
+<svg viewBox="0 0 120 68" width="80" height="46"><path d="M8 60A52 52 0 0 1 112 60" stroke="#EEF9F6" stroke-width="10" fill="none" stroke-linecap="round"/><path d="M8 60A52 52 0 0 1 112 60" stroke="#078A7B" stroke-width="10" fill="none" stroke-linecap="round" stroke-dasharray="163" stroke-dashoffset="13"/></svg>
+<div><div style="font:700 19px 'Inter',sans-serif;color:#10100E">92%</div><div style="font:500 10px 'Inter',sans-serif;color:#8A857B">Resolved · 1,248</div></div>
+</div>
+<span style="display:inline-flex;align-items:center;gap:6px;font:600 11.5px 'Inter',sans-serif;color:#05766B;background:#EEF9F6;border:1px solid rgba(7,138,123,.25);border-radius:999px;padding:6px 10px;width:fit-content"><img src="assets/icon-live-dot.svg" style="width:11px;height:11px" alt="">Live now</span>
+</div>
+
+<div style="background:linear-gradient(180deg,#FFFDF8 0%,#FBF7EE 100%);border:1px solid #E7DBC5;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:10px;box-shadow:0 4px 12px rgba(32,24,12,.07)">
+<h3 style="margin:0;font:600 16px 'Inter',sans-serif;color:#10100E">Booking Automation</h3>
+<p style="margin:0;font:400 13px/1.5 'Inter',sans-serif;color:#68645D">Automate scheduling, confirmations and follow-ups.</p>
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+<div><div style="font:700 15px 'Inter',sans-serif;color:#10100E">32</div><div style="font:500 10px 'Inter',sans-serif;color:#8A857B">Captured</div></div>
+<span style="display:flex;align-items:center;gap:5px;font:600 11px 'Inter',sans-serif;color:#05766B;background:#EEF9F6;border-radius:999px;padding:5px 10px"><img src="assets/icon-confirmed-dot.svg" style="width:11px;height:11px" alt="">7 Confirmed</span>
+</div>
+</div>
+
+<div style="background:linear-gradient(180deg,#FFFDF8 0%,#FBF7EE 100%);border:1px solid #E7DBC5;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;box-shadow:0 4px 12px rgba(32,24,12,.07)">
+<h3 style="margin:0;font:600 16px 'Inter',sans-serif;color:#10100E">CRM Workflow</h3>
+<p style="margin:0;font:400 13px/1.5 'Inter',sans-serif;color:#68645D">Keep your CRM synced and your team aligned.</p>
+<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
+<img src="assets/icon-check-square.svg" style="width:26px;height:26px" alt=""><img src="assets/icon-arrow-right.svg" style="width:14px;height:11px" alt=""><img src="assets/icon-check-square.svg" style="width:26px;height:26px" alt=""><img src="assets/icon-arrow-right.svg" style="width:14px;height:11px" alt=""><img src="assets/icon-chat-square.svg" style="width:26px;height:26px" alt=""><img src="assets/icon-arrow-right.svg" style="width:14px;height:11px" alt=""><img src="assets/icon-edit-square.svg" style="width:26px;height:26px" alt="">
+</div>
+<div style="display:flex;justify-content:space-between"><span style="font:600 11px 'Inter',sans-serif;color:#10100E">22 Captured</span><span style="font:600 11px 'Inter',sans-serif;color:#10100E">Qualified</span><span style="font:600 11px 'Inter',sans-serif;color:#10100E">Nurtured</span></div>
+</div>
+
+<div style="background:linear-gradient(180deg,#FFFDF8 0%,#FBF7EE 100%);border:1px solid #E7DBC5;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:10px;box-shadow:0 4px 12px rgba(32,24,12,.07)">
+<h3 style="margin:0;font:600 16px 'Inter',sans-serif;color:#10100E">Lead Capture</h3>
+<p style="margin:0;font:400 13px/1.5 'Inter',sans-serif;color:#68645D">Capture leads across channels and route instantly.</p>
+<div style="display:flex;align-items:center;gap:10px;border:1px solid #E7DBC5;border-radius:12px;padding:8px 12px">
+<span style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:999px;background:#EEF9F6"><img src="assets/icon-lead-user.svg" style="width:14px;height:14px" alt=""></span>
+<div style="flex:1"><div style="font:600 12.5px 'Inter',sans-serif;color:#10100E">New Lead</div><div style="font:400 10.5px 'Inter',sans-serif;color:#8A857B">Website</div></div>
+</div>
+</div>
+
+<div style="background:linear-gradient(180deg,#FFFDF8 0%,#FBF7EE 100%);border:1px solid #E7DBC5;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:8px;box-shadow:0 4px 12px rgba(32,24,12,.07)">
+<h3 style="margin:0;font:600 16px 'Inter',sans-serif;color:#10100E">Analytics Dashboard</h3>
+<p style="margin:0;font:400 13px/1.5 'Inter',sans-serif;color:#68645D">Real-time insights. Smarter decisions.</p>
+<span style="font:500 11px 'Inter',sans-serif;color:#8A857B">Opportunities </span><span style="font:700 14px 'Inter',sans-serif;color:#078A7B">↑ 28%</span>
+<svg viewBox="0 0 280 100" width="100%" height="70" preserveAspectRatio="none"><path d="M0 85 L40 78 L80 82 L120 62 L160 66 L200 40 L240 30 L280 6 L280 100 L0 100 Z" fill="#DDF3EE" opacity="0.6"/><path d="M0 85 L40 78 L80 82 L120 62 L160 66 L200 40 L240 30 L280 6" fill="none" stroke="#078A7B" stroke-width="3"/></svg>
+</div>
+
+<div style="background:linear-gradient(180deg,#FFFDF8 0%,#FBF7EE 100%);border:1px solid #E7DBC5;border-radius:16px;padding:18px;display:flex;align-items:center;gap:16px;box-shadow:0 4px 12px rgba(32,24,12,.07)">
+<div><h3 style="margin:0 0 6px;font:600 16px 'Inter',sans-serif;color:#10100E">Hermes Agent Deployment</h3><p style="margin:0;font:400 13px/1.5 'Inter',sans-serif;color:#68645D">Deploy AI agents designed for your business.</p></div>
+<div style="position:relative;width:76px;height:76px;flex-shrink:0">
+<svg viewBox="0 0 110 110" width="76" height="76"><circle cx="55" cy="55" r="50" fill="#EEF9F6"/><circle cx="55" cy="55" r="50" stroke="#078A7B" stroke-width="1" fill="none" opacity="0.3"/><circle cx="55" cy="55" r="36" stroke="#078A7B" stroke-width="1" fill="none" opacity="0.4"/><circle cx="55" cy="55" r="6" fill="#078A7B"/></svg>
+<img src="assets/hermes-shield-check.svg" style="position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);width:22px;height:28px" alt="">
+</div>
+</div>
+
+</div>
+</div>
+
+<!-- PROCESS -->
+<div style="padding:8px 0 36px;display:flex;flex-direction:column;align-items:center;gap:22px">
+<span style="font:700 10px 'Inter',sans-serif;letter-spacing:.08em;color:#078A7B;text-transform:uppercase;text-align:center">Our process. A proven path to impact.</span>
+<div data-reveal-group style="display:flex;flex-direction:column;gap:0;width:100%;position:relative">
+<div style="position:absolute;left:16px;top:8px;bottom:8px;width:1px;background:#DAD4C8"></div>
+<sc-for list="{{ processSteps }}" as="step" hint-placeholder-count="5">
+<div style="display:flex;align-items:flex-start;gap:14px;text-align:left;padding-bottom:22px;position:relative">
+<span style="flex-shrink:0;width:32px;height:32px;border-radius:999px;background:linear-gradient(180deg,#0C8F80,#06796E);color:#fff;font:600 12.5px 'Inter',sans-serif;display:flex;align-items:center;justify-content:center;z-index:1">{{ step.n }}</span>
+<div><div style="font:600 15px 'Inter',sans-serif;color:#10100E;margin-bottom:3px">{{ step.title }}</div><div style="font:400 13px/1.5 'Inter',sans-serif;color:#68645D">{{ step.desc }}</div></div>
+</div>
+</sc-for>
+</div>
+</div>
+
+<!-- CTA -->
+<div data-reveal-group style="background:#F8F2E6;border:1px solid #E7DBC5;border-radius:20px;padding:26px 22px;margin-bottom:44px;display:flex;flex-direction:column;align-items:flex-start;gap:20px">
+<div style="display:flex;flex-direction:column;gap:10px">
+<h2 style="margin:0;font:600 24px/1.22 'Fraunces',serif;color:#10100E">Let's build your <span style="color:#078A7B">unfair advantage.</span></h2>
+<p style="margin:0;font:400 14.5px/1.5 'Inter',sans-serif;color:#68645D">Book your free audit and get a custom automation roadmap.</p>
+</div>
+<button style="font:600 15px 'Inter',sans-serif;color:#fff;background:linear-gradient(180deg,#0C8F80 0%,#06796E 100%);border:none;border-radius:11px;padding:14px;box-shadow:0 8px 18px rgba(7,138,123,.20);cursor:pointer;min-height:44px;width:100%">Book a Free Audit</button>
+<div style="display:flex;align-items:center;gap:14px">
+<div style="display:flex">
+<sc-for list="{{ avatars }}" as="av" hint-placeholder-count="4">
+<span style="width:32px;height:32px;border-radius:999px;border:2px solid #F8F2E6;background:{{ av.bg }};color:#fff;font:600 11px 'Inter',sans-serif;display:flex;align-items:center;justify-content:center;margin-left:-10px">{{ av.initials }}</span>
+</sc-for>
+</div>
+<div style="display:flex;gap:2px"><img src="assets/icon-star-filled.svg" style="width:13px;height:13px" alt=""><img src="assets/icon-star-filled.svg" style="width:13px;height:13px" alt=""><img src="assets/icon-star-filled.svg" style="width:13px;height:13px" alt=""><img src="assets/icon-star-filled.svg" style="width:13px;height:13px" alt=""><img src="assets/icon-star-filled.svg" style="width:13px;height:13px" alt=""></div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px 20px;width:100%">
+<sc-for list="{{ ctaStats }}" as="stat" hint-placeholder-count="4">
+<div><div style="font:700 20px 'Inter',sans-serif;color:#078A7B">{{ stat.value }}</div><div style="font:500 10.5px 'Inter',sans-serif;color:#68645D">{{ stat.label }}</div></div>
+</sc-for>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;align-items:flex-start;gap:14px" data-screen-label="Desktop 1440">
+<div style="font:600 12px/1 ui-monospace,monospace;color:#5A5D61;background:#fff;border:1px solid #DAD4C8;padding:6px 12px;border-radius:999px">DESKTOP — 1440px</div>
+
+<div style="width:1360px;background:#FBF6EF;border-radius:20px;border:1px solid #E7DBC5;box-shadow:0 22px 50px rgba(32,24,12,.13);overflow:hidden">
+<div style="max-width:1160px;margin:0 auto;padding:0 40px">
+
+<!-- NAVBAR -->
+<div style="display:flex;align-items:center;justify-content:space-between;height:80px">
+<div style="display:flex;align-items:center;gap:10px">
+<img src="assets/logo-mark.svg" style="width:30px;height:30px" alt="">
+<span style="font:600 19px 'Inter',sans-serif;color:#10100E;letter-spacing:-.01em">CodeOutfitters</span>
+</div>
+<div style="display:flex;align-items:center;gap:36px">
+<a href="#" style-hover="color:#078A7B" style="font:500 14.5px 'Inter',sans-serif;color:#26231E;text-decoration:none">Services</a>
+<a href="#" style-hover="color:#078A7B" style="font:500 14.5px 'Inter',sans-serif;color:#26231E;text-decoration:none">Solutions</a>
+<a href="#" style-hover="color:#078A7B" style="font:500 14.5px 'Inter',sans-serif;color:#26231E;text-decoration:none">Process</a>
+<a href="#" style-hover="color:#078A7B" style="font:500 14.5px 'Inter',sans-serif;color:#26231E;text-decoration:none">Resources</a>
+<a href="#" style-hover="color:#078A7B" style="font:500 14.5px 'Inter',sans-serif;color:#26231E;text-decoration:none">About</a>
+</div>
+<button style-hover="box-shadow:0 12px 22px rgba(7,138,123,.30);transform:translateY(-1px)" style="font:600 14.5px 'Inter',sans-serif;color:#fff;background:linear-gradient(180deg,#0C8F80 0%,#06796E 100%);border:none;border-radius:10px;padding:12px 22px;box-shadow:0 8px 18px rgba(7,138,123,.20);cursor:pointer;transition:all .15s ease">Book a Free Audit</button>
+</div>
+
+<!-- HERO -->
+<div style="position:relative;overflow:hidden;border-radius:20px">
+<div style="position:absolute;top:-100px;left:-80px;width:380px;height:380px;border-radius:999px;background:radial-gradient(circle,rgba(7,138,123,.30),transparent 70%);filter:blur(48px);animation:coBlobFloatA 16s ease-in-out infinite;pointer-events:none;z-index:0"></div>
+<div style="position:absolute;bottom:-120px;right:-80px;width:340px;height:340px;border-radius:999px;background:radial-gradient(circle,rgba(217,164,65,.26),transparent 70%);filter:blur(50px);animation:coBlobFloatB 18s ease-in-out infinite;pointer-events:none;z-index:0"></div>
+<div style="position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:center;padding:36px 0 56px">
+<div data-hero-group style="display:flex;flex-direction:column;align-items:flex-start;gap:22px;max-width:480px">
+<div style="display:flex;align-items:center;gap:8px;background:#EEF9F6;border:1px solid rgba(7,138,123,.30);border-radius:999px;padding:7px 16px">
+<img src="assets/icon-sparkle-badge.svg" style="width:13px;height:13px" alt="">
+<span style="font:700 11px 'Inter',sans-serif;letter-spacing:.08em;color:#05766B;text-transform:uppercase">AI Automation, Built for Impact</span>
+</div>
+<h1 style="margin:0;font:600 56px/1.05 'Fraunces',serif;color:#10100E;letter-spacing:-.01em">
+AI that works.<br>Automation that scales.<br><span style="color:#078A7B">Outcomes that matter.</span>
+</h1>
+<p style="margin:0;font:400 17px/1.55 'Inter',sans-serif;color:#26231E">We connect your data, build intelligent agents, and automate workflows that drive real impact.</p>
+<div style="display:flex;align-items:center;gap:22px">
+<div style="display:flex;align-items:center;gap:6px"><img src="assets/icon-automate.svg" style="width:16px;height:16px" alt=""><span style="font:500 14px 'Inter',sans-serif;color:#26231E">Automate</span></div>
+<div style="display:flex;align-items:center;gap:6px"><img src="assets/icon-orchestrate.svg" style="width:16px;height:16px" alt=""><span style="font:500 14px 'Inter',sans-serif;color:#26231E">Orchestrate</span></div>
+<div style="display:flex;align-items:center;gap:6px"><img src="assets/icon-scale.svg" style="width:16px;height:16px" alt=""><span style="font:500 14px 'Inter',sans-serif;color:#26231E">Scale</span></div>
+</div>
+<div style="display:flex;align-items:center;gap:14px;margin-top:4px">
+<button style-hover="box-shadow:0 12px 22px rgba(7,138,123,.30);transform:translateY(-1px)" style="font:600 15.5px 'Inter',sans-serif;color:#fff;background:linear-gradient(180deg,#0C8F80 0%,#06796E 100%);border:none;border-radius:11px;padding:15px 26px;box-shadow:0 8px 18px rgba(7,138,123,.20);cursor:pointer;transition:all .15s ease">Book a Free Audit</button>
+<button style-hover="border-color:rgba(7,138,123,.55)" style="display:flex;align-items:center;gap:10px;font:600 15.5px 'Inter',sans-serif;color:#05766B;background:#FFFDF8;border:1px solid rgba(231,219,197,.9);border-radius:11px;padding:14px 22px;cursor:pointer;transition:all .15s ease">See How It Works
+<span style="display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;background:#EEF9F6"><img src="assets/icon-chevron-right.svg" style="width:9px;height:9px" alt=""></span></button>
+</div>
+</div>
+
+<!-- HERO VISUAL -->
+<div style="width:100%;display:flex;align-items:center;justify-content:center">
+<img src="assets/hero-visual.png" ref="{{ registerParallax }}" style="width:112%;max-width:640px;height:auto;display:block;will-change:transform" alt="AI automation platform: AI Agents, Workflows and Data on a glass pedestal">
+</div>
+</div>
+</div>
+
+<!-- TRUST STRIP -->
+<div style="border-top:1px solid #E7DBC5;border-bottom:1px solid #E7DBC5;padding:26px 0;display:flex;flex-direction:column;align-items:center;gap:16px">
+<span style="font:700 11px 'Inter',sans-serif;letter-spacing:.14em;color:#078A7B;text-transform:uppercase">Trusted by growing businesses</span>
+<div data-reveal-group style="display:flex;align-items:center;justify-content:space-between;width:100%">
+<sc-for list="{{ trustLogos }}" as="logo" hint-placeholder-count="6">
+<span style="font:600 16px 'Inter',sans-serif;color:#5A5D61;letter-spacing:.02em">{{ logo.name }}</span>
+</sc-for>
+</div>
+</div>
+
+<!-- WHAT WE BUILD -->
+<div style="padding:56px 0;display:flex;flex-direction:column;align-items:center;gap:12px">
+<span style="font:700 11px 'Inter',sans-serif;letter-spacing:.08em;color:#078A7B;text-transform:uppercase">What we build</span>
+<h2 style="margin:0 0 32px;font:600 32px/1.15 'Fraunces',serif;color:#10100E;text-align:center">Intelligent systems for <span style="color:#078A7B">modern business.</span></h2>
+
+<div data-reveal-group style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;width:100%">
+
+<!-- AI Helpdesk -->
+<div style-hover="box-shadow:0 16px 34px rgba(32,24,12,.11);transform:translateY(-2px)" style="background:linear-gradient(180deg,#FFFDF8 0%,#FBF7EE 100%);border:1px solid #E7DBC5;border-radius:18px;padding:22px;display:grid;grid-template-columns:1fr 1fr;gap:10px;box-shadow:0 4px 12px rgba(32,24,12,.07);transition:all .15s ease">
+<div style="display:flex;flex-direction:column;gap:8px">
+<h3 style="margin:0;font:600 17px 'Inter',sans-serif;color:#10100E">AI Helpdesk</h3>
+<p style="margin:0;font:400 13.5px/1.5 'Inter',sans-serif;color:#68645D">Resolve more tickets, faster with smart AI agents.</p>
+<span style="margin-top:auto;display:inline-flex;align-items:center;gap:6px;font:600 12px 'Inter',sans-serif;color:#05766B;background:#EEF9F6;border:1px solid rgba(7,138,123,.25);border-radius:999px;padding:6px 10px;width:fit-content"><img src="assets/icon-live-dot.svg" style="width:11px;height:11px" alt="">Live now</span>
+</div>
+<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border-left:1px solid #E7DBC5;padding-left:10px">
+<span style="font:600 10px 'Inter',sans-serif;color:#8A857B;letter-spacing:.04em">TICKET RESOLUTION</span>
+<svg viewBox="0 0 120 68" width="118" height="66">
+<path d="M8 60A52 52 0 0 1 112 60" stroke="#EEF9F6" stroke-width="10" fill="none" stroke-linecap="round"/>
+<path d="M8 60A52 52 0 0 1 112 60" stroke="#078A7B" stroke-width="10" fill="none" stroke-linecap="round" stroke-dasharray="163" stroke-dashoffset="13"/>
+</svg>
+<div style="margin-top:-38px;text-align:center">
+<div style="font:700 20px 'Inter',sans-serif;color:#10100E">92%</div>
+<div style="font:500 10.5px 'Inter',sans-serif;color:#8A857B">Resolved</div>
+</div>
+<div style="display:flex;gap:22px;margin-top:2px">
+<div style="text-align:center"><div style="font:500 9.5px 'Inter',sans-serif;color:#8A857B">Resolved</div><div style="font:700 14px 'Inter',sans-serif;color:#10100E">1,248</div></div>
+<div style="text-align:center"><div style="font:500 9.5px 'Inter',sans-serif;color:#8A857B">SLA Met</div><div style="font:700 14px 'Inter',sans-serif;color:#10100E">96%</div></div>
+</div>
+</div>
+</div>
+
+<!-- Booking Automation -->
+<div style-hover="box-shadow:0 16px 34px rgba(32,24,12,.11);transform:translateY(-2px)" style="background:linear-gradient(180deg,#FFFDF8 0%,#FBF7EE 100%);border:1px solid #E7DBC5;border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:12px;box-shadow:0 4px 12px rgba(32,24,12,.07);transition:all .15s ease">
+<div style="display:flex;align-items:flex-start;justify-content:space-between">
+<div><h3 style="margin:0 0 6px;font:600 17px 'Inter',sans-serif;color:#10100E">Booking Automation</h3><p style="margin:0;font:400 13.5px/1.5 'Inter',sans-serif;color:#68645D;max-width:150px">Automate scheduling, confirmations and follow-ups.</p></div>
+<span style="font:600 11px 'Inter',sans-serif;color:#8A857B">May 2025</span>
+</div>
+<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center">
+<sc-for list="{{ calendarDays }}" as="d" hint-placeholder-count="35">
+<span style="font:500 10.5px 'Inter',sans-serif;color:{{ d.color }};background:{{ d.bg }};border-radius:999px;padding:3px 0;display:block">{{ d.label }}</span>
+</sc-for>
+</div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto">
+<div style="text-align:left"><div style="font:700 15px 'Inter',sans-serif;color:#10100E">32</div><div style="font:500 10px 'Inter',sans-serif;color:#8A857B">Captured</div></div>
+<span style="display:flex;align-items:center;gap:5px;font:600 11px 'Inter',sans-serif;color:#05766B;background:#EEF9F6;border-radius:999px;padding:5px 10px"><img src="assets/icon-confirmed-dot.svg" style="width:11px;height:11px" alt="">7 Confirmed</span>
+<div style="text-align:right"><div style="font:600 11px 'Inter',sans-serif;color:#10100E">No-Show Rate</div><div style="font:500 10px 'Inter',sans-serif;color:#68645D">↓ 4%</div></div>
+</div>
+</div>
+
+<!-- CRM Workflow -->
+<div style-hover="box-shadow:0 16px 34px rgba(32,24,12,.11);transform:translateY(-2px)" style="background:linear-gradient(180deg,#FFFDF8 0%,#FBF7EE 100%);border:1px solid #E7DBC5;border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:16px;box-shadow:0 4px 12px rgba(32,24,12,.07);transition:all .15s ease">
+<div><h3 style="margin:0 0 6px;font:600 17px 'Inter',sans-serif;color:#10100E">CRM Workflow</h3><p style="margin:0;font:400 13.5px/1.5 'Inter',sans-serif;color:#68645D">Keep your CRM synced and your team aligned.</p></div>
+<div style="display:flex;align-items:center;gap:6px">
+<img src="assets/icon-check-square.svg" style="width:32px;height:32px" alt="">
+<img src="assets/icon-arrow-right.svg" style="width:18px;height:14px" alt="">
+<img src="assets/icon-check-square.svg" style="width:32px;height:32px" alt="">
+<img src="assets/icon-arrow-right.svg" style="width:18px;height:14px" alt="">
+<img src="assets/icon-chat-square.svg" style="width:32px;height:32px" alt="">
+<img src="assets/icon-arrow-right.svg" style="width:18px;height:14px" alt="">
+<img src="assets/icon-edit-square.svg" style="width:32px;height:32px" alt="">
+</div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto">
+<div style="text-align:left"><div style="font:700 15px 'Inter',sans-serif;color:#10100E">22</div><div style="font:500 10px 'Inter',sans-serif;color:#8A857B">Captured</div></div>
+<div style="text-align:center"><div style="font:600 12px 'Inter',sans-serif;color:#10100E">Qualified</div></div>
+<div style="text-align:right"><div style="font:600 12px 'Inter',sans-serif;color:#10100E">Nurtured</div></div>
+</div>
+</div>
+
+<!-- Lead Capture -->
+<div style-hover="box-shadow:0 16px 34px rgba(32,24,12,.11);transform:translateY(-2px)" style="background:linear-gradient(180deg,#FFFDF8 0%,#FBF7EE 100%);border:1px solid #E7DBC5;border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:14px;box-shadow:0 4px 12px rgba(32,24,12,.07);transition:all .15s ease">
+<div><h3 style="margin:0 0 6px;font:600 17px 'Inter',sans-serif;color:#10100E">Lead Capture</h3><p style="margin:0;font:400 13.5px/1.5 'Inter',sans-serif;color:#68645D">Capture leads across channels and route instantly.</p></div>
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;align-items:center;gap:10px;border:1px solid #E7DBC5;border-radius:12px;padding:9px 12px">
+<span style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:999px;background:#EEF9F6"><img src="assets/icon-lead-user.svg" style="width:15px;height:15px" alt=""></span>
+<div style="flex:1"><div style="font:600 13px 'Inter',sans-serif;color:#10100E">New Lead</div><div style="font:400 11px 'Inter',sans-serif;color:#8A857B">Website</div></div>
+<img src="assets/icon-chevron-right.svg" style="width:10px;height:10px" alt="">
+</div>
+<div style="display:flex;align-items:center;gap:10px;border:1px solid #E7DBC5;border-radius:12px;padding:9px 12px">
+<span style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:999px;background:#D9A441;color:#fff;font:600 12px 'Inter',sans-serif">AM</span>
+<div style="flex:1"><div style="font:600 13px 'Inter',sans-serif;color:#10100E">Alex Morgan</div><div style="font:400 11px 'Inter',sans-serif;color:#8A857B">alex@morgan.com</div></div>
+<img src="assets/icon-chevron-right.svg" style="width:10px;height:10px" alt="">
+</div>
+</div>
+</div>
+
+<!-- Analytics Dashboard -->
+<div style-hover="box-shadow:0 16px 34px rgba(32,24,12,.11);transform:translateY(-2px)" style="background:linear-gradient(180deg,#FFFDF8 0%,#FBF7EE 100%);border:1px solid #E7DBC5;border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:10px;box-shadow:0 4px 12px rgba(32,24,12,.07);transition:all .15s ease">
+<div><h3 style="margin:0 0 6px;font:600 17px 'Inter',sans-serif;color:#10100E">Analytics Dashboard</h3><p style="margin:0;font:400 13.5px/1.5 'Inter',sans-serif;color:#68645D">Real-time insights. Smarter decisions.</p></div>
+<div style="display:flex;align-items:baseline;gap:8px"><span style="font:500 11px 'Inter',sans-serif;color:#8A857B">Opportunities</span><span style="font:700 15px 'Inter',sans-serif;color:#078A7B">↑ 28%</span></div>
+<svg viewBox="0 0 280 100" width="100%" height="90" preserveAspectRatio="none">
+<path d="M0 85 L40 78 L80 82 L120 62 L160 66 L200 40 L240 30 L280 6 L280 100 L0 100 Z" fill="#DDF3EE" opacity="0.6"/>
+<path d="M0 85 L40 78 L80 82 L120 62 L160 66 L200 40 L240 30 L280 6" fill="none" stroke="#078A7B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="280" cy="6" r="5" fill="#fff" stroke="#078A7B" stroke-width="3"/>
+</svg>
+</div>
+
+<!-- Hermes -->
+<div style-hover="box-shadow:0 16px 34px rgba(32,24,12,.11);transform:translateY(-2px)" style="background:linear-gradient(180deg,#FFFDF8 0%,#FBF7EE 100%);border:1px solid #E7DBC5;border-radius:18px;padding:22px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;box-shadow:0 4px 12px rgba(32,24,12,.07);transition:all .15s ease">
+<div><h3 style="margin:0 0 6px;font:600 17px 'Inter',sans-serif;color:#10100E">Hermes Agent Deployment</h3><p style="margin:0;font:400 13.5px/1.5 'Inter',sans-serif;color:#68645D">Deploy AI agents designed for your business.</p></div>
+<div style="position:relative;width:110px;height:110px">
+<svg viewBox="0 0 110 110" width="110" height="110">
+<circle cx="55" cy="55" r="50" fill="#EEF9F6"/>
+<circle cx="55" cy="55" r="50" stroke="#078A7B" stroke-width="1" fill="none" opacity="0.3"/>
+<circle cx="55" cy="55" r="36" stroke="#078A7B" stroke-width="1" fill="none" opacity="0.4"/>
+<circle cx="55" cy="55" r="22" stroke="#078A7B" stroke-width="1" fill="none" opacity="0.5"/>
+<line x1="5" y1="55" x2="105" y2="55" stroke="#078A7B" stroke-width="1" opacity="0.25"/>
+<line x1="55" y1="5" x2="55" y2="105" stroke="#078A7B" stroke-width="1" opacity="0.25"/>
+<circle cx="55" cy="55" r="6" fill="#078A7B"/>
+</svg>
+<img src="assets/hermes-shield-check.svg" style="position:absolute;left:50%;bottom:-14px;transform:translateX(-50%);width:34px;height:44px" alt="">
+</div>
+</div>
+
+</div>
+</div>
+
+<!-- PROCESS -->
+<div style="padding:12px 0 56px;display:flex;flex-direction:column;align-items:center;gap:36px">
+<span style="font:700 11px 'Inter',sans-serif;letter-spacing:.08em;color:#078A7B;text-transform:uppercase">Our process. A proven path to impact.</span>
+<div data-reveal-group style="position:relative;display:grid;grid-template-columns:repeat(5,1fr);width:100%">
+<div style="position:absolute;left:8%;right:8%;top:17px;height:1px;background:#DAD4C8"></div>
+<sc-for list="{{ processSteps }}" as="step" hint-placeholder-count="5">
+<div style="display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;padding:0 12px;position:relative">
+<span style="width:34px;height:34px;border-radius:999px;background:linear-gradient(180deg,#0C8F80,#06796E);color:#fff;font:600 13px 'Inter',sans-serif;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(7,138,123,.25)">{{ step.n }}</span>
+<span style="font:600 15px 'Inter',sans-serif;color:#10100E">{{ step.title }}</span>
+<span style="font:400 13px/1.5 'Inter',sans-serif;color:#68645D">{{ step.desc }}</span>
+</div>
+</sc-for>
+</div>
+</div>
+
+<!-- CTA -->
+<div data-reveal-group style="position:relative;background:#F8F2E6;border:1px solid #E7DBC5;border-radius:24px;padding:44px 48px;margin-bottom:64px;display:flex;align-items:center;justify-content:space-between;gap:32px;overflow:hidden">
+<svg style="position:absolute;right:0;top:0;opacity:.5" width="260" height="220" viewBox="0 0 260 220">
+<sc-for list="{{ dots }}" as="dot" hint-placeholder-count="60">
+<circle cx="{{ dot.x }}" cy="{{ dot.y }}" r="{{ dot.r }}" fill="{{ dot.c }}"></circle>
+</sc-for>
+</svg>
+<div style="display:flex;flex-direction:column;gap:12px;max-width:480px;position:relative">
+<h2 style="margin:0;font:600 30px/1.2 'Fraunces',serif;color:#10100E">Let's build your <span style="color:#078A7B">unfair advantage.</span></h2>
+<p style="margin:0;font:400 15.5px/1.5 'Inter',sans-serif;color:#68645D">Book your free audit and get a custom automation roadmap. Trusted by businesses across industries.</p>
+<div style="display:flex;align-items:center;gap:14px;margin-top:6px">
+<div style="display:flex">
+<sc-for list="{{ avatars }}" as="av" hint-placeholder-count="4">
+<span style="width:36px;height:36px;border-radius:999px;border:2px solid #F8F2E6;background:{{ av.bg }};color:#fff;font:600 12px 'Inter',sans-serif;display:flex;align-items:center;justify-content:center;margin-left:-10px">{{ av.initials }}</span>
+</sc-for>
+</div>
+<div style="display:flex;gap:2px">
+<img src="assets/icon-star-filled.svg" style="width:15px;height:15px" alt=""><img src="assets/icon-star-filled.svg" style="width:15px;height:15px" alt=""><img src="assets/icon-star-filled.svg" style="width:15px;height:15px" alt=""><img src="assets/icon-star-filled.svg" style="width:15px;height:15px" alt=""><img src="assets/icon-star-filled.svg" style="width:15px;height:15px" alt="">
+</div>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;align-items:flex-end;gap:22px;position:relative">
+<button style-hover="box-shadow:0 12px 22px rgba(7,138,123,.30);transform:translateY(-1px)" style="font:600 15.5px 'Inter',sans-serif;color:#fff;background:linear-gradient(180deg,#0C8F80 0%,#06796E 100%);border:none;border-radius:11px;padding:15px 26px;box-shadow:0 8px 18px rgba(7,138,123,.20);cursor:pointer;transition:all .15s ease;white-space:nowrap">Book a Free Audit</button>
+<div style="display:flex;gap:26px">
+<sc-for list="{{ ctaStats }}" as="stat" hint-placeholder-count="4">
+<div style="text-align:center"><div style="font:700 22px 'Inter',sans-serif;color:#078A7B">{{ stat.value }}</div><div style="font:500 11px 'Inter',sans-serif;color:#68645D;white-space:nowrap">{{ stat.label }}</div></div>
+</sc-for>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;accent&quot;: {&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Teal &amp; Gold&quot;,&quot;Indigo &amp; Coral&quot;,&quot;Emerald &amp; Amber&quot;,&quot;Plum &amp; Rose&quot;],&quot;default&quot;:&quot;Teal &amp; Gold&quot;,&quot;tsType&quot;:&quot;'Teal &amp; Gold' | 'Indigo &amp; Coral' | 'Emerald &amp; Amber' | 'Plum &amp; Rose'&quot;,&quot;section&quot;:&quot;Palette&quot;},
+  &quot;motion&quot;: {&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Calm&quot;,&quot;Balanced&quot;,&quot;Lively&quot;],&quot;default&quot;:&quot;Balanced&quot;,&quot;tsType&quot;:&quot;'Calm' | 'Balanced' | 'Lively'&quot;,&quot;section&quot;:&quot;Motion&quot;},
+  &quot;headline&quot;: {&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Editorial&quot;,&quot;Geometric&quot;],&quot;default&quot;:&quot;Editorial&quot;,&quot;tsType&quot;:&quot;'Editorial' | 'Geometric'&quot;,&quot;section&quot;:&quot;Typeface&quot;}
+}">
+class Component extends DCLogic {
+  state = { tabletMenuOpen: false, mobileMenuOpen: false };
+  parallaxEls = [];
+  rootEl = null;
+  registerParallax = (el) => { if (el && !this.parallaxEls.includes(el)) this.parallaxEls.push(el); };
+  registerRoot = (el) => { this.rootEl = el; };
+
+  _themes = {
+    'Teal & Gold':     ['#078A7B','#0C8F80','#06796E','#05766B','#0E9D8B','#EEF9F6','#DDF3EE','#D9A441','#B9791F'],
+    'Indigo & Coral':  ['#4457C7','#5A6BE0','#3A49A8','#3A47A0','#6472E8','#EEF0FB','#DDE1F6','#E5734B','#B4552F'],
+    'Emerald & Amber': ['#0E9F6E','#17B37E','#0B855C','#0A7A54','#1FB588','#E8F7F0','#D6F0E4','#E0A423','#B67C12'],
+    'Plum & Rose':     ['#8B4F9E','#9D5CB0','#74408A','#6E3C82','#A063B3','#F5EEF8','#ECDDF2','#DB5E86','#B23F63']
+  };
+
+  componentDidMount() {
+    this._raf = null;
+    this._timers = [];
+    this._runId = 0;
+
+    // ---- Hero image parallax ----
+    this._onScroll = () => {
+      if (this._raf) return;
+      this._raf = requestAnimationFrame(() => {
+        this._raf = null;
+        const vh = window.innerHeight;
+        this.parallaxEls.forEach(el => {
+          const r = el.getBoundingClientRect();
+          const center = r.top + r.height / 2;
+          const offset = (center - vh / 2) * 0.05;
+          el.style.transform = `translateY(${offset.toFixed(1)}px)`;
+        });
+      });
+    };
+    window.addEventListener('scroll', this._onScroll, { passive: true });
+    this._onScroll();
+
+    if (!this.rootEl) return;
+    this._runId++;
+    this.applyTheme();
+    this.applyFont();
+    this.runAnim();
+  }
+
+  componentDidUpdate(prev) {
+    if (!this.rootEl) return;
+    this.applyTheme();
+    this.applyFont();
+    if (prev && prev.motion !== this.props.motion) { this._runId++; this.runAnim(); }
+  }
+
+  get motionCfg() {
+    const m = this.props.motion || 'Balanced';
+    if (m === 'Calm')   return { dist: 12, dur: 1.0, stagger: 100, cascade: 160, countDur: 1700, pulseDur: 2.8, sonarDur: 5, heroStep: 160 };
+    if (m === 'Lively') return { dist: 46, dur: 0.5, stagger: 55, cascade: 85, countDur: 900, pulseDur: 1.15, sonarDur: 2, heroStep: 85 };
+    return { dist: 30, dur: 0.7, stagger: 80, cascade: 120, countDur: 1300, pulseDur: 1.9, sonarDur: 3, heroStep: 130 };
+  }
+
+  applyTheme() {
+    const root = this.rootEl; if (!root) return;
+    const themes = this._themes;
+    const target = themes[this.props.accent] || themes['Teal & Gold'];
+    const trip = (h) => { h = h.replace('#', ''); return parseInt(h.slice(0, 2), 16) + ', ' + parseInt(h.slice(2, 4), 16) + ', ' + parseInt(h.slice(4, 6), 16); };
+    // styleMap matches React-serialized rgb() triplets; svgMap matches raw hex on SVG attrs
+    const styleMap = [], svgMap = [];
+    for (let i = 0; i < target.length; i++) {
+      const thex = target[i], ttrip = trip(thex);
+      for (const k in themes) {
+        const fhex = themes[k][i];
+        if (fhex === thex) continue;
+        styleMap.push([trip(fhex), ttrip]);
+        svgMap.push([fhex, thex]);
+      }
+    }
+    const apply = (s, map) => {
+      if (!s) return s;
+      let out = s;
+      for (let j = 0; j < map.length; j++) {
+        const from = map[j][0];
+        if (out.indexOf(from) === -1) continue;
+        const re = new RegExp(from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+        out = out.replace(re, map[j][1]);
+      }
+      return out;
+    };
+    root.querySelectorAll('[style]').forEach(el => {
+      const cur = el.getAttribute('style'); const next = apply(cur, styleMap);
+      if (next !== cur) el.setAttribute('style', next);
+    });
+    root.querySelectorAll('path,circle,line,rect,stop,polygon,polyline').forEach(node => {
+      ['stroke', 'fill', 'stop-color'].forEach(attr => {
+        const v = node.getAttribute(attr);
+        if (v) { const nv = apply(v, svgMap); if (nv !== v) node.setAttribute(attr, nv); }
+      });
+    });
+  }
+
+  applyFont() {
+    const root = this.rootEl; if (!root) return;
+    const geo = this.props.headline === 'Geometric';
+    const fam = geo ? "'Space Grotesk', sans-serif" : "'Fraunces', serif";
+    root.querySelectorAll('h1, h2').forEach(h => {
+      h.style.fontFamily = fam;
+      h.style.letterSpacing = geo ? '-0.03em' : '';
+      h.style.fontWeight = geo ? '600' : '';
+    });
+  }
+
+  runAnim() {
+    const root = this.rootEl; if (!root) return;
+    const cfg = this.motionCfg;
+    const EASE = 'cubic-bezier(.16,1,.3,1)';
+    if (this._timers) this._timers.forEach(t => { clearTimeout(t); clearInterval(t); });
+    this._timers = [];
+    const runId = this._runId;
+
+    // ---- Count-up: auto-detect bold numeric labels ----
+    const NUM = /^([↑↓]\s*)?([$£€]?)(\d[\d,]*)(K)?(\+)?(%)?$/;
+    const countUp = (el) => {
+      if (el._countRun === runId) return;
+      const raw = el._numRaw || (el._numRaw = el.textContent.trim());
+      const m = raw.match(NUM);
+      if (!m) return;
+      const arrow = m[1] || '', cur = m[2] || '', digits = m[3], K = m[4] || '', plus = m[5] || '', pct = m[6] || '';
+      const target = parseInt(digits.replace(/,/g, ''), 10);
+      if (!isFinite(target) || target === 0) return;
+      el._countRun = runId;
+      const comma = digits.indexOf(',') !== -1;
+      const fmt = (n) => arrow + cur + (comma ? n.toLocaleString('en-US') : String(n)) + K + plus + pct;
+      const steps = 34, dur = cfg.countDur;
+      let i = 0;
+      el.textContent = fmt(0);
+      const iv = setInterval(() => {
+        i++;
+        const t = Math.min(1, i / steps);
+        const e = 1 - Math.pow(1 - t, 3);
+        el.textContent = fmt(Math.round(target * e));
+        if (t >= 1) { clearInterval(iv); el.textContent = raw; }
+      }, dur / steps);
+      this._timers.push(iv);
+    };
+
+    // ---- Draw SVG line/arc paths + fade area fills ----
+    const drawSvg = (svg) => {
+      svg.querySelectorAll('path').forEach(p => {
+        if (p._drawRun === runId) return;
+        p._drawRun = runId;
+        const stroke = p.getAttribute('stroke'), fill = p.getAttribute('fill');
+        const stroked = stroke && stroke !== 'none';
+        const noFill = !fill || fill === 'none';
+        if (stroked && noFill) {
+          if (p.getAttribute('stroke-dasharray')) {
+            const off = parseFloat(p.getAttribute('stroke-dashoffset')) || 0;
+            const dash = parseFloat(p.getAttribute('stroke-dasharray'));
+            p.style.transition = 'none';
+            p.setAttribute('stroke-dashoffset', dash);
+            const t = setTimeout(() => {
+              p.style.transition = `stroke-dashoffset 1.4s ${EASE}`;
+              p.setAttribute('stroke-dashoffset', off);
+            }, 30);
+            this._timers.push(t);
+          } else {
+            let len = 300;
+            try { len = p.getTotalLength(); } catch (e) {}
+            p.style.strokeDasharray = len;
+            p.style.strokeDashoffset = len;
+            p.style.transition = 'none';
+            const t = setTimeout(() => {
+              p.style.transition = `stroke-dashoffset 1.6s ${EASE}`;
+              p.style.strokeDashoffset = '0';
+            }, 30);
+            this._timers.push(t);
+          }
+        } else if (fill && fill !== 'none' && p.getAttribute('opacity')) {
+          const op = p.getAttribute('opacity');
+          p.style.opacity = '0';
+          p.style.transition = `opacity 1s ${EASE} .35s`;
+          const t = setTimeout(() => { p.style.opacity = op; }, 30);
+          this._timers.push(t);
+        }
+      });
+    };
+
+    const activate = (group) => {
+      Array.from(group.children).forEach(c => {
+        c.style.opacity = '1';
+        c.style.transform = 'translateY(0)';
+      });
+      group.querySelectorAll('*').forEach(n => {
+        if (n.children.length === 0) {
+          const w = getComputedStyle(n).fontWeight;
+          if (w === '700' || +w >= 700) countUp(n);
+        }
+      });
+      group.querySelectorAll('svg').forEach(s => {
+        const t = setTimeout(() => drawSvg(s), 180);
+        this._timers.push(t);
+      });
+    };
+
+    // ---- Reveal cascade (canvas-safe: IntersectionObserver never fires here) ----
+    const groups = Array.from(root.querySelectorAll('[data-reveal-group]'));
+    groups.forEach(group => {
+      Array.from(group.children).forEach((el, i) => {
+        el.style.opacity = '0';
+        el.style.transform = `translateY(${cfg.dist}px)`;
+        el.style.transition = `opacity ${cfg.dur}s ${EASE} ${i * cfg.stagger}ms, transform ${cfg.dur}s ${EASE} ${i * cfg.stagger}ms`;
+      });
+    });
+    // flow the cascade top -> bottom across all three frames
+    groups.sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top);
+    groups.forEach((group, gi) => {
+      const t = setTimeout(() => activate(group), 260 + gi * cfg.cascade);
+      this._timers.push(t);
+    });
+
+    // ---- Hero entrance: stagger on mount (above the fold) ----
+    root.querySelectorAll('[data-hero-group]').forEach(group => {
+      Array.from(group.children).forEach((el, i) => {
+        if (el.querySelector('img[style*="will-change"]')) return; // leave parallax visual alone
+        el.style.opacity = '0';
+        el.style.transform = `translateY(${Math.round(cfg.dist * 0.8)}px)`;
+        const t = setTimeout(() => {
+          el.style.transition = `opacity ${cfg.dur + 0.1}s ${EASE}, transform ${cfg.dur + 0.1}s ${EASE}`;
+          el.style.opacity = '1';
+          el.style.transform = 'translateY(0)';
+        }, 140 + i * cfg.heroStep);
+        this._timers.push(t);
+      });
+    });
+
+    // ---- Ambient: pulsing live dots + radar breathing ----
+    root.querySelectorAll('img[src*="icon-live-dot"]').forEach(img => {
+      img.style.borderRadius = '999px';
+      img.style.animation = `coPulse ${cfg.pulseDur}s ease-out infinite`;
+    });
+    root.querySelectorAll('svg').forEach(svg => {
+      if (!svg.querySelector('circle[r="6"]')) return; // Hermes radar only
+      svg.querySelectorAll('circle[fill="none"]').forEach((c, i) => {
+        c.style.animation = `coSonar ${cfg.sonarDur}s ease-in-out ${i * 0.55}s infinite`;
+      });
+    });
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('scroll', this._onScroll);
+    if (this._io) this._io.disconnect();
+    if (this._timers) this._timers.forEach(t => { clearTimeout(t); clearInterval(t); });
+  }
+
+  renderVals() {
+    const toggleTabletMenu = () => this.setState(s => ({ tabletMenuOpen: !s.tabletMenuOpen }));
+    const toggleMobileMenu = () => this.setState(s => ({ mobileMenuOpen: !s.mobileMenuOpen }));
+    const registerParallax = this.registerParallax;
+    const registerRoot = this.registerRoot;
+    const trustLogos = [
+      { name: 'NORTHWIND' }, { name: 'summit' }, { name: 'PIVOTLY' },
+      { name: 'LUMINA' }, { name: 'atlas' }, { name: 'Vertex' }
+    ];
+    const processSteps = [
+      { n: '01', title: 'Discover', desc: 'We analyze your business, data and opportunities.' },
+      { n: '02', title: 'Design', desc: 'We architect AI workflows and integration plans.' },
+      { n: '03', title: 'Build', desc: 'We build, integrate and test AI agents.' },
+      { n: '04', title: 'Deploy', desc: 'We deploy, monitor and ensure a smooth adoption.' },
+      { n: '05', title: 'Optimize', desc: 'We measure and continuously improve.' }
+    ];
+    const ctaStats = [
+      { value: '98%', label: 'Satisfaction Rate' },
+      { value: '50K+', label: 'Hours Automated' },
+      { value: '30+', label: 'AI Agents Deployed' },
+      { value: '150+', label: 'Integrations Connected' }
+    ];
+    const avatars = [
+      { initials: 'JM', bg: '#078A7B' },
+      { initials: 'RK', bg: '#D9A441' },
+      { initials: 'SL', bg: '#0E9D8B' },
+      { initials: 'TC', bg: '#B9791F' },
+      { initials: 'DP', bg: '#05766B' }
+    ];
+    const highlightDays = new Set([16]);
+    const calendarDays = [];
+    const dow = ['S','M','T','W','T','F','S'];
+    dow.forEach(d => calendarDays.push({ label: d, color: '#8A857B', bg: 'transparent' }));
+    for (let i = 5; i <= 31; i++) {
+      const sel = highlightDays.has(i);
+      calendarDays.push({ label: String(i), color: sel ? '#FFFFFF' : '#26231E', bg: sel ? '#078A7B' : 'transparent' });
+    }
+    // deterministic pseudo-random dot pattern
+    const dots = [];
+    let seed = 7;
+    const rand = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+    for (let i = 0; i < 60; i++) {
+      dots.push({
+        x: (130 + Math.cos(i * 0.7) * (20 + i * 3.1)).toFixed(1),
+        y: (60 + Math.sin(i * 0.7) * (14 + i * 1.9)).toFixed(1),
+        r: (1 + rand() * 1.3).toFixed(1),
+        c: i % 3 === 0 ? '#D9A441' : '#078A7B'
+      });
+    }
+    return { trustLogos, processSteps, ctaStats, avatars, calendarDays, dots,
+      tabletMenuOpen: this.state.tabletMenuOpen, toggleTabletMenu,
+      mobileMenuOpen: this.state.mobileMenuOpen, toggleMobileMenu,
+      registerParallax, registerRoot };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="./motion.js"></script>
+<style>
+:root{--ease-premium:cubic-bezier(.16,1,.3,1);--ease-soft:cubic-bezier(.22,1,.36,1);--ease-spring:cubic-bezier(.34,1.56,.64,1)}
+html,body{margin:0;padding:0;background:#0A120E;font-family:'Instrument Sans',sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#128A54}a:hover{color:#0E7A4E}
+.overflow-safe-site,.overflow-safe-site *{min-width:0}
+@keyframes v3Pulse{0%{box-shadow:0 0 0 0 rgba(43,212,131,.55)}70%{box-shadow:0 0 0 9px rgba(43,212,131,0)}100%{box-shadow:0 0 0 0 rgba(43,212,131,0)}}
+.nav-links-site{display:flex;align-items:center;gap:clamp(14px,1.7vw,26px);flex-wrap:nowrap;min-width:0}
+.nav-links-site a{white-space:nowrap;font:500 15px 'Instrument Sans',sans-serif;color:#4A5248;text-decoration:none}
+.nav-links-site a:hover{color:#0A120E}
+@media(max-width:1020px){.nav-links-site{display:none}}
+.chip-site{display:inline-flex;align-items:center;border-radius:999px;font:600 11.5px 'Instrument Sans',sans-serif;padding:5px 12px;white-space:nowrap}
+.cta-sweep{position:relative;overflow:hidden}
+.cta-sweep::before{content:'';position:absolute;top:0;bottom:0;left:-60%;width:40%;background:linear-gradient(110deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-18deg);transition:left .65s var(--ease-premium)}
+.cta-sweep:hover::before{left:120%}
+.cta-v7,.cta-v7 *{box-sizing:border-box;min-width:0}
+.cta-v7{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(28px,4vw,56px);align-items:center;max-width:1060px;margin:0 auto;background:linear-gradient(160deg,#10301F,#0A1C12);border:1px solid rgba(255,253,246,.14);border-radius:28px;padding:clamp(26px,4.5vw,54px);box-shadow:0 44px 100px rgba(0,0,0,.45)}
+.cta-title-v7{margin:0;font:600 clamp(30px,3.8vw,46px)/1.12 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.02em}
+.cta-action-card-v7{display:flex;flex-direction:column;gap:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:clamp(20px,2.6vw,30px);min-width:0}
+.cta-button-v7{white-space:nowrap;position:relative;display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-top:4px;font:600 16px 'Instrument Sans',sans-serif;color:#0A120E;background:linear-gradient(160deg,#E7C57E,#D9B36A);border:none;border-radius:13px;padding:17px 20px;cursor:pointer;box-shadow:0 16px 40px rgba(217,179,106,.3),inset 0 1px 0 rgba(255,255,255,.4);transition:transform .3s var(--ease-premium),box-shadow .3s var(--ease-premium);text-decoration:none}
+.cta-button-v7:hover{transform:translateY(-3px);box-shadow:0 24px 56px rgba(217,179,106,.46),inset 0 1px 0 rgba(255,255,255,.5)}
+.cta-chip-row-v7{display:flex;flex-wrap:wrap;gap:10px}
+.cta-chip-v7{display:inline-flex;align-items:center;gap:8px;font:600 13.5px/1.4 'Instrument Sans',sans-serif;color:rgba(245,240,232,.78);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:9px 15px;white-space:nowrap}
+@media(max-width:860px){.cta-v7{grid-template-columns:1fr;align-items:stretch}}
+@media(max-width:640px){.cta-v7{grid-template-columns:1fr;padding:24px 20px}.cta-button-v7{width:100%;font-size:15px;padding:16px 14px}.cta-title-v7{font-size:29px}}
+.mobile-safe-v7{overflow-x:hidden}
+.mobile-safe-v7 img{max-width:100%}
+.sec-card{background:linear-gradient(178deg,#fff,#FBF7EE 68%,#F6F1E4);border:1px solid rgba(13,58,49,.14);border-radius:20px;padding:clamp(24px,2.6vw,30px);box-shadow:0 16px 40px rgba(18,32,27,.08);display:flex;flex-direction:column;gap:12px}
+.sec-feature-inner{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:clamp(16px,2.4vw,32px);align-items:start}
+@keyframes toolDriftL{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
+@keyframes toolDriftR{from{transform:translate3d(-50%,0,0)}to{transform:translate3d(0,0,0)}}
+.tool-chip{display:inline-flex;align-items:center;gap:9px;font:600 14px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.82);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:11px 18px;white-space:nowrap}
+@media(max-width:820px){.sec-grid{grid-template-columns:1fr !important}.sec-grid>.sec-card{grid-column:auto !important}.sec-feature-inner{grid-template-columns:1fr}}
+
+/* === 21st enhancement pass (Fable) === */
+.spot-card::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(90deg,#17A063,#2BD483 55%,#D9B36A);transform:scaleX(0);transform-origin:left;transition:transform .55s cubic-bezier(.16,1,.3,1);z-index:2}
+.spot-card:hover::after{transform:scaleX(1)}
+.tool-chip{transition:transform .35s cubic-bezier(.16,1,.3,1),border-color .35s ease,color .35s ease}
+.tool-chip:hover{transform:translateY(-2px);border-color:rgba(43,212,131,.55);color:#FFFFFF}
+.marquee-pause:hover>div{animation-play-state:paused}
+.cta-button-v7:active{transform:translateY(-1px) scale(.98)}
+@keyframes heroBlob{0%,100%{transform:translate3d(-4%,-3%,0) scale(1)}50%{transform:translate3d(4%,4%,0) scale(1.1)}}
+@keyframes heroBlob2{0%,100%{transform:translate3d(5%,4%,0) scale(1.06)}50%{transform:translate3d(-5%,-4%,0) scale(.95)}}
+/* Reduced-motion fallback is opt-in via <html data-motion="reduced"> (see motion.js) */
+
+/* ===== V3 REPAIR · NAV ===== */
+.mnav-v3{display:none;position:relative;flex-shrink:0}
+.mnav-v3 summary{list-style:none;display:flex;flex-direction:column;justify-content:center;gap:4px;width:40px;height:40px;padding:0 10px;box-sizing:border-box;border:1px solid #E5DCCB;border-radius:10px;background:#FCFAF4;cursor:pointer}
+.mnav-v3 summary::-webkit-details-marker{display:none}
+.mnav-v3 summary span{display:block;height:2px;border-radius:2px;background:#0A120E;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .25s ease}
+.mnav-v3[open] summary span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+.mnav-v3[open] summary span:nth-child(2){opacity:0}
+.mnav-v3[open] summary span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+@keyframes mnavIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.mnav-panel-v3{position:absolute;right:0;top:calc(100% + 12px);width:min(78vw,260px);background:#FCFAF4;border:1px solid #E5DCCB;border-radius:16px;box-shadow:0 24px 60px rgba(18,32,27,.18);display:flex;flex-direction:column;gap:2px;padding:10px;z-index:80;animation:mnavIn .32s cubic-bezier(.16,1,.3,1)}
+.mnav-panel-v3 a{display:block;padding:11px 14px;border-radius:10px;font:500 15px 'Instrument Sans',sans-serif;color:#2A3128;text-decoration:none;white-space:nowrap}
+.mnav-panel-v3 a:hover{background:#F1EADB;color:#0A120E}
+.mnav-panel-v3 a.mnav-cur-v3{color:#128A54;font-weight:600}
+.mnav-panel-v3 a.mnav-cta-v3{margin-top:6px;text-align:center;background:#0E2A1D;color:#F7F2EA;font-weight:600}
+.mnav-panel-v3 a.mnav-cta-v3:hover{background:#17A063;color:#FFFFFF}
+@media(max-width:960px){.mnav-v3{display:block}}
+/* ===== V3 REPAIR · FAQ ===== */
+.faq-btn-v3:focus-visible{outline:2px solid rgba(23,160,99,.55);outline-offset:-2px;border-radius:12px}
+@media(prefers-reduced-motion:reduce){.mnav-panel-v3{animation:none}}
+
+/* ===== V5 · FAQ (FAQAccordionBlock adaptation) ===== */
+.faq-btn-v5:focus-visible{outline:2px solid rgba(23,160,99,.6);outline-offset:-3px;border-radius:14px}
+.faq-cta-btn-v5{transition:transform .3s cubic-bezier(.16,1,.3,1),box-shadow .3s ease}
+.faq-cta-btn-v5:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(217,179,106,.3)}
+@media(max-width:640px){.faq-btn-v5{padding:17px 16px !important}}
+@media (prefers-reduced-motion: reduce){.faq-motion,.faq-motion *{transition-duration:.001ms !important;animation-duration:.001ms !important}}
+
+/* ===== V6 · MARQUEE LOGO SCROLLER (faithful) ===== */
+@keyframes mqScroll{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
+.mq-shell-v5{width:100%;border-radius:14px;overflow:hidden}
+.mq-head-v5{display:grid;grid-template-columns:3fr 2fr;gap:28px;align-items:start;padding:clamp(24px,4vw,40px) clamp(24px,3vw,40px) clamp(22px,3vw,32px)}
+.mq-desc-v5{align-self:start;justify-self:end;text-align:right;max-width:44ch}
+.mq-viewport-v5{width:100%;overflow:hidden;-webkit-mask-image:linear-gradient(to right,transparent,#000 10%,#000 90%,transparent);mask-image:linear-gradient(to right,transparent,#000 10%,#000 90%,transparent)}
+.mq-track-v5{display:flex;width:max-content;align-items:center;gap:16px;padding:24px 16px 30px;will-change:transform;animation:mqScroll 50s linear infinite}
+.mq-track-v5:hover,.mq-viewport-v5:hover .mq-track-v5,.mq-viewport-v5.qa-hover .mq-track-v5{animation-play-state:paused}
+.mq-card-v6{position:relative;height:112px;width:208px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:14px;overflow:hidden;transition:transform .35s cubic-bezier(.16,1,.3,1),box-shadow .4s ease,border-color .4s ease}
+.mq-card-v6:hover{transform:translateY(-6px) scale(1.02)}
+.mq-grad-v6{position:absolute;inset:0;opacity:0;transform:scale(1.5);transition:opacity .6s ease,transform .7s ease;background:linear-gradient(135deg,#D9B36A,#17A063 55%,#0C6B47)}
+.mq-card-v6:hover .mq-grad-v6{opacity:.16;transform:scale(1)}
+.mq-logo-v6{position:relative;height:44px;width:auto;max-width:78%;object-fit:contain}
+.mq-grp-v6{position:absolute;left:0;right:0;bottom:11px;text-align:center;font:700 8px 'Instrument Sans',sans-serif;letter-spacing:.11em;text-transform:uppercase;color:#7FB79A}
+.mq-card-sec-v6 .mq-logo-v6{margin-top:-8px}
+.mq-home-v5 .mq-shell-v5{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.1)}
+.mq-home-v5 .mq-head-v5{border-bottom:1px solid rgba(255,255,255,.1)}
+.mq-home-v5 .mq-card-v6{background:#131C18;border:1px solid rgba(255,255,255,.09)}
+.mq-home-v5 .mq-card-v6:hover{border-color:rgba(217,179,106,.45);box-shadow:0 22px 48px rgba(0,0,0,.45)}
+.mq-sec-v5 .mq-shell-v5{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08)}
+.mq-sec-v5 .mq-head-v5{border-bottom:1px solid rgba(255,255,255,.08)}
+.mq-sec-v5 .mq-card-v6{height:120px;width:212px;background:#101915;border:1px solid rgba(255,255,255,.08)}
+.mq-sec-v5 .mq-card-v6:hover{border-color:rgba(43,212,131,.45);box-shadow:0 22px 48px rgba(0,0,0,.5)}
+.sec-band-v5{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.sec-chip-v5{display:inline-flex;align-items:center;gap:9px;padding:9px 15px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(217,179,106,.24);font:600 12.5px 'Instrument Sans',sans-serif;color:#EAF3EC;white-space:nowrap}
+.sec-chip-v5 .cp-dot{width:7px;height:7px;border-radius:999px;background:#2BD483;box-shadow:0 0 8px rgba(43,212,131,.8);animation:secDotV5 2.6s ease-in-out infinite}
+@keyframes secDotV5{0%,100%{opacity:.35;transform:scale(.7)}50%{opacity:1;transform:scale(1)}}
+@media(max-width:680px){.mq-head-v5{grid-template-columns:1fr;gap:12px}.mq-desc-v5{justify-self:start;text-align:left}}
+@media (prefers-reduced-motion: reduce){
+html:not([data-motion="full"]) .mq-track-v5,html:not([data-motion="full"]) .marquee-track{animation:none !important;transform:none !important;flex-wrap:wrap;width:100% !important;justify-content:center}
+html:not([data-motion="full"]) .marquee-dup-v5{display:none !important}
+html:not([data-motion="full"]) .mq-viewport-v5{-webkit-mask-image:none;mask-image:none}
+html:not([data-motion="full"]) .sec-chip-v5 .cp-dot{animation:none}
+}
+</style>
+<script>(function(){try{var m=new URLSearchParams(location.search).get('motion');if(m==='full'||m==='reduce'){document.documentElement.setAttribute('data-motion',m);}}catch(e){}})();</script>
+</helmet>
+
+<div ref="{{ registerRoot }}" class="overflow-safe-site mobile-safe-v7" style="background:#F7F2EA;overflow-x:hidden">
+
+<!-- NAV -->
+<div data-screen-label="Nav" style="position:sticky;top:0;z-index:50;background:rgba(247,242,234,.92);backdrop-filter:blur(14px);border-bottom:1px solid #E5DCCB">
+<div style="max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;min-height:68px;gap:14px;padding:10px clamp(16px,3vw,32px)">
+<a href="01-Homepage.dc.html" style="display:flex;align-items:center;gap:10px;white-space:nowrap;flex-shrink:0;text-decoration:none">
+<img src="assets/logo-mark.svg" style="width:28px;height:28px" alt="">
+<span style="font:600 19px 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.01em">Code<span style="color:#17A063">Outfitters</span></span>
+</a>
+<div class="nav-links-site">
+<a href="01-Homepage.dc.html">Home</a>
+<a href="02-Services.dc.html">Services</a>
+<a href="03-Industries.dc.html">Industries</a>
+<a href="04-Process.dc.html">Process</a>
+<a href="07-Case-Studies.dc.html">Case Studies</a>
+<a href="05-About.dc.html">About</a>
+<a href="08-Contact.dc.html">Contact</a>
+</div>
+<details class="mnav-v3">
+<summary aria-label="Open menu"><span></span><span></span><span></span></summary>
+<div class="mnav-panel-v3">
+<a href="01-Homepage.dc.html">Home</a>
+<a href="02-Services.dc.html">Services</a>
+<a href="03-Industries.dc.html">Industries</a>
+<a href="04-Process.dc.html">Process</a>
+<a href="07-Case-Studies.dc.html">Case Studies</a>
+<a href="05-About.dc.html">About</a>
+<a href="08-Contact.dc.html">Contact</a>
+<a class="mnav-cta-v3" href="08-Contact.dc.html">Book a Call</a>
+</div>
+</details>
+<a href="08-Contact.dc.html" style="font:600 14px 'Instrument Sans',sans-serif;color:#F7F2EA;background:#0E2A1D;border-radius:10px;padding:11px 18px;white-space:nowrap;flex-shrink:0;text-decoration:none;transition:transform .15s ease, background .15s ease;display:inline-flex" style-hover="background:#17A063;transform:translateY(-1px)" class="cta-sweep">Book a Call</a>
+</div>
+</div>
+
+<!-- HERO -->
+<div data-screen-label="Security Hero" style="position:relative;background:radial-gradient(1000px 600px at 78% -15%, rgba(23,160,99,.20), transparent 60%), #0A120E;overflow:hidden">
+<div style="position:absolute;inset:-20%;background:radial-gradient(560px 380px at 30% 40%, rgba(43,212,131,.10), transparent 60%),radial-gradient(520px 360px at 72% 62%, rgba(217,179,106,.08), transparent 60%);animation:heroBlob 16s ease-in-out infinite;pointer-events:none"></div>
+<div style="position:absolute;inset:-24%;background:radial-gradient(480px 340px at 80% 20%, rgba(43,212,131,.07), transparent 60%),radial-gradient(420px 300px at 14% 78%, rgba(217,179,106,.06), transparent 60%);animation:heroBlob2 22s ease-in-out infinite;pointer-events:none"></div>
+<div style="position:relative;max-width:780px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:22px;text-align:center;padding:clamp(56px,8vw,88px) clamp(20px,3vw,32px) clamp(44px,6vw,64px)">
+<div class="fm-rv" style="display:flex;align-items:center;gap:9px;background:rgba(217,179,106,.10);border:1px solid rgba(217,179,106,.4);border-radius:999px;padding:8px 16px">
+<span style="width:7px;height:7px;border-radius:999px;background:#D9B36A"></span>
+<span style="font:700 11.5px 'Instrument Sans',sans-serif;letter-spacing:.14em;color:#D9B36A;text-transform:uppercase;white-space:nowrap">Security &amp; reliability</span>
+</div>
+<h1 class="fm-rv" style="margin:0;font:600 clamp(34px,4.6vw,54px)/1.1 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.025em;text-wrap:balance">Built with a <span style="color:#2BD483">security-conscious</span> mindset.</h1>
+<p class="fm-rv" style="margin:0;font:400 18px/1.65 'Instrument Sans',sans-serif;color:rgba(245,240,232,.62);max-width:560px">Automation touches sensitive parts of your business — your leads, your calendar, your money. Here's how we handle access, secrets, and reliability on every build.</p>
+</div>
+</div>
+
+<!-- ACCESS -->
+<div data-screen-label="Access Control" style="background-image:radial-gradient(rgba(14,42,29,.06) 1px,transparent 1.5px);background-size:26px 26px;background-color:#F7F2EA">
+<div style="max-width:1180px;margin:0 auto;padding:clamp(56px,8vw,92px) clamp(20px,3vw,32px)">
+<div class="fm-rv" style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:40px;text-align:center">
+<div style="display:flex;align-items:center;gap:14px"><span style="width:38px;height:2px;background:#D9B36A"></span><span style="font:700 12px 'Instrument Sans',sans-serif;letter-spacing:.18em;color:#128A54;text-transform:uppercase">Access &amp; secrets</span><span style="width:38px;height:2px;background:#D9B36A"></span></div>
+<h2 style="margin:0;font:600 clamp(28px,3.6vw,42px)/1.15 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.02em">How we protect workflow access.</h2>
+</div>
+<div class="sec-grid" style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:20px">
+<div class="sec-card fm-rv" style="grid-column:span 6">
+<div class="sec-feature-inner">
+<h3 style="margin:0;font:600 clamp(20px,2.2vw,24px)/1.25 'Space Grotesk',sans-serif;color:#0A120E">Least-access setup</h3>
+<p style="margin:0;font:400 15px/1.65 'Instrument Sans',sans-serif;color:#5B6355">Every integration is connected with the minimum permissions needed to do its job — not broad, all-access keys by default. Access is easy to review, and easy to revoke.</p>
+</div>
+</div>
+<div class="sec-card fm-rv" style="grid-column:span 3">
+<h3 style="margin:0;font:600 18px 'Space Grotesk',sans-serif;color:#0A120E">Server-side secrets</h3>
+<p style="margin:0;font:400 14.5px/1.62 'Instrument Sans',sans-serif;color:#5B6355">API keys and credentials are kept server-side wherever the platform allows it, rather than exposed in client-facing code.</p>
+</div>
+<div class="sec-card fm-rv" style="grid-column:span 3">
+<h3 style="margin:0;font:600 18px 'Space Grotesk',sans-serif;color:#0A120E">Scoped account access</h3>
+<p style="margin:0;font:400 14.5px/1.62 'Instrument Sans',sans-serif;color:#5B6355">We use dedicated integration accounts where possible, so access can be reviewed or revoked without touching your main tools.</p>
+</div>
+</div>
+</div>
+</div>
+
+<!-- AI GUARDRAILS -->
+<div data-screen-label="AI Guardrails" style="background:#0E241A">
+<div style="max-width:1100px;margin:0 auto;padding:clamp(56px,8vw,88px) clamp(20px,3vw,32px)">
+<div class="fm-rv" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(28px,4vw,48px);align-items:start">
+<div style="display:flex;flex-direction:column;gap:14px">
+<span style="font:700 11px 'Instrument Sans',sans-serif;letter-spacing:.16em;color:#2BD483;text-transform:uppercase">AI guardrails</span>
+<h2 style="margin:0;font:600 clamp(24px,2.8vw,32px)/1.2 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.02em">Human review for sensitive workflows.</h2>
+<p style="margin:0;font:400 15.5px/1.65 'Instrument Sans',sans-serif;color:rgba(245,240,232,.62)">Chatbots and AI agents handle routine replies, but anything involving money, cancellations, or ambiguous requests is routed to a person by design — not left to the model's best guess.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:14px">
+<span style="font:700 11px 'Instrument Sans',sans-serif;letter-spacing:.16em;color:#2BD483;text-transform:uppercase">Testing before launch</span>
+<h2 style="margin:0;font:600 clamp(24px,2.8vw,32px)/1.2 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.02em">Real scenarios, not a demo script.</h2>
+<p style="margin:0;font:400 15.5px/1.65 'Instrument Sans',sans-serif;color:rgba(245,240,232,.62)">Before anything goes live, we run it against real messages, edge cases, and failure paths — including what happens when an integration is slow or down.</p>
+</div>
+</div>
+</div>
+</div>
+
+<!-- RELIABILITY + HANDOFF -->
+<div data-screen-label="Reliability Handoff" style="background:#F7F2EA">
+<div style="max-width:1180px;margin:0 auto;padding:clamp(56px,8vw,92px) clamp(20px,3vw,32px)">
+<div class="fm-rv" style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:40px;text-align:center">
+<h2 style="margin:0;font:600 clamp(28px,3.6vw,42px)/1.15 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.02em">Reliability &amp; handoff.</h2>
+</div>
+<div class="sec-grid" style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:20px">
+<div class="sec-card fm-rv" style="grid-column:span 3">
+<h3 style="margin:0;font:600 18px 'Space Grotesk',sans-serif;color:#0A120E">Monitoring mindset</h3>
+<p style="margin:0;font:400 14.5px/1.62 'Instrument Sans',sans-serif;color:#5B6355">We check in on live automations during the support window and flag anything behaving unexpectedly before it becomes your problem.</p>
+</div>
+<div class="sec-card fm-rv" style="grid-column:span 3">
+<h3 style="margin:0;font:600 18px 'Space Grotesk',sans-serif;color:#0A120E">Documented handoff</h3>
+<p style="margin:0;font:400 14.5px/1.62 'Instrument Sans',sans-serif;color:#5B6355">Every project ends with documentation of what was built, how it works, and who to contact — not tribal knowledge.</p>
+</div>
+<div class="sec-card fm-rv" style="grid-column:span 6">
+<div class="sec-feature-inner">
+<h3 style="margin:0;font:600 clamp(20px,2.2vw,24px)/1.25 'Space Grotesk',sans-serif;color:#0A120E">Clear rollback plan</h3>
+<p style="margin:0;font:400 15px/1.65 'Instrument Sans',sans-serif;color:#5B6355">If something needs to be paused or reverted, that path is documented up front — not figured out under pressure. Every handoff includes the exact steps.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- INTEGRATIONS · SECURE MARQUEE LOGO SCROLLER -->
+<div class="mq-sec-v5" data-screen-label="Integrations" style="position:relative;background:radial-gradient(760px 420px at 50% -12%, rgba(23,160,99,.12), transparent 60%), #0A1B12;overflow:hidden">
+<div style="max-width:1180px;margin:0 auto;padding:clamp(48px,6vw,80px) clamp(20px,3vw,32px);display:flex;flex-direction:column;gap:26px">
+<div class="fm-rv" style="display:flex;flex-direction:column;align-items:center;gap:13px;text-align:center">
+<span style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:rgba(217,179,106,.1);border:1px solid rgba(217,179,106,.28);font:700 11.5px 'Instrument Sans',sans-serif;letter-spacing:.15em;color:#D9B36A;text-transform:uppercase;white-space:nowrap"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2BD483" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"></path></svg>Secure Integrations</span>
+<h2 style="margin:0;font:600 clamp(26px,3.2vw,40px)/1.14 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.02em;text-wrap:balance">Connected carefully, with scoped access.</h2>
+<p style="margin:0;font:400 15.5px/1.6 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);max-width:600px">Every integration is connected with only the permissions its workflow needs, while credentials, reviews, logs, and rollback controls remain clearly managed.</p>
+</div>
+<div class="sec-band-v5 fm-rv">
+<span class="sec-chip-v5"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#D9B36A" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"></path></svg><span class="cp-dot"></span>Scoped access</span>
+<span class="sec-chip-v5"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#D9B36A" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg><span class="cp-dot"></span>Server-side secrets</span>
+<span class="sec-chip-v5"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#D9B36A" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"></path></svg><span class="cp-dot"></span>Human approval</span>
+<span class="sec-chip-v5"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#D9B36A" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16M4 12h16M4 19h10"></path></svg><span class="cp-dot"></span>Activity logging</span>
+<span class="sec-chip-v5"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#D9B36A" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7v6h6"></path><path d="M3.5 13a9 9 0 1 0 2.3-9.3L3 7"></path></svg><span class="cp-dot"></span>Rollback path</span>
+</div>
+<div class="fm-rv mq-shell-v5">
+<div class="mq-head-v5">
+<div style="min-width:0">
+<span style="display:inline-block;font:700 11px 'Instrument Sans',sans-serif;letter-spacing:.16em;color:#7FB79A;text-transform:uppercase;margin-bottom:9px">Connected tools · scoped by group</span>
+<h3 style="margin:0;font:600 clamp(19px,2.4vw,26px)/1.2 'Space Grotesk',sans-serif;color:#EAF3EC;letter-spacing:-.01em">Every integration routes through the control layer.</h3>
+</div>
+<p class="mq-desc-v5" style="margin:0;font:400 14px/1.55 'Instrument Sans',sans-serif;color:rgba(234,243,236,.55)">Least access the workflow needs — nothing broad, nothing shared by default.</p>
+</div>
+<div class="mq-viewport-v5">
+<div class="mq-track-v5 marquee-track">
+<div class="mq-card-v6 mq-card-sec-v6"><span class="mq-grad-v6"></span><img class="mq-logo-v6" src="assets/logos/hubspot.svg" alt="HubSpot" loading="lazy"><span class="mq-grp-v6">Business systems</span></div>
+<div class="mq-card-v6 mq-card-sec-v6"><span class="mq-grad-v6"></span><img class="mq-logo-v6" src="assets/logos/airtable.svg" alt="Airtable" loading="lazy"><span class="mq-grp-v6">Business systems</span></div>
+<div class="mq-card-v6 mq-card-sec-v6"><span class="mq-grad-v6"></span><img class="mq-logo-v6" src="assets/logos/sheets.svg" alt="Google Sheets" loading="lazy"><span class="mq-grp-v6">Business systems</span></div>
+<div class="mq-card-v6 mq-card-sec-v6"><span class="mq-grad-v6"></span><img class="mq-logo-v6" src="assets/logos/notion.svg" alt="Notion" loading="lazy"><span class="mq-grp-v6">Business systems</span></div>
+<div class="mq-card-v6 mq-card-sec-v6"><span class="mq-grad-v6"></span><img class="mq-logo-v6" src="assets/logos/slack.svg" alt="Slack" loading="lazy"><span class="mq-grp-v6">Communication</span></div>
+<div class="mq-card-v6 mq-card-sec-v6"><span class="mq-grad-v6"></span><img class="mq-logo-v6" src="assets/logos/whatsapp.svg" alt="WhatsApp" loading="lazy"><span class="mq-grp-v6">Communication</span></div>
+<div class="mq-card-v6 mq-card-sec-v6"><span class="mq-grad-v6"></span><img class="mq-logo-v6" src="assets/logos/gmail.svg" alt="Gmail" loading="lazy"><span class="mq-grp-v6">Communication</span></div>
+<div class="mq-card-v6 mq-card-sec-v6"><span class="mq-grad-v6"></span><img class="mq-logo-v6" src="assets/logos/twilio.svg" alt="Twilio" loading="lazy"><span class="mq-grp-v6">Communication</span></div>
+<div class="mq-card-v6 mq-card-sec-v6"><span class="mq-grad-v6"></span><img class="mq-logo-v6" src="assets/logos/shopify.svg" alt="Shopify" loading="lazy"><span class="mq-grp-v6">Commerce</span></div>
+<div class="mq-card-v6 mq-card-sec-v6"><span class="mq-grad-v6"></span><img class="mq-logo-v6" src="assets/logos/stripe.svg" alt="Stripe" loading="lazy"><span class="mq-grp-v6">Commerce</span></div>
+<div class="mq-card-v6 mq-card-sec-v6"><span class="mq-grad-v6"></span><img class="mq-logo-v6" src="assets/logos/quickbooks.svg" alt="QuickBooks" loading="lazy"><span class="mq-grp-v6">Commerce</span></div>
+<div class="mq-card-v6 mq-card-sec-v6"><span class="mq-grad-v6"></span><img class="mq-logo-v6" src="assets/logos/calendly.svg" alt="Calendly" loading="lazy"><span class="mq-grp-v6">Scheduling</span></div>
+<div class="mq-card-v6 mq-card-sec-v6"><span class="mq-grad-v6"></span><img class="mq-logo-v6" src="assets/logos/calendar.svg" alt="Google Calendar" loading="lazy"><span class="mq-grp-v6">Scheduling</span></div>
+<div class="marquee-dup-v5" style="display:contents" aria-hidden="true">
+<div class="mq-card-v6 mq-card-sec-v6"><span class="mq-grad-v6"></span><img class="mq-logo-v6" src="assets/logos/hubspot.svg" alt="HubSpot" loading="lazy"><span class="mq-grp-v6">Business systems</span></div>
+<div class="mq-card-v6 mq-card-sec-v6"><span class="mq-grad-v6"></span><img class="mq-logo-v6" src="assets/logos/airtable.svg" alt="Airtable" loading="lazy"><span class="mq-grp-v6">Business systems</span></div>
+<div class="mq-card-v6 mq-card-sec-v6"><span class="mq-grad-v6"></span><img class="mq-logo-v6" src="assets/logos/sheets.svg" alt="Google Sheets" loading="lazy"><span class="mq-grp-v6">Business systems</span></div>
+<div class="mq-card-v6 mq-card-sec-v6"><span class="mq-grad-v6"></span><img class="mq-logo-v6" src="assets/logos/notion.svg" alt="Notion" loading="lazy"><span class="mq-grp-v6">Business systems</span></div>
+<div class="mq-card-v6 mq-card-sec-v6"><span class="mq-grad-v6"></span><img class="mq-logo-v6" src="assets/logos/slack.svg" alt="Slack" loading="lazy"><span class="mq-grp-v6">Communication</span></div>
+<div class="mq-card-v6 mq-card-sec-v6"><span class="mq-grad-v6"></span><img class="mq-logo-v6" src="assets/logos/whatsapp.svg" alt="WhatsApp" loading="lazy"><span class="mq-grp-v6">Communication</span></div>
+<div class="mq-card-v6 mq-card-sec-v6"><span class="mq-grad-v6"></span><img class="mq-logo-v6" src="assets/logos/gmail.svg" alt="Gmail" loading="lazy"><span class="mq-grp-v6">Communication</span></div>
+<div class="mq-card-v6 mq-card-sec-v6"><span class="mq-grad-v6"></span><img class="mq-logo-v6" src="assets/logos/twilio.svg" alt="Twilio" loading="lazy"><span class="mq-grp-v6">Communication</span></div>
+<div class="mq-card-v6 mq-card-sec-v6"><span class="mq-grad-v6"></span><img class="mq-logo-v6" src="assets/logos/shopify.svg" alt="Shopify" loading="lazy"><span class="mq-grp-v6">Commerce</span></div>
+<div class="mq-card-v6 mq-card-sec-v6"><span class="mq-grad-v6"></span><img class="mq-logo-v6" src="assets/logos/stripe.svg" alt="Stripe" loading="lazy"><span class="mq-grp-v6">Commerce</span></div>
+<div class="mq-card-v6 mq-card-sec-v6"><span class="mq-grad-v6"></span><img class="mq-logo-v6" src="assets/logos/quickbooks.svg" alt="QuickBooks" loading="lazy"><span class="mq-grp-v6">Commerce</span></div>
+<div class="mq-card-v6 mq-card-sec-v6"><span class="mq-grad-v6"></span><img class="mq-logo-v6" src="assets/logos/calendly.svg" alt="Calendly" loading="lazy"><span class="mq-grp-v6">Scheduling</span></div>
+<div class="mq-card-v6 mq-card-sec-v6"><span class="mq-grad-v6"></span><img class="mq-logo-v6" src="assets/logos/calendar.svg" alt="Google Calendar" loading="lazy"><span class="mq-grp-v6">Scheduling</span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- FAQ -->
+<div data-screen-label="Security FAQ" id="faq" style="background:#0A140F;color:#F5F0E8;border-top:1px solid #EDE6D8">
+<div style="max-width:820px;margin:0 auto;padding:clamp(56px,8vw,92px) clamp(20px,3vw,32px)">
+<div class="fm-rv" style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:44px;text-align:center">
+<span style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:rgba(43,212,131,.12);border:1px solid rgba(43,212,131,.28);font:700 11.5px 'Instrument Sans',sans-serif;letter-spacing:.15em;color:#2BD483;text-transform:uppercase;white-space:nowrap"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#D9B36A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M9.2 9.2a2.8 2.8 0 0 1 5.5.8c0 1.9-2.8 2.4-2.8 4"></path><line x1="12" y1="17.2" x2="12.01" y2="17.2"></line></svg>Security FAQ</span>
+<h2 style="margin:0;font:600 clamp(28px,3.6vw,44px)/1.14 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.02em;text-wrap:balance">Clear answers about access, data, and control.</h2>
+<p style="margin:0;font:400 16px/1.6 'Instrument Sans',sans-serif;color:rgba(245,240,232,.62);max-width:560px">How we connect to your tools and keep every integration scoped and reviewable.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<sc-for list="{{ faqs }}" as="f" hint-placeholder-count="4">
+<div class="fm-rv faq-motion" style="{{ f.wrapStyle }}">
+<button onClick="{{ f.toggle }}" class="faq-btn-v6" style="display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;box-sizing:border-box;padding:21px 22px;cursor:pointer;background:transparent;border:none;text-align:left;min-width:0">
+<span style="flex:1;min-width:0;overflow-wrap:anywhere;font:600 16px/1.4 'Space Grotesk',sans-serif;color:#F5F0E8">{{ f.q }}</span>
+<span style="{{ f.togStyle }}"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3.5 6l4.5 4.5L12.5 6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+</button>
+<div style="{{ f.bodyStyle }}"><div style="min-height:0;overflow:hidden"><div style="margin:0 22px;border-top:1px solid rgba(255,255,255,.08)"><p style="margin:0;padding:16px 0 20px;font:400 15px/1.65 'Instrument Sans',sans-serif;color:rgba(245,240,232,.66)">{{ f.a }}</p></div></div></div>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+
+<!-- CTA -->
+<div data-screen-label="CTA" style="position:relative;background:radial-gradient(760px 420px at 50% -15%, rgba(23,160,99,.18), transparent 62%), #0A120E;overflow:hidden">
+<div style="position:relative;max-width:1180px;margin:0 auto;padding:clamp(56px,8vw,96px) clamp(20px,3vw,32px)">
+<div class="cta-v7 fm-rv">
+<div style="display:flex;flex-direction:column;align-items:flex-start;gap:18px;min-width:0">
+<span style="font:700 12px 'Instrument Sans',sans-serif;letter-spacing:.18em;color:#D9B36A;text-transform:uppercase">Have specific requirements?</span>
+<h2 class="cta-title-v7">Talk Through Your <span style="white-space:nowrap">Security Needs</span></h2>
+<p style="margin:0;font:400 17px/1.65 'Instrument Sans',sans-serif;color:rgba(245,240,232,.62);max-width:440px">Tell us about your access, compliance, or review requirements on a free discovery call — we'll be upfront about what we can and can't do.</p>
+<div class="cta-chip-row-v7">
+<span class="cta-chip-v7"><span style="color:#2BD483">✓</span>Free audit included</span>
+<span class="cta-chip-v7"><span style="color:#2BD483">✓</span>No long contracts</span>
+<span class="cta-chip-v7"><span style="color:#2BD483">✓</span>30-day support</span>
+</div>
+</div>
+<div class="cta-action-card-v7">
+<span style="font:700 10.5px 'Instrument Sans',sans-serif;letter-spacing:.14em;color:rgba(245,240,232,.5);text-transform:uppercase">What you get in 30 minutes</span>
+<div style="display:flex;flex-direction:column;gap:11px">
+<span style="display:flex;align-items:flex-start;gap:10px;font:500 14.5px/1.5 'Instrument Sans',sans-serif;color:rgba(245,240,232,.8)"><span style="color:#2BD483;font-weight:700;flex-shrink:0">✓</span>A map of your biggest time drains</span>
+<span style="display:flex;align-items:flex-start;gap:10px;font:500 14.5px/1.5 'Instrument Sans',sans-serif;color:rgba(245,240,232,.8)"><span style="color:#2BD483;font-weight:700;flex-shrink:0">✓</span>Which workflow to automate first</span>
+<span style="display:flex;align-items:flex-start;gap:10px;font:500 14.5px/1.5 'Instrument Sans',sans-serif;color:rgba(245,240,232,.8)"><span style="color:#2BD483;font-weight:700;flex-shrink:0">✓</span>A fixed quote — before we build anything</span>
+</div>
+<a href="08-Contact.dc.html" class="cta-sweep cta-button-v7"><span style="white-space:nowrap">Start With a Workflow Audit</span><img src="assets/icon-arrow-right.svg" style="width:15px;height:15px;flex-shrink:0" alt=""></a>
+</div>
+</div>
+</div>
+</div>
+
+<!-- FOOTER -->
+<div data-screen-label="Footer" style="background:#070D0A;border-top:1px solid rgba(255,255,255,.06)">
+<div style="max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:40px;padding:56px 32px 40px">
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;gap:9px">
+<img src="assets/logo-mark.svg" style="width:24px;height:24px;filter:brightness(1.5)" alt="">
+<span style="font:600 17px 'Space Grotesk',sans-serif;color:#F5F0E8">Code<span style="color:#2BD483">Outfitters</span></span>
+</div>
+<p style="margin:0;font:400 15px/1.65 'Instrument Sans',sans-serif;color:rgba(245,240,232,.45);max-width:300px">AI automation for US small businesses. We eliminate repetitive work so you can focus on what actually grows your business.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<span style="font:700 11.5px 'Instrument Sans',sans-serif;letter-spacing:.16em;color:rgba(245,240,232,.4);text-transform:uppercase">Services</span>
+<a href="02-Services.dc.html#whatsapp" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">WhatsApp Automation</a>
+<a href="02-Services.dc.html#email" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Email Workflows</a>
+<a href="02-Services.dc.html#support" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">AI Chatbots</a>
+<a href="02-Services.dc.html#booking" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Booking Bots</a>
+<a href="02-Services.dc.html#invoice" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Invoice Automation</a>
+<a href="02-Services.dc.html#custom" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Custom Builds</a>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<span style="font:700 11.5px 'Instrument Sans',sans-serif;letter-spacing:.16em;color:rgba(245,240,232,.4);text-transform:uppercase">Company</span>
+<a href="01-Homepage.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Home</a>
+<a href="05-About.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">About</a>
+<a href="03-Industries.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Industries</a>
+<a href="04-Process.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Process</a>
+<a href="07-Case-Studies.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Case Studies</a>
+<span style="font:500 14.5px 'Instrument Sans',sans-serif;color:#F5F0E8">Security &amp; Reliability</span>
+<a href="08-Contact.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Contact</a>
+</div>
+</div>
+<div style="max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:20px 32px;border-top:1px solid rgba(255,255,255,.06)">
+<span style="font:400 12.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.35)">© 2026 CodeOutfitters LLC. All rights reserved.</span>
+<span style="display:flex;align-items:center;gap:7px;font:500 12.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.5)"><span style="width:7px;height:7px;border-radius:999px;background:#2BD483;animation:v3Pulse 1.8s ease-out infinite"></span>All systems operational</span>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { openFaq: -1 };
+
+  _faqs = [
+    { q: 'Are you SOC 2 or HIPAA certified?', a: 'No formal certifications today — we\'re upfront about that. We follow security-conscious practices (least-access setup, server-side secrets, human review for sensitive actions) on every build, and we\'ll tell you plainly if a requirement is outside what we currently support.' },
+    { q: 'Who has access to our accounts and data?', a: 'Only what the specific automation needs, connected with scoped or dedicated integration accounts wherever the platform supports it — not broad admin access by default.' },
+    { q: 'What happens if the AI gets something wrong?', a: 'Sensitive actions (payments, cancellations, ambiguous requests) are routed to a human reviewer by design, not resolved automatically by the model.' },
+    { q: 'Can we review the system before it goes live?', a: 'Yes — testing and review happen before launch, and you approve the build before it touches real customers or data.' },
+    { q: 'What if we need to pause or roll back an automation?', a: 'Every handoff includes a documented rollback path, so pausing or reverting a system doesn\'t require guesswork.' }
+  ];
+
+  registerRoot = (el) => { this.rootEl = el; };
+
+  renderVals() {
+    const openFaq = this.state.openFaq;
+    return {
+      registerRoot: this.registerRoot,
+      faqs: this._faqs.map((f, i) => {
+        const open = this.state.openFaq === i;
+        return {
+          q: f.q, a: f.a,
+          toggle: () => { this.setState(s => ({ openFaq: s.openFaq === i ? -1 : i })); setTimeout(() => this.forceUpdate(), 30); },
+          wrapStyle: { position: 'relative', minWidth: 0, background: open ? '#131C18' : '#111A16', border: open ? '1px solid rgba(43,212,131,.4)' : '1px solid rgba(255,255,255,.09)', borderRadius: '14px', overflow: 'hidden', boxShadow: open ? '0 18px 44px rgba(0,0,0,.4), 0 0 0 1px rgba(43,212,131,.14)' : '0 1px 2px rgba(0,0,0,.25)', transition: 'box-shadow .35s cubic-bezier(.16,1,.3,1), border-color .35s cubic-bezier(.16,1,.3,1), background .35s cubic-bezier(.16,1,.3,1)' },
+          togStyle: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '999px', flexShrink: 0, background: 'transparent', border: 'none', color: open ? '#2BD483' : 'rgba(245,240,232,.5)', transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'color .3s ease, transform .3s ease' },
+          bodyStyle: { display: 'grid', gridTemplateRows: open ? '1fr' : '0fr', opacity: open ? 1 : 0, transition: 'grid-template-rows .3s ease-in-out, opacity .3s ease-in-out' }
+        };
+      }),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="./motion.js"></script>
+<style>
+:root{--ease-premium:cubic-bezier(.16,1,.3,1);--ease-soft:cubic-bezier(.22,1,.36,1);--ease-spring:cubic-bezier(.34,1.56,.64,1)}
+html,body{margin:0;padding:0;background:#0A120E;font-family:'Instrument Sans',sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#128A54}a:hover{color:#0E7A4E}
+.overflow-safe-site,.overflow-safe-site *{min-width:0}
+@keyframes v3Pulse{0%{box-shadow:0 0 0 0 rgba(43,212,131,.55)}70%{box-shadow:0 0 0 9px rgba(43,212,131,0)}100%{box-shadow:0 0 0 0 rgba(43,212,131,0)}}
+.nav-links-site{display:flex;align-items:center;gap:clamp(14px,1.7vw,26px);flex-wrap:nowrap;min-width:0}
+.nav-links-site a{white-space:nowrap;font:500 15px 'Instrument Sans',sans-serif;color:#4A5248;text-decoration:none}
+.nav-links-site a:hover{color:#0A120E}
+@media(max-width:1020px){.nav-links-site{display:none}}
+.spot-card{position:relative;background:linear-gradient(178deg,#fff,#FBF7EE 68%,#F6F1E4);border:1px solid rgba(13,58,49,.14);border-radius:22px;box-shadow:0 20px 54px rgba(18,32,27,.10),inset 0 1px 0 rgba(255,255,255,.8);transition:transform .5s var(--ease-premium),box-shadow .5s var(--ease-premium),border-color .5s var(--ease-premium);overflow:hidden;min-width:0;--sx:50%;--sy:50%;--sglow:0}
+.spot-card:hover{transform:translateY(-6px);border-color:rgba(23,160,99,.34);box-shadow:0 34px 82px rgba(18,32,27,.16),0 0 0 1px rgba(23,160,99,.10)}
+.spot-card::before{content:'';position:absolute;inset:0;background:radial-gradient(380px circle at var(--sx) var(--sy),rgba(43,212,131,.16),transparent 70%);opacity:var(--sglow);transition:opacity .35s ease;pointer-events:none;z-index:0}
+.spot-card>*{position:relative;z-index:1}
+.icontile-site{flex-shrink:0;width:50px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 24px rgba(18,32,27,.14),inset 0 1px 0 rgba(255,255,255,.7)}
+.chip-site{display:inline-flex;align-items:center;border-radius:999px;font:600 11.5px 'Instrument Sans',sans-serif;padding:5px 12px;white-space:nowrap}
+.cta-sweep{position:relative;overflow:hidden}
+.cta-sweep::before{content:'';position:absolute;top:0;bottom:0;left:-60%;width:40%;background:linear-gradient(110deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-18deg);transition:left .65s var(--ease-premium)}
+.cta-sweep:hover::before{left:120%}
+.cta-v7,.cta-v7 *{box-sizing:border-box;min-width:0}
+.cta-v7{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(28px,4vw,56px);align-items:center;max-width:1060px;margin:0 auto;background:linear-gradient(160deg,#10301F,#0A1C12);border:1px solid rgba(255,253,246,.14);border-radius:28px;padding:clamp(26px,4.5vw,54px);box-shadow:0 44px 100px rgba(0,0,0,.45)}
+.cta-title-v7{margin:0;font:600 clamp(30px,3.8vw,46px)/1.12 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.02em}
+.cta-action-card-v7{display:flex;flex-direction:column;gap:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:clamp(20px,2.6vw,30px);min-width:0}
+.cta-button-v7{white-space:nowrap;position:relative;display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-top:4px;font:600 16px 'Instrument Sans',sans-serif;color:#0A120E;background:linear-gradient(160deg,#E7C57E,#D9B36A);border:none;border-radius:13px;padding:17px 20px;cursor:pointer;box-shadow:0 16px 40px rgba(217,179,106,.3),inset 0 1px 0 rgba(255,255,255,.4);transition:transform .3s var(--ease-premium),box-shadow .3s var(--ease-premium);text-decoration:none}
+.cta-button-v7:hover{transform:translateY(-3px);box-shadow:0 24px 56px rgba(217,179,106,.46),inset 0 1px 0 rgba(255,255,255,.5)}
+.cta-chip-row-v7{display:flex;flex-wrap:wrap;gap:10px}
+.cta-chip-v7{display:inline-flex;align-items:center;gap:8px;font:600 13.5px/1.4 'Instrument Sans',sans-serif;color:rgba(245,240,232,.78);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:9px 15px;white-space:nowrap}
+@media(max-width:860px){.cta-v7{grid-template-columns:1fr;align-items:stretch}}
+@media(max-width:640px){.cta-v7{grid-template-columns:1fr;padding:24px 20px}.cta-button-v7{width:100%;font-size:15px;padding:16px 14px}.cta-title-v7{font-size:29px}}
+.mobile-safe-v7{overflow-x:hidden}
+.mobile-safe-v7 img{max-width:100%}
+.ind-grid>.spot-card:nth-child(1){grid-column:span 7}
+.ind-grid>.spot-card:nth-child(2){grid-column:span 5}
+.ind-grid>.spot-card:nth-child(3){grid-column:span 5}
+.ind-grid>.spot-card:nth-child(4){grid-column:span 7}
+.ind-grid>.spot-card:nth-child(5){grid-column:span 7}
+.ind-grid>.spot-card:nth-child(6){grid-column:span 5}
+.ind-grid>.spot-card:nth-child(7){grid-column:span 12}
+@media(max-width:820px){.ind-grid{grid-template-columns:1fr !important}.ind-grid>.spot-card{grid-column:auto !important}}
+@media(max-width:760px){.needs-strip{grid-template-columns:repeat(2,1fr) !important}}
+@media(max-width:560px){.needs-strip{grid-template-columns:1fr !important}}
+@media(max-width:900px){.wf-grid{grid-template-columns:1fr !important}}
+</style>
+</helmet>
+
+<div ref="{{ registerRoot }}" class="overflow-safe-site mobile-safe-v7" style="background:#F7F2EA;overflow-x:hidden">
+
+<!-- NAV -->
+<div data-screen-label="Nav" style="position:sticky;top:0;z-index:50;background:rgba(247,242,234,.92);backdrop-filter:blur(14px);border-bottom:1px solid #E5DCCB">
+<div style="max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;min-height:68px;gap:14px;padding:10px clamp(16px,3vw,32px)">
+<a href="CodeOutfitters%20Homepage%20v8.dc.html" style="display:flex;align-items:center;gap:10px;white-space:nowrap;flex-shrink:0;text-decoration:none">
+<img src="assets/logo-mark.svg" style="width:28px;height:28px" alt="">
+<span style="font:600 19px 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.01em">Code<span style="color:#17A063">Outfitters</span></span>
+</a>
+<div class="nav-links-site">
+<a href="CodeOutfitters%20Services.dc.html">Services</a>
+<span style="font:600 15px 'Instrument Sans',sans-serif;color:#128A54">Industries</span>
+<a href="CodeOutfitters%20Process.dc.html">Process</a>
+<a href="CodeOutfitters%20Case%20Studies.dc.html">Case Studies</a>
+<a href="CodeOutfitters%20About.dc.html">About</a>
+</div>
+<a href="CodeOutfitters%20Contact.dc.html" style="font:600 14px 'Instrument Sans',sans-serif;color:#F7F2EA;background:#0E2A1D;border-radius:10px;padding:11px 18px;white-space:nowrap;flex-shrink:0;text-decoration:none;transition:transform .15s ease, background .15s ease;display:inline-flex" style-hover="background:#17A063;transform:translateY(-1px)" class="cta-sweep">Book a Call</a>
+</div>
+</div>
+
+<!-- HERO -->
+<div data-screen-label="Industries Hero" style="position:relative;background:radial-gradient(1000px 600px at 78% -15%, rgba(23,160,99,.20), transparent 60%), #0A120E;overflow:hidden">
+<div style="position:relative;max-width:780px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:22px;text-align:center;padding:clamp(56px,8vw,88px) clamp(20px,3vw,32px) clamp(44px,6vw,64px)">
+<div class="fm-rv" style="display:flex;align-items:center;gap:9px;background:rgba(217,179,106,.10);border:1px solid rgba(217,179,106,.4);border-radius:999px;padding:8px 16px">
+<span style="width:7px;height:7px;border-radius:999px;background:#D9B36A"></span>
+<span style="font:700 11.5px 'Instrument Sans',sans-serif;letter-spacing:.14em;color:#D9B36A;text-transform:uppercase">Who we build for</span>
+</div>
+<h1 class="fm-rv" style="margin:0;font:600 clamp(34px,4.6vw,54px)/1.1 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.025em;text-wrap:balance">Automation that fits <span style="color:#2BD483">how your industry</span> actually works.</h1>
+<p class="fm-rv" style="margin:0;font:400 18px/1.65 'Instrument Sans',sans-serif;color:rgba(245,240,232,.62);max-width:560px">Every industry loses time differently. We start from the workflows you already run — not a generic template.</p>
+</div>
+</div>
+
+<!-- INDUSTRY GRID -->
+<div data-screen-label="Industry Grid" id="industry-grid" style="background-image:radial-gradient(rgba(14,42,29,.06) 1px,transparent 1.5px);background-size:26px 26px;background-color:#F7F2EA">
+<div style="max-width:1180px;margin:0 auto;padding:clamp(56px,8vw,92px) clamp(20px,3vw,32px)">
+<div class="fm-rv" style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:40px;text-align:center">
+<div style="display:flex;align-items:center;gap:14px"><span style="width:38px;height:2px;background:#D9B36A"></span><span style="font:700 12px 'Instrument Sans',sans-serif;letter-spacing:.18em;color:#128A54;text-transform:uppercase">Seven industries, one approach</span><span style="width:38px;height:2px;background:#D9B36A"></span></div>
+<h2 style="margin:0;font:600 clamp(28px,3.6vw,42px)/1.15 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.02em">Find where you fit.</h2>
+</div>
+<div class="ind-grid" style="display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:22px">
+<sc-for list="{{ industries }}" as="ind" hint-placeholder-count="7">
+<div ref="{{ ind.registerCard }}" onMouseMove="{{ ind.onMove }}" onMouseEnter="{{ ind.onEnter }}" onMouseLeave="{{ ind.onLeave }}" class="spot-card fm-rv" style="padding:clamp(24px,2.6vw,30px);display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;gap:13px">
+<div class="icontile-site" style="{{ ind.iconBg }}"><span style="{{ ind.iconStyle }}"></span></div>
+<h3 style="margin:0;font:600 21px/1.2 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.01em">{{ ind.name }}</h3>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<span style="font:700 10px 'Instrument Sans',sans-serif;letter-spacing:.1em;color:#A39C8C;text-transform:uppercase">Common problems</span>
+<p style="margin:0;font:400 14.5px/1.6 'Instrument Sans',sans-serif;color:#5B6355">{{ ind.problems }}</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<span style="font:700 10px 'Instrument Sans',sans-serif;letter-spacing:.1em;color:#A39C8C;text-transform:uppercase">What we automate</span>
+<div style="display:flex;flex-wrap:wrap;gap:8px">
+<sc-for list="{{ ind.examples }}" as="ex" hint-placeholder-count="3">
+<span class="chip-site" style="color:#128A54;background:#EAF6EF;border:1px solid rgba(18,138,84,.18)">{{ ex }}</span>
+</sc-for>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<span style="font:700 10px 'Instrument Sans',sans-serif;letter-spacing:.1em;color:#A39C8C;text-transform:uppercase">Tools we connect to</span>
+<p style="margin:0;font:400 13.5px/1.6 'Instrument Sans',sans-serif;color:#8A857B">{{ ind.tools }}</p>
+</div>
+<a href="CodeOutfitters%20Contact.dc.html" style="display:flex;align-items:center;gap:8px;font:600 14px 'Instrument Sans',sans-serif;color:#0E2A1D;text-decoration:none;border-top:1px solid rgba(13,58,49,.1);padding-top:13px;margin-top:auto;border-bottom:none">Talk about {{ ind.name }} automation <img src="assets/icon-arrow-right.svg" style="width:13px;height:13px" alt=""></a>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+
+<!-- COMMON AUTOMATION NEEDS -->
+<div data-screen-label="Common Needs" style="position:relative;background:#0E241A;overflow:hidden">
+<div style="position:relative;max-width:1180px;margin:0 auto;padding:clamp(56px,7vw,80px) clamp(20px,3vw,32px)">
+<div class="fm-rv" style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:36px;text-align:center">
+<h2 style="margin:0;font:600 clamp(26px,3.2vw,36px)/1.15 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.02em">The same four gaps show up everywhere.</h2>
+<p style="margin:0;font:400 16px/1.6 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);max-width:560px">Whatever your industry, most manual-work bottlenecks fall into one of these buckets.</p>
+</div>
+<div class="needs-strip" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px">
+<sc-for list="{{ needs }}" as="n" hint-placeholder-count="4">
+<div class="fm-rv" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:22px 20px;display:flex;flex-direction:column;gap:8px">
+<span style="font:700 20px 'Space Grotesk',sans-serif;color:#2BD483">{{ n.num }}</span>
+<span style="font:600 15px 'Instrument Sans',sans-serif;color:#F5F0E8">{{ n.title }}</span>
+<span style="font:400 13.5px/1.55 'Instrument Sans',sans-serif;color:rgba(245,240,232,.55)">{{ n.desc }}</span>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+
+<!-- EXAMPLE WORKFLOWS -->
+<div data-screen-label="Example Workflows" style="background:#F7F2EA">
+<div style="max-width:1180px;margin:0 auto;padding:clamp(56px,8vw,92px) clamp(20px,3vw,32px)">
+<div class="fm-rv" style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:40px;text-align:center">
+<div style="display:flex;align-items:center;gap:14px"><span style="width:38px;height:2px;background:#D9B36A"></span><span style="font:700 12px 'Instrument Sans',sans-serif;letter-spacing:.18em;color:#128A54;text-transform:uppercase">In practice</span><span style="width:38px;height:2px;background:#D9B36A"></span></div>
+<h2 style="margin:0;font:600 clamp(28px,3.6vw,42px)/1.15 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.02em">Example workflows by industry.</h2>
+</div>
+<div class="wf-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px">
+<sc-for list="{{ workflows }}" as="wf" hint-placeholder-count="3">
+<div class="fm-rv" style="background:linear-gradient(178deg,#fff,#FBF7EE 68%,#F6F1E4);border:1px solid rgba(13,58,49,.14);border-radius:20px;padding:26px;display:flex;flex-direction:column;gap:14px;box-shadow:0 16px 40px rgba(18,32,27,.08)">
+<span class="chip-site" style="align-self:flex-start;color:#B08A3E;background:#F8EFDD;border:1px solid rgba(217,179,106,.35)">{{ wf.tag }}</span>
+<h3 style="margin:0;font:600 18px/1.25 'Space Grotesk',sans-serif;color:#0A120E">{{ wf.title }}</h3>
+<div style="display:flex;flex-direction:column;gap:9px">
+<sc-for list="{{ wf.steps }}" as="s" hint-placeholder-count="3">
+<div style="display:flex;align-items:flex-start;gap:9px">
+<span style="flex-shrink:0;width:20px;height:20px;border-radius:999px;background:#EAF6EF;color:#128A54;font:700 10.5px 'Space Grotesk',sans-serif;display:flex;align-items:center;justify-content:center">{{ s.n }}</span>
+<span style="font:400 13.5px/1.55 'Instrument Sans',sans-serif;color:#5B6355">{{ s.text }}</span>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+
+<!-- PROOF STRIP -->
+<div data-screen-label="Proof" style="background:#0A120E;border-top:1px solid rgba(255,255,255,.07)">
+<div style="max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:rgba(255,255,255,.09)">
+<sc-for list="{{ stats }}" as="st" hint-placeholder-count="4">
+<div class="fm-rv" style="background:#0A120E;padding:30px 24px;display:flex;flex-direction:column;gap:5px;text-align:center">
+<span style="font:700 30px 'Space Grotesk',sans-serif;color:#2BD483;letter-spacing:-.01em">{{ st.num }}</span>
+<span style="font:500 13.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.55)">{{ st.label }}</span>
+</div>
+</sc-for>
+</div>
+</div>
+
+<!-- FAQ -->
+<div data-screen-label="Industries FAQ" id="faq" style="background:#F7F2EA">
+<div style="max-width:820px;margin:0 auto;padding:clamp(56px,8vw,92px) clamp(20px,3vw,32px)">
+<div class="fm-rv" style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:44px;text-align:center">
+<h2 style="margin:0;font:600 clamp(28px,3.6vw,42px)/1.15 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.02em">Industry questions.</h2>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<sc-for list="{{ faqs }}" as="f" hint-placeholder-count="4">
+<div class="fm-rv" style="{{ f.wrapStyle }}">
+<button onClick="{{ f.toggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;box-sizing:border-box;padding:18px 22px;cursor:pointer;background:transparent;border:none;text-align:left;font:600 16px 'Space Grotesk',sans-serif;color:#0A120E;min-width:0"><span style="min-width:0">{{ f.q }}</span><span style="{{ f.togStyle }}">⌄</span></button>
+<div style="{{ f.bodyStyle }}"><p style="margin:0;padding:0 22px 20px;font:400 15px/1.62 'Instrument Sans',sans-serif;color:#68705F">{{ f.a }}</p></div>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+
+<!-- CTA -->
+<div data-screen-label="CTA" style="position:relative;background:radial-gradient(760px 420px at 50% -15%, rgba(23,160,99,.18), transparent 62%), #0A120E;overflow:hidden">
+<div style="position:relative;max-width:1180px;margin:0 auto;padding:clamp(56px,8vw,96px) clamp(20px,3vw,32px)">
+<div class="cta-v7 fm-rv">
+<div style="display:flex;flex-direction:column;align-items:flex-start;gap:18px;min-width:0">
+<span style="font:700 12px 'Instrument Sans',sans-serif;letter-spacing:.18em;color:#D9B36A;text-transform:uppercase">Don't see your industry?</span>
+<h2 class="cta-title-v7">We probably still <span style="white-space:nowrap">fit anyway.</span></h2>
+<p style="margin:0;font:400 17px/1.65 'Instrument Sans',sans-serif;color:rgba(245,240,232,.62);max-width:440px">Most of what we build isn't industry-specific software — it's the workflow underneath it. Tell us how work happens today.</p>
+<div class="cta-chip-row-v7">
+<span class="cta-chip-v7"><span style="color:#2BD483">✓</span>Free audit included</span>
+<span class="cta-chip-v7"><span style="color:#2BD483">✓</span>No long contracts</span>
+<span class="cta-chip-v7"><span style="color:#2BD483">✓</span>30-day support</span>
+</div>
+</div>
+<div class="cta-action-card-v7">
+<span style="font:700 10.5px 'Instrument Sans',sans-serif;letter-spacing:.14em;color:rgba(245,240,232,.5);text-transform:uppercase">What you get in 30 minutes</span>
+<div style="display:flex;flex-direction:column;gap:11px">
+<span style="display:flex;align-items:flex-start;gap:10px;font:500 14.5px/1.5 'Instrument Sans',sans-serif;color:rgba(245,240,232,.8)"><span style="color:#2BD483;font-weight:700;flex-shrink:0">✓</span>A map of your biggest time drains</span>
+<span style="display:flex;align-items:flex-start;gap:10px;font:500 14.5px/1.5 'Instrument Sans',sans-serif;color:rgba(245,240,232,.8)"><span style="color:#2BD483;font-weight:700;flex-shrink:0">✓</span>Which workflow to automate first</span>
+<span style="display:flex;align-items:flex-start;gap:10px;font:500 14.5px/1.5 'Instrument Sans',sans-serif;color:rgba(245,240,232,.8)"><span style="color:#2BD483;font-weight:700;flex-shrink:0">✓</span>A fixed quote — before we build anything</span>
+</div>
+<a href="CodeOutfitters%20Contact.dc.html" class="cta-sweep cta-button-v7"><span style="white-space:nowrap">Book Free Discovery Call</span><img src="assets/icon-arrow-right.svg" style="width:15px;height:15px;flex-shrink:0" alt=""></a>
+</div>
+</div>
+</div>
+</div>
+
+<!-- FOOTER -->
+<div data-screen-label="Footer" style="background:#070D0A;border-top:1px solid rgba(255,255,255,.06)">
+<div style="max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:40px;padding:56px 32px 40px">
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;gap:9px">
+<img src="assets/logo-mark.svg" style="width:24px;height:24px;filter:brightness(1.5)" alt="">
+<span style="font:600 17px 'Space Grotesk',sans-serif;color:#F5F0E8">Code<span style="color:#2BD483">Outfitters</span></span>
+</div>
+<p style="margin:0;font:400 15px/1.65 'Instrument Sans',sans-serif;color:rgba(245,240,232,.45);max-width:300px">AI automation for US small businesses. We eliminate repetitive work so you can focus on what actually grows your business.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<span style="font:700 11.5px 'Instrument Sans',sans-serif;letter-spacing:.16em;color:rgba(245,240,232,.4);text-transform:uppercase">Services</span>
+<a href="CodeOutfitters%20Services.dc.html#whatsapp" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">WhatsApp Automation</a>
+<a href="CodeOutfitters%20Services.dc.html#email" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Email Workflows</a>
+<a href="CodeOutfitters%20Services.dc.html#support" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">AI Chatbots</a>
+<a href="CodeOutfitters%20Services.dc.html#booking" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Booking Bots</a>
+<a href="CodeOutfitters%20Services.dc.html#invoice" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Invoice Automation</a>
+<a href="CodeOutfitters%20Services.dc.html#custom" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Custom Builds</a>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<span style="font:700 11.5px 'Instrument Sans',sans-serif;letter-spacing:.16em;color:rgba(245,240,232,.4);text-transform:uppercase">Company</span>
+<a href="CodeOutfitters%20Homepage%20v8.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Home</a>
+<a href="CodeOutfitters%20About.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">About</a>
+<span style="font:500 14.5px 'Instrument Sans',sans-serif;color:#F5F0E8">Industries</span>
+<a href="CodeOutfitters%20Process.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Process</a>
+<a href="CodeOutfitters%20Case%20Studies.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Case Studies</a>
+<a href="CodeOutfitters%20Security%20Reliability.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Security & Reliability</a>
+<a href="CodeOutfitters%20Contact.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Contact</a>
+</div>
+</div>
+<div style="max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:20px 32px;border-top:1px solid rgba(255,255,255,.06)">
+<span style="font:400 12.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.35)">© 2026 CodeOutfitters LLC. All rights reserved.</span>
+<span style="display:flex;align-items:center;gap:7px;font:500 12.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.5)"><span style="width:7px;height:7px;border-radius:999px;background:#2BD483;animation:v3Pulse 1.8s ease-out infinite"></span>All systems operational</span>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { openFaq: -1 };
+
+  _industries = [
+    { name: 'Home Services / HVAC', icon: 'assets/icon-automate.svg', bg: '#EAF6EF,#DCF0E5',
+      problems: 'Missed calls after hours, slow quote turnaround, techs double-booked or no-showed.',
+      examples: ['Missed-call text-back', 'Auto quote follow-up', 'Dispatch reminders'],
+      tools: 'ServiceTitan, Housecall Pro, Jobber, Google Calendar' },
+    { name: 'Healthcare Clinics / Med-Spas', icon: 'assets/icon-chat-square.svg', bg: '#E8EDE9,#DBE3DC',
+      problems: 'No-shows eating schedule capacity, intake forms chased down manually, staff buried in reminder calls.',
+      examples: ['Appointment reminders', 'Digital intake routing', 'Rebooking nudges'],
+      tools: 'Calendly, Square Appointments, EHR exports, SMS' },
+    { name: 'Real Estate', icon: 'assets/icon-lead-user.svg', bg: '#F8EFDD,#F0E2C4',
+      problems: 'Leads go cold waiting for a reply, showings scheduled by phone tag, paperwork chased by hand.',
+      examples: ['Instant lead qualification', 'Showing scheduling', 'Document follow-up'],
+      tools: 'CRMs, DocuSign, MLS feeds, WhatsApp' },
+    { name: 'E-commerce / Retail', icon: 'assets/icon-database-stack.svg', bg: '#EAF6EF,#DCF0E5',
+      problems: 'Order and invoice entry done by hand, support inbox flooded with the same order questions.',
+      examples: ['Order-to-invoice sync', 'Order status auto-replies', 'Returns triage'],
+      tools: 'Shopify, QuickBooks, Stripe, Zendesk' },
+    { name: 'Professional Services', icon: 'assets/icon-edit-square.svg', bg: '#F8EFDD,#F0E2C4',
+      problems: 'Client onboarding scattered across email, proposals and invoices tracked in spreadsheets.',
+      examples: ['Client onboarding sequences', 'Proposal-to-invoice handoff', 'Status update emails'],
+      tools: 'Gmail/Outlook, Notion, QuickBooks, DocuSign' },
+    { name: 'Education / Training', icon: 'assets/icon-check-square.svg', bg: '#E8EDE9,#DBE3DC',
+      problems: 'Enrollment questions answered one-by-one, cohort reminders sent manually, certificates issued by hand.',
+      examples: ['Enrollment chat answers', 'Cohort reminder sequences', 'Certificate delivery'],
+      tools: 'Kajabi, Teachable, Mailchimp, Google Sheets' },
+    { name: 'Local Service Businesses', icon: 'assets/icon-orchestrate.svg', bg: '#EAF6EF,#DCF0E5',
+      problems: 'Booking requests come in on five different channels and get lost between them.',
+      examples: ['Unified booking intake', 'Review request automation', 'No-show follow-up'],
+      tools: 'WhatsApp, Instagram DMs, Google Business, Calendly' }
+  ];
+
+  _needs = [
+    { num: '01', title: 'Lead intake', desc: 'Every inbound message gets a fast, qualified reply instead of a delayed one.' },
+    { num: '02', title: 'Scheduling', desc: 'Booking, rescheduling, and reminders happen without a phone call.' },
+    { num: '03', title: 'Follow-up', desc: 'Quotes, proposals, and after-visit messages go out automatically, on time.' },
+    { num: '04', title: 'Back office', desc: 'Invoices, records, and status updates sync without manual re-entry.' }
+  ];
+
+  _workflows = [
+    { tag: 'Home Services', title: 'After-hours missed call → booked job', steps: ['Missed call triggers an instant text with booking link', 'Customer picks a slot from live tech availability', 'Job auto-added to dispatch board, tech notified'] },
+    { tag: 'Real Estate', title: 'New lead → qualified showing', steps: ['Inquiry auto-qualified by budget, area, and timeline', 'Hot leads routed straight to the right agent', 'Showing booked and confirmed without back-and-forth'] },
+    { tag: 'E-commerce', title: 'Order placed → invoice reconciled', steps: ['Order synced from store to invoicing tool instantly', 'Payment matched automatically against the invoice', 'Customer gets a status update with zero manual entry'] }
+  ];
+
+  _stats = [
+    { num: '7', label: 'Industries served' },
+    { num: '120+', label: 'Systems shipped' },
+    { num: '7 days', label: 'Typical build time' },
+    { num: '30 days', label: 'Support included' }
+  ];
+
+  _faqs = [
+    { q: 'What if my industry isn\'t listed?', a: 'Most automation we build isn\'t industry-specific software — it\'s the workflow underneath it (intake, scheduling, follow-up, back office). If you run a business with repetitive manual work, we can very likely help.' },
+    { q: 'Do you need industry-specific software experience?', a: 'We learn your existing tools during discovery rather than forcing you onto new software. Most builds connect to what you already use.' },
+    { q: 'How is pricing decided per industry?', a: 'There\'s no fixed package by industry — every build gets a fixed quote and timeline after a discovery call and workflow audit, based on the actual scope.' },
+    { q: 'Can one system serve multiple industries at once (e.g. multi-location)?', a: 'Yes — we regularly build systems that flex across locations or service lines within the same business.' }
+  ];
+
+  registerRoot = (el) => { this.rootEl = el; };
+
+  renderVals() {
+    const openFaq = this.state.openFaq;
+    return {
+      registerRoot: this.registerRoot,
+      industries: this._industries.map(ind => {
+        const [bg1, bg2] = ind.bg.split(',');
+        return {
+          ...ind,
+          iconBg: `background:linear-gradient(160deg,${bg1},${bg2})`,
+          iconStyle: { width: '22px', height: '22px', display: 'block', background: `url("${ind.icon}") center/contain no-repeat` },
+          registerCard: () => {},
+          onMove: (e) => {
+            const el = e.currentTarget, r = el.getBoundingClientRect();
+            el.style.setProperty('--sx', ((e.clientX - r.left) / r.width * 100) + '%');
+            el.style.setProperty('--sy', ((e.clientY - r.top) / r.height * 100) + '%');
+          },
+          onEnter: (e) => e.currentTarget.style.setProperty('--sglow', '1'),
+          onLeave: (e) => e.currentTarget.style.setProperty('--sglow', '0')
+        };
+      }),
+      needs: this._needs,
+      workflows: this._workflows.map(wf => ({ ...wf, steps: wf.steps.map((t, i) => ({ n: i + 1, text: t })) })),
+      stats: this._stats,
+      faqs: this._faqs.map((f, i) => {
+        const open = openFaq === i;
+        return {
+          q: f.q, a: f.a,
+          toggle: () => this.setState(s => ({ openFaq: s.openFaq === i ? -1 : i })),
+          wrapStyle: { position: 'relative', minWidth: 0, background: open ? '#FFFFFF' : '#FCFAF4', border: open ? '1px solid rgba(23,160,99,.4)' : '1px solid #EDE6D8', borderRadius: '16px', overflow: 'hidden', boxShadow: open ? '0 18px 40px rgba(18,32,27,.12)' : '0 1px 2px rgba(32,24,12,.04)', transition: 'box-shadow .4s ease, border-color .4s ease, background .4s ease' },
+          togStyle: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '999px', flexShrink: 0, background: open ? '#128A54' : '#EFE9DC', color: open ? '#fff' : '#128A54', font: '700 16px sans-serif', transition: 'background .35s ease, transform .35s cubic-bezier(.34,1.56,.64,1)', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' },
+          bodyStyle: { maxHeight: open ? '340px' : '0px', opacity: open ? 1 : 0, overflow: 'hidden', transition: 'max-height .45s cubic-bezier(.16,1,.3,1), opacity .35s ease' }
+        };
+      })
+    };
+  }
+}
+
+</script>
+</body>
+</html>

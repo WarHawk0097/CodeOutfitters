@@ -1,98 +1,232 @@
 ﻿'use client'
-import { useState } from 'react'
-import Link from 'next/link'
+
+import { useState, ChangeEvent } from 'react'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
 import { useCounter } from '@/hooks/useCounter'
 
+function SectionLabel({ text }: { text: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '16px' }}>
+      <span style={{ width: '40px', height: '1px', background: '#D9B36A', flexShrink: 0 }} />
+      <span style={{ font: '700 11.5px "Instrument Sans",sans-serif', letterSpacing: '.18em', color: '#D9B36A', textTransform: 'uppercase' }}>
+        {text}
+      </span>
+      <span style={{ width: '40px', height: '1px', background: '#D9B36A', flexShrink: 0 }} />
+    </div>
+  )
+}
+
 export function ROICalculator() {
-  const [employees, setEmployees] = useState(5)
+  const [team, setTeam] = useState(5)
   const [hoursWasted, setHoursWasted] = useState(10)
-  const [hourlyRate, setHourlyRate] = useState(25)
-  const sectionRef = useScrollReveal<HTMLDivElement>()
+  const [hourlyRate, setHourlyRate] = useState(35)
+  const sectionRef = useScrollReveal<HTMLDivElement>(0.08)
 
-  const weeklyLoss = employees * hoursWasted * hourlyRate
-  const monthlyLoss = weeklyLoss * 4
-  const yearlyLoss = monthlyLoss * 12
+  const weeklyCost = team * hoursWasted * hourlyRate
+  const monthlyCost = weeklyCost * 4.33
+  const yearlyCost = monthlyCost * 12
 
-  const { ref: counterRef, val: annualVal } = useCounter<HTMLDivElement>(yearlyLoss, 2.2)
-  const { ref: monthlyRef, val: monthlyVal } = useCounter<HTMLDivElement>(monthlyLoss, 1.8)
-  const { ref: weeklyRef, val: weeklyVal } = useCounter<HTMLDivElement>(weeklyLoss, 1.4)
+  const { ref: yrRef, val: yrVal } = useCounter<HTMLDivElement>(yearlyCost, 2.2)
+  const { ref: moRef, val: moVal } = useCounter<HTMLDivElement>(monthlyCost, 1.8)
+  const { ref: wkRef, val: wkVal } = useCounter<HTMLDivElement>(weeklyCost, 1.4)
 
   return (
-    <section className="py-24 md:py-32 px-5 md:px-8 relative overflow-hidden" style={{ background: 'linear-gradient(160deg, #1C3D32 0%, #1C1612 100%)' }}>
-      <div className="absolute inset-0 opacity-[0.04] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, rgba(200,169,110,0.4) 1px, transparent 1px)', backgroundSize: '20px 20px' }} aria-hidden="true" />
-      <div className="absolute top-1/3 right-1/4 w-80 h-80 rounded-full blur-[120px] opacity-15 pointer-events-none" style={{ background: 'radial-gradient(circle, #C8A96E 0%, transparent 70%)' }} aria-hidden="true" />
-      <div className="absolute bottom-1/4 left-1/4 w-64 h-64 rounded-full blur-[100px] opacity-10 pointer-events-none" style={{ background: 'radial-gradient(circle, #2A6B5A 0%, transparent 70%)' }} aria-hidden="true" />
+    <section
+      style={{
+        background: 'linear-gradient(160deg, #0E241A, #0A1C12)',
+        padding: '80px 0',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(600px 400px at 70% 20%, rgba(43,212,131,.08), transparent 60%), radial-gradient(500px 350px at 30% 80%, rgba(217,179,106,.05), transparent 60%)',
+        }}
+      />
 
-      <div className="max-w-5xl mx-auto relative z-10">
-        <div className="text-center mb-14 md:mb-16">
-          <span data-reveal className="section-label-pill" style={{ color: '#C8A96E', background: 'rgba(200,169,110,0.12)', borderColor: 'rgba(200,169,110,0.25)' }}>SAVINGS CONSOLE</span>
-          <h2 data-reveal className="text-[clamp(2rem,4.5vw,3.5rem)] text-[#FAFAF7] font-extrabold mt-6 mb-4 max-w-3xl mx-auto leading-tight text-shadow-glow">
-            What is manual work <br className="hidden sm:block" />
-            <span className="text-gradient">costing your business?</span>
+      <div ref={sectionRef} style={{ maxWidth: '720px', margin: '0 auto', padding: '0 24px', position: 'relative', zIndex: 1 }}>
+        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+          <SectionLabel text="03 · The math" />
+          <h2
+            style={{
+              font: '600 clamp(26px,3.5vw,38px)/1.15 "Space Grotesk",sans-serif',
+              color: '#F5F0E8',
+              letterSpacing: '-.02em',
+              maxWidth: '540px',
+              margin: '0 auto',
+            }}
+          >
+            What is manual work costing your business?
           </h2>
-          <p data-reveal className="text-[rgba(250,250,247,0.55)] text-lg max-w-lg mx-auto">Adjust the sliders. See exactly what you could reclaim every month.</p>
         </div>
 
-        <div ref={sectionRef} className="rounded-2xl p-8 lg:p-10" style={{ background: 'rgba(250,250,247,0.06)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(250,250,247,0.1)' }}>
-          <div data-reveal className="rounded-2xl p-8 mb-10 text-center relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #C8A96E 0%, #B8975A 100%)', boxShadow: '0 8px 40px rgba(200,169,110,0.3)' }}>
-            <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: 'radial-gradient(circle, #1C1612 1px, transparent 1px)', backgroundSize: '16px 16px' }} aria-hidden="true" />
-            <p className="text-[rgba(28,22,18,0.6)] font-semibold text-xs uppercase tracking-wider mb-2">Estimated annual waste</p>
-            <div ref={counterRef} className="text-5xl md:text-6xl lg:text-7xl font-bold font-mono text-[#1C1612] tracking-tight">
-              ${annualVal.toLocaleString()}
-            </div>
-            <p className="text-[rgba(28,22,18,0.5)] text-sm mt-2">that your business is losing every year to manual work</p>
+        <div
+          data-reveal
+          style={{
+            background: 'rgba(255,255,255,.04)',
+            border: '1px solid rgba(255,255,255,.10)',
+            borderRadius: '22px',
+            padding: '28px 30px',
+          }}
+        >
+          <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+            <span style={{ font: '600 11px "Instrument Sans",sans-serif', letterSpacing: '.16em', color: 'rgba(245,240,232,.4)', textTransform: 'uppercase' }}>
+              Manual Labor Cost Calculator
+            </span>
           </div>
 
-          <div className="grid grid-cols-1 gap-7 mb-10">
+          {/* Live output */}
+          <div
+            style={{
+              background: 'linear-gradient(135deg, #D9B36A, #C8A96E)',
+              borderRadius: '16px',
+              padding: '20px 24px',
+              textAlign: 'center',
+              marginBottom: '28px',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(circle, #0A120E 1px, transparent 1px)', backgroundSize: '14px 14px' }} />
+            <div style={{ font: '600 10px "Instrument Sans",sans-serif', letterSpacing: '.12em', color: 'rgba(10,18,14,.5)', textTransform: 'uppercase', marginBottom: '4px', position: 'relative' }}>
+              Estimated annual waste
+            </div>
+            <div ref={yrRef} style={{ font: '700 clamp(36px,5vw,52px)/1 "Space Grotesk",sans-serif', color: '#0A120E', position: 'relative' }}>
+              ${yrVal.toLocaleString()}
+            </div>
+          </div>
+
+          {/* Sliders */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '22px', marginBottom: '28px' }}>
             {[
-              { label: 'Team members doing repetitive tasks', value: employees, setValue: setEmployees, min: 1, max: 50, unit: 'people' },
-              { label: 'Hours wasted per person per week', value: hoursWasted, setValue: setHoursWasted, min: 1, max: 40, unit: 'hrs/week' },
-              { label: 'Average hourly rate', value: hourlyRate, setValue: setHourlyRate, min: 10, max: 150, unit: '$/hr' },
-            ].map((slider) => (
-              <div key={slider.label} data-reveal>
-                <div className="flex justify-between items-center mb-3">
-                  <label className="text-base font-medium text-[rgba(250,250,247,0.85)]">{slider.label}</label>
-                  <span className="text-base font-bold text-[#C8A96E] px-4 py-1.5 rounded-full" style={{ background: 'rgba(200,169,110,0.15)' }}>
-                    {slider.value} {slider.unit}
-                  </span>
+              {
+                label: 'Team size',
+                value: team,
+                set: setTeam,
+                min: 1,
+                max: 20,
+                unit: 'people',
+              },
+              {
+                label: 'Hours wasted / week per person',
+                value: hoursWasted,
+                set: setHoursWasted,
+                min: 1,
+                max: 40,
+                unit: 'hrs',
+              },
+              {
+                label: 'Avg. hourly rate',
+                value: hourlyRate,
+                set: setHourlyRate,
+                min: 15,
+                max: 150,
+                unit: '$/hr',
+              },
+            ].map((s) => {
+              const pct = ((s.value - s.min) / (s.max - s.min)) * 100
+              return (
+                <div key={s.label} data-reveal>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <label style={{ font: '500 13px "Instrument Sans",sans-serif', color: 'rgba(245,240,232,.8)' }}>
+                      {s.label}
+                    </label>
+                    <span
+                      style={{
+                        font: '700 13px "Space Grotesk",sans-serif',
+                        color: '#D9B36A',
+                        background: 'rgba(217,179,106,.12)',
+                        borderRadius: '999px',
+                        padding: '3px 12px',
+                      }}
+                    >
+                      {s.value} {s.unit}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={s.min}
+                    max={s.max}
+                    value={s.value}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => s.set(Number(e.target.value))}
+                    style={{
+                      width: '100%',
+                      height: '8px',
+                      borderRadius: '999px',
+                      appearance: 'none',
+                      cursor: 'pointer',
+                      background: `linear-gradient(to right, #2BD483 0%, #2BD483 ${pct}%, rgba(255,255,255,.08) ${pct}%, rgba(255,255,255,.08) 100%)`,
+                    }}
+                    className="roi-slider"
+                  />
                 </div>
-                <input type="range" min={slider.min} max={slider.max} value={slider.value}
-                  onChange={(e) => slider.setValue(Number(e.target.value))}
-                  className="w-full h-2.5 rounded-full appearance-none cursor-pointer"
-                  style={{ background: `linear-gradient(to right, #C8A96E 0%, #C8A96E ${((slider.value - slider.min) / (slider.max - slider.min)) * 100}%, rgba(250,250,247,0.08) ${((slider.value - slider.min) / (slider.max - slider.min)) * 100}%, rgba(250,250,247,0.08) 100%)` }}
-                />
+              )
+            })}
+          </div>
+
+          {/* Output grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
+            <div data-reveal style={{ background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)', borderRadius: '14px', padding: '16px', textAlign: 'center' }}>
+              <div ref={wkRef} style={{ font: '700 24px/1 "Space Grotesk",sans-serif', color: '#D9B36A', marginBottom: '4px' }}>
+                ${wkVal.toLocaleString()}
               </div>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-10">
-            <div data-reveal className="rounded-2xl p-6 text-center" style={{ background: 'rgba(250,250,247,0.05)', border: '1px solid rgba(250,250,247,0.1)' }}>
-              <div ref={weeklyRef} className="text-3xl md:text-4xl font-bold font-mono text-[#C8A96E] mb-2">${weeklyVal.toLocaleString()}</div>
-              <div className="text-xs font-semibold uppercase tracking-wider text-[rgba(250,250,247,0.4)]">Lost per week</div>
+              <div style={{ font: '500 11px "Instrument Sans",sans-serif', color: 'rgba(245,240,232,.4)', textTransform: 'uppercase', letterSpacing: '.06em' }}>Per week</div>
             </div>
-            <div data-reveal className="rounded-2xl p-6 text-center" style={{ background: 'rgba(250,250,247,0.05)', border: '1px solid rgba(250,250,247,0.1)' }}>
-              <div ref={monthlyRef} className="text-3xl md:text-4xl font-bold font-mono text-[#C8A96E] mb-2">${monthlyVal.toLocaleString()}</div>
-              <div className="text-xs font-semibold uppercase tracking-wider text-[rgba(250,250,247,0.4)]">Lost per month</div>
+            <div data-reveal style={{ background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)', borderRadius: '14px', padding: '16px', textAlign: 'center' }}>
+              <div ref={moRef} style={{ font: '700 24px/1 "Space Grotesk",sans-serif', color: '#D9B36A', marginBottom: '4px' }}>
+                ${moVal.toLocaleString()}
+              </div>
+              <div style={{ font: '500 11px "Instrument Sans",sans-serif', color: 'rgba(245,240,232,.4)', textTransform: 'uppercase', letterSpacing: '.06em' }}>Per month</div>
             </div>
           </div>
 
-          <div data-reveal className="rounded-2xl p-6 text-center" style={{ background: 'rgba(42,107,90,0.15)', border: '1px solid rgba(42,107,90,0.3)' }}>
-            <p className="text-[rgba(250,250,247,0.55)] font-semibold text-sm mb-2 uppercase tracking-wider">With CodeOutfitters automation</p>
-            <p className="text-white font-bold text-xl md:text-2xl">
+          <div
+            data-reveal
+            style={{
+              background: 'rgba(43,212,131,.08)',
+              border: '1px solid rgba(43,212,131,.2)',
+              borderRadius: '14px',
+              padding: '16px 20px',
+              textAlign: 'center',
+            }}
+          >
+            <div style={{ font: '500 12px "Instrument Sans",sans-serif', color: 'rgba(245,240,232,.5)', marginBottom: '6px' }}>
+              With CodeOutfitters automation
+            </div>
+            <div style={{ font: '600 16px/1.4 "Space Grotesk",sans-serif', color: '#F5F0E8' }}>
               You could reclaim{' '}
-              <span className="text-[#C8A96E] font-mono text-2xl md:text-3xl">
-                ${monthlyLoss.toLocaleString()}/month
-              </span>
-              {' '}or more — and redirect that time to growth.
-            </p>
+              <span style={{ color: '#2BD483' }}>
+                ${monthlyCost.toLocaleString()}/month
+              </span>{' '}
+              or more
+            </div>
           </div>
-
-          <Link href="/contact" className="btn-primary w-full mt-6 py-4 text-base block text-center">
-            Claim Free Workflow Audit
-          </Link>
         </div>
       </div>
+
+      <style>{`
+        .roi-slider::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 20px;
+          height: 20px;
+          border-radius: 999px;
+          background: #D9B36A;
+          border: 3px solid #0A120E;
+          cursor: pointer;
+          box-shadow: 0 0 0 2px rgba(217,179,106,.3);
+        }
+        .roi-slider::-moz-range-thumb {
+          width: 20px;
+          height: 20px;
+          border-radius: 999px;
+          background: #D9B36A;
+          border: 3px solid #0A120E;
+          cursor: pointer;
+        }
+      `}</style>
     </section>
   )
 }

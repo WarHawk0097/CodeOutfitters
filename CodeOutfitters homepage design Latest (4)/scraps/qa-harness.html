@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Fable Visual QA Harness</title>
+<style>
+body{margin:0;background:#111;font:12px ui-monospace,monospace;color:#eee;padding:16px}
+h2{font-size:13px;margin:18px 0 8px;color:#2BD483}
+.row{display:flex;gap:14px;align-items:flex-start}
+.cell{background:#000;border:1px solid #333}
+.lbl{color:#aaa;margin:4px 0}
+.wrap{overflow:hidden;position:relative}
+iframe{border:0;transform-origin:top left;display:block;background:#fff}
+</style>
+</head>
+<body>
+<div id="grid"></div>
+<pre id="report" style="white-space:pre-wrap;color:#8FE3C0"></pre>
+<script>
+const pages = [
+  ['Homepage','CodeOutfitters Homepage v7.dc.html'],
+  ['Services','CodeOutfitters Services.dc.html'],
+  ['Case Studies','CodeOutfitters Case Studies.dc.html'],
+  ['Contact','CodeOutfitters Contact.dc.html']
+];
+const widths = [1280, 820, 390];
+const grid = document.getElementById('grid');
+window.__frames = [];
+for (const [name, file] of pages) {
+  const h2 = document.createElement('h2'); h2.textContent = name; grid.appendChild(h2);
+  const row = document.createElement('div'); row.className = 'row'; grid.appendChild(row);
+  for (const w of widths) {
+    const scale = w === 1280 ? 0.22 : (w === 820 ? 0.22 : 0.3);
+    const H = 7000;
+    const cell = document.createElement('div'); cell.className = 'cell';
+    const lbl = document.createElement('div'); lbl.className = 'lbl'; lbl.textContent = name + ' @ ' + w;
+    const wrap = document.createElement('div'); wrap.className = 'wrap';
+    wrap.style.width = (w * scale) + 'px'; wrap.style.height = (H * scale) + 'px';
+    const f = document.createElement('iframe');
+    f.src = encodeURI('../' + file);
+    f.width = w; f.height = H;
+    f.style.width = w + 'px'; f.style.height = H + 'px';
+    f.style.transform = 'scale(' + scale + ')';
+    f.dataset.page = name; f.dataset.vw = w;
+    wrap.appendChild(f);
+    cell.appendChild(lbl); cell.appendChild(wrap); row.appendChild(cell);
+    window.__frames.push(f);
+    f.addEventListener('load', () => {
+      try {
+        const win = f.contentWindow;
+        f.__errors = [];
+        win.addEventListener('error', e => f.__errors.push(String(e.message || e)));
+      } catch (e) {}
+    });
+  }
+}
+window.__audit = function () {
+  return window.__frames.map(f => {
+    const out = { page: f.dataset.page, vw: +f.dataset.vw };
+    try {
+      const doc = f.contentDocument, win = f.contentWindow;
+      if (!doc || !doc.body) { out.status = 'no-doc'; return out; }
+      out.status = 'ok';
+      out.overflowX = doc.documentElement.scrollWidth - +f.dataset.vw;
+      out.bodyOverflowX = doc.body.scrollWidth - +f.dataset.vw;
+      out.pageHeight = doc.documentElement.scrollHeight;
+      const imgs = [...doc.images];
+      out.imgTotal = imgs.length;
+      out.imgBroken = imgs.filter(i => i.complete && i.naturalWidth === 0).map(i => i.getAttribute('src'));
+      out.errors = f.__errors || [];
+      // elements poking past viewport
+      const vw = +f.dataset.vw;
+      const poke = [];
+      doc.querySelectorAll('body *').forEach(el => {
+        const r = el.getBoundingClientRect();
+        if (r.width > 1 && (r.right > vw + 2 || r.left < -2)) {
+          const cs = win.getComputedStyle(el);
+          if (cs.position === 'fixed') return;
+          let p = el, hidden = false;
+          while (p && p !== doc.body) { const pcs = win.getComputedStyle(p); if (/(hidden|clip)/.test(pcs.overflowX) || /(hidden|clip)/.test(pcs.overflow)) { hidden = true; break; } p = p.parentElement; }
+          if (!hidden) poke.push((el.className && String(el.className).slice(0,40)) || el.tagName);
+        }
+      });
+      out.poking = [...new Set(poke)].slice(0, 8);
+    } catch (e) { out.status = 'err:' + e.message; }
+    return out;
+  });
+};
+</script>
+</body>
+</html>

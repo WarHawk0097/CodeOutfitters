@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="./motion.js"></script>
+<style>
+:root{--ease-premium:cubic-bezier(.16,1,.3,1);--ease-soft:cubic-bezier(.22,1,.36,1);--ease-spring:cubic-bezier(.34,1.56,.64,1)}
+html,body{margin:0;padding:0;background:#0A120E;font-family:'Instrument Sans',sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#128A54}a:hover{color:#0E7A4E}
+.overflow-safe-site,.overflow-safe-site *{min-width:0}
+@keyframes v3Pulse{0%{box-shadow:0 0 0 0 rgba(43,212,131,.55)}70%{box-shadow:0 0 0 9px rgba(43,212,131,0)}100%{box-shadow:0 0 0 0 rgba(43,212,131,0)}}
+.nav-links-site{display:flex;align-items:center;gap:clamp(14px,1.7vw,26px);flex-wrap:nowrap;min-width:0}
+.nav-links-site a{white-space:nowrap;font:500 15px 'Instrument Sans',sans-serif;color:#4A5248;text-decoration:none}
+.nav-links-site a:hover{color:#0A120E}
+@media(max-width:1020px){.nav-links-site{display:none}}
+.spot-card{position:relative;background:linear-gradient(178deg,#fff,#FBF7EE 68%,#F6F1E4);border:1px solid rgba(13,58,49,.14);border-radius:22px;box-shadow:0 20px 54px rgba(18,32,27,.10),inset 0 1px 0 rgba(255,255,255,.8);transition:transform .5s var(--ease-premium),box-shadow .5s var(--ease-premium),border-color .5s var(--ease-premium);overflow:hidden;min-width:0;--sx:50%;--sy:50%;--sglow:0}
+.spot-card:hover{transform:translateY(-6px);border-color:rgba(23,160,99,.34);box-shadow:0 34px 82px rgba(18,32,27,.16),0 0 0 1px rgba(23,160,99,.10)}
+.spot-card::before{content:'';position:absolute;inset:0;background:radial-gradient(380px circle at var(--sx) var(--sy),rgba(43,212,131,.16),transparent 70%);opacity:var(--sglow);transition:opacity .35s ease;pointer-events:none;z-index:0}
+.spot-card>*{position:relative;z-index:1}
+.icontile-site{flex-shrink:0;width:50px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 24px rgba(18,32,27,.14),inset 0 1px 0 rgba(255,255,255,.7)}
+.chip-site{display:inline-flex;align-items:center;border-radius:999px;font:600 11.5px 'Instrument Sans',sans-serif;padding:5px 12px;white-space:nowrap}
+.cta-sweep{position:relative;overflow:hidden}
+.cta-sweep::before{content:'';position:absolute;top:0;bottom:0;left:-60%;width:40%;background:linear-gradient(110deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-18deg);transition:left .65s var(--ease-premium)}
+.cta-sweep:hover::before{left:120%}
+.cta-v7,.cta-v7 *{box-sizing:border-box;min-width:0}
+.cta-v7{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(28px,4vw,56px);align-items:center;max-width:1060px;margin:0 auto;background:linear-gradient(160deg,#10301F,#0A1C12);border:1px solid rgba(255,253,246,.14);border-radius:28px;padding:clamp(26px,4.5vw,54px);box-shadow:0 44px 100px rgba(0,0,0,.45)}
+.cta-title-v7{margin:0;font:600 clamp(30px,3.8vw,46px)/1.12 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.02em}
+.cta-action-card-v7{display:flex;flex-direction:column;gap:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:clamp(20px,2.6vw,30px);min-width:0}
+.cta-button-v7{white-space:nowrap;position:relative;display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-top:4px;font:600 16px 'Instrument Sans',sans-serif;color:#0A120E;background:linear-gradient(160deg,#E7C57E,#D9B36A);border:none;border-radius:13px;padding:17px 20px;cursor:pointer;box-shadow:0 16px 40px rgba(217,179,106,.3),inset 0 1px 0 rgba(255,255,255,.4);transition:transform .3s var(--ease-premium),box-shadow .3s var(--ease-premium);text-decoration:none}
+.cta-button-v7:hover{transform:translateY(-3px);box-shadow:0 24px 56px rgba(217,179,106,.46),inset 0 1px 0 rgba(255,255,255,.5)}
+.cta-chip-row-v7{display:flex;flex-wrap:wrap;gap:10px}
+.cta-chip-v7{display:inline-flex;align-items:center;gap:8px;font:600 13.5px/1.4 'Instrument Sans',sans-serif;color:rgba(245,240,232,.78);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:9px 15px;white-space:nowrap}
+@media(max-width:860px){.cta-v7{grid-template-columns:1fr;align-items:stretch}}
+@media(max-width:640px){.cta-v7{grid-template-columns:1fr;padding:24px 20px}.cta-button-v7{width:100%;font-size:15px;padding:16px 14px}.cta-title-v7{font-size:29px}}
+.mobile-safe-v7{overflow-x:hidden}
+.mobile-safe-v7 img{max-width:100%}
+.believe-grid>.spot-card:nth-child(1){grid-column:span 7}
+.believe-grid>.spot-card:nth-child(2){grid-column:span 5}
+.believe-grid>.spot-card:nth-child(3){grid-column:span 5}
+.believe-grid>.spot-card:nth-child(4){grid-column:span 7}
+@media(max-width:820px){.believe-grid,.trust-grid{grid-template-columns:1fr !important}.believe-grid>.spot-card{grid-column:auto !important}}
+@media(max-width:760px){.work-grid{grid-template-columns:1fr !important}}
+
+/* === 21st enhancement pass (Fable) === */
+.spot-card::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(90deg,#17A063,#2BD483 55%,#D9B36A);transform:scaleX(0);transform-origin:left;transition:transform .55s cubic-bezier(.16,1,.3,1);z-index:2}
+.spot-card:hover::after{transform:scaleX(1)}
+.tool-chip{transition:transform .35s cubic-bezier(.16,1,.3,1),border-color .35s ease,color .35s ease}
+.tool-chip:hover{transform:translateY(-2px);border-color:rgba(43,212,131,.55);color:#FFFFFF}
+.marquee-pause:hover>div{animation-play-state:paused}
+.cta-button-v7:active{transform:translateY(-1px) scale(.98)}
+@keyframes heroBlob{0%,100%{transform:translate3d(-4%,-3%,0) scale(1)}50%{transform:translate3d(4%,4%,0) scale(1.1)}}
+@keyframes heroBlob2{0%,100%{transform:translate3d(5%,4%,0) scale(1.06)}50%{transform:translate3d(-5%,-4%,0) scale(.95)}}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;scroll-behavior:auto !important}}
+</style>
+</helmet>
+
+<div ref="{{ registerRoot }}" class="overflow-safe-site mobile-safe-v7" style="background:#F7F2EA;overflow-x:hidden">
+
+<!-- NAV -->
+<div data-screen-label="Nav" style="position:sticky;top:0;z-index:50;background:rgba(247,242,234,.92);backdrop-filter:blur(14px);border-bottom:1px solid #E5DCCB">
+<div style="max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;min-height:68px;gap:14px;padding:10px clamp(16px,3vw,32px)">
+<a href="01-Homepage.dc.html" style="display:flex;align-items:center;gap:10px;white-space:nowrap;flex-shrink:0;text-decoration:none">
+<img src="assets/logo-mark.svg" style="width:28px;height:28px" alt="">
+<span style="font:600 19px 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.01em">Code<span style="color:#17A063">Outfitters</span></span>
+</a>
+<div class="nav-links-site">
+<a href="02-Services.dc.html">Services</a>
+<a href="03-Industries.dc.html">Industries</a>
+<a href="04-Process.dc.html">Process</a>
+<a href="07-Case-Studies.dc.html">Case Studies</a>
+<span style="font:600 15px 'Instrument Sans',sans-serif;color:#128A54">About</span>
+</div>
+<a href="08-Contact.dc.html" style="font:600 14px 'Instrument Sans',sans-serif;color:#F7F2EA;background:#0E2A1D;border-radius:10px;padding:11px 18px;white-space:nowrap;flex-shrink:0;text-decoration:none;transition:transform .15s ease, background .15s ease;display:inline-flex" style-hover="background:#17A063;transform:translateY(-1px)" class="cta-sweep">Book a Call</a>
+</div>
+</div>
+
+<!-- HERO -->
+<div data-screen-label="About Hero" style="position:relative;background:radial-gradient(1000px 600px at 78% -15%, rgba(23,160,99,.20), transparent 60%), #0A120E;overflow:hidden">
+<div style="position:absolute;inset:-20%;background:radial-gradient(560px 380px at 30% 40%, rgba(43,212,131,.10), transparent 60%),radial-gradient(520px 360px at 72% 62%, rgba(217,179,106,.08), transparent 60%);animation:heroBlob 16s ease-in-out infinite;pointer-events:none"></div>
+<div style="position:absolute;inset:-24%;background:radial-gradient(480px 340px at 80% 20%, rgba(43,212,131,.07), transparent 60%),radial-gradient(420px 300px at 14% 78%, rgba(217,179,106,.06), transparent 60%);animation:heroBlob2 22s ease-in-out infinite;pointer-events:none"></div>
+<div style="position:relative;max-width:780px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:22px;text-align:center;padding:clamp(56px,8vw,88px) clamp(20px,3vw,32px) clamp(44px,6vw,64px)">
+<div class="fm-rv" style="display:flex;align-items:center;gap:9px;background:rgba(217,179,106,.10);border:1px solid rgba(217,179,106,.4);border-radius:999px;padding:8px 16px">
+<span style="width:7px;height:7px;border-radius:999px;background:#D9B36A"></span>
+<span style="font:700 11.5px 'Instrument Sans',sans-serif;letter-spacing:.14em;color:#D9B36A;text-transform:uppercase">The studio</span>
+</div>
+<h1 class="fm-rv" style="margin:0;font:600 clamp(34px,4.6vw,54px)/1.1 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.025em;text-wrap:balance">An automation studio, <span style="color:#2BD483">not an agency of decks.</span></h1>
+<p class="fm-rv" style="margin:0;font:400 18px/1.65 'Instrument Sans',sans-serif;color:rgba(245,240,232,.62);max-width:560px">CodeOutfitters exists to remove the repetitive work that quietly eats a small business's week — replies, reminders, entry, follow-up — and hand that time back.</p>
+</div>
+</div>
+
+<!-- MISSION -->
+<div data-screen-label="Mission" style="background:#F7F2EA">
+<div class="fm-rv" style="max-width:900px;margin:0 auto;padding:clamp(56px,8vw,88px) clamp(20px,3vw,32px);display:flex;flex-direction:column;gap:20px;text-align:center;align-items:center">
+<div style="display:flex;align-items:center;gap:14px"><span style="width:38px;height:2px;background:#D9B36A"></span><span style="font:700 12px 'Instrument Sans',sans-serif;letter-spacing:.18em;color:#128A54;text-transform:uppercase">Why we exist</span><span style="width:38px;height:2px;background:#D9B36A"></span></div>
+<h2 style="margin:0;font:600 clamp(28px,3.6vw,42px)/1.2 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.02em">Most small businesses run on manual work that was never meant to scale.</h2>
+<p style="margin:0;font:400 17px/1.7 'Instrument Sans',sans-serif;color:#5B6355;max-width:660px">Owners and staff spend hours a week on replies, scheduling, data entry, and follow-up — work that doesn't need a human doing it by hand. We build the automation layer underneath those workflows so your team spends time on the parts of the business that actually need a person.</p>
+</div>
+</div>
+
+<!-- WHAT WE BELIEVE -->
+<div data-screen-label="What We Believe" style="background-image:radial-gradient(rgba(14,42,29,.06) 1px,transparent 1.5px);background-size:26px 26px;background-color:#F7F2EA">
+<div style="max-width:1180px;margin:0 auto;padding:0 clamp(20px,3vw,32px) clamp(56px,8vw,92px)">
+<div class="fm-rv" style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:38px;text-align:center">
+<h2 style="margin:0;font:600 clamp(28px,3.6vw,42px)/1.15 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.02em">What we believe.</h2>
+</div>
+<div class="believe-grid" style="display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:20px">
+<sc-for list="{{ beliefs }}" as="b" hint-placeholder-count="4">
+<div ref="{{ b.registerCard }}" onMouseMove="{{ b.onMove }}" onMouseEnter="{{ b.onEnter }}" onMouseLeave="{{ b.onLeave }}" class="spot-card fm-rv" style="padding:clamp(24px,2.6vw,30px);display:flex;flex-direction:column;gap:12px">
+<div class="icontile-site" style="{{ b.iconBg }}"><span style="{{ b.iconStyle }}"></span></div>
+<h3 style="margin:0;font:600 19px/1.3 'Space Grotesk',sans-serif;color:#0A120E">{{ b.title }}</h3>
+<p style="margin:0;font:400 14.5px/1.62 'Instrument Sans',sans-serif;color:#5B6355">{{ b.desc }}</p>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+
+<!-- HOW WE WORK -->
+<div data-screen-label="How We Work" style="background:#0E241A">
+<div style="max-width:1180px;margin:0 auto;padding:clamp(56px,8vw,88px) clamp(20px,3vw,32px)">
+<div class="fm-rv" style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:40px;text-align:center">
+<h2 style="margin:0;font:600 clamp(28px,3.6vw,42px)/1.15 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.02em">How we work with clients.</h2>
+<p style="margin:0;font:400 16px/1.6 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);max-width:560px">Direct communication and clear scope, from the first call to the last handoff doc.</p>
+</div>
+<div class="work-grid" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px">
+<sc-for list="{{ howWeWork }}" as="w" hint-placeholder-count="4">
+<div class="fm-rv" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:22px 20px;display:flex;flex-direction:column;gap:8px">
+<span style="font:700 20px 'Space Grotesk',sans-serif;color:#2BD483">{{ w.num }}</span>
+<span style="font:600 15px 'Instrument Sans',sans-serif;color:#F5F0E8">{{ w.title }}</span>
+<span style="font:400 13.5px/1.55 'Instrument Sans',sans-serif;color:rgba(245,240,232,.55)">{{ w.desc }}</span>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+
+<!-- QUALITY / TOOL MINDSET -->
+<div data-screen-label="Quality Principles" style="background:#F7F2EA">
+<div style="max-width:1100px;margin:0 auto;padding:clamp(56px,8vw,92px) clamp(20px,3vw,32px)">
+<div class="fm-rv" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(28px,4vw,48px);align-items:start">
+<div style="display:flex;flex-direction:column;gap:14px">
+<span style="font:700 11px 'Instrument Sans',sans-serif;letter-spacing:.16em;color:#128A54;text-transform:uppercase">Quality &amp; reliability</span>
+<h2 style="margin:0;font:600 clamp(24px,2.8vw,32px)/1.2 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.02em">We test before it touches your business.</h2>
+<p style="margin:0;font:400 15.5px/1.65 'Instrument Sans',sans-serif;color:#5B6355">Every automation is tested against real scenarios — including the messy edge cases — before it goes live. If something breaks after launch, fixing it is part of the support window, not a separate invoice.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:14px">
+<span style="font:700 11px 'Instrument Sans',sans-serif;letter-spacing:.16em;color:#128A54;text-transform:uppercase">Tool &amp; automation mindset</span>
+<h2 style="margin:0;font:600 clamp(24px,2.8vw,32px)/1.2 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.02em">We fit into your stack, not the other way around.</h2>
+<p style="margin:0;font:400 15.5px/1.65 'Instrument Sans',sans-serif;color:#5B6355">We'd rather connect the tools you already trust than force a migration. Custom builds are scoped only when nothing off-the-shelf covers the workflow.</p>
+</div>
+</div>
+</div>
+</div>
+
+<!-- TRUST CARDS -->
+<div data-screen-label="Trust" style="background:#0A120E;border-top:1px solid rgba(255,255,255,.07)">
+<div style="max-width:1180px;margin:0 auto;padding:clamp(56px,8vw,88px) clamp(20px,3vw,32px)">
+<div class="fm-rv" style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:36px;text-align:center">
+<h2 style="margin:0;font:600 clamp(28px,3.6vw,42px)/1.15 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.02em">What you can count on.</h2>
+</div>
+<div class="trust-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px">
+<sc-for list="{{ trust }}" as="t" hint-placeholder-count="3">
+<div class="fm-rv" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:24px 22px;display:flex;flex-direction:column;gap:8px">
+<span style="font:600 15.5px 'Instrument Sans',sans-serif;color:#F5F0E8">{{ t.title }}</span>
+<span style="font:400 13.5px/1.6 'Instrument Sans',sans-serif;color:rgba(245,240,232,.55)">{{ t.desc }}</span>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+
+<!-- CTA -->
+<div data-screen-label="CTA" style="position:relative;background:radial-gradient(760px 420px at 50% -15%, rgba(23,160,99,.18), transparent 62%), #0A120E;overflow:hidden">
+<div style="position:relative;max-width:1180px;margin:0 auto;padding:clamp(56px,8vw,96px) clamp(20px,3vw,32px)">
+<div class="cta-v7 fm-rv">
+<div style="display:flex;flex-direction:column;align-items:flex-start;gap:18px;min-width:0">
+<span style="font:700 12px 'Instrument Sans',sans-serif;letter-spacing:.18em;color:#D9B36A;text-transform:uppercase">Like how we think?</span>
+<h2 class="cta-title-v7">Let's Talk About <span style="white-space:nowrap">Your Workflow</span></h2>
+<p style="margin:0;font:400 17px/1.65 'Instrument Sans',sans-serif;color:rgba(245,240,232,.62);max-width:440px">A free discovery call is the fastest way to see whether we're the right fit for how your business runs.</p>
+<div class="cta-chip-row-v7">
+<span class="cta-chip-v7"><span style="color:#2BD483">✓</span>Free audit included</span>
+<span class="cta-chip-v7"><span style="color:#2BD483">✓</span>No long contracts</span>
+<span class="cta-chip-v7"><span style="color:#2BD483">✓</span>30-day support</span>
+</div>
+</div>
+<div class="cta-action-card-v7">
+<span style="font:700 10.5px 'Instrument Sans',sans-serif;letter-spacing:.14em;color:rgba(245,240,232,.5);text-transform:uppercase">What you get in 30 minutes</span>
+<div style="display:flex;flex-direction:column;gap:11px">
+<span style="display:flex;align-items:flex-start;gap:10px;font:500 14.5px/1.5 'Instrument Sans',sans-serif;color:rgba(245,240,232,.8)"><span style="color:#2BD483;font-weight:700;flex-shrink:0">✓</span>A map of your biggest time drains</span>
+<span style="display:flex;align-items:flex-start;gap:10px;font:500 14.5px/1.5 'Instrument Sans',sans-serif;color:rgba(245,240,232,.8)"><span style="color:#2BD483;font-weight:700;flex-shrink:0">✓</span>Which workflow to automate first</span>
+<span style="display:flex;align-items:flex-start;gap:10px;font:500 14.5px/1.5 'Instrument Sans',sans-serif;color:rgba(245,240,232,.8)"><span style="color:#2BD483;font-weight:700;flex-shrink:0">✓</span>A fixed quote — before we build anything</span>
+</div>
+<a href="08-Contact.dc.html" class="cta-sweep cta-button-v7"><span style="white-space:nowrap">Book Free Discovery Call</span><img src="assets/icon-arrow-right.svg" style="width:15px;height:15px;flex-shrink:0" alt=""></a>
+</div>
+</div>
+</div>
+</div>
+
+<!-- FOOTER -->
+<div data-screen-label="Footer" style="background:#070D0A;border-top:1px solid rgba(255,255,255,.06)">
+<div style="max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:40px;padding:56px 32px 40px">
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;gap:9px">
+<img src="assets/logo-mark.svg" style="width:24px;height:24px;filter:brightness(1.5)" alt="">
+<span style="font:600 17px 'Space Grotesk',sans-serif;color:#F5F0E8">Code<span style="color:#2BD483">Outfitters</span></span>
+</div>
+<p style="margin:0;font:400 15px/1.65 'Instrument Sans',sans-serif;color:rgba(245,240,232,.45);max-width:300px">AI automation for US small businesses. We eliminate repetitive work so you can focus on what actually grows your business.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<span style="font:700 11.5px 'Instrument Sans',sans-serif;letter-spacing:.16em;color:rgba(245,240,232,.4);text-transform:uppercase">Services</span>
+<a href="02-Services.dc.html#whatsapp" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">WhatsApp Automation</a>
+<a href="02-Services.dc.html#email" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Email Workflows</a>
+<a href="02-Services.dc.html#support" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">AI Chatbots</a>
+<a href="02-Services.dc.html#booking" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Booking Bots</a>
+<a href="02-Services.dc.html#invoice" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Invoice Automation</a>
+<a href="02-Services.dc.html#custom" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Custom Builds</a>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<span style="font:700 11.5px 'Instrument Sans',sans-serif;letter-spacing:.16em;color:rgba(245,240,232,.4);text-transform:uppercase">Company</span>
+<a href="01-Homepage.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Home</a>
+<span style="font:500 14.5px 'Instrument Sans',sans-serif;color:#F5F0E8">About</span>
+<a href="03-Industries.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Industries</a>
+<a href="04-Process.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Process</a>
+<a href="07-Case-Studies.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Case Studies</a>
+<a href="06-Security-Reliability.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Security & Reliability</a>
+<a href="08-Contact.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Contact</a>
+</div>
+</div>
+<div style="max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:20px 32px;border-top:1px solid rgba(255,255,255,.06)">
+<span style="font:400 12.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.35)">© 2026 CodeOutfitters LLC. All rights reserved.</span>
+<span style="display:flex;align-items:center;gap:7px;font:500 12.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.5)"><span style="width:7px;height:7px;border-radius:999px;background:#2BD483;animation:v3Pulse 1.8s ease-out infinite"></span>All systems operational</span>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  _beliefs = [
+    { title: 'Automation should disappear', icon: 'assets/icon-automate.svg', bg: '#EAF6EF,#DCF0E5', desc: 'The best system is one your team stops noticing — it just quietly does the repetitive part.' },
+    { title: 'Scope before code', icon: 'assets/icon-database-stack.svg', bg: '#F8EFDD,#F0E2C4', desc: 'We map the real workflow before writing anything. Guessing at requirements wastes everyone\'s time.' },
+    { title: 'Humans stay in the loop', icon: 'assets/icon-ai-agent-face.svg', bg: '#E8EDE9,#DBE3DC', desc: 'AI handles the repetitive parts; anything sensitive or ambiguous gets routed to a person, by design.' },
+    { title: 'Clear communication over jargon', icon: 'assets/icon-chat-square.svg', bg: '#EAF6EF,#DCF0E5', desc: 'You should always know what was built, why, and how to get help — in plain language, not engineer-speak.' }
+  ];
+
+  _howWeWork = [
+    { num: '01', title: 'You talk, we listen', desc: 'Discovery starts with your workflow, not our template.' },
+    { num: '02', title: 'One point of contact', desc: 'Clear communication throughout — no ticket queues.' },
+    { num: '03', title: 'Documented handoff', desc: 'You get real documentation, not tribal knowledge.' },
+    { num: '04', title: 'Support after launch', desc: '30 days included to fix issues and fine-tune.' }
+  ];
+
+  _trust = [
+    { title: 'Fixed-scope proposals', desc: 'You see the exact deliverables and timeline before we start building.' },
+    { title: 'Testing before launch', desc: 'Automations are run through real scenarios before they touch your business.' },
+    { title: 'Direct communication', desc: 'You talk to the people actually building your system — not an account layer.' }
+  ];
+
+  registerRoot = (el) => { this.rootEl = el; };
+
+  renderVals() {
+    return {
+      registerRoot: this.registerRoot,
+      beliefs: this._beliefs.map(b => {
+        const [bg1, bg2] = b.bg.split(',');
+        return {
+          ...b,
+          iconBg: `background:linear-gradient(160deg,${bg1},${bg2})`,
+          iconStyle: { width: '22px', height: '22px', display: 'block', background: `url("${b.icon}") center/contain no-repeat` },
+          registerCard: () => {},
+          onMove: (e) => {
+            const el = e.currentTarget, r = el.getBoundingClientRect();
+            el.style.setProperty('--sx', ((e.clientX - r.left) / r.width * 100) + '%');
+            el.style.setProperty('--sy', ((e.clientY - r.top) / r.height * 100) + '%');
+          },
+          onEnter: (e) => e.currentTarget.style.setProperty('--sglow', '1'),
+          onLeave: (e) => e.currentTarget.style.setProperty('--sglow', '0')
+        };
+      }),
+      howWeWork: this._howWeWork,
+      trust: this._trust
+    };
+  }
+}
+
+</script>
+</body>
+</html>

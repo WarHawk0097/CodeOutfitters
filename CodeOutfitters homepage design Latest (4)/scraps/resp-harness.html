@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><style>body{margin:0;display:flex;gap:12px;background:#222;padding:10px}iframe{border:0;background:#fff;height:1400px}</style></head>
+<body>
+<iframe id="a" width="390"></iframe>
+<iframe id="b" width="820"></iframe>
+<script>
+const params=new URLSearchParams(location.search);
+const page=params.get('page')||'01-Homepage.dc.html';
+const y=parseInt(params.get('y')||'0',10);
+const base='../CodeOutfitters-fable-enhanced-21st-frontend-ready-v2/design-preview/';
+for(const id of ['a','b']){document.getElementById(id).src=base+page;}
+window.jump=(yy)=>{for(const id of ['a','b']){try{document.getElementById(id).contentWindow.scrollTo(0,yy);}catch(e){}}};
+setTimeout(()=>jump(y),1500);
+</script>
+</body></html>

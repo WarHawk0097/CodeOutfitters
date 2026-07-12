@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
-import { AboutMission, AboutHowWeWork } from '@/components/about-mission'
-import { AboutValues } from '@/components/about-values'
+import { AboutPageClient } from './about-page-client'
 import { CTABanner } from '@/components/cta-banner'
 
 export const metadata: Metadata = {
@@ -11,9 +10,7 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <>
-      <AboutMission />
-      <AboutValues />
-      <AboutHowWeWork />
+      <AboutPageClient />
       <CTABanner />
     </>
   )

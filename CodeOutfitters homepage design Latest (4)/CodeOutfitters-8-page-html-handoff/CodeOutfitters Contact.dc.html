@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ease-premium:cubic-bezier(.16,1,.3,1);--ease-soft:cubic-bezier(.22,1,.36,1);--ease-spring:cubic-bezier(.34,1.56,.64,1)}
+html,body{margin:0;padding:0;background:#0A120E;font-family:'Instrument Sans',sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#128A54}a:hover{color:#0E7A4E}
+.overflow-safe-site,.overflow-safe-site *{min-width:0}
+@keyframes v3Pulse{0%{box-shadow:0 0 0 0 rgba(43,212,131,.55)}70%{box-shadow:0 0 0 9px rgba(43,212,131,0)}100%{box-shadow:0 0 0 0 rgba(43,212,131,0)}}
+@keyframes chevronPop{0%{transform:scale(1)}40%{transform:scale(.82)}100%{transform:scale(1)}}
+@keyframes checkPop{0%{transform:scale(.5);opacity:0}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+.nav-links-site{display:flex;align-items:center;gap:clamp(14px,2vw,28px);flex-wrap:nowrap;min-width:0}
+.nav-links-site a{white-space:nowrap;font:500 15px 'Instrument Sans',sans-serif;color:#4A5248;text-decoration:none}
+.nav-links-site a:hover{color:#0A120E}
+@media(max-width:960px){.nav-links-site{display:none}}
+.contact-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:clamp(32px,4vw,64px);align-items:start;max-width:1100px;margin:0 auto}
+@media(max-width:900px){.contact-grid{grid-template-columns:1fr}}
+.field-input,.field-textarea,.field-select{width:100%;box-sizing:border-box;font:500 15px 'Instrument Sans',sans-serif;color:#0A120E;background:#FDFBF6;border:1px solid #E5DCCB;border-radius:11px;padding:13px 15px;outline:none;transition:border-color .2s ease,box-shadow .2s ease}
+.field-input:focus,.field-textarea:focus,.field-select:focus{border-color:#17A063;box-shadow:0 0 0 4px rgba(23,160,99,.12)}
+.field-label{font:600 12.5px 'Instrument Sans',sans-serif;color:#26312A;margin-bottom:7px;display:block}
+.chip-site{display:inline-flex;align-items:center;border-radius:999px;font:600 11.5px 'Instrument Sans',sans-serif;padding:5px 12px;white-space:nowrap}
+.reach-pill{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:14px 16px;text-decoration:none;transition:transform .3s var(--ease-premium),background .3s ease,border-color .3s ease}
+.reach-pill:hover{transform:translateY(-3px);background:rgba(255,255,255,.08);border-color:rgba(43,212,131,.3)}
+.cta-sweep{position:relative;overflow:hidden}
+.cta-sweep::before{content:'';position:absolute;top:0;bottom:0;left:-60%;width:40%;background:linear-gradient(110deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-18deg);transition:left .65s var(--ease-premium)}
+.cta-sweep:hover::before{left:120%}
+.mobile-safe-v7{overflow-x:hidden}
+.mobile-safe-v7 img{max-width:100%}
+@media(max-width:640px){.reach-grid-site{grid-template-columns:1fr !important}}
+</style>
+</helmet>
+
+<div ref="{{ registerRoot }}" class="overflow-safe-site mobile-safe-v7" style="background:#F7F2EA;overflow-x:hidden">
+
+<!-- ============ NAV ============ -->
+<div data-screen-label="Nav" style="position:sticky;top:0;z-index:50;background:rgba(247,242,234,.92);backdrop-filter:blur(14px);border-bottom:1px solid #E5DCCB">
+<div style="max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;min-height:68px;gap:14px;padding:10px clamp(16px,3vw,32px)">
+<a href="CodeOutfitters%20Homepage%20v8.dc.html" style="display:flex;align-items:center;gap:10px;white-space:nowrap;flex-shrink:0;text-decoration:none">
+<img src="assets/logo-mark.svg" style="width:28px;height:28px" alt="">
+<span style="font:600 19px 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.01em">Code<span style="color:#17A063">Outfitters</span></span>
+</a>
+<div class="nav-links-site">
+<a href="CodeOutfitters%20Services.dc.html">Services</a>
+<a href="CodeOutfitters%20Industries.dc.html">Industries</a>
+<a href="CodeOutfitters%20Process.dc.html">Process</a>
+<a href="CodeOutfitters%20Case%20Studies.dc.html">Case Studies</a>
+<a href="CodeOutfitters%20About.dc.html">About</a>
+</div>
+<span style="font:600 14px 'Instrument Sans',sans-serif;color:#128A54;background:#EAF6EF;border:1px solid rgba(18,138,84,.25);border-radius:10px;padding:11px 18px;white-space:nowrap;flex-shrink:0">Contact</span>
+</div>
+</div>
+
+<!-- ============ HERO + FORM ============ -->
+<div data-screen-label="Contact Hero" style="position:relative;background:radial-gradient(1000px 600px at 78% -15%, rgba(23,160,99,.20), transparent 60%), radial-gradient(700px 460px at 2% 115%, rgba(217,179,106,.09), transparent 60%), #0A120E;overflow:hidden">
+<div style="position:relative;max-width:1180px;margin:0 auto;padding:clamp(56px,8vw,84px) clamp(20px,3vw,32px) clamp(64px,9vw,100px)">
+
+<div class="contact-grid">
+<div style="display:flex;flex-direction:column;gap:24px;min-width:0">
+<div style="display:flex;align-items:center;gap:9px;background:rgba(217,179,106,.10);border:1px solid rgba(217,179,106,.4);border-radius:999px;padding:8px 16px;align-self:flex-start">
+<span style="width:7px;height:7px;border-radius:999px;background:#D9B36A"></span>
+<span style="font:700 11.5px 'Instrument Sans',sans-serif;letter-spacing:.14em;color:#D9B36A;text-transform:uppercase;white-space:nowrap">Let's talk</span>
+</div>
+<h1 style="margin:0;font:600 clamp(32px,4.2vw,50px)/1.12 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.02em;text-wrap:balance">Tell us what's eating your team's time.</h1>
+<p style="margin:0;font:400 17.5px/1.65 'Instrument Sans',sans-serif;color:rgba(245,240,232,.62);max-width:440px">Tell us what you want automated. We'll reply within one business day to schedule your discovery call. After discovery, you'll receive a fixed quote and timeline.</p>
+
+<div style="display:flex;flex-direction:column;gap:16px;margin-top:8px">
+<span style="font:700 10.5px 'Instrument Sans',sans-serif;letter-spacing:.14em;color:rgba(245,240,232,.5);text-transform:uppercase">What happens next</span>
+<div style="display:flex;align-items:flex-start;gap:12px">
+<span style="flex-shrink:0;width:26px;height:26px;border-radius:999px;background:#EAF6EF;color:#128A54;font:700 12px 'Space Grotesk',sans-serif;display:flex;align-items:center;justify-content:center">1</span>
+<span style="font:500 15px/1.55 'Instrument Sans',sans-serif;color:rgba(245,240,232,.8)">We reply within one business day to find a time that works.</span>
+</div>
+<div style="display:flex;align-items:flex-start;gap:12px">
+<span style="flex-shrink:0;width:26px;height:26px;border-radius:999px;background:#EAF6EF;color:#128A54;font:700 12px 'Space Grotesk',sans-serif;display:flex;align-items:center;justify-content:center">2</span>
+<span style="font:500 15px/1.55 'Instrument Sans',sans-serif;color:rgba(245,240,232,.8)">30-minute call — we map your workflow and biggest time drains.</span>
+</div>
+<div style="display:flex;align-items:flex-start;gap:12px">
+<span style="flex-shrink:0;width:26px;height:26px;border-radius:999px;background:#EAF6EF;color:#128A54;font:700 12px 'Space Grotesk',sans-serif;display:flex;align-items:center;justify-content:center">3</span>
+<span style="font:500 15px/1.55 'Instrument Sans',sans-serif;color:rgba(245,240,232,.8)">You get a fixed quote and timeline — no pressure to commit.</span>
+</div>
+</div>
+
+<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:6px">
+<span class="chip-site" style="color:rgba(245,240,232,.78);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14)"><span style="color:#2BD483">✓</span> Free audit included</span>
+<span class="chip-site" style="color:rgba(245,240,232,.78);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14)"><span style="color:#2BD483">✓</span> No long contracts</span>
+<span class="chip-site" style="color:rgba(245,240,232,.78);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14)"><span style="color:#2BD483">✓</span> 30-day support</span>
+</div>
+</div>
+
+<!-- FORM CARD -->
+<div style="position:relative;background:linear-gradient(178deg,#fff,#FBF7EE 68%,#F6F1E4);border:1px solid rgba(13,58,49,.14);border-radius:22px;padding:clamp(26px,3vw,34px);box-shadow:0 34px 82px rgba(0,0,0,.4);min-width:0">
+<sc-if value="{{ submitted }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;padding:40px 10px">
+<span style="width:56px;height:56px;border-radius:999px;background:#EAF6EF;color:#128A54;font:700 26px sans-serif;display:flex;align-items:center;justify-content:center;animation:checkPop .5s cubic-bezier(.34,1.56,.64,1)">✓</span>
+<h3 style="margin:0;font:600 22px 'Space Grotesk',sans-serif;color:#0A120E">Message sent</h3>
+<p style="margin:0;font:400 15px/1.6 'Instrument Sans',sans-serif;color:#5B6355;max-width:320px">Thanks{{ submittedNameSuffix }} — we'll reply within one business day to schedule your call.</p>
+<button onClick="{{ resetForm }}" style="margin-top:6px;font:600 14px 'Instrument Sans',sans-serif;color:#0E2A1D;background:#F4EEE2;border:none;border-radius:10px;padding:11px 20px;cursor:pointer">Send another message</button>
+</div>
+</sc-if>
+<sc-if value="{{ notSubmitted }}" hint-placeholder-val="{{ true }}">
+<form onSubmit="{{ handleSubmit }}" style="display:flex;flex-direction:column;gap:16px">
+<span style="font:700 10.5px 'Instrument Sans',sans-serif;letter-spacing:.14em;color:#128A54;text-transform:uppercase">Book your free call</span>
+<div>
+<label class="field-label">Full name</label>
+<input class="field-input" type="text" required="{{ true }}" placeholder="Jordan Miller" value="{{ name }}" onChange="{{ setName }}">
+</div>
+<div>
+<label class="field-label">Work email</label>
+<input class="field-input" type="email" required="{{ true }}" placeholder="jordan@yourbusiness.com" value="{{ email }}" onChange="{{ setEmail }}">
+</div>
+<div>
+<label class="field-label">Business name</label>
+<input class="field-input" type="text" placeholder="Miller Realty Group" value="{{ business }}" onChange="{{ setBusiness }}">
+</div>
+<div>
+<label class="field-label">What are you looking to automate?</label>
+<select class="field-select" value="{{ interest }}" onChange="{{ setInterest }}">
+<option value="">Select one…</option>
+<option value="whatsapp">WhatsApp lead automation</option>
+<option value="email">Email workflows</option>
+<option value="support">Support chat / AI chatbot</option>
+<option value="booking">Booking & scheduling</option>
+<option value="invoice">Invoice / order automation</option>
+<option value="custom">Something custom</option>
+<option value="unsure">Not sure yet</option>
+</select>
+</div>
+<div>
+<label class="field-label">Tell us about your workflow</label>
+<textarea class="field-textarea" rows="4" placeholder="What's eating the most time in your day-to-day?" value="{{ message }}" onChange="{{ setMessage }}"></textarea>
+</div>
+<button type="submit" class="cta-sweep" style="display:flex;align-items:center;justify-content:center;gap:9px;font:600 15.5px 'Instrument Sans',sans-serif;color:#0A120E;background:#2BD483;border:none;border-radius:12px;padding:15px;cursor:pointer;white-space:nowrap;box-shadow:0 14px 34px rgba(43,212,131,.28);transition:transform .15s ease,box-shadow .15s ease" style-hover="transform:translateY(-2px);box-shadow:0 20px 46px rgba(43,212,131,.4)">Book Free Discovery Call<img src="assets/icon-arrow-right.svg" style="width:14px;height:14px" alt=""></button>
+<p style="margin:0;font:400 12.5px/1.5 'Instrument Sans',sans-serif;color:#8A857B;text-align:center">No spam, ever. We only use this to schedule your call.</p>
+</form>
+</sc-if>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ============ OTHER WAYS TO REACH US ============ -->
+<div data-screen-label="Other Ways" style="background:#0E241A">
+<div style="max-width:1180px;margin:0 auto;padding:clamp(48px,6vw,64px) clamp(20px,3vw,32px)">
+<span style="display:block;text-align:center;font:700 11px 'Instrument Sans',sans-serif;letter-spacing:.18em;color:rgba(245,240,232,.5);text-transform:uppercase;margin-bottom:22px">Other ways to reach us</span>
+<div class="reach-grid-site" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;max-width:840px;margin:0 auto">
+<a href="mailto:hello@codeoutfitters.ai" class="reach-pill">
+<span style="flex-shrink:0;width:38px;height:38px;border-radius:10px;background:rgba(23,160,99,.14);display:flex;align-items:center;justify-content:center"><img src="assets/icon-edit-square.svg" style="width:18px;height:18px" alt=""></span>
+<div style="display:flex;flex-direction:column;min-width:0"><span style="font:600 14px 'Instrument Sans',sans-serif;color:#F5F0E8">Email us</span><span style="font:400 12.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">hello@codeoutfitters.ai</span></div>
+</a>
+<a href="https://wa.me/15550123456" class="reach-pill">
+<span style="flex-shrink:0;width:38px;height:38px;border-radius:10px;background:rgba(37,211,102,.16);display:flex;align-items:center;justify-content:center"><img src="assets/icon-chat-square.svg" style="width:18px;height:18px" alt=""></span>
+<div style="display:flex;flex-direction:column;min-width:0"><span style="font:600 14px 'Instrument Sans',sans-serif;color:#F5F0E8">WhatsApp</span><span style="font:400 12.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.5)">Chat with our own bot</span></div>
+</a>
+<a href="CodeOutfitters%20Process.dc.html" class="reach-pill">
+<span style="flex-shrink:0;width:38px;height:38px;border-radius:10px;background:rgba(217,179,106,.16);display:flex;align-items:center;justify-content:center"><img src="assets/icon-scale.svg" style="width:18px;height:18px;filter:brightness(1.6)" alt=""></span>
+<div style="display:flex;flex-direction:column;min-width:0"><span style="font:600 14px 'Instrument Sans',sans-serif;color:#F5F0E8">See our process</span><span style="font:400 12.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.5)">How discovery leads to a fixed quote</span></div>
+</a>
+</div>
+</div>
+</div>
+
+<!-- ============ MINI FAQ ============ -->
+<div data-screen-label="Contact FAQ" style="background:#F7F2EA">
+<div style="max-width:700px;margin:0 auto;padding:clamp(56px,8vw,80px) clamp(20px,3vw,32px)">
+<div style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:36px;text-align:center">
+<div style="display:flex;align-items:center;gap:14px"><span style="width:38px;height:2px;background:#D9B36A"></span><span style="font:700 12px 'Instrument Sans',sans-serif;letter-spacing:.18em;color:#128A54;text-transform:uppercase">Before you write in</span><span style="width:38px;height:2px;background:#D9B36A"></span></div>
+<h2 style="margin:0;font:600 clamp(26px,3.2vw,36px)/1.15 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.02em">Quick answers first.</h2>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<sc-for list="{{ faqs }}" as="f" hint-placeholder-count="3">
+<div style="min-width:0">
+<div style="{{ f.wrapStyle }}">
+<button onClick="{{ f.toggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;box-sizing:border-box;padding:18px 22px;cursor:pointer;background:transparent;border:none;text-align:left;font:600 16px 'Space Grotesk',sans-serif;color:#0A120E;min-width:0"><span style="min-width:0">{{ f.q }}</span><span style="{{ f.togStyle }}">⌄</span></button>
+<div style="{{ f.bodyStyle }}"><p style="margin:0;padding:0 22px 20px;font:400 15px/1.62 'Instrument Sans',sans-serif;color:#68705F">{{ f.a }}</p></div>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+
+<!-- ============ FOOTER ============ -->
+<div data-screen-label="Footer" style="background:#070D0A;border-top:1px solid rgba(255,255,255,.06)">
+<div style="max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:40px;padding:56px 32px 40px">
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;gap:9px">
+<img src="assets/logo-mark.svg" style="width:24px;height:24px;filter:brightness(1.5)" alt="">
+<span style="font:600 17px 'Space Grotesk',sans-serif;color:#F5F0E8">Code<span style="color:#2BD483">Outfitters</span></span>
+</div>
+<p style="margin:0;font:400 15px/1.65 'Instrument Sans',sans-serif;color:rgba(245,240,232,.45);max-width:300px">AI automation for US small businesses. We eliminate repetitive work so you can focus on what actually grows your business.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<span style="font:700 11.5px 'Instrument Sans',sans-serif;letter-spacing:.16em;color:rgba(245,240,232,.4);text-transform:uppercase">Services</span>
+<a href="CodeOutfitters%20Services.dc.html#whatsapp" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">WhatsApp Automation</a>
+<a href="CodeOutfitters%20Services.dc.html#email" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Email Workflows</a>
+<a href="CodeOutfitters%20Services.dc.html#support" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">AI Chatbots</a>
+<a href="CodeOutfitters%20Services.dc.html#booking" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Booking Bots</a>
+<a href="CodeOutfitters%20Services.dc.html#invoice" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Invoice Automation</a>
+<a href="CodeOutfitters%20Services.dc.html#custom" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Custom Builds</a>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<span style="font:700 11.5px 'Instrument Sans',sans-serif;letter-spacing:.16em;color:rgba(245,240,232,.4);text-transform:uppercase">Company</span>
+<a href="CodeOutfitters%20Homepage%20v8.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Home</a>
+<a href="CodeOutfitters%20About.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">About</a>
+<a href="CodeOutfitters%20Industries.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Industries</a>
+<a href="CodeOutfitters%20Process.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Process</a>
+<a href="CodeOutfitters%20Case%20Studies.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Case Studies</a>
+<a href="CodeOutfitters%20Security%20Reliability.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Security & Reliability</a>
+<span style="font:500 14.5px 'Instrument Sans',sans-serif;color:#F5F0E8">Contact</span>
+</div>
+</div>
+<div style="max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:20px 32px;border-top:1px solid rgba(255,255,255,.06)">
+<span style="font:400 12.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.35)">© 2026 CodeOutfitters LLC. All rights reserved.</span>
+<span style="display:flex;align-items:center;gap:7px;font:500 12.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.5)"><span style="width:7px;height:7px;border-radius:999px;background:#2BD483;animation:v3Pulse 1.8s ease-out infinite"></span>All systems operational</span>
+</div>
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { name: '', email: '', business: '', interest: '', message: '', submitted: false, openFaq: -1 };
+
+  _faqs = [
+    { q: 'How fast will I hear back?', a: 'Within one business day — usually much sooner. We reply personally, no auto-sequence.' },
+    { q: 'What if I\'m not ready to buy yet?', a: 'Totally fine. The discovery call is free and honest — if automation isn\'t the right fit yet, we\'ll tell you.' },
+    { q: 'Do you work with businesses outside the US?', a: 'We focus on US small businesses so we can match local hours, tools, and compliance — but reach out and we\'ll let you know if we can help.' }
+  ];
+
+  registerRoot = (el) => { this.rootEl = el; };
+
+  renderVals() {
+    const openFaq = this.state.openFaq;
+    return {
+      registerRoot: this.registerRoot,
+      name: this.state.name, email: this.state.email, business: this.state.business,
+      interest: this.state.interest, message: this.state.message,
+      setName: (e) => this.setState({ name: e.target.value }),
+      setEmail: (e) => this.setState({ email: e.target.value }),
+      setBusiness: (e) => this.setState({ business: e.target.value }),
+      setInterest: (e) => this.setState({ interest: e.target.value }),
+      setMessage: (e) => this.setState({ message: e.target.value }),
+      submitted: this.state.submitted,
+      notSubmitted: !this.state.submitted,
+      submittedNameSuffix: this.state.name ? ', ' + this.state.name.split(' ')[0] : '',
+      handleSubmit: (e) => { e.preventDefault(); this.setState({ submitted: true }); },
+      resetForm: () => this.setState({ name: '', email: '', business: '', interest: '', message: '', submitted: false }),
+      faqs: this._faqs.map((f, i) => {
+        const open = openFaq === i;
+        return {
+          q: f.q, a: f.a,
+          toggle: () => { this.setState(s => ({ openFaq: s.openFaq === i ? -1 : i })); setTimeout(() => this.forceUpdate(), 30); },
+          wrapStyle: { position: 'relative', minWidth: 0, background: open ? '#FFFFFF' : '#FCFAF4', border: open ? '1px solid rgba(23,160,99,.4)' : '1px solid #EDE6D8', borderRadius: '16px', overflow: 'hidden', boxShadow: open ? '0 18px 40px rgba(18,32,27,.12)' : '0 1px 2px rgba(32,24,12,.04)', transition: 'box-shadow .4s ease, border-color .4s ease, background .4s ease' },
+          togStyle: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '999px', flexShrink: 0, background: open ? '#128A54' : '#EFE9DC', color: open ? '#fff' : '#128A54', font: '700 16px sans-serif', transition: 'background .35s ease, transform .35s cubic-bezier(.34,1.56,.64,1)', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' },
+          bodyStyle: { maxHeight: open ? '340px' : '0px', opacity: open ? 1 : 0, overflow: 'hidden', transition: 'max-height .45s cubic-bezier(.16,1,.3,1), opacity .35s ease' }
+        };
+      })
+    };
+  }
+}
+
+</script>
+</body>
+</html>

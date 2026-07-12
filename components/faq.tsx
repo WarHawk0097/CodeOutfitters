@@ -1,11 +1,71 @@
 'use client'
 
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
-import { useScrollReveal } from '@/hooks/useScrollReveal'
+import { useState, useRef, useEffect } from 'react'
+import { ChevronDown } from 'lucide-react'
 
 export interface FaqItem {
   q: string
   a: string
+}
+
+export interface FAQProps {
+  items: FaqItem[]
+  title?: string
+}
+
+function FaqAccordionItem({
+  item,
+  isOpen,
+  toggle,
+  index,
+}: {
+  item: FaqItem
+  isOpen: boolean
+  toggle: () => void
+  index: number
+}) {
+  const contentRef = useRef<HTMLDivElement>(null)
+  const [height, setHeight] = useState(0)
+
+  useEffect(() => {
+    if (contentRef.current) {
+      setHeight(contentRef.current.scrollHeight)
+    }
+  }, [])
+
+  return (
+    <div
+      id={`faq-item-${index}`}
+      className="bg-white/[0.03] border border-white/10 rounded-xl overflow-hidden transition-colors duration-300"
+    >
+      <button
+        onClick={toggle}
+        className="w-full flex items-center justify-between gap-4 px-6 md:px-8 py-6 text-left focus-visible:outline-2 focus-visible:outline-[#D9B36A] focus-visible:outline-offset-2 focus-visible:outline-inset transition-colors duration-200 group"
+        aria-expanded={isOpen}
+        aria-controls={`faq-answer-${index}`}
+      >
+        <span className="text-white/90 font-medium text-lg leading-snug group-hover:text-white transition-colors duration-200">
+          {item.q}
+        </span>
+        <ChevronDown
+          className={`w-5 h-5 flex-shrink-0 text-[#D9B36A] transition-transform duration-300 ease-out ${isOpen ? 'rotate-180' : ''}`}
+        />
+      </button>
+      <div
+        id={`faq-answer-${index}`}
+        role="region"
+        className="overflow-hidden transition-all duration-300 ease-out"
+        style={{
+          maxHeight: isOpen ? height : 0,
+          opacity: isOpen ? 1 : 0,
+        }}
+      >
+        <div ref={contentRef} className="px-6 md:px-8 pb-6 text-[#8A857B] leading-relaxed">
+          {item.a}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export const homepageFaqs: FaqItem[] = [
@@ -16,26 +76,35 @@ export const homepageFaqs: FaqItem[] = [
   { q: 'What happens if something breaks?', a: 'Every build includes post-launch support, and we monitor your automations continuously. Most issues are fixed before you notice them.' },
 ]
 
-export function FAQ({ items = homepageFaqs, title = 'Everything clients ask us first', label = 'FAQ' }: { items?: FaqItem[]; title?: string; label?: string }) {
-  const sectionRef = useScrollReveal<HTMLDivElement>(0.1)
+export function FAQ({ items = homepageFaqs, title = 'Frequently Asked Questions' }: { items?: FaqItem[]; title?: string }) {
+  const [openIndex, setOpenIndex] = useState<number | null>(null)
+
+  const toggle = (index: number) => {
+    setOpenIndex(openIndex === index ? null : index)
+  }
 
   return (
-    <section className="py-[var(--space-section)] bg-[#F5F0EB] relative overflow-hidden">
-      <div className="max-w-3xl mx-auto px-4 sm:px-8 lg:px-6">
-        <div className="text-center mb-8">
-          <span data-reveal className="label-overline mb-3 block">{label}</span>
-          <h2 data-reveal className="text-3xl md:text-4xl font-bold text-[#1C1612] text-balance mb-6">{title}</h2>
-        </div>
+    <section
+      className="py-24 md:py-32 px-5 md:px-8 relative overflow-hidden"
+      style={{ background: 'linear-gradient(178deg, #10301F, #0C2417)' }}
+    >
+      <div className="max-w-3xl mx-auto relative z-10">
+        {title && (
+          <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-12 md:mb-16">
+            {title}
+          </h2>
+        )}
 
-        <div ref={sectionRef}>
-          <Accordion type="single" collapsible className="flex flex-col gap-3">
-            {items.map((item, i) => (
-              <AccordionItem key={i} value={`item-${i}`} data-reveal>
-                <AccordionTrigger>{item.q}</AccordionTrigger>
-                <AccordionContent>{item.a}</AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+        <div className="space-y-3">
+          {items.map((item, index) => (
+            <FaqAccordionItem
+              key={index}
+              item={item}
+              index={index}
+              isOpen={openIndex === index}
+              toggle={() => toggle(index)}
+            />
+          ))}
         </div>
       </div>
     </section>

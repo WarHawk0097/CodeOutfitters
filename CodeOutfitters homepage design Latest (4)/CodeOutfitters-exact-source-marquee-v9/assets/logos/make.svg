@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 168 44" fill="none">
+<defs><linearGradient id="mk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#B14BFF"></stop><stop offset="1" stop-color="#6D00CC"></stop></linearGradient></defs><g fill="url(#mk)"><path d="M10 12l4 10-4 10z"></path><path d="M18 12l4 10-4 10z" opacity="0.75"></path><rect x="26" y="12" width="4.4" height="20" rx="2"></rect><path d="M34 32l4-10 4 10z"></path></g>
+<text x="50" y="28" font-family="Inter, &#39;Helvetica Neue&#39;, Arial, sans-serif" font-size="22" font-weight="700" letter-spacing="-0.5" fill="#EDE7DA">Make</text>
+</svg>

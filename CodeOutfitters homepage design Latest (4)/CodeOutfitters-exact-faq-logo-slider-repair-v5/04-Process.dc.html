@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="./motion.js"></script>
+<style>
+:root{--ease-premium:cubic-bezier(.16,1,.3,1);--ease-soft:cubic-bezier(.22,1,.36,1);--ease-spring:cubic-bezier(.34,1.56,.64,1)}
+html,body{margin:0;padding:0;background:#0A120E;font-family:'Instrument Sans',sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#128A54}a:hover{color:#0E7A4E}
+.overflow-safe-site,.overflow-safe-site *{min-width:0}
+@keyframes v3Pulse{0%{box-shadow:0 0 0 0 rgba(43,212,131,.55)}70%{box-shadow:0 0 0 9px rgba(43,212,131,0)}100%{box-shadow:0 0 0 0 rgba(43,212,131,0)}}
+.nav-links-site{display:flex;align-items:center;gap:clamp(14px,1.7vw,26px);flex-wrap:nowrap;min-width:0}
+.nav-links-site a{white-space:nowrap;font:500 15px 'Instrument Sans',sans-serif;color:#4A5248;text-decoration:none}
+.nav-links-site a:hover{color:#0A120E}
+@media(max-width:1020px){.nav-links-site{display:none}}
+.chip-site{display:inline-flex;align-items:center;border-radius:999px;font:600 11.5px 'Instrument Sans',sans-serif;padding:5px 12px;white-space:nowrap}
+.cta-sweep{position:relative;overflow:hidden}
+.cta-sweep::before{content:'';position:absolute;top:0;bottom:0;left:-60%;width:40%;background:linear-gradient(110deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-18deg);transition:left .65s var(--ease-premium)}
+.cta-sweep:hover::before{left:120%}
+.cta-v7,.cta-v7 *{box-sizing:border-box;min-width:0}
+.cta-v7{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(28px,4vw,56px);align-items:center;max-width:1060px;margin:0 auto;background:linear-gradient(160deg,#10301F,#0A1C12);border:1px solid rgba(255,253,246,.14);border-radius:28px;padding:clamp(26px,4.5vw,54px);box-shadow:0 44px 100px rgba(0,0,0,.45)}
+.cta-title-v7{margin:0;font:600 clamp(30px,3.8vw,46px)/1.12 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.02em}
+.cta-action-card-v7{display:flex;flex-direction:column;gap:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:clamp(20px,2.6vw,30px);min-width:0}
+.cta-button-v7{white-space:nowrap;position:relative;display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-top:4px;font:600 16px 'Instrument Sans',sans-serif;color:#0A120E;background:linear-gradient(160deg,#E7C57E,#D9B36A);border:none;border-radius:13px;padding:17px 20px;cursor:pointer;box-shadow:0 16px 40px rgba(217,179,106,.3),inset 0 1px 0 rgba(255,255,255,.4);transition:transform .3s var(--ease-premium),box-shadow .3s var(--ease-premium);text-decoration:none}
+.cta-button-v7:hover{transform:translateY(-3px);box-shadow:0 24px 56px rgba(217,179,106,.46),inset 0 1px 0 rgba(255,255,255,.5)}
+.cta-chip-row-v7{display:flex;flex-wrap:wrap;gap:10px}
+.cta-chip-v7{display:inline-flex;align-items:center;gap:8px;font:600 13.5px/1.4 'Instrument Sans',sans-serif;color:rgba(245,240,232,.78);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:9px 15px;white-space:nowrap}
+@media(max-width:860px){.cta-v7{grid-template-columns:1fr;align-items:stretch}}
+@media(max-width:640px){.cta-v7{grid-template-columns:1fr;padding:24px 20px}.cta-button-v7{width:100%;font-size:15px;padding:16px 14px}.cta-title-v7{font-size:29px}}
+.mobile-safe-v7{overflow-x:hidden}
+.mobile-safe-v7 img{max-width:100%}
+.timeline-v6{position:relative;max-width:940px;margin:0 auto;display:flex;flex-direction:column;gap:30px}
+.tl-spine-v6{position:absolute;left:50%;top:14px;bottom:14px;width:4px;transform:translateX(-50%);border-radius:2px;background:#E7DEC9;overflow:hidden;-webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 5%,#000 95%,transparent 100%);mask-image:linear-gradient(180deg,transparent 0%,#000 5%,#000 95%,transparent 100%)}
+.tl-progress-v6{position:absolute;inset:0;transform-origin:top;transform:scaleY(0);background:linear-gradient(180deg,#17A063,#D9B36A);transition:transform 1.8s var(--ease-premium)}
+.tl-progress-v6.is-filled{transform:scaleY(1)}
+.tl-step-v6{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 104px minmax(0,1fr);align-items:center}
+.tl-node-v6{grid-column:2;grid-row:1;justify-self:center;width:64px;height:64px;border-radius:18px;background:#0E2A1D;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#F5F0E8;box-shadow:0 12px 26px rgba(14,42,29,.3);z-index:3}
+.tl-node-v6 b{font:700 24px 'Space Grotesk',sans-serif;line-height:1}
+.tl-card-v6{grid-row:1;position:relative;background:linear-gradient(178deg,#fff,#FBF7EE 72%,#F6F1E4);border:1px solid rgba(13,58,49,.14);border-radius:18px;padding:22px 26px;box-shadow:0 14px 40px rgba(18,32,27,.08),inset 0 1px 0 rgba(255,255,255,.8);display:flex;flex-direction:column;gap:9px;min-width:0;transition:transform .5s var(--ease-premium),box-shadow .5s var(--ease-premium),border-color .5s var(--ease-premium)}
+.tl-card-v6:hover{transform:translateY(-4px);border-color:rgba(23,160,99,.3);box-shadow:0 24px 60px rgba(18,32,27,.14)}
+.tl-left-v6{grid-column:1}
+.tl-right-v6{grid-column:3}
+.tl-title-v6{margin:0;font:600 21px 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.01em}
+.tl-day-v6{align-self:flex-start;white-space:nowrap;font:700 10px 'Instrument Sans',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#B08A3E;background:#F8EFDD;border:1px solid rgba(217,179,106,.4);border-radius:999px;padding:4px 12px}
+@media(max-width:760px){
+.timeline-v6{gap:22px}
+.tl-spine-v6{left:31px;transform:none}
+.tl-step-v6{grid-template-columns:64px minmax(0,1fr);align-items:start}
+.tl-node-v6{grid-column:1;justify-self:start;width:52px;height:52px;border-radius:15px}
+.tl-node-v6 b{font-size:19px}
+.tl-left-v6,.tl-right-v6{grid-column:2}
+.tl-title-v6{font-size:19px}
+}
+@media(max-width:820px){.principles-grid{grid-template-columns:1fr !important}}
+
+/* === 21st enhancement pass (Fable) === */
+.spot-card::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(90deg,#17A063,#2BD483 55%,#D9B36A);transform:scaleX(0);transform-origin:left;transition:transform .55s cubic-bezier(.16,1,.3,1);z-index:2}
+.spot-card:hover::after{transform:scaleX(1)}
+.tool-chip{transition:transform .35s cubic-bezier(.16,1,.3,1),border-color .35s ease,color .35s ease}
+.tool-chip:hover{transform:translateY(-2px);border-color:rgba(43,212,131,.55);color:#FFFFFF}
+.marquee-pause:hover>div{animation-play-state:paused}
+.cta-button-v7:active{transform:translateY(-1px) scale(.98)}
+@keyframes heroBlob{0%,100%{transform:translate3d(-4%,-3%,0) scale(1)}50%{transform:translate3d(4%,4%,0) scale(1.1)}}
+@keyframes heroBlob2{0%,100%{transform:translate3d(5%,4%,0) scale(1.06)}50%{transform:translate3d(-5%,-4%,0) scale(.95)}}
+/* Reduced-motion fallback is opt-in via <html data-motion="reduced"> (see motion.js) */
+
+/* ===== V3 REPAIR · NAV ===== */
+.mnav-v3{display:none;position:relative;flex-shrink:0}
+.mnav-v3 summary{list-style:none;display:flex;flex-direction:column;justify-content:center;gap:4px;width:40px;height:40px;padding:0 10px;box-sizing:border-box;border:1px solid #E5DCCB;border-radius:10px;background:#FCFAF4;cursor:pointer}
+.mnav-v3 summary::-webkit-details-marker{display:none}
+.mnav-v3 summary span{display:block;height:2px;border-radius:2px;background:#0A120E;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .25s ease}
+.mnav-v3[open] summary span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+.mnav-v3[open] summary span:nth-child(2){opacity:0}
+.mnav-v3[open] summary span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+@keyframes mnavIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.mnav-panel-v3{position:absolute;right:0;top:calc(100% + 12px);width:min(78vw,260px);background:#FCFAF4;border:1px solid #E5DCCB;border-radius:16px;box-shadow:0 24px 60px rgba(18,32,27,.18);display:flex;flex-direction:column;gap:2px;padding:10px;z-index:80;animation:mnavIn .32s cubic-bezier(.16,1,.3,1)}
+.mnav-panel-v3 a{display:block;padding:11px 14px;border-radius:10px;font:500 15px 'Instrument Sans',sans-serif;color:#2A3128;text-decoration:none;white-space:nowrap}
+.mnav-panel-v3 a:hover{background:#F1EADB;color:#0A120E}
+.mnav-panel-v3 a.mnav-cur-v3{color:#128A54;font-weight:600}
+.mnav-panel-v3 a.mnav-cta-v3{margin-top:6px;text-align:center;background:#0E2A1D;color:#F7F2EA;font-weight:600}
+.mnav-panel-v3 a.mnav-cta-v3:hover{background:#17A063;color:#FFFFFF}
+@media(max-width:960px){.mnav-v3{display:block}}
+/* ===== V3 REPAIR · FAQ ===== */
+.faq-btn-v3:focus-visible{outline:2px solid rgba(23,160,99,.55);outline-offset:-2px;border-radius:12px}
+@media(prefers-reduced-motion:reduce){.mnav-panel-v3{animation:none}}
+
+/* ===== V5 · FAQ (FAQAccordionBlock adaptation) ===== */
+.faq-btn-v5:focus-visible{outline:2px solid rgba(23,160,99,.6);outline-offset:-3px;border-radius:14px}
+.faq-cta-btn-v5{transition:transform .3s cubic-bezier(.16,1,.3,1),box-shadow .3s ease}
+.faq-cta-btn-v5:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(217,179,106,.3)}
+@media(max-width:640px){.faq-btn-v5{padding:17px 16px !important}}
+@media (prefers-reduced-motion: reduce){.faq-motion,.faq-motion *{transition-duration:.001ms !important;animation-duration:.001ms !important}}
+</style>
+</helmet>
+
+<div ref="{{ registerRoot }}" class="overflow-safe-site mobile-safe-v7" style="background:#F7F2EA;overflow-x:hidden">
+
+<!-- NAV -->
+<div data-screen-label="Nav" style="position:sticky;top:0;z-index:50;background:rgba(247,242,234,.92);backdrop-filter:blur(14px);border-bottom:1px solid #E5DCCB">
+<div style="max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;min-height:68px;gap:14px;padding:10px clamp(16px,3vw,32px)">
+<a href="01-Homepage.dc.html" style="display:flex;align-items:center;gap:10px;white-space:nowrap;flex-shrink:0;text-decoration:none">
+<img src="assets/logo-mark.svg" style="width:28px;height:28px" alt="">
+<span style="font:600 19px 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.01em">Code<span style="color:#17A063">Outfitters</span></span>
+</a>
+<div class="nav-links-site">
+<a href="01-Homepage.dc.html">Home</a>
+<a href="02-Services.dc.html">Services</a>
+<a href="03-Industries.dc.html">Industries</a>
+<span style="font:600 15px 'Instrument Sans',sans-serif;color:#128A54">Process</span>
+<a href="07-Case-Studies.dc.html">Case Studies</a>
+<a href="05-About.dc.html">About</a>
+<a href="08-Contact.dc.html">Contact</a>
+</div>
+<details class="mnav-v3">
+<summary aria-label="Open menu"><span></span><span></span><span></span></summary>
+<div class="mnav-panel-v3">
+<a href="01-Homepage.dc.html">Home</a>
+<a href="02-Services.dc.html">Services</a>
+<a href="03-Industries.dc.html">Industries</a>
+<a href="04-Process.dc.html" class="mnav-cur-v3">Process</a>
+<a href="07-Case-Studies.dc.html">Case Studies</a>
+<a href="05-About.dc.html">About</a>
+<a href="08-Contact.dc.html">Contact</a>
+<a class="mnav-cta-v3" href="08-Contact.dc.html">Book a Call</a>
+</div>
+</details>
+<a href="08-Contact.dc.html" style="font:600 14px 'Instrument Sans',sans-serif;color:#F7F2EA;background:#0E2A1D;border-radius:10px;padding:11px 18px;white-space:nowrap;flex-shrink:0;text-decoration:none;transition:transform .15s ease, background .15s ease;display:inline-flex" style-hover="background:#17A063;transform:translateY(-1px)" class="cta-sweep">Book a Call</a>
+</div>
+</div>
+
+<!-- HERO -->
+<div data-screen-label="Process Hero" style="position:relative;background:radial-gradient(1000px 600px at 78% -15%, rgba(23,160,99,.20), transparent 60%), #0A120E;overflow:hidden">
+<div style="position:absolute;inset:-20%;background:radial-gradient(560px 380px at 30% 40%, rgba(43,212,131,.10), transparent 60%),radial-gradient(520px 360px at 72% 62%, rgba(217,179,106,.08), transparent 60%);animation:heroBlob 16s ease-in-out infinite;pointer-events:none"></div>
+<div style="position:absolute;inset:-24%;background:radial-gradient(480px 340px at 80% 20%, rgba(43,212,131,.07), transparent 60%),radial-gradient(420px 300px at 14% 78%, rgba(217,179,106,.06), transparent 60%);animation:heroBlob2 22s ease-in-out infinite;pointer-events:none"></div>
+<div style="position:relative;max-width:780px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:22px;text-align:center;padding:clamp(56px,8vw,88px) clamp(20px,3vw,32px) clamp(44px,6vw,64px)">
+<div class="fm-rv" style="display:flex;align-items:center;gap:9px;background:rgba(217,179,106,.10);border:1px solid rgba(217,179,106,.4);border-radius:999px;padding:8px 16px">
+<span style="width:7px;height:7px;border-radius:999px;background:#D9B36A"></span>
+<span style="font:700 11.5px 'Instrument Sans',sans-serif;letter-spacing:.14em;color:#D9B36A;text-transform:uppercase;white-space:nowrap">How it works</span>
+</div>
+<h1 class="fm-rv" style="margin:0;font:600 clamp(34px,4.6vw,54px)/1.1 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.025em;text-wrap:balance">No generic packages. <span style="color:#2BD483">Every build is scoped.</span></h1>
+<p class="fm-rv" style="margin:0;font:400 18px/1.65 'Instrument Sans',sans-serif;color:rgba(245,240,232,.62);max-width:560px">We don't sell off-the-shelf tiers. Every project starts with discovery, so you get a clear quote, timeline, and deliverables built around your actual workflow.</p>
+<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px">
+<span class="chip-site" style="color:rgba(245,240,232,.78);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14)"><span style="color:#2BD483">✓</span> Fixed quote after discovery</span>
+<span class="chip-site" style="color:rgba(245,240,232,.78);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14)"><span style="color:#2BD483">✓</span> Transparent proposal</span>
+<span class="chip-site" style="color:rgba(245,240,232,.78);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14)"><span style="color:#2BD483">✓</span> No pressure to commit</span>
+</div>
+</div>
+</div>
+
+<!-- TIMELINE -->
+<div data-screen-label="Timeline" id="timeline" style="position:relative;background:#FDFBF6;border-top:1px solid #EDE6D8;overflow:hidden">
+<div style="position:relative;max-width:1180px;margin:0 auto;padding:clamp(56px,8vw,92px) clamp(20px,3vw,32px)">
+<div class="fm-rv" style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:48px;text-align:center">
+<div style="display:flex;align-items:center;gap:14px"><span style="width:38px;height:2px;background:#D9B36A"></span><span style="font:700 12px 'Instrument Sans',sans-serif;letter-spacing:.18em;color:#128A54;text-transform:uppercase">Six steps, start to finish</span><span style="width:38px;height:2px;background:#D9B36A"></span></div>
+<h2 style="margin:0;font:600 clamp(32px,4.2vw,50px)/1.12 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.02em">From first call to <span style="color:#128A54">live and supported.</span></h2>
+</div>
+
+<div class="timeline-v6">
+<div class="tl-spine-v6"><span ref="{{ registerProgress }}" class="tl-progress-v6"></span></div>
+
+<div class="tl-step-v6 fm-rv">
+<div class="tl-node-v6"><b>1</b></div>
+<div class="tl-card-v6 tl-left-v6">
+<span class="tl-day-v6">Step 1</span>
+<h3 class="tl-title-v6">Discovery Call</h3>
+<p style="margin:0;font:400 15px/1.6 'Instrument Sans',sans-serif;color:#68705F">A free 30-minute call where we map how the work happens today and find your biggest time drains.</p>
+</div>
+</div>
+
+<div class="tl-step-v6 fm-rv">
+<div class="tl-node-v6"><b>2</b></div>
+<div class="tl-card-v6 tl-right-v6">
+<span class="tl-day-v6">Step 2</span>
+<h3 class="tl-title-v6">Workflow Audit</h3>
+<p style="margin:0;font:400 15px/1.6 'Instrument Sans',sans-serif;color:#68705F">We dig into your actual tools and steps — no assumptions — to understand exactly what needs to connect to what.</p>
+</div>
+</div>
+
+<div class="tl-step-v6 fm-rv">
+<div class="tl-node-v6"><b>3</b></div>
+<div class="tl-card-v6 tl-left-v6">
+<span class="tl-day-v6">Step 3</span>
+<h3 class="tl-title-v6">Fixed-Scope Proposal</h3>
+<p style="margin:0;font:400 15px/1.6 'Instrument Sans',sans-serif;color:#68705F">You receive a clear, written proposal — exact deliverables, timeline, and cost. No packages, no guessing.</p>
+</div>
+</div>
+
+<div class="tl-step-v6 fm-rv">
+<div class="tl-node-v6"><b>4</b></div>
+<div class="tl-card-v6 tl-right-v6">
+<span class="tl-day-v6">Step 4</span>
+<h3 class="tl-title-v6">Build Phase</h3>
+<p style="margin:0;font:400 15px/1.6 'Instrument Sans',sans-serif;color:#68705F">We build against the approved scope, integrating with the tools you already use — you get progress updates, not surprises.</p>
+</div>
+</div>
+
+<div class="tl-step-v6 fm-rv">
+<div class="tl-node-v6"><b>5</b></div>
+<div class="tl-card-v6 tl-left-v6">
+<span class="tl-day-v6">Step 5</span>
+<h3 class="tl-title-v6">Testing &amp; Handoff</h3>
+<p style="margin:0;font:400 15px/1.6 'Instrument Sans',sans-serif;color:#68705F">We test against real scenarios before anything goes live, then hand off with documentation your team can actually use.</p>
+</div>
+</div>
+
+<div class="tl-step-v6 fm-rv">
+<div class="tl-node-v6" style="background:linear-gradient(160deg,#17A063,#0E7A4E);box-shadow:0 14px 30px rgba(23,160,99,.42)"><b style="font-size:13px;letter-spacing:.06em">30</b><span style="font:700 9px 'Instrument Sans',sans-serif;letter-spacing:.12em;color:rgba(255,255,255,.85)">DAYS</span></div>
+<div class="tl-card-v6 tl-right-v6" style="border-color:rgba(18,138,84,.32)">
+<span class="tl-day-v6" style="color:#128A54;background:#EAF6EF;border-color:rgba(18,138,84,.3)">30-Day Support</span>
+<h3 class="tl-title-v6">Live &amp; Supported</h3>
+<p style="margin:0;font:400 15px/1.6 'Instrument Sans',sans-serif;color:#68705F">30 days of support included after launch — we monitor, fix, and fine-tune as your team gets used to the new system.</p>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+
+<!-- WHY NO PRICING PACKAGES -->
+<div data-screen-label="No Packages" style="background:#0E241A">
+<div style="max-width:900px;margin:0 auto;padding:clamp(56px,7vw,80px) clamp(20px,3vw,32px);text-align:center;display:flex;flex-direction:column;align-items:center;gap:18px">
+<h2 class="fm-rv" style="margin:0;font:600 clamp(26px,3.2vw,36px)/1.2 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.02em">Why we don't sell generic packages.</h2>
+<p class="fm-rv" style="margin:0;font:400 17px/1.7 'Instrument Sans',sans-serif;color:rgba(245,240,232,.62);max-width:640px">Two businesses in the same industry rarely run the same workflow, tools, or volume — a fixed tier either overcharges one or undersells the other. So every build is scoped after discovery: you get a clear proposal, a fixed quote, and a timeline built around what you actually need, not a plan you have to fit yourself into.</p>
+<div class="principles-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;width:100%;margin-top:8px">
+<div class="fm-rv" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:18px 16px;text-align:left"><span style="font:600 14.5px 'Instrument Sans',sans-serif;color:#F5F0E8">Custom quote after discovery</span></div>
+<div class="fm-rv" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:18px 16px;text-align:left"><span style="font:600 14.5px 'Instrument Sans',sans-serif;color:#F5F0E8">Fixed scope after audit</span></div>
+<div class="fm-rv" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:18px 16px;text-align:left"><span style="font:600 14.5px 'Instrument Sans',sans-serif;color:#F5F0E8">No pressure to commit</span></div>
+</div>
+</div>
+</div>
+
+<!-- FAQ -->
+<div data-screen-label="Process FAQ" id="faq" style="background:#F7F2EA">
+<div style="max-width:820px;margin:0 auto;padding:clamp(56px,8vw,92px) clamp(20px,3vw,32px)">
+<div class="fm-rv" style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:44px;text-align:center">
+<span style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:rgba(18,138,84,.09);border:1px solid rgba(18,138,84,.22);font:700 11.5px 'Instrument Sans',sans-serif;letter-spacing:.15em;color:#128A54;text-transform:uppercase;white-space:nowrap"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#D9B36A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M9.2 9.2a2.8 2.8 0 0 1 5.5.8c0 1.9-2.8 2.4-2.8 4"></path><line x1="12" y1="17.2" x2="12.01" y2="17.2"></line></svg>Process FAQ</span>
+<h2 style="margin:0;font:600 clamp(28px,3.6vw,44px)/1.14 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.02em;text-wrap:balance">What to expect from discovery to handoff.</h2>
+<p style="margin:0;font:400 16px/1.6 'Instrument Sans',sans-serif;color:#68705F;max-width:560px">How a project runs, from the first call through to handoff.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<sc-for list="{{ faqs }}" as="f" hint-placeholder-count="4">
+<div class="fm-rv faq-motion" style="{{ f.wrapStyle }}">
+<button onClick="{{ f.toggle }}" class="faq-btn-v5" style="display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;box-sizing:border-box;padding:21px 22px;cursor:pointer;background:transparent;border:none;text-align:left;min-width:0">
+<span style="flex:1;min-width:0;overflow-wrap:anywhere;font:600 16px/1.4 'Space Grotesk',sans-serif;color:#0A120E">{{ f.q }}</span>
+<span style="{{ f.togStyle }}"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3.5 6l4.5 4.5L12.5 6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+</button>
+<div style="{{ f.bodyStyle }}"><div style="min-height:0;overflow:hidden"><div style="margin:0 22px;border-top:1px solid #EFE7D6"><p style="margin:0;padding:16px 0 20px;font:400 15px/1.65 'Instrument Sans',sans-serif;color:#5C6356">{{ f.a }}</p></div></div></div>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+
+<!-- CTA -->
+<div data-screen-label="CTA" style="position:relative;background:radial-gradient(760px 420px at 50% -15%, rgba(23,160,99,.18), transparent 62%), #0A120E;overflow:hidden">
+<div style="position:relative;max-width:1180px;margin:0 auto;padding:clamp(56px,8vw,96px) clamp(20px,3vw,32px)">
+<div class="cta-v7 fm-rv">
+<div style="display:flex;flex-direction:column;align-items:flex-start;gap:18px;min-width:0">
+<span style="font:700 12px 'Instrument Sans',sans-serif;letter-spacing:.18em;color:#D9B36A;text-transform:uppercase">Ready for step one?</span>
+<h2 class="cta-title-v7">Book Your <span style="white-space:nowrap">Discovery Call</span></h2>
+<p style="margin:0;font:400 17px/1.65 'Instrument Sans',sans-serif;color:rgba(245,240,232,.62);max-width:440px">No commitment, no pricing pitch — just an honest look at whether automation is worth it for you right now.</p>
+<div class="cta-chip-row-v7">
+<span class="cta-chip-v7"><span style="color:#2BD483">✓</span>Free audit included</span>
+<span class="cta-chip-v7"><span style="color:#2BD483">✓</span>No long contracts</span>
+<span class="cta-chip-v7"><span style="color:#2BD483">✓</span>30-day support</span>
+</div>
+</div>
+<div class="cta-action-card-v7">
+<span style="font:700 10.5px 'Instrument Sans',sans-serif;letter-spacing:.14em;color:rgba(245,240,232,.5);text-transform:uppercase">What you get in 30 minutes</span>
+<div style="display:flex;flex-direction:column;gap:11px">
+<span style="display:flex;align-items:flex-start;gap:10px;font:500 14.5px/1.5 'Instrument Sans',sans-serif;color:rgba(245,240,232,.8)"><span style="color:#2BD483;font-weight:700;flex-shrink:0">✓</span>A map of your biggest time drains</span>
+<span style="display:flex;align-items:flex-start;gap:10px;font:500 14.5px/1.5 'Instrument Sans',sans-serif;color:rgba(245,240,232,.8)"><span style="color:#2BD483;font-weight:700;flex-shrink:0">✓</span>Which workflow to automate first</span>
+<span style="display:flex;align-items:flex-start;gap:10px;font:500 14.5px/1.5 'Instrument Sans',sans-serif;color:rgba(245,240,232,.8)"><span style="color:#2BD483;font-weight:700;flex-shrink:0">✓</span>A fixed quote — before we build anything</span>
+</div>
+<a href="08-Contact.dc.html" class="cta-sweep cta-button-v7"><span style="white-space:nowrap">Book Free Discovery Call</span><img src="assets/icon-arrow-right.svg" style="width:15px;height:15px;flex-shrink:0" alt=""></a>
+</div>
+</div>
+</div>
+</div>
+
+<!-- FOOTER -->
+<div data-screen-label="Footer" style="background:#070D0A;border-top:1px solid rgba(255,255,255,.06)">
+<div style="max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:40px;padding:56px 32px 40px">
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;gap:9px">
+<img src="assets/logo-mark.svg" style="width:24px;height:24px;filter:brightness(1.5)" alt="">
+<span style="font:600 17px 'Space Grotesk',sans-serif;color:#F5F0E8">Code<span style="color:#2BD483">Outfitters</span></span>
+</div>
+<p style="margin:0;font:400 15px/1.65 'Instrument Sans',sans-serif;color:rgba(245,240,232,.45);max-width:300px">AI automation for US small businesses. We eliminate repetitive work so you can focus on what actually grows your business.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<span style="font:700 11.5px 'Instrument Sans',sans-serif;letter-spacing:.16em;color:rgba(245,240,232,.4);text-transform:uppercase">Services</span>
+<a href="02-Services.dc.html#whatsapp" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">WhatsApp Automation</a>
+<a href="02-Services.dc.html#email" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Email Workflows</a>
+<a href="02-Services.dc.html#support" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">AI Chatbots</a>
+<a href="02-Services.dc.html#booking" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Booking Bots</a>
+<a href="02-Services.dc.html#invoice" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Invoice Automation</a>
+<a href="02-Services.dc.html#custom" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Custom Builds</a>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<span style="font:700 11.5px 'Instrument Sans',sans-serif;letter-spacing:.16em;color:rgba(245,240,232,.4);text-transform:uppercase">Company</span>
+<a href="01-Homepage.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Home</a>
+<a href="05-About.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">About</a>
+<a href="03-Industries.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Industries</a>
+<span style="font:500 14.5px 'Instrument Sans',sans-serif;color:#F5F0E8">Process</span>
+<a href="07-Case-Studies.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Case Studies</a>
+<a href="06-Security-Reliability.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Security & Reliability</a>
+<a href="08-Contact.dc.html" style="font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none" style-hover="color:#F5F0E8">Contact</a>
+</div>
+</div>
+<div style="max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:20px 32px;border-top:1px solid rgba(255,255,255,.06)">
+<span style="font:400 12.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.35)">© 2026 CodeOutfitters LLC. All rights reserved.</span>
+<span style="display:flex;align-items:center;gap:7px;font:500 12.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.5)"><span style="width:7px;height:7px;border-radius:999px;background:#2BD483;animation:v3Pulse 1.8s ease-out infinite"></span>All systems operational</span>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { openFaq: -1 };
+
+  _faqs = [
+    { q: 'Why isn\'t there a pricing page?', a: 'Because two businesses rarely need the same build. We scope every project after a discovery call and workflow audit, so your quote reflects your actual tools and volume — not a generic tier.' },
+    { q: 'How long does discovery take?', a: 'Just one 30-minute call. We come prepared with questions about your current workflow and walk away with enough to scope a proposal.' },
+    { q: 'When do I find out the cost?', a: 'After the workflow audit, in your fixed-scope proposal — before any build work starts. No surprise invoices later.' },
+    { q: 'What happens if I don\'t want to move forward after discovery?', a: 'Nothing — there\'s no obligation. The call and audit are free, and it\'s common for us to tell people automation isn\'t the right fit yet.' },
+    { q: 'What does the 30-day support window include?', a: 'We monitor your automations, fix issues fast, and make small adjustments as your team gets used to the new system.' }
+  ];
+
+  registerRoot = (el) => { this.rootEl = el; };
+  registerProgress = (el) => { this.progressEl = el; };
+
+  componentDidMount() {
+    if (this.progressEl) {
+      requestAnimationFrame(() => {
+        setTimeout(() => this.progressEl.classList.add('is-filled'), 150);
+      });
+    }
+  }
+
+  renderVals() {
+    const openFaq = this.state.openFaq;
+    return {
+      registerRoot: this.registerRoot,
+      registerProgress: this.registerProgress,
+      faqs: this._faqs.map((f, i) => {
+        const open = this.state.openFaq === i;
+        return {
+          q: f.q, a: f.a,
+          toggle: () => { this.setState(s => ({ openFaq: s.openFaq === i ? -1 : i })); setTimeout(() => this.forceUpdate(), 30); },
+          wrapStyle: { position: 'relative', minWidth: 0, background: open ? '#FFFFFF' : '#FCFAF4', border: open ? '1px solid rgba(18,138,84,.55)' : '1px solid #E7DFCF', borderRadius: '16px', overflow: 'hidden', boxShadow: open ? '0 16px 40px rgba(18,32,27,.13), 0 0 0 3px rgba(23,160,99,.09), 0 0 22px rgba(217,179,106,.16)' : '0 1px 2px rgba(32,24,12,.05)', transition: 'box-shadow .4s cubic-bezier(.16,1,.3,1), border-color .4s cubic-bezier(.16,1,.3,1), background .4s cubic-bezier(.16,1,.3,1)' },
+          togStyle: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', borderRadius: '999px', flexShrink: 0, background: open ? '#128A54' : '#F1EADB', border: open ? '1px solid #128A54' : '1px solid #E0D6C2', color: open ? '#FFFFFF' : '#128A54', transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'background .35s ease, border-color .35s ease, color .35s ease, transform .4s cubic-bezier(.34,1.56,.64,1)' },
+          bodyStyle: { display: 'grid', gridTemplateRows: open ? '1fr' : '0fr', opacity: open ? 1 : 0, transition: 'grid-template-rows .4s cubic-bezier(.16,1,.3,1), opacity .3s ease' }
+        };
+      }),
+    };
+  }
+}
+
+</script>
+</body>
+</html>
