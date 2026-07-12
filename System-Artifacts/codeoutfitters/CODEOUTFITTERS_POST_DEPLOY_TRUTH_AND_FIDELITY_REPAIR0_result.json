@@ -1,0 +1,23 @@
+{
+  "gate": "CODEOUTFITTERS_POST_DEPLOY_TRUTH_AND_FIDELITY_REPAIR0",
+  "result": "PASSED",
+  "marquee_homepage_single_row": true,
+  "marquee_security_single_row": true,
+  "marquee_original_plus_duplicate": true,
+  "marquee_hover_pause": true,
+  "marquee_reduced_motion_fallback": true,
+  "stats_relabeled": true,
+  "testimonials_named_clients_removed": true,
+  "testimonials_heading_renamed": true,
+  "case_studies_heading_renamed": true,
+  "security_claims_honest": true,
+  "contact_form_real_backend": false,
+  "contact_form_honest_preview_notice": true,
+  "route_book_removed": true,
+  "route_portfolio_removed": true,
+  "route_pricing_never_existed": true,
+  "typecheck_passed": true,
+  "build_passed": true,
+  "all_eight_routes_verified": true,
+  "remaining_issues": []
+}
