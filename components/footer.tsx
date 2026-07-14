@@ -1,73 +1,14 @@
-﻿'use client'
+'use client'
 
 import Link from 'next/link'
-import { useScrollReveal } from '@/hooks/useScrollReveal'
+import { usePathname } from 'next/navigation'
 
-export function Footer() {
-  const year = new Date().getFullYear()
-  const sectionRef = useScrollReveal<HTMLDivElement>(0.08)
+const services=[['WhatsApp Automation','/services#whatsapp'],['Email Workflows','/services#email'],['AI Chatbots','/services#support'],['Booking Bots','/services#booking'],['Invoice Automation','/services#invoice'],['Custom Builds','/services#custom']]
+const company=[['Home','/'],['About','/about'],['Industries','/industries'],['Process','/process'],['Case Studies','/case-studies'],['Security & Reliability','/security'],['Contact','/contact']]
 
-  return (
-    <footer className="bg-[#070D0A] text-white relative overflow-hidden">
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.5) 1px, transparent 1px)', backgroundSize: '32px 32px' }} aria-hidden="true" />
-      <div className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full blur-[120px] opacity-10 pointer-events-none" style={{ background: 'radial-gradient(circle, #17A063 0%, transparent 70%)' }} aria-hidden="true" />
-      <div className="absolute -top-32 -right-32 w-80 h-80 rounded-full blur-[100px] opacity-8 pointer-events-none" style={{ background: 'radial-gradient(circle, #D9B36A 0%, transparent 70%)' }} aria-hidden="true" />
-
-      <div ref={sectionRef} className="relative max-w-[1180px] mx-auto px-5 sm:px-6 lg:px-8 py-16 md:py-20">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12 mb-8">
-          <div data-reveal className="lg:col-span-2">
-            <div className="flex items-center gap-2.5 mb-4">
-              <img src="/assets/logo-mark.svg" className="w-7 h-7" alt="" />
-              <span className="font-heading text-lg text-white">
-                Code<span className="text-[#D9B36A]">Outfitters</span>
-              </span>
-            </div>
-            <p className="text-[rgba(255,255,255,0.45)] text-sm leading-relaxed max-w-sm mb-6">
-              AI automation command center for US small businesses. We design, deploy, and maintain custom automation systems so you can focus on growth.
-            </p>
-          </div>
-
-          <div data-reveal>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[rgba(255,255,255,0.35)] mb-5">Navigate</p>
-            <ul className="space-y-3">
-              {[
-                { label: 'Home', href: '/' },
-                { label: 'Services', href: '/services' },
-                { label: 'Industries', href: '/industries' },
-                { label: 'Process', href: '/process' },
-              ].map((link) => (
-                <li key={link.label}>
-                  <Link href={link.href} className="text-sm text-[rgba(255,255,255,0.45)] hover:text-[#D9B36A] transition-colors duration-200">
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div data-reveal>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[rgba(255,255,255,0.35)] mb-5">Company</p>
-            <ul className="space-y-3">
-              {[
-                { label: 'Security & Reliability', href: '/security' },
-                { label: 'Case Studies', href: '/case-studies' },
-                { label: 'About', href: '/about' },
-                { label: 'Contact', href: '/contact' },
-              ].map((link) => (
-                <li key={link.label}>
-                  <Link href={link.href} className="text-sm text-[rgba(255,255,255,0.45)] hover:text-[#D9B36A] transition-colors duration-200">
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        <div data-reveal className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-[rgba(255,255,255,0.35)] text-xs">&copy; {year} CodeOutfitters LLC. All rights reserved.</p>
-        </div>
-      </div>
-    </footer>
-  )
+export function Footer(){
+ const pathname=usePathname();const visibleCompany=pathname==='/'?company.slice(1):company
+ return <footer className="site-footer"><div className="site-footer-main"><div className="site-footer-brand"><div><img src="/assets/logo-mark.svg" alt=""/><span>Code<b>Outfitters</b></span></div><p>AI automation for US small businesses. We eliminate repetitive work so you can focus on what actually grows your business.</p></div><div><strong>Services</strong>{services.map(([label,href])=><Link href={href} key={label}>{label}</Link>)}</div><div><strong>Company</strong>{visibleCompany.map(([label,href])=><Link href={href} key={label}>{label}</Link>)}</div></div><div className="site-footer-lower"><span>© 2026 CodeOutfitters LLC. All rights reserved.</span><span><i/>All systems operational</span></div><style>{`
+ .site-footer{background:#070D0A;border-top:1px solid rgba(255,255,255,.06)}.site-footer-main{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:40px;padding:56px 32px 40px}.site-footer-main>div{display:flex;flex-direction:column;gap:12px}.site-footer-brand>div{display:flex;align-items:center;gap:9px}.site-footer-brand img{width:24px;height:24px}.site-footer-brand span{font:600 17px 'Space Grotesk',sans-serif;color:#F5F0E8}.site-footer-brand b{color:#2BD483}.site-footer-brand p{margin:0;font:400 15px/1.65 'Instrument Sans',sans-serif;color:rgba(245,240,232,.45);max-width:300px}.site-footer-main strong{font:700 11.5px 'Instrument Sans',sans-serif;letter-spacing:.16em;color:rgba(245,240,232,.4);text-transform:uppercase}.site-footer-main a{font:500 14.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);text-decoration:none}.site-footer-main a:hover{color:#F5F0E8}.site-footer-lower{max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:20px 32px;border-top:1px solid rgba(255,255,255,.06);font:400 12.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.35)}.site-footer-lower span+span{display:flex;align-items:center;gap:7px;color:rgba(245,240,232,.5)}.site-footer-lower i{width:7px;height:7px;border-radius:50%;background:#2BD483}@media(max-width:560px){.site-footer-main{padding:46px 20px 34px;grid-template-columns:1fr}.site-footer-lower{padding:18px 20px;align-items:flex-start;flex-direction:column}}
+ `}</style></footer>
 }

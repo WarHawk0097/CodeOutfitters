@@ -1,0 +1,43 @@
+{
+  "route": "/contact",
+  "status": "PASS",
+  "sourceFile": "F:/CodeOutfitters/# CodeOutfitters Project Audit)/CodeOutfitters-complete-motion-enhancement-v1/CodeOutfitters Contact.dc.html",
+  "nativeRoute": "F:/CodeOutfitters/app/(public)/contact/contact-page-client.tsx",
+  "native": true,
+  "sectionOrderMatch": true,
+  "sectionCountMatch": true,
+  "copyMatch": true,
+  "componentHierarchyMatch": true,
+  "backgroundMatch": true,
+  "typographyMatch": true,
+  "spacingMatch": true,
+  "proportionsMatch": true,
+  "cardGeometryMatch": true,
+  "desktopMatch": true,
+  "tabletMatch": true,
+  "mobileMatch": true,
+  "motionPreserved": true,
+  "interactionsWorking": true,
+  "viewports": {
+    "1440x1000": { "sourceHeight": 2037, "beforeHeight": 2389, "afterHeight": 2023, "heightDeltaPercent": 0.69 },
+    "820x1180": { "sourceHeight": 2373, "beforeHeight": 2838, "afterHeight": 2359, "heightDeltaPercent": 0.59 },
+    "390x844": { "sourceHeight": 3087, "beforeHeight": 3674, "afterHeight": 3053, "heightDeltaPercent": 1.10 }
+  },
+  "runtime": {
+    "fieldCount": 5,
+    "requiredValidation": true,
+    "optionalFieldsRemainOptional": true,
+    "honestNoBackendDisclosure": true,
+    "fakeSuccessVisible": false,
+    "directEmailWorks": true,
+    "backToFormResets": true,
+    "faqTransferAndClose": true,
+    "reducedRunningAnimations": 0,
+    "horizontalOverflow": false,
+    "settledLayoutShift": false,
+    "brokenImages": 0,
+    "consoleErrors": 0,
+    "hydrationErrors": 0
+  },
+  "remainingMismatches": []
+}

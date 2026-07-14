@@ -1,0 +1,23 @@
+{
+  "route": "/industries",
+  "status": "PASS",
+  "native": true,
+  "productionBuild": true,
+  "typeScript": true,
+  "viewports": {
+    "1440x1000": { "sourceHeight": 5183, "beforeHeight": 6520, "afterHeight": 5179, "heightDeltaPercent": 0.08 },
+    "820x1180": { "sourceHeight": 6036, "beforeHeight": 7056, "afterHeight": 6032, "heightDeltaPercent": 0.07 },
+    "390x844": { "sourceHeight": 8525, "beforeHeight": 9612, "afterHeight": 8491, "heightDeltaPercent": 0.40 }
+  },
+  "runtime": {
+    "industryCards": 7,
+    "faqs": 4,
+    "faqOpenTransferClose": true,
+    "spotlightMotion": true,
+    "reducedMotionReadable": true,
+    "horizontalOverflow": false,
+    "brokenImages": 0,
+    "consoleErrors": 0,
+    "hydrationErrors": 0
+  }
+}

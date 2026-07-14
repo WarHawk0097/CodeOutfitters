@@ -1,18 +1,26 @@
 'use client'
 import { useEffect, useRef } from 'react'
 import { gsap, ScrollTrigger } from '@/lib/animations/gsap-setup'
+import { useMotionMode } from '@/components/motion-mode-provider'
 
 type RevealDir = 'up' | 'down' | 'left' | 'right' | 'scale'
 
 export function useScrollReveal<T extends HTMLElement = HTMLDivElement>(opts?: number | { stagger?: number; dir?: RevealDir }) {
   const ref = useRef<T>(null)
+  const { reduced } = useMotionMode()
   const stagger = typeof opts === 'number' ? opts : opts?.stagger ?? 0.12
   const dir: RevealDir = typeof opts === 'object' ? opts.dir ?? 'up' : 'up'
 
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    if (reduced) {
+      el.querySelectorAll<HTMLElement>('[data-reveal]').forEach((target) => {
+        target.style.opacity = '1'
+        target.style.transform = 'none'
+      })
+      return
+    }
 
     const targets = Array.from(el.querySelectorAll<HTMLElement>('[data-reveal]'))
     if (targets.length === 0) return
@@ -37,7 +45,7 @@ export function useScrollReveal<T extends HTMLElement = HTMLDivElement>(opts?: n
     }, el)
 
     return () => ctx.revert()
-  }, [stagger, dir])
+  }, [stagger, dir, reduced])
 
   return ref
 }

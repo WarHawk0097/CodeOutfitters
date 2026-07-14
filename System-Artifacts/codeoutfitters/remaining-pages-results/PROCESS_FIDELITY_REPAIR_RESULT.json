@@ -1,0 +1,23 @@
+{
+  "route": "/process",
+  "status": "PASS",
+  "native": true,
+  "productionBuild": true,
+  "typeScript": true,
+  "viewports": {
+    "1440x1000": { "sourceHeight": 4194, "beforeHeight": 5412, "afterHeight": 4259, "heightDeltaPercent": 1.55 },
+    "820x1180": { "sourceHeight": 4194, "beforeHeight": 5525, "afterHeight": 4256, "heightDeltaPercent": 1.48 },
+    "390x844": { "sourceHeight": 4952, "beforeHeight": 6347, "afterHeight": 5008, "heightDeltaPercent": 1.13 }
+  },
+  "runtime": {
+    "timelineSteps": 6,
+    "faqs": 5,
+    "timelineFill": true,
+    "faqOpenTransferClose": true,
+    "reducedMotionReadable": true,
+    "horizontalOverflow": false,
+    "brokenImages": 0,
+    "consoleErrors": 0,
+    "hydrationErrors": 0
+  }
+}

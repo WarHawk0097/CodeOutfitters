@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { MessageSquare, Mail, Bot, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
+import { useMotionMode } from '@/components/motion-mode-provider'
 
 function SectionLabel({ text }: { text: string }) {
   return (
@@ -41,11 +42,14 @@ function LivePill() {
 }
 
 function ChatDemo() {
-  const [t, setT] = useState(0)
+  const { reduced } = useMotionMode()
+  const [t, setT] = useState(12)
   useEffect(() => {
-    const i = setInterval(() => setT((p) => (p >= 12 ? 0 : p + 0.06)), 80)
+    if (reduced) { setT(12); return }
+    setT(12)
+    const i = setInterval(() => setT(12), 12000)
     return () => clearInterval(i)
-  }, [])
+  }, [reduced])
 
   const msg = (align: 'start' | 'end', style: Record<string, string>, children: React.ReactNode, showAt: number) =>
     t >= showAt ? (
@@ -84,7 +88,7 @@ function ChatDemo() {
   return (
     <div
       style={{
-        display: 'flex', flexDirection: 'column', minHeight: '280px', padding: '12px 14px',
+      display: 'flex', flexDirection: 'column', minHeight: '380px', padding: '16px',
         background: 'rgba(10,18,14,.03)', borderRadius: '14px',
         border: '1px solid rgba(13,58,49,.10)',
       }}
@@ -176,11 +180,14 @@ function EmailFlowDemo() {
 }
 
 function SupportTerminalDemo() {
-  const [t, setT] = useState(0)
+  const { reduced } = useMotionMode()
+  const [t, setT] = useState(10)
   useEffect(() => {
-    const i = setInterval(() => setT((p) => (p >= 10 ? 0 : p + 0.08)), 80)
+    if (reduced) { setT(10); return }
+    setT(10)
+    const i = setInterval(() => setT(10), 10000)
     return () => clearInterval(i)
-  }, [])
+  }, [reduced])
 
   const lines = [
     { text: '> visitor: "Can this integrate with my CRM?"', at: 0, c: 'rgba(245,240,232,.85)' },
@@ -249,25 +256,25 @@ export function ServicesBento() {
   return (
     <section
       ref={sectionRef}
-      style={{ background: '#FDFBF6', padding: '80px 0' }}
+      style={{ backgroundImage: 'radial-gradient(rgba(14,42,29,.06) 1px,transparent 1.5px)', backgroundSize: '26px 26px', backgroundColor: '#F7F2EA' }}
     >
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+      <div style={{ maxWidth: '1180px', margin: '0 auto', padding: 'clamp(56px,8vw,92px) clamp(20px,3vw,32px)' }}>
+        <div style={{ textAlign: 'center', marginBottom: '38px' }}>
           <SectionLabel text="01 · What we build" />
           <h2
             style={{
-              font: '600 clamp(28px,3.8vw,42px)/1.15 "Space Grotesk",sans-serif',
+              font: '600 clamp(32px,4.2vw,50px)/1.12 "Space Grotesk",sans-serif',
               color: '#0A120E',
               letterSpacing: '-.02em',
               maxWidth: '700px',
               margin: '0 auto',
             }}
           >
-            Each system is custom-built for your business — deployed in 7 days.
+            Each system is custom-built for your business — <span style={{ color: '#128A54' }}>deployed in 7 days.</span>
           </h2>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
           {/* Featured card */}
           <div
             data-reveal
@@ -279,7 +286,7 @@ export function ServicesBento() {
             }}
           >
             <div style={{ height: '4px', background: '#2BD483' }} />
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.2fr) minmax(0,.8fr)', gap: '24px', padding: '28px 32px' }}>
+            <div className="hp-svc-featured-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,.92fr) minmax(0,1.08fr)', gap: 'clamp(22px,3vw,36px)', padding: 'clamp(24px,2.8vw,34px)' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                   <span style={{ font: '700 10px "Instrument Sans",sans-serif', letterSpacing: '.12em', color: '#68705F', textTransform: 'uppercase' }}>
@@ -317,11 +324,11 @@ export function ServicesBento() {
                   WhatsApp Lead Automation
                 </h3>
                 <p style={{ font: '400 14.5px/1.6 "Instrument Sans",sans-serif', color: '#68705F', margin: 0 }}>
-                  Automatically capture, qualify, and respond to every lead on WhatsApp — 24/7, in seconds, without a human in the loop.
+                  Every inbound lead gets qualified, answered, and booked in seconds — while your CRM stays in perfect sync. You never miss a sales opportunity again.
                 </p>
 
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {['AI lead qualification', 'CRM sync', 'Auto-booking', 'Follow-ups'].map((chip) => (
+                  {['Qualifies in under 30s', 'Books to calendar', 'Syncs to CRM'].map((chip) => (
                     <span
                       key={chip}
                       style={{
@@ -340,8 +347,8 @@ export function ServicesBento() {
 
                 <div style={{ display: 'flex', gap: '20px', padding: '14px 0', borderTop: '1px solid rgba(13,58,49,.08)', borderBottom: '1px solid rgba(13,58,49,.08)' }}>
                   {[
-                    { value: '26s', label: 'Avg. response' },
-                    { value: '24/7', label: 'Availability' },
+                    { value: '26s', label: 'Avg first reply' },
+                    { value: '24/7', label: 'Always answering' },
                     { value: '0', label: 'Leads missed' },
                   ].map((m) => (
                     <div key={m.label} style={{ textAlign: 'center' }}>
@@ -359,7 +366,7 @@ export function ServicesBento() {
                     textDecoration: 'none', marginTop: '4px',
                   }}
                 >
-                  Book a free call <ArrowRight size={14} />
+                  See a live build <ArrowRight size={14} />
                 </Link>
               </div>
 
@@ -370,7 +377,7 @@ export function ServicesBento() {
           </div>
 
           {/* Supporting cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          <div className="hp-svc-support-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px' }}>
             <div
               data-reveal
               style={{
@@ -390,7 +397,7 @@ export function ServicesBento() {
                 </div>
                 <h3 style={{ font: '600 18px/1.2 "Space Grotesk",sans-serif', color: '#0A120E', margin: 0 }}>Email Workflow Automation</h3>
                 <p style={{ font: '400 13.5px/1.6 "Instrument Sans",sans-serif', color: '#68705F', margin: 0 }}>
-                  Auto-capture leads, send personalized nurture sequences, and book calls — all triggered by a single form submission.
+                  Smart sequences that nurture prospects, onboard clients, and re-engage customers automatically.
                 </p>
                 <EmailFlowDemo />
                 <Link
@@ -425,7 +432,7 @@ export function ServicesBento() {
                 </div>
                 <h3 style={{ font: '600 18px/1.2 "Space Grotesk",sans-serif', color: '#0A120E', margin: 0 }}>Support Chat Systems</h3>
                 <p style={{ font: '400 13.5px/1.6 "Instrument Sans",sans-serif', color: '#68705F', margin: 0 }}>
-                  AI-powered chat that answers FAQs, qualifies leads, and routes complex issues to your team — with full context.
+                  Intelligent chatbots that answer questions, collect data, and route hot leads to your team.
                 </p>
                 <SupportTerminalDemo />
                 <Link
@@ -449,6 +456,7 @@ export function ServicesBento() {
           0%, 100% { opacity: 1 }
           50% { opacity: 0 }
         }
+        @media(max-width:900px){.hp-svc-featured-grid{grid-template-columns:1fr!important}.hp-svc-support-grid{grid-template-columns:1fr!important}}
       `}</style>
     </section>
   )

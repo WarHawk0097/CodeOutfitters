@@ -1,0 +1,88 @@
+{
+  "result": "FAILED",
+  "source": {
+    "approved_ui_folder_found": true,
+    "actual_source_root": "F:\\CodeOutfitters\\# CodeOutfitters Project Audit)\\CodeOutfitters-complete-motion-enhancement-v1",
+    "eight_source_pages_found": true,
+    "animation_source_inspected": true,
+    "source_map": "System-Artifacts/codeoutfitters/CODEOUTFITTERS_FINAL_UI_SOURCE_MAP.md"
+  },
+  "architecture": {
+    "native_nextjs": true,
+    "react_typescript": true,
+    "tailwind": true,
+    "iframe_absent": true,
+    "dangerously_set_inner_html_absent": true,
+    "standalone_html_dependency_absent": true,
+    "generic_dom_mutation_engine_absent": true
+  },
+  "responsive_qa": {
+    "checks_completed": 24,
+    "checks_required": 24,
+    "http_200": true,
+    "console_errors": 0,
+    "hydration_errors": 0,
+    "broken_native_assets": 0,
+    "horizontal_overflow": 0,
+    "permanently_hidden_reveals": 0
+  },
+  "motion": {
+    "motion_full": true,
+    "motion_reduced": true,
+    "reduced_static_marquees": true,
+    "reduced_duplicate_sequences_visible": 0,
+    "homepage_marquee": { "movement": true, "pointer_pause": true, "resume": true, "cards_per_sequence": 12 },
+    "services_marquee": { "movement": true, "pointer_pause": true, "resume": true, "cards_per_sequence": 9 },
+    "security_marquee": { "movement": true, "pointer_pause": true, "resume": true, "cards_per_sequence": 13 },
+    "process": {
+      "timeline_count": 1,
+      "fill_count": 1,
+      "step_count": 6,
+      "heading_count": 6,
+      "progress": [0.099, 0.8135, 1.0],
+      "active_markers": [1, 5, 6],
+      "reduced_progress": 1.0
+    }
+  },
+  "interactions": {
+    "homepage_workflow_tabs": true,
+    "homepage_calculator": true,
+    "faqs": true,
+    "services_search": true,
+    "services_expandable_cards": true,
+    "case_studies_filters": true,
+    "case_studies_expandable_stories": true,
+    "contact_truthful_disclosure": true,
+    "contact_fake_success_absent": true,
+    "mobile_navigation_links": 7
+  },
+  "visual_fidelity": {
+    "approved_source_captures": 24,
+    "native_captures": 24,
+    "passed": false,
+    "blocker": "Material layout, section background, card geometry, typography, spacing, and composition differences remain between approved v1 source and native routes."
+  },
+  "runtime": {
+    "typecheck": "PASS",
+    "lint": "UNAVAILABLE: eslint executable is not installed",
+    "build": "PASS",
+    "playwright": "PASS for runtime; FAIL for visual fidelity gate"
+  },
+  "obsolete_routes": {
+    "/pricing": 404,
+    "/book": 404,
+    "/portfolio": 404
+  },
+  "deployment": {
+    "commit": null,
+    "push": null,
+    "vercel": null,
+    "production_verified": false,
+    "reason": "Deployment prohibited because visual comparison gate failed."
+  },
+  "evidence": {
+    "implementation_report": "System-Artifacts/codeoutfitters/CODEOUTFITTERS_FINAL_UI_IMPLEMENTATION_REPORT.md",
+    "result_json": "System-Artifacts/codeoutfitters/CODEOUTFITTERS_FINAL_UI_IMPLEMENTATION_RESULT.json",
+    "browser_evidence": "System-Artifacts/codeoutfitters/final-ui-browser-evidence/"
+  }
+}

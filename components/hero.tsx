@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useMotionMode } from '@/components/motion-mode-provider'
 import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 
@@ -26,10 +27,16 @@ const tabContent = (tab: number, key: string, children: React.ReactNode) => (
 export function Hero() {
   const [tab, setTab] = useState(0)
   const [mounted, setMounted] = useState(false)
+  const { reduced } = useMotionMode()
   useEffect(() => { setMounted(true) }, [])
+  useEffect(() => {
+    if (reduced) return
+    const timer = window.setInterval(() => setTab((value) => (value + 1) % 3), 6200)
+    return () => window.clearInterval(timer)
+  }, [reduced])
 
   return (
-    <section className="relative min-h-[90vh] lg:min-h-screen flex flex-col justify-center overflow-hidden" style={{ background: '#0A120E' }}>
+    <section className="hp-hero relative overflow-hidden" style={{ background: '#0A120E' }}>
       <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(1000px 600px at 78% -15%, rgba(23,160,99,.20), transparent 60%), radial-gradient(700px 460px at 2% 115%, rgba(217,179,106,.09), transparent 60%)' }} aria-hidden="true" />
       <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px)', backgroundSize: '52px 52px', maskImage: 'radial-gradient(880px 560px at 60% 30%, #000 25%, transparent 74%)', WebkitMaskImage: 'radial-gradient(880px 560px at 60% 30%, #000 25%, transparent 74%)' }} aria-hidden="true" />
       <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-40" viewBox="0 0 1440 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
@@ -39,8 +46,8 @@ export function Hero() {
         <path className="h3" d="M-60 520 C 300 460, 620 640, 940 560 S 1420 500, 1520 600" stroke="#D9B36A" strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.3" />
       </svg>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-16 lg:py-24 w-full">
-        <motion.div className="lg:grid lg:grid-cols-2 lg:gap-12 xl:gap-16 items-center" variants={cont} initial="hidden" animate={mounted ? 'show' : 'hidden'}>
+      <div className="hp-hero-inner relative z-10 mx-auto w-full">
+        <motion.div className="hp-hero-grid items-center" variants={cont} initial={false} animate="show">
           <motion.div variants={itemV} className="flex flex-col items-start gap-6 min-w-0">
             <div className="relative inline-flex items-center gap-2 px-4 py-2 rounded-full overflow-hidden animate-[badgeGlow_4s_ease-in-out_1.2s_infinite]" style={{ background: 'rgba(217,179,106,.10)', border: '1px solid rgba(217,179,106,.4)' }}>
               <span className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'linear-gradient(110deg,transparent 40%,rgba(217,179,106,.35) 50%,transparent 60%)', backgroundSize: '200% 100%', animation: 'shimmerSweep 3.2s ease-in-out 1.5s infinite' }} />
@@ -135,13 +142,26 @@ export function Hero() {
           </motion.div>
         </motion.div>
       </div>
+      <style>{`
+        .hp-hero-inner{max-width:1180px;padding:clamp(48px,7vw,84px) clamp(20px,3vw,32px) clamp(56px,8vw,96px)}
+        .hp-hero-grid{display:grid;grid-template-columns:minmax(0,1.02fr) minmax(0,.98fr);gap:clamp(32px,4vw,58px)}
+        .hp-hero-grid>div{animation:hpHeroEnter .72s cubic-bezier(.16,1,.3,1) both}.hp-hero-grid>div+div{animation-delay:.12s}@keyframes hpHeroEnter{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        @media(max-width:900px){.hp-hero-grid{grid-template-columns:1fr}.hp-hero-grid>div:last-child{margin-top:36px}}
+        @media(max-width:520px){.hp-hero-inner{padding-top:42px}.hp-hero-grid>div:first-child{gap:18px}.hp-hero-grid>div:last-child{margin-top:28px}.hp-hero-grid>div:last-child>div{transform:scale(.94);transform-origin:top center}}html[data-motion='reduced'] .hp-hero-grid>div{animation:none}@media(prefers-reduced-motion:reduce){html:not([data-motion='full']) .hp-hero-grid>div{animation:none}}
+      `}</style>
     </section>
   )
 }
 
 function ActiveChatMessages() {
-  const [t, setT] = useState(0)
-  useEffect(() => { const i = setInterval(() => setT((p) => (p >= 13 ? 0 : p + 0.1)), 100); return () => clearInterval(i) }, [])
+  const { reduced } = useMotionMode()
+  const [t, setT] = useState(13)
+  useEffect(() => {
+    if (reduced) { setT(13); return }
+    setT(13)
+    const i = setInterval(() => setT(13), 13000)
+    return () => clearInterval(i)
+  }, [reduced])
   const b = (align: string, style: Record<string, string>, children: React.ReactNode) => <div style={{ alignSelf: align === 'l' ? 'flex-start' : align === 'r' ? 'flex-end' : 'center', ...style }}>{children}</div>
   const dots = (offset: number) => (
     <div style={{ alignSelf: 'flex-end', display: 'flex', gap: '4px', background: '#DCF0E5', borderRadius: '10px', padding: '9px 11px', marginTop: '4px' }}>
@@ -201,8 +221,14 @@ function EmailFlow() {
 }
 
 function SupportConsole() {
-  const [t, setT] = useState(0)
-  useEffect(() => { const i = setInterval(() => setT((p) => (p >= 12 ? 0 : p + 0.1)), 100); return () => clearInterval(i) }, [])
+  const { reduced } = useMotionMode()
+  const [t, setT] = useState(12)
+  useEffect(() => {
+    if (reduced) { setT(12); return }
+    setT(12)
+    const i = setInterval(() => setT(12), 12000)
+    return () => clearInterval(i)
+  }, [reduced])
   const items = [
     { text: '> visitor: "Can this integrate with my CRM?"', at: 0, c: 'rgba(245,240,232,.85)' },
     { text: '✓ intent detected: integration question · 0.19s', at: 3.5, c: '#8FE3C0' },

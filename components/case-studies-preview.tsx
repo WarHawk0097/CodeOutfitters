@@ -68,7 +68,7 @@ export function CaseStudiesPreview() {
   return (
     <section
       ref={sectionRef}
-      style={{ background: '#F7F2EA', padding: '80px 0', position: 'relative', overflow: 'hidden' }}
+      style={{ background: '#F7F2EA', position: 'relative', overflow: 'hidden' }}
     >
       <div
         className="absolute inset-0 pointer-events-none"
@@ -79,14 +79,14 @@ export function CaseStudiesPreview() {
         }}
       />
 
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px', position: 'relative', zIndex: 1 }}>
-        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-          <SectionLabel text="04 · Sample work" />
+      <div style={{ maxWidth: '1180px', margin: '0 auto', padding: 'clamp(56px,8vw,92px) clamp(20px,3vw,32px)', position: 'relative', zIndex: 1 }}>
+        <div style={{ textAlign: 'center', marginBottom: '38px' }}>
+          <SectionLabel text="04 · Real work" />
           <h2 style={{
-            font: '600 clamp(28px,3.8vw,42px)/1.15 "Space Grotesk",sans-serif',
+            font: '600 clamp(32px,4.2vw,50px)/1.12 "Space Grotesk",sans-serif',
             color: '#0A120E', letterSpacing: '-.02em', maxWidth: '700px', margin: '0 auto',
           }}>
-            Representative <span style={{ color: '#128A54' }}>Automation Outcomes</span>
+            Real Businesses, <span style={{ color: '#128A54' }}>Real Results</span>
           </h2>
           <p style={{
             font: '400 15px/1.6 "Instrument Sans",sans-serif',
@@ -108,7 +108,7 @@ export function CaseStudiesPreview() {
             }}
           >
             <div style={{ height: '4px', background: '#2BD483' }} />
-            <div style={{ display: 'grid', gridTemplateColumns: '1.32fr 0.68fr', gap: '24px', padding: '28px 32px' }}>
+            <div className="hp-case-featured-grid" style={{ display: 'grid', gridTemplateColumns: '1.32fr 0.68fr', gap: '24px', padding: '28px 32px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                   <span style={{ font: '700 10px "Instrument Sans",sans-serif', letterSpacing: '.12em', color: '#5B6355', textTransform: 'uppercase' }}>
@@ -177,7 +177,7 @@ export function CaseStudiesPreview() {
           </div>
 
           {/* Supporting cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px' }}>
+          <div className="hp-case-support-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px' }}>
             {/* Case 02 */}
             <div
               data-reveal
@@ -233,8 +233,8 @@ export function CaseStudiesPreview() {
                 <MetricRail
                   metrics={[
                     { value: '97%', label: 'Time Saved' },
-                    { value: '0', label: 'Errors' },
-                    { value: '200+/day', label: 'Invoices' },
+                    { value: '0', label: 'Data-entry errors' },
+                    { value: '$1,200', label: 'Saved / mo' },
                   ]}
                   thirdGold
                 />
@@ -328,6 +328,7 @@ export function CaseStudiesPreview() {
           </div>
         </div>
       </div>
+      <style>{`@media(max-width:820px){.hp-case-support-grid,.hp-case-featured-grid{grid-template-columns:1fr!important}}`}</style>
     </section>
   )
 }

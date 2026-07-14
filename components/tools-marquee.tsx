@@ -1,81 +1,24 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 
-const tools = [
-  'n8n', 'Make', 'Zapier', 'Airtable', 'Google Sheets', 'Slack',
-  'HubSpot', 'Notion', 'WhatsApp', 'Shopify', 'Stripe', 'Calendly',
-]
+const tools = ['WhatsApp','Anthropic','Notion','Airtable','Google Sheets','n8n','Make','Zapier']
+const slug = (name:string) => name.toLowerCase().replace(/\s+/g,'-')
 
-function slug(name: string) {
-  return name.toLowerCase().replace(/\s+/g, '-')
-}
+function Chip({name}:{name:string}) { return <span className="hp-tool-chip"><b><img src={`/assets/integrations/${slug(name)}.svg`} alt="" width={22} height={22}/></b>{name}</span> }
+function Row({items,reverse,paused}:{items:string[];reverse?:boolean;paused:boolean}) { return <div className={`hp-tool-row ${reverse?'is-reverse':''}`} style={{animationPlayState:paused?'paused':'running'}}><div data-marquee-sequence="original">{items.map(x=><Chip key={x} name={x}/>)}</div><div data-marquee-sequence="duplicate" aria-hidden="true">{items.map(x=><Chip key={`d-${x}`} name={x}/>)}</div></div> }
 
-function ToolChip({ name }: { name: string }) {
-  return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: '11px',
-      background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.12)',
-      borderRadius: '999px', padding: '8px 20px 8px 9px', whiteSpace: 'nowrap', flexShrink: 0,
-    }}>
-      <span style={{
-        width: '34px', height: '34px', borderRadius: '9px',
-        background: '#F5F0E8', display: 'inline-flex', alignItems: 'center',
-        justifyContent: 'center', flexShrink: 0, overflow: 'hidden',
-      }}>
-        <img src={`/assets/integrations/${slug(name)}.svg`} alt={name}
-          width={22} height={22} style={{ objectFit: 'contain', display: 'block' }} />
-      </span>
-      <span style={{ font: '600 14px "Instrument Sans",sans-serif', color: '#F5F0E8' }}>{name}</span>
-    </span>
-  )
-}
-
-export function ToolsMarquee() {
-  const [hovered, setHovered] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  return (
-    <section style={{ background: '#0E241A', padding: '60px 0', overflow: 'hidden' }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px', textAlign: 'center' }}>
-        <h2 style={{
-          font: '600 12px "Instrument Sans",sans-serif', letterSpacing: '.22em',
-          color: 'rgba(245,240,232,.45)', textTransform: 'uppercase', margin: '0 0 32px',
-        }}>
-          Powered by industry-leading AI infrastructure
-        </h2>
-      </div>
-
-      <div style={{ overflow: 'hidden' }}>
-        <div ref={ref}
-          onMouseEnter={() => setHovered(true)}
-          onMouseLeave={() => setHovered(false)}
-          style={{
-            display: 'flex', gap: '14px', width: 'max-content',
-            animation: hovered ? 'none' : 'marqueeL 38s linear infinite',
-          }}
-        >
-          {tools.map((t) => <ToolChip key={t} name={t} />)}
-          {tools.map((t) => <ToolChip key={`dup-${t}`} name={t} />)}
-        </div>
-      </div>
-
-      <div className="marquee-static-fallback" style={{ display: 'none' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '12px', padding: '0 24px' }}>
-          {tools.map((t) => <ToolChip key={t} name={t} />)}
-        </div>
-      </div>
-
-      <style>{`
-        @keyframes marqueeL {
-          from { transform: translateX(0); }
-          to { transform: translateX(-50%); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .marquee-static-fallback { display: flex !important; }
-          div[style*="animation: marqueeL"] { display: none !important; }
-        }
-      `}</style>
-    </section>
-  )
+export function ToolsMarquee(){
+ const [paused,setPaused]=useState(false)
+ return <section className="hp-tools">
+  <h2>Powered by industry-leading AI infrastructure</h2>
+  <div className="hp-tool-viewport" data-marquee="homepage" onPointerEnter={()=>setPaused(true)} onPointerLeave={()=>setPaused(false)}>
+   <Row items={tools} paused={paused}/><Row items={[...tools].reverse()} reverse paused={paused}/>
+  </div>
+  <style>{`
+   .hp-tools{background:#0E241A;padding:24px 0 28px;overflow:hidden}.hp-tools h2{margin:0 0 18px;text-align:center;font:600 12px 'Instrument Sans',sans-serif;letter-spacing:.18em;color:rgba(245,240,232,.52);text-transform:uppercase}.hp-tool-viewport{position:relative;display:flex;flex-direction:column;gap:11px;overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent)}
+   .hp-tool-row{display:flex;width:max-content;animation:hpToolsL 60s linear infinite;will-change:transform}.hp-tool-row.is-reverse{animation-name:hpToolsR;animation-duration:70s}.hp-tool-row>div{display:flex;gap:12px;padding-right:12px;flex-shrink:0}.hp-tool-chip{display:inline-flex;align-items:center;gap:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:6px 17px 6px 7px;white-space:nowrap;font:600 13.5px 'Instrument Sans',sans-serif;color:#F5F0E8;transition:.3s cubic-bezier(.16,1,.3,1)}.hp-tool-chip b{width:34px;height:34px;border-radius:9px;background:#F5F0E8;display:flex;align-items:center;justify-content:center}.hp-tool-chip img{display:block;object-fit:contain}.hp-tool-chip:hover{transform:translateY(-3px);background:rgba(43,212,131,.12);border-color:rgba(43,212,131,.32)}
+   @keyframes hpToolsL{to{transform:translateX(-50%)}}@keyframes hpToolsR{from{transform:translateX(-50%)}to{transform:translateX(0)}}html[data-motion='reduced'] .hp-tool-row{animation:none}html[data-motion='reduced'] .hp-tool-row>div[data-marquee-sequence=duplicate]{display:none}@media(prefers-reduced-motion:reduce){html:not([data-motion='full']) .hp-tool-row{animation:none}html:not([data-motion='full']) .hp-tool-row>div[data-marquee-sequence=duplicate]{display:none}}@media(max-width:640px){.hp-tool-viewport{mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent)}.hp-tools h2{padding:0 22px;line-height:1.45}}
+  `}</style>
+ </section>
 }

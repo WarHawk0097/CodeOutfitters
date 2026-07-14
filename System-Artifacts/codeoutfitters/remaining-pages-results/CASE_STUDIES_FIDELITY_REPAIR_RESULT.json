@@ -1,0 +1,11 @@
+{
+  "route": "/case-studies",
+  "status": "PASS",
+  "native": true,
+  "viewports": {
+    "1440x1000": { "sourceHeight": 3476, "beforeHeight": 5208, "afterHeight": 3403, "heightDeltaPercent": 2.10 },
+    "820x1180": { "sourceHeight": 3501, "beforeHeight": 5253, "afterHeight": 3511, "heightDeltaPercent": 0.29 },
+    "390x844": { "sourceHeight": 5457, "beforeHeight": 7094, "afterHeight": 5258, "heightDeltaPercent": 3.65 }
+  },
+  "runtime": { "caseCards": 6, "filters": 7, "filterCorrect": true, "singleOpenStory": true, "testimonialRotates": true, "reducedTestimonialStatic": true, "horizontalOverflow": false, "brokenImages": 0, "consoleErrors": 0, "hydrationErrors": 0 }
+}

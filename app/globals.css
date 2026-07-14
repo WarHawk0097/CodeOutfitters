@@ -160,18 +160,72 @@
 .cta-sweep:hover::before { left: 120%; }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  html:not([data-motion='full']) *,
+  html:not([data-motion='full']) *::before,
+  html:not([data-motion='full']) *::after {
+    animation: none !important;
     animation-duration: .001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: .001ms !important;
   }
-  .marquee-track { animation: none !important; }
-  .hero-paths-animated path { animation: none !important; }
-  .timeline-progress { transition: none !important; transform: scaleY(1) !important; }
-  .card-hover:hover,
-  .tl-card:hover,
-  .cta-sweep-btn:hover,
-  .cta-btn:hover { transform: none !important; }
+  html:not([data-motion='full']) .marquee-track { animation: none !important; }
+  html:not([data-motion='full']) .hero-paths-animated path { animation: none !important; }
+  html:not([data-motion='full']) .timeline-progress { transition: none !important; transform: scaleY(1) !important; }
+}
+
+html[data-motion='reduced'] *,
+html[data-motion='reduced'] *::before,
+html[data-motion='reduced'] *::after {
+  animation: none !important;
+  animation-duration: .001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: .001ms !important;
+}
+html[data-motion='reduced'] .marquee-track { animation: none !important; }
+html[data-motion='reduced'] .hero-paths-animated path { animation: none !important; }
+html[data-motion='reduced'] .timeline-progress { transition: none !important; transform: scaleY(1) !important; }
+html[data-motion='reduced'] .marquee-animated { display: none !important; }
+html[data-motion='reduced'] .marquee-static-fallback { display: flex !important; }
+
+html[data-motion='reduced'] .hp-tool-row,
+html[data-motion='reduced'] .hp-tm-row,
+html[data-motion='reduced'] .hp-hero-grid > div {
+  animation: none !important;
+}
+
+html[data-motion='reduced'] .hp-tool-row > [data-marquee-sequence='duplicate'],
+html[data-motion='reduced'] .hp-tm-row > [data-marquee-sequence='duplicate'] {
+  display: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-motion='full']) .marquee-animated { display: none !important; }
+  html:not([data-motion='full']) .marquee-static-fallback { display: flex !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-motion='full']) .card-hover:hover,
+  html:not([data-motion='full']) .tl-card:hover,
+  html:not([data-motion='full']) .cta-sweep-btn:hover,
+  html:not([data-motion='full']) .cta-btn:hover { transform: none !important; }
+}
+
+html[data-motion='reduced'] {
+  scroll-behavior: auto;
+}
+
+html[data-motion='reduced'] .card-hover:hover,
+html[data-motion='reduced'] .tl-card:hover,
+html[data-motion='reduced'] .cta-sweep-btn:hover,
+html[data-motion='reduced'] .cta-btn:hover { transform: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  /* Baseline styles remain visible before the client-side mode resolver mounts. */
+  html:not([data-motion]) *,
+  html:not([data-motion]) *::before,
+  html:not([data-motion]) *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
 }

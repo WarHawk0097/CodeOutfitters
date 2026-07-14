@@ -1,551 +1,86 @@
 'use client'
 
-import { useState, useMemo, useRef } from 'react'
-import { motion } from 'framer-motion'
-import { Search, MessageSquare, Mail, Headphones, CalendarCheck, FileText, Puzzle, ChevronDown, ArrowRight, ChevronRight } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { ArrowRight, ChevronDown, Search } from 'lucide-react'
 import Link from 'next/link'
-import { BentoGrid, BentoCard } from '@/components/ui/bento-grid'
-import { FAQ } from '@/components/faq'
-import { servicesFaqs } from '@/data/faqs'
-import { CTABanner } from '@/components/cta-banner'
 
 const services = [
-  {
-    id: 'whatsapp-lead',
-    number: '01',
-    title: 'WhatsApp Lead Automation',
-    description: 'Capture, qualify, and respond to leads instantly on WhatsApp — the channel your customers already use. No app downloads, no friction.',
-    icon: MessageSquare,
-    accent: '#17A063',
-    features: ['Auto-reply within seconds', 'Smart lead qualification', 'CRM sync', 'Multi-agent inbox'],
-    howItWorks: 'We connect your WhatsApp Business account to an AI that reads every inbound message, matches it against your qualification criteria, and replies — or routes to the right person with full context. All conversations log to your CRM automatically.',
-    metric: '40s',
-    metricLabel: 'avg response time',
-    tags: ['whatsapp', 'lead', 'chat', 'messaging', 'crm'],
-  },
-  {
-    id: 'email-workflow',
-    number: '02',
-    title: 'Email Workflow Automation',
-    description: 'Stop forwarding, copying, and chasing. Emails route, sort, and trigger actions automatically.',
-    icon: Mail,
-    accent: '#D9B36A',
-    features: ['Auto-sort & label', 'Template responses', 'Follow-up sequences', 'Escalation routing'],
-    howItWorks: 'Your inbox connects to a classification layer that reads intent, priority, and context. Routine requests get instant template replies; complex ones route to the right person with relevant thread history attached. Follow-ups fire automatically until resolved.',
-    metric: '90%',
-    metricLabel: 'auto-resolved rate',
-    tags: ['email', 'workflow', 'automation', 'sorting', 'follow-up'],
-  },
-  {
-    id: 'support-chat',
-    number: '03',
-    title: 'Support Chat Systems',
-    description: 'AI-powered chat that answers FAQs instantly and hands off to your team when it gets complex.',
-    icon: Headphones,
-    accent: '#17A063',
-    features: ['Instant FAQ answers', 'Human handoff with context', 'Ticket auto-creation', 'Sentiment detection'],
-    howItWorks: 'Embed a chat widget or connect your existing live chat. An AI layer answers common questions from your knowledge base, escalates complex or sensitive issues to a human with the full transcript, and creates tickets in your helpdesk automatically.',
-    metric: '<5s',
-    metricLabel: 'first reply time',
-    tags: ['support', 'chat', 'helpdesk', 'faq', 'ticketing'],
-  },
-  {
-    id: 'booking-scheduling',
-    number: '04',
-    title: 'Booking & Scheduling Bots',
-    description: 'Clients book against live availability — no phone tag, no double-booking, no-show reminders included.',
-    icon: CalendarCheck,
-    accent: '#D9B36A',
-    features: ['Live calendar sync', 'Auto reminders', 'Reschedule handling', 'Buffer & block logic'],
-    howItWorks: 'A conversational bot checks real-time availability, books slots, and sends calendar invites. Automated SMS/email reminders fire before appointments. Reschedules and cancellations update your calendar instantly without human intervention.',
-    metric: '40%',
-    metricLabel: 'fewer no-shows',
-    tags: ['booking', 'scheduling', 'calendar', 'appointments', 'reminders'],
-  },
-  {
-    id: 'invoice-order',
-    number: '05',
-    title: 'Invoice & Order Automation',
-    description: 'Orders, invoices, and payments sync without a spreadsheet in sight. No manual entry, no reconciliation headaches.',
-    icon: FileText,
-    accent: '#17A063',
-    features: ['Auto invoice generation', 'Payment matching', 'Order-to-CRM sync', 'Overdue follow-ups'],
-    howItWorks: 'When an order comes in (web, email, or form), the system creates the invoice, matches payment against it, updates your books, and sends the customer a status update — all without a human touching it. Overdue invoices trigger graduated reminder sequences.',
-    metric: '12hrs',
-    metricLabel: 'saved per week',
-    tags: ['invoice', 'order', 'payment', 'accounting', 'quickbooks'],
-  },
-  {
-    id: 'custom-integration',
-    number: '06',
-    title: 'Custom Integration Builds',
-    description: 'The tool you need doesn\'t connect to the tool you have? We build the bridge — no rip-and-replace required.',
-    icon: Puzzle,
-    accent: '#D9B36A',
-    features: ['API connectors', 'Custom data sync', 'Legacy tool bridging', 'Webhook automation'],
-    howItWorks: 'We audit your existing stack, identify the integration gaps, and build tailored connectors — whether it\'s a two-way sync between your CRM and accounting tool, a custom webhook chain, or bridging a legacy system to modern APIs.',
-    metric: 'Any stack',
-    metricLabel: 'we connect it',
-    tags: ['integration', 'api', 'custom', 'connector', 'sync'],
-  },
+  { id:'whatsapp', num:'01', name:'WhatsApp Lead Automation', icon:'/assets/icon-chat-square.svg', tone:'green', pill:'Most popular', metric:'26s avg reply', desc:'Every inbound lead gets qualified, answered, and booked in seconds — while your CRM stays in sync.', tags:['Qualifies in 30s','Books to calendar','Syncs to CRM'], steps:['Connect your WhatsApp Business number','Train the bot on your services and pricing','Leads get answered, qualified, and booked automatically'] },
+  { id:'email', num:'02', name:'Email Workflow Automation', icon:'/assets/icon-edit-square.svg', tone:'gold', pill:'Nurture', metric:'68% open rate', desc:'Smart sequences that nurture prospects, onboard clients, and re-engage customers automatically.', tags:['Auto-tagging','Multi-step sequences','CRM sync'], steps:['Map your current nurture / onboarding emails','Build triggers off signups, purchases, and inactivity','Sequences run and report automatically every week'] },
+  { id:'support', num:'03', name:'Support Chat Systems', icon:'/assets/icon-ai-agent-face.svg', tone:'green', pill:'Always on', metric:'214 FAQs/mo', desc:'Intelligent chatbots that answer questions, collect data, and route hot leads to your team.', tags:['Answers FAQs','Routes hot leads','24/7 coverage'], steps:['Feed the bot your docs, FAQs, and policies','Set routing rules for when a human should step in','Bot goes live on your site or socials, answering instantly'] },
+  { id:'booking', num:'04', name:'Booking & Scheduling Bots', icon:'/assets/icon-check-square.svg', tone:'green', pill:'Calendar', metric:'90% fewer calls', desc:'An AI receptionist that books, reschedules, and reminds — synced straight to your calendar.', tags:['Calendar sync','Auto reminders','No double-books'], steps:['Connect your booking calendar and service list','Set availability rules and buffer times','Clients book, reschedule, and get reminders hands-free'] },
+  { id:'invoice', num:'05', name:'Invoice & Order Automation', icon:'/assets/icon-database-stack.svg', tone:'gold', pill:'Back office', metric:'97% time saved', desc:'Orders become invoices automatically, reconciled against payments with zero manual entry.', tags:['Auto invoicing','Payment matching','Error-free'], steps:['Connect your store, invoicing, and accounting tools','Define invoice templates and approval rules','Orders flow straight through to paid, reconciled invoices'] },
+  { id:'custom', num:'06', name:'Custom Integration Builds', icon:'/assets/icon-orchestrate.svg', tone:'green', pill:'Bespoke', metric:'120+ shipped', desc:'Got a workflow that does not fit a template? We design and ship a bespoke automation around it.', tags:['Any stack','Fixed quote','7-day build'], steps:['Discovery call to map your exact workflow','We scope architecture, timeline, and fixed cost','Build, test, and hand off with 30 days of support'] },
 ]
 
-const integrations = [
-  { name: 'WhatsApp', icon: '💬' }, { name: 'Gmail', icon: '📧' }, { name: 'Outlook', icon: '📨' },
-  { name: 'HubSpot', icon: '🔶' }, { name: 'Salesforce', icon: '⚡' }, { name: 'Airtable', icon: '🔷' },
-  { name: 'Notion', icon: '📝' }, { name: 'Slack', icon: '💬' }, { name: 'Shopify', icon: '🛒' },
-  { name: 'QuickBooks', icon: '📊' }, { name: 'Calendly', icon: '📅' }, { name: 'Zapier', icon: '⚡' },
-  { name: 'Make', icon: '🔗' }, { name: 'n8n', icon: '🔧' }, { name: 'Stripe', icon: '💳' },
-  { name: 'DocuSign', icon: '✍️' }, { name: 'Google Sheets', icon: '📗' }, { name: 'Anthropic', icon: '🤖' },
+const rows = [
+  ['WhatsApp Business','Gmail','Outlook','QuickBooks','Stripe','Shopify','Calendly','Google Calendar','HubSpot'],
+  ['Zapier','Make','Slack','Notion','DocuSign','Twilio SMS','Airtable','Google Sheets','Zendesk'],
 ]
 
-function PageHero() {
-  return (
-    <section
-      className="relative py-24 md:py-32 px-5 md:px-8 overflow-hidden"
-      style={{ background: '#0A120E' }}
-      aria-label="Services page header"
-    >
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(860px 480px at 50% -8%, rgba(23,160,99,.15), transparent 62%)' }}
-        aria-hidden="true"
-      />
-      <div className="relative max-w-4xl mx-auto text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-8"
-          style={{
-            background: 'rgba(217,179,106,.12)',
-            border: '1px solid rgba(217,179,106,.25)',
-          }}
-        >
-          <span
-            className="w-1.5 h-1.5 rounded-full"
-            style={{
-              background: '#D9B36A',
-              boxShadow: '0 0 6px rgba(217,179,106,.6)',
-              animation: 'valuePulse 2s ease-in-out infinite',
-            }}
-          />
-          <span
-            style={{
-              font: '600 11px "Instrument Sans",sans-serif',
-              letterSpacing: '.16em',
-              color: '#D9B36A',
-              textTransform: 'uppercase',
-            }}
-          >
-            Every system we build
-          </span>
-          <span
-            className="w-1.5 h-1.5 rounded-full"
-            style={{
-              background: '#D9B36A',
-              boxShadow: '0 0 6px rgba(217,179,106,.6)',
-              animation: 'valuePulse 2s ease-in-out infinite',
-            }}
-          />
-        </motion.div>
+const faqs = [
+  ['How much does a system like this cost?','There are no generic packages — every build gets a fixed quote after a discovery call and workflow audit, based on your actual tools and volume. You see the exact cost and timeline before anything is built.'],
+  ['Which service should I start with?','Whichever workflow eats the most hours. On the discovery call we map your biggest time drains and tell you honestly which single system is worth building first — sometimes it’s none of them yet.'],
+  ['Will these work with the tools we already use?','That’s the default. Every system connects to your existing stack — calendar, CRM, invoicing, messaging — rather than forcing a migration to new software.'],
+  ['What does "ships in 7 days" actually mean?','Seven days from approved scope to a tested, live system for a typical single-workflow build. Larger custom builds get their own timeline in the proposal — stated up front, not discovered later.'],
+  ['What happens after the 30-day support window?','The system keeps running — it’s yours, documented and handed off. If you want ongoing monitoring or new automations later, we scope that separately when you ask.'],
+]
 
-        <motion.h1
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-          style={{
-            font: '700 clamp(2.2rem,5.5vw,4rem)/1.1 "Space Grotesk",sans-serif',
-            color: '#F5F0E8',
-            letterSpacing: '-.03em',
-            maxWidth: '800px',
-            margin: '0 auto 20px',
-          }}
-        >
-          Six automations. One outcome: your time back.
-        </motion.h1>
+function ServiceCard({service,index}:{service:typeof services[number];index:number}){
+  const [open,setOpen]=useState(false)
+  return <article id={service.id} className={`services-card is-${service.tone}`} style={{animationDelay:`${index*60}ms`}}>
+    <div className="services-card-meta"><span>{service.num}</span><b>{service.pill}</b></div>
+    <div className="services-card-title"><i><img src={service.icon} alt=""/></i><h3>{service.name}</h3></div>
+    <p>{service.desc}</p>
+    <div className="services-tags">{service.tags.map(tag=><span key={tag}>{tag}</span>)}</div>
+    <button className="services-how-toggle" onClick={()=>setOpen(!open)} aria-expanded={open}>How it works<ChevronDown size={15} className={open?'is-open':''}/></button>
+    <div className={`services-how ${open?'is-open':''}`}><div>{service.steps.map((step,i)=><p key={step}><b>{i+1}</b><span>{step}</span></p>)}</div></div>
+    <footer><strong>{service.metric}</strong><Link href="/contact">Get this system <ArrowRight size={13}/></Link></footer>
+  </article>
+}
 
-        <motion.p
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          style={{
-            font: '400 17px/1.65 "Instrument Sans",sans-serif',
-            color: 'rgba(245,240,232,.64)',
-            maxWidth: '620px',
-            margin: '0 auto',
-          }}
-        >
-          Each module is scoped to your workflow and connects to the tools you already use. No packages, no platform lock-in.
-        </motion.p>
+function MarqueeRow({tools,direction}:{tools:string[];direction:'left'|'right'}){
+  const [paused,setPaused]=useState(false)
+  const sequence=(duplicate=false)=><div data-marquee-sequence={duplicate?'duplicate':'original'} aria-hidden={duplicate||undefined}>{tools.map(tool=><span key={`${duplicate?'d-':''}${tool}`}><i/>{tool}</span>)}</div>
+  return <div className={`services-marquee-row is-${direction}`} data-marquee-row={direction} onPointerEnter={()=>setPaused(true)} onPointerLeave={()=>setPaused(false)} style={{animationPlayState:paused?'paused':'running'}}>{sequence()}{sequence(true)}</div>
+}
+
+export default function ServicesPage(){
+  const [query,setQuery]=useState('')
+  const [openFaq,setOpenFaq]=useState(-1)
+  const searchRef=useRef<HTMLInputElement>(null)
+  const results=useMemo(()=>{const q=query.trim().toLowerCase();return q?services.filter(s=>s.name.toLowerCase().includes(q)||s.desc.toLowerCase().includes(q)||s.tags.some(t=>t.toLowerCase().includes(q))):[]},[query])
+  useEffect(()=>{const onKey=(e:KeyboardEvent)=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();searchRef.current?.focus()}if(e.key==='Escape'&&query){setQuery('');searchRef.current?.blur()}};addEventListener('keydown',onKey);return()=>removeEventListener('keydown',onKey)},[query])
+  return <div className="services-page">
+    <section className="services-hero">
+      <div className="services-blob"/>
+      <div className="services-hero-inner">
+        <div className="services-eyebrow"><i/>Every system we build</div>
+        <h1>Six automations. <span>One outcome:</span> your time back.</h1>
+        <p>Every build below ships in 7 days, integrates with the tools you already use, and comes with 30 days of support.</p>
+        <div className="services-search"><Search size={16}/><input ref={searchRef} value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search services… (⌘K)" aria-label="Search services"/><kbd>⌘K</kbd>{query.trim()&&<div className="services-results">{results.map(s=><a key={s.id} href={`#${s.id}`} onClick={()=>setQuery('')}><i><img src={s.icon} alt=""/></i><span><b>{s.name}</b><small>{s.desc}</small></span></a>)}{results.length===0&&<p>No services match “{query}” — try “chat”, “email”, or “invoice”.</p>}</div>}</div>
       </div>
     </section>
-  )
-}
 
-function ServicesSearch() {
-  const [query, setQuery] = useState('')
+    <section className="services-grid-section"><div className="services-grid">{services.map((service,index)=><ServiceCard key={service.id} service={service} index={index}/>)}</div></section>
 
-  const results = useMemo(() => {
-    if (!query.trim()) return services
-    const q = query.toLowerCase()
-    return services.filter(
-      (s) =>
-        s.title.toLowerCase().includes(q) ||
-        s.description.toLowerCase().includes(q) ||
-        s.tags.some((t) => t.includes(q))
-    )
-  }, [query])
+    <section className="services-integrations"><div className="services-integrations-inner"><header><span>Integrations</span><h2>Built on the tools you already run.</h2><p>No migrations, no new logins for your team. Every system connects directly to your existing stack.</p></header><div className="services-marquee" data-marquee="services"><MarqueeRow tools={rows[0]} direction="left"/><MarqueeRow tools={rows[1]} direction="right"/></div><div className="services-static-tools">{[...rows[0],...rows[1]].map(tool=><span key={tool}>{tool}</span>)}</div><p className="services-stack-note">Don&apos;t see your stack? Custom integrations are scoped during discovery — <Link href="/contact">ask us</Link>.</p></div></section>
 
-  return (
-    <div className="max-w-xl mx-auto mb-14">
-      <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#8A857B' }} />
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search services…"
-          className="w-full border rounded-xl pl-11 pr-4 py-3.5 text-sm outline-none transition-all duration-200"
-          style={{
-            background: '#fff',
-            borderColor: 'rgba(13,58,49,.14)',
-            color: '#0A120E',
-          }}
-          onFocus={(e) => {
-            e.target.style.borderColor = '#17A063'
-            e.target.style.boxShadow = '0 0 0 3px rgba(23,160,99,.12)'
-          }}
-          onBlur={(e) => {
-            e.target.style.borderColor = 'rgba(13,58,49,.14)'
-            e.target.style.boxShadow = 'none'
-          }}
-        />
-      </div>
-      {query.trim() && (
-        <div className="mt-3 text-xs text-center" style={{ color: '#5B6355' }}>
-          {results.length === 0
-            ? 'No matching services — every build is custom-scoped, ask us on a discovery call.'
-            : `${results.length} matching service${results.length === 1 ? '' : 's'}`}
-        </div>
-      )}
-    </div>
-  )
-}
+    <section className="services-faq"><div><h2>Service questions.</h2><div className="services-faq-list">{faqs.map(([q,a],i)=><article key={q} className={openFaq===i?'is-open':''}><button onClick={()=>setOpenFaq(openFaq===i?-1:i)} aria-expanded={openFaq===i}>{q}<ChevronDown size={17}/></button><div><p>{a}</p></div></article>)}</div></div></section>
 
-function ServiceCard({ service, index }: { service: typeof services[0]; index: number }) {
-  const [expanded, setExpanded] = useState(false)
-  const Icon = service.icon
+    <section className="services-cta"><div className="services-cta-card"><div><span>Not sure which fits?</span><h2>Book a Discovery Call</h2><p>Tell us how the work happens today — we&apos;ll tell you honestly which of these six systems (if any) is worth building first.</p><div className="services-cta-chips"><b>✓ Free audit included</b><b>✓ No long contracts</b><b>✓ 30-day support</b></div></div><aside><small>What you get in 30 minutes</small><p>✓ A map of your biggest time drains</p><p>✓ Which system to build first</p><p>✓ A fixed quote — before we build anything</p><Link href="/contact">Book Free Discovery Call <ArrowRight size={15}/></Link><strong>● 3 build slots left for July</strong></aside></div></section>
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
-      className="group relative overflow-hidden transition-all duration-300 hover:-translate-y-1"
-      style={{
-        background: 'linear-gradient(180deg,#fff,#FBF7EE 68%,#F6F1E4)',
-        border: '1px solid rgba(13,58,49,.14)',
-        borderRadius: '22px',
-      }}
-    >
-      <div
-        className="w-full h-1"
-        style={{
-          background: service.accent === '#17A063'
-            ? 'linear-gradient(90deg,#17A063,#2BD483)'
-            : 'linear-gradient(90deg,#D9B36A,#E7C57E)',
-        }}
-      />
-
-      <div className="p-7 md:p-8">
-        <div className="flex items-start justify-between mb-5">
-          <div className="flex items-center gap-3">
-            <div
-              className="flex items-center justify-center shrink-0"
-              style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: '14px',
-                background: service.accent === '#17A063'
-                  ? 'rgba(23,160,99,.1)'
-                  : 'rgba(217,179,106,.12)',
-              }}
-            >
-              <Icon className="w-5 h-5" style={{ color: service.accent }} />
-            </div>
-            <span
-              style={{
-                font: '700 11px "Instrument Sans",sans-serif',
-                letterSpacing: '.1em',
-                color: '#5B6355',
-              }}
-            >
-              MODULE {service.number}
-            </span>
-          </div>
-        </div>
-
-        <h3
-          style={{
-            font: '600 20px/1.2 "Space Grotesk",sans-serif',
-            color: '#0A120E',
-            marginBottom: '8px',
-          }}
-        >
-          {service.title}
-        </h3>
-
-        <p
-          style={{
-            font: '400 14.5px/1.6 "Instrument Sans",sans-serif',
-            color: '#5B6355',
-            marginBottom: '16px',
-          }}
-        >
-          {service.description}
-        </p>
-
-        <div className="flex flex-wrap gap-2 mb-5">
-          {service.features.map((f) => (
-            <span
-              key={f}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full"
-              style={{
-                background: service.accent === '#17A063'
-                  ? 'rgba(23,160,99,.08)'
-                  : 'rgba(217,179,106,.1)',
-                color: service.accent,
-                border: `1px solid ${service.accent === '#17A063' ? 'rgba(23,160,99,.18)' : 'rgba(217,179,106,.2)'}`,
-              }}
-            >
-              {f}
-            </span>
-          ))}
-        </div>
-
-        <div
-          className="rounded-xl overflow-hidden mb-5 transition-all duration-300"
-          style={{
-            background: 'linear-gradient(135deg,rgba(10,18,14,.03),rgba(10,18,14,.06))',
-            border: '1px solid rgba(13,58,49,.08)',
-          }}
-        >
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left"
-          >
-            <span
-              style={{
-                font: '600 13px "Instrument Sans",sans-serif',
-                color: '#0A120E',
-              }}
-            >
-              How it works
-            </span>
-            <ChevronDown
-              className="w-4 h-4 shrink-0 transition-transform duration-300"
-              style={{ color: '#8A857B', transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
-            />
-          </button>
-          <div
-            className="overflow-hidden transition-all duration-300"
-            style={{
-              maxHeight: expanded ? '300px' : '0px',
-              opacity: expanded ? 1 : 0,
-            }}
-          >
-            <div className="px-4 pb-4">
-              <p
-                style={{
-                  font: '400 13.5px/1.65 "Instrument Sans",sans-serif',
-                  color: '#5B6355',
-                }}
-              >
-                {service.howItWorks}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="rounded-xl p-4 mb-5"
-          style={{
-            background: 'linear-gradient(135deg,#0A120E,#0E241A)',
-            border: '1px solid rgba(245,240,232,.08)',
-          }}
-        >
-          <div className="flex items-center gap-3">
-            <span
-              style={{
-                font: '700 24px/1 "Space Grotesk",sans-serif',
-                color: service.accent === '#17A063' ? '#2BD483' : '#D9B36A',
-              }}
-            >
-              {service.metric}
-            </span>
-            <span
-              style={{
-                font: '400 13px "Instrument Sans",sans-serif',
-                color: 'rgba(245,240,232,.55)',
-              }}
-            >
-              {service.metricLabel}
-            </span>
-          </div>
-        </div>
-
-        <Link
-          href="/contact"
-          className="inline-flex items-center gap-2 text-sm font-semibold transition-all duration-200 group/link"
-          style={{ color: service.accent }}
-        >
-          <span>Get this system</span>
-          <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover/link:translate-x-1" />
-        </Link>
-      </div>
-    </motion.div>
-  )
-}
-
-function IntegrationsSection() {
-  return (
-    <section
-      className="py-24 md:py-32 px-5 md:px-8 relative overflow-hidden"
-      style={{ background: '#0A120E' }}
-    >
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(860px 420px at 50% 50%, rgba(23,160,99,.06), transparent 62%)' }}
-        aria-hidden="true"
-      />
-
-      <div className="relative max-w-6xl mx-auto">
-        <div className="text-center mb-14">
-          <span
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6"
-            style={{
-              background: 'rgba(217,179,106,.1)',
-              border: '1px solid rgba(217,179,106,.2)',
-            }}
-          >
-            <span
-              style={{
-                font: '600 11px "Instrument Sans",sans-serif',
-                letterSpacing: '.16em',
-                color: '#D9B36A',
-                textTransform: 'uppercase',
-              }}
-            >
-              Tool-agnostic by design
-            </span>
-          </span>
-          <h2
-            style={{
-              font: '700 clamp(1.75rem,4vw,2.75rem)/1.12 "Space Grotesk",sans-serif',
-              color: '#F5F0E8',
-              letterSpacing: '-.02em',
-              maxWidth: '600px',
-              margin: '0 auto 16px',
-            }}
-          >
-            Your stack, connected.
-          </h2>
-          <p
-            style={{
-              font: '400 16px/1.65 "Instrument Sans",sans-serif',
-              color: 'rgba(245,240,232,.55)',
-              maxWidth: '500px',
-              margin: '0 auto',
-            }}
-          >
-            We work with everything you already use — no forced migrations, no new logins to learn.
-          </p>
-        </div>
-
-        <div className="space-y-4 overflow-hidden">
-          <div
-            className="flex gap-4"
-            style={{
-              animation: 'marqueeL 40s linear infinite',
-              width: 'max-content',
-            }}
-          >
-            {[...integrations, ...integrations].map((tool, i) => (
-              <div
-                key={`row1-${i}`}
-                className="flex items-center gap-3 px-5 py-3 rounded-xl whitespace-nowrap shrink-0"
-                style={{
-                  background: 'rgba(255,255,255,.04)',
-                  border: '1px solid rgba(255,255,255,.08)',
-                }}
-              >
-                <span style={{ fontSize: '18px' }}>{tool.icon}</span>
-                <span
-                  style={{
-                    font: '500 14px "Instrument Sans",sans-serif',
-                    color: 'rgba(245,240,232,.78)',
-                  }}
-                >
-                  {tool.name}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          <div
-            className="flex gap-4"
-            style={{
-              animation: 'marqueeR 40s linear infinite',
-              width: 'max-content',
-            }}
-          >
-            {[...integrations, ...integrations].map((tool, i) => (
-              <div
-                key={`row2-${i}`}
-                className="flex items-center gap-3 px-5 py-3 rounded-xl whitespace-nowrap shrink-0"
-                style={{
-                  background: 'rgba(255,255,255,.04)',
-                  border: '1px solid rgba(255,255,255,.08)',
-                }}
-              >
-                <span style={{ fontSize: '18px' }}>{tool.icon}</span>
-                <span
-                  style={{
-                    font: '500 14px "Instrument Sans",sans-serif',
-                    color: 'rgba(245,240,232,.78)',
-                  }}
-                >
-                  {tool.name}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-export default function ServicesPage() {
-  return (
-    <>
-      <PageHero />
-      <div className="pt-16 px-5" style={{ background: '#F7F2EA' }}>
-        <ServicesSearch />
-        <section className="max-w-6xl mx-auto pb-24 md:pb-32">
-          <BentoGrid>
-            {services.map((service, i) => (
-              <BentoCard key={service.id} span={i === 0 ? 12 : 6} className="border-0 p-0 shadow-none hover:translate-y-0">
-                <ServiceCard service={service} index={i} />
-              </BentoCard>
-            ))}
-          </BentoGrid>
-        </section>
-      </div>
-      <IntegrationsSection />
-      <FAQ items={servicesFaqs} title="Services FAQ" />
-      <CTABanner />
-    </>
-  )
+    <style>{`
+      .services-page{background:#F7F2EA;overflow-x:hidden;color:#0A120E}.services-page *{box-sizing:border-box;min-width:0}.services-hero{position:relative;background:radial-gradient(1000px 600px at 78% -15%,rgba(23,160,99,.20),transparent 60%),#0A120E;overflow:hidden}.services-blob{position:absolute;inset:-20%;background:radial-gradient(560px 380px at 30% 40%,rgba(43,212,131,.10),transparent 60%),radial-gradient(520px 360px at 72% 62%,rgba(217,179,106,.08),transparent 60%);animation:servicesBlob 16s ease-in-out infinite;pointer-events:none}.services-hero-inner{position:relative;max-width:820px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:24px;text-align:center;padding:clamp(56px,8vw,88px) clamp(20px,3vw,32px) clamp(40px,6vw,60px)}.services-eyebrow{display:flex;align-items:center;gap:9px;background:rgba(217,179,106,.10);border:1px solid rgba(217,179,106,.4);border-radius:999px;padding:8px 16px;font:700 11.5px 'Instrument Sans',sans-serif;letter-spacing:.14em;color:#D9B36A;text-transform:uppercase}.services-eyebrow i{width:7px;height:7px;border-radius:50%;background:#D9B36A}.services-hero h1{margin:0;font:600 clamp(34px,4.6vw,56px)/1.1 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.025em;text-wrap:balance}.services-hero h1 span{color:#2BD483}.services-hero-inner>p{margin:0;font:400 18px/1.65 'Instrument Sans',sans-serif;color:rgba(245,240,232,.62);max-width:560px}.services-search{position:relative;width:100%;max-width:520px;margin-top:8px}.services-search>svg{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:rgba(245,240,232,.4);z-index:2}.services-search input{width:100%;font:500 16px 'Instrument Sans',sans-serif;color:#F5F0E8;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:16px 48px;outline:none;transition:.25s}.services-search input:focus{border-color:rgba(43,212,131,.5);background:rgba(255,255,255,.09)}.services-search input::placeholder{color:rgba(245,240,232,.4)}.services-search kbd{position:absolute;right:16px;top:50%;transform:translateY(-50%);font:600 10.5px ui-monospace,monospace;color:rgba(245,240,232,.35);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:3px 7px}.services-results{position:absolute;top:calc(100% + 8px);left:0;right:0;background:#10301F;border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:8px;box-shadow:0 30px 70px rgba(0,0,0,.5);z-index:20;text-align:left;max-height:280px;overflow-y:auto}.services-results a{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;text-decoration:none}.services-results a:hover{background:rgba(255,255,255,.06)}.services-results a>i{width:34px;height:34px;border-radius:9px;background:rgba(43,212,131,.14);display:flex;align-items:center;justify-content:center}.services-results img{width:18px;height:18px}.services-results a>span{display:flex;flex-direction:column}.services-results b{font:600 14.5px 'Instrument Sans',sans-serif;color:#F5F0E8}.services-results small{font:400 12.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.services-results>p{margin:0;padding:16px;text-align:center;font:500 14px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.45)}
+      .services-grid-section{background-image:radial-gradient(rgba(14,42,29,.06) 1px,transparent 1.5px);background-size:26px 26px;background-color:#F7F2EA}.services-grid{max-width:1180px;margin:0 auto;padding:clamp(56px,8vw,92px) clamp(20px,3vw,32px);display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:22px}.services-card{position:relative;background:linear-gradient(178deg,#fff,#FBF7EE 68%,#F6F1E4);border:1px solid rgba(13,58,49,.14);border-radius:22px;box-shadow:0 20px 54px rgba(18,32,27,.10),inset 0 1px 0 rgba(255,255,255,.8);padding:clamp(24px,2.6vw,32px);display:flex;flex-direction:column;gap:16px;scroll-margin-top:90px;overflow:hidden;animation:servicesRise .7s cubic-bezier(.16,1,.3,1) both;transition:transform .5s cubic-bezier(.16,1,.3,1),box-shadow .5s cubic-bezier(.16,1,.3,1),border-color .5s}.services-card:hover{transform:translateY(-6px);border-color:rgba(23,160,99,.34);box-shadow:0 34px 82px rgba(18,32,27,.16),0 0 0 1px rgba(23,160,99,.10)}.services-card:nth-child(1),.services-card:nth-child(4),.services-card:nth-child(5){grid-column:span 7}.services-card:nth-child(2),.services-card:nth-child(3),.services-card:nth-child(6){grid-column:span 5}.services-card-meta{display:flex;align-items:center;justify-content:space-between;gap:10px}.services-card-meta>span{font:700 10px ui-monospace,monospace;letter-spacing:.12em;color:#A39C8C}.services-card-meta b{font:600 11.5px 'Instrument Sans',sans-serif;padding:5px 12px;border-radius:999px}.services-card.is-green .services-card-meta b{color:#128A54;background:#EAF6EF;border:1px solid rgba(18,138,84,.22)}.services-card.is-gold .services-card-meta b{color:#B08A3E;background:#F8EFDD;border:1px solid rgba(217,179,106,.35)}.services-card-title{display:flex;align-items:center;gap:13px}.services-card-title i{width:50px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 24px rgba(18,32,27,.14)}.services-card.is-green .services-card-title i{background:linear-gradient(160deg,#EAF6EF,#DCF0E5)}.services-card.is-gold .services-card-title i{background:linear-gradient(160deg,#F8EFDD,#F0E2C4)}.services-card-title img{width:22px;height:22px}.services-card h3{margin:0;font:600 22px/1.2 'Space Grotesk',sans-serif;letter-spacing:-.01em}.services-card>p{margin:0;font:400 15px/1.62 'Instrument Sans',sans-serif;color:#5B6355}.services-tags{display:flex;flex-wrap:wrap;gap:8px}.services-tags span{font:600 11.5px 'Instrument Sans',sans-serif;color:#128A54;background:#EAF6EF;border:1px solid rgba(18,138,84,.18);border-radius:999px;padding:5px 12px}.services-how-toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#F4EEE2;border:1px solid rgba(13,58,49,.1);border-radius:10px;padding:11px 14px;cursor:pointer;font:600 13.5px 'Instrument Sans',sans-serif;color:#26312A;text-align:left}.services-how-toggle svg{transition:transform .35s cubic-bezier(.34,1.56,.64,1)}.services-how-toggle svg.is-open{transform:rotate(180deg)}.services-how{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .5s cubic-bezier(.16,1,.3,1),opacity .4s}.services-how.is-open{grid-template-rows:1fr;opacity:1}.services-how>div{overflow:hidden}.services-how p{display:flex;align-items:flex-start;gap:10px;margin:0 0 10px;font:400 13.5px/1.55 'Instrument Sans',sans-serif;color:#5B6355}.services-how p b{width:22px;height:22px;border-radius:50%;background:#EAF6EF;color:#128A54;font:700 11px 'Space Grotesk';display:flex;align-items:center;justify-content:center;flex-shrink:0}.services-card footer{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid rgba(13,58,49,.1);padding-top:13px;margin-top:auto}.services-card footer strong{font:700 20px 'Space Grotesk',sans-serif;color:#128A54}.services-card footer a{display:flex;align-items:center;gap:8px;font:600 14px 'Instrument Sans',sans-serif;color:#0E2A1D;text-decoration:none;border-bottom:2px solid #D9B36A;padding-bottom:3px;white-space:nowrap}
+      .services-integrations{background:#0E241A;overflow:hidden}.services-integrations-inner{max-width:1180px;margin:0 auto;padding:clamp(48px,6vw,76px) clamp(20px,3vw,32px);display:flex;flex-direction:column;gap:28px}.services-integrations header{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}.services-integrations header span{font:700 12px 'Instrument Sans',sans-serif;letter-spacing:.18em;color:#2BD483;text-transform:uppercase}.services-integrations h2{margin:0;font:600 clamp(26px,3.2vw,38px)/1.15 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.02em}.services-integrations header p{margin:0;font:400 16px/1.6 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6);max-width:540px}.services-marquee{position:relative;overflow:hidden;display:flex;flex-direction:column;gap:14px;mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}.services-marquee-row{display:flex;gap:12px;width:max-content;flex-wrap:nowrap;will-change:transform}.services-marquee-row>div{display:flex;gap:12px;flex-shrink:0}.services-marquee-row.is-left{animation:servicesMarqueeL 38s linear infinite}.services-marquee-row.is-right{animation:servicesMarqueeR 44s linear infinite}.services-marquee-row span{display:inline-flex;align-items:center;gap:9px;font:600 14px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.82);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:11px 18px;white-space:nowrap}.services-marquee-row span i{width:6px;height:6px;border-radius:50%;background:#2BD483}.services-marquee-row.is-right span i{background:#D9B36A}.services-static-tools{display:none;flex-wrap:wrap;justify-content:center;gap:10px}.services-static-tools span{font:600 13px 'Instrument Sans';color:rgba(245,240,232,.82);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:9px 14px}.services-stack-note{text-align:center;margin:0;font:500 13.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.45)}.services-stack-note a{color:#2BD483;font-weight:600}
+      .services-faq{background:#F7F2EA}.services-faq>div{max-width:820px;margin:0 auto;padding:clamp(56px,8vw,92px) clamp(20px,3vw,32px)}.services-faq h2{margin:0 0 44px;text-align:center;font:600 clamp(28px,3.6vw,42px)/1.15 'Space Grotesk',sans-serif;letter-spacing:-.02em}.services-faq-list{display:flex;flex-direction:column;gap:12px}.services-faq-list article{background:#FCFAF4;border:1px solid #EDE6D8;border-radius:16px;overflow:hidden;box-shadow:0 1px 2px rgba(32,24,12,.04);transition:.4s}.services-faq-list article.is-open{background:#fff;border-color:rgba(23,160,99,.4);box-shadow:0 18px 40px rgba(18,32,27,.12)}.services-faq-list button{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;padding:18px 22px;background:transparent;border:0;text-align:left;font:600 16px 'Space Grotesk',sans-serif;color:#0A120E;cursor:pointer}.services-faq-list button svg{width:30px;height:30px;padding:7px;border-radius:50%;background:#EFE9DC;color:#128A54;flex-shrink:0;transition:.35s cubic-bezier(.34,1.56,.64,1)}.services-faq-list .is-open button svg{transform:rotate(180deg);background:#128A54;color:#fff}.services-faq-list article>div{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .45s cubic-bezier(.16,1,.3,1),opacity .35s}.services-faq-list article.is-open>div{grid-template-rows:1fr;opacity:1}.services-faq-list article>div p{overflow:hidden;margin:0;padding:0 22px;font:400 15px/1.62 'Instrument Sans',sans-serif;color:#68705F}.services-faq-list article.is-open>div p{padding-bottom:20px}
+      .services-cta{position:relative;background:radial-gradient(760px 420px at 50% -15%,rgba(23,160,99,.18),transparent 62%),#0A120E;padding:clamp(56px,8vw,96px) clamp(20px,3vw,32px)}.services-cta-card{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(28px,4vw,56px);align-items:center;max-width:1060px;margin:0 auto;background:linear-gradient(160deg,#10301F,#0A1C12);border:1px solid rgba(255,253,246,.14);border-radius:28px;padding:clamp(26px,4.5vw,54px);box-shadow:0 44px 100px rgba(0,0,0,.45)}.services-cta-card>div{display:flex;flex-direction:column;align-items:flex-start;gap:18px}.services-cta-card>div>span{font:700 12px 'Instrument Sans',sans-serif;letter-spacing:.18em;color:#D9B36A;text-transform:uppercase}.services-cta h2{margin:0;font:600 clamp(30px,3.8vw,46px)/1.12 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.02em}.services-cta-card>div>p{margin:0;font:400 17px/1.65 'Instrument Sans',sans-serif;color:rgba(245,240,232,.62);max-width:440px}.services-cta-chips{display:flex;flex-wrap:wrap;gap:10px}.services-cta-chips b{font:600 13.5px 'Instrument Sans',sans-serif;color:rgba(245,240,232,.78);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:9px 15px}.services-cta-card aside{display:flex;flex-direction:column;gap:11px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:clamp(20px,2.6vw,30px)}.services-cta-card aside small{font:700 10.5px 'Instrument Sans',sans-serif;letter-spacing:.14em;color:rgba(245,240,232,.5);text-transform:uppercase}.services-cta-card aside p{margin:0;font:500 14.5px/1.5 'Instrument Sans',sans-serif;color:rgba(245,240,232,.8)}.services-cta-card aside p::first-letter{color:#2BD483}.services-cta-card aside a{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:4px;font:600 16px 'Instrument Sans',sans-serif;color:#0A120E;background:linear-gradient(160deg,#E7C57E,#D9B36A);border-radius:13px;padding:17px 20px;text-decoration:none;box-shadow:0 16px 40px rgba(217,179,106,.3)}.services-cta-card aside strong{text-align:center;font:600 13px 'Instrument Sans',sans-serif;color:#D9B36A}
+      @keyframes servicesBlob{0%,100%{transform:translate3d(-4%,-3%,0) scale(1)}50%{transform:translate3d(4%,4%,0) scale(1.1)}}@keyframes servicesRise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}@keyframes servicesMarqueeL{to{transform:translateX(-50%)}}@keyframes servicesMarqueeR{from{transform:translateX(-50%)}to{transform:translateX(0)}}
+      @media(max-width:820px){.services-grid{grid-template-columns:1fr}.services-card{grid-column:auto!important}.services-cta-card{grid-template-columns:1fr}}
+      @media(max-width:520px){.services-card footer{align-items:flex-end}.services-card footer strong{font-size:18px}.services-card footer a{font-size:12.5px}.services-search kbd{display:none}.services-search input{padding-right:18px}.services-cta-card{padding:24px 20px}.services-cta-chips b{font-size:12.5px;padding:8px 12px}}
+      html[data-motion='reduced'] .services-blob,html[data-motion='reduced'] .services-card,html[data-motion='reduced'] .services-marquee-row{animation:none!important}html[data-motion='reduced'] .services-marquee{display:none}html[data-motion='reduced'] .services-static-tools{display:flex}
+      @media(prefers-reduced-motion:reduce){html:not([data-motion='full']) .services-blob,html:not([data-motion='full']) .services-card,html:not([data-motion='full']) .services-marquee-row{animation:none!important}html:not([data-motion='full']) .services-marquee{display:none}html:not([data-motion='full']) .services-static-tools{display:flex}}
+    `}</style>
+  </div>
 }

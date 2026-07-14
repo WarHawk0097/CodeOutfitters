@@ -1,15 +1,17 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import { gsap, ScrollTrigger } from '@/lib/animations/gsap-setup'
+import { useMotionMode } from '@/components/motion-mode-provider'
 
 export function useCounter<T extends HTMLElement = HTMLDivElement>(end: number, duration = 1.8) {
   const ref = useRef<T>(null)
   const [val, setVal] = useState(0)
+  const { reduced } = useMotionMode()
 
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setVal(end); return }
+    if (reduced) { setVal(end); return }
     if (end === 0) return
 
     const ctx = gsap.context(() => {
@@ -22,7 +24,7 @@ export function useCounter<T extends HTMLElement = HTMLDivElement>(end: number, 
     }, el)
 
     return () => ctx.revert()
-  }, [end, duration])
+  }, [end, duration, reduced])
 
   return { ref, val }
 }

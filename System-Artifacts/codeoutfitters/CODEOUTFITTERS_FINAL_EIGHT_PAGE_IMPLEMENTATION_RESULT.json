@@ -1,0 +1,42 @@
+{
+  "status": "PASS",
+  "repository": "F:/CodeOutfitters",
+  "branch": "main",
+  "startingCommit": "46a8f2d",
+  "routes": {
+    "/": { "source": "CodeOutfitters Homepage v8.dc.html", "desktop": "PASS", "tablet": "PASS", "mobile": "PASS" },
+    "/services": { "source": "CodeOutfitters Services.dc.html", "desktop": "PASS", "tablet": "PASS", "mobile": "PASS" },
+    "/industries": { "source": "CodeOutfitters Industries.dc.html", "desktop": "PASS", "tablet": "PASS", "mobile": "PASS" },
+    "/process": { "source": "CodeOutfitters Process.dc.html", "desktop": "PASS", "tablet": "PASS", "mobile": "PASS" },
+    "/about": { "source": "CodeOutfitters About.dc.html", "desktop": "PASS", "tablet": "PASS", "mobile": "PASS" },
+    "/security": { "source": "CodeOutfitters Security Reliability.dc.html", "desktop": "PASS", "tablet": "PASS", "mobile": "PASS" },
+    "/case-studies": { "source": "CodeOutfitters Case Studies.dc.html", "desktop": "PASS", "tablet": "PASS", "mobile": "PASS" },
+    "/contact": { "source": "CodeOutfitters Contact.dc.html", "desktop": "PASS", "tablet": "PASS", "mobile": "PASS" }
+  },
+  "responsive": {
+    "checksPassed": 24,
+    "checksTotal": 24,
+    "fullMotionChecked": 24,
+    "reducedMotionChecked": 24,
+    "horizontalOverflow": 0,
+    "clippedContent": 0,
+    "settledLayoutShift": 0,
+    "brokenAssets": 0,
+    "consoleErrors": 0,
+    "hydrationErrors": 0,
+    "reducedRunningAnimations": 0,
+    "reducedHiddenReveals": 0
+  },
+  "marquees": {
+    "homepage": { "selector": ".hp-tool-row", "animation": "hpToolsL", "duration": "60s", "t0": -16.0664, "t2": -52.4427, "t4": -89.1228, "hover0": -89.7285, "hover2": -89.7285, "resume0": -91.2445, "resume2": -127.621, "movement": true, "pointerPause": true, "resume": true, "reducedVisibleDuplicates": 0 },
+    "services": { "selector": ".services-marquee-row.is-left", "animation": "servicesMarqueeL", "duration": "38s", "t0": -24.7489, "t2": -88.4658, "t4": -151.655, "hover0": -152.710, "hover2": -152.710, "resume0": -155.870, "resume2": -219.059, "movement": true, "pointerPause": true, "resume": true, "reducedVisibleDuplicates": 0 },
+    "security": { "selector": ".sec-tool-row:not(.reverse)", "animation": "secDriftL", "duration": "38s", "t0": -30.2506, "t2": -104.334, "t4": -179.036, "hover0": -179.655, "hover2": -179.655, "resume0": -183.977, "resume2": -258.064, "movement": true, "pointerPause": true, "resume": true, "reducedVisibleDuplicates": 0 }
+  },
+  "process": { "timelines": 1, "spines": 1, "fills": 1, "steps": 6, "markers": 6, "headings": 6, "timelineHeight": 1242, "fillHeight": 1214, "reducedStepsVisible": 6, "reducedFillComplete": true, "reducedRunningAnimations": 0 },
+  "interactions": { "navigation": true, "footerLinks": true, "workflowTabs": true, "calculator": true, "serviceSearch": true, "serviceExpansion": true, "industryFaq": true, "processFaq": true, "securityFaq": true, "caseStudyFilters": true, "caseStudyExpansion": true, "contactValidation": true, "contactDirectEmail": true, "contactFakeSuccess": false, "faq": true },
+  "architecture": { "nativeNextJs": true, "reactTypeScript": true, "iframe": false, "dangerouslySetInnerHTML": false, "standaloneHtmlDependency": false, "genericDomMutationEngine": false, "polling": false, "retryLoops": false, "debugCode": false },
+  "obsoleteRoutes": { "/pricing": 404, "/book": 404, "/portfolio": 404, "sitemapClean": true, "internalLinksClean": true },
+  "checks": { "typecheck": "PASS", "lint": "UNAVAILABLE: eslint executable is not installed", "build": "PASS", "playwright": "PASS: 24/24 plus focused interaction and motion suites", "gitDiffCheck": "PASS" },
+  "evidence": { "sourceMaps": 7, "visualSpecs": 7, "perPageResultFiles": 14, "finalBrowserScreenshots": 24 },
+  "remainingIssues": []
+}

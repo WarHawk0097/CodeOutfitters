@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { AboutPageClient } from './about-page-client'
-import { CTABanner } from '@/components/cta-banner'
 
 export const metadata: Metadata = {
   title: 'About — CodeOutfitters',
@@ -8,10 +7,5 @@ export const metadata: Metadata = {
 }
 
 export default function AboutPage() {
-  return (
-    <>
-      <AboutPageClient />
-      <CTABanner />
-    </>
-  )
+  return <AboutPageClient />
 }

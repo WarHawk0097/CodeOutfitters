@@ -1,0 +1,11 @@
+{
+  "route": "/security",
+  "status": "PASS",
+  "native": true,
+  "viewports": {
+    "1440x1000": { "sourceHeight": 4303, "beforeHeight": 5895, "afterHeight": 4301, "heightDeltaPercent": 0.05 },
+    "820x1180": { "sourceHeight": 4197, "beforeHeight": 5858, "afterHeight": 4195, "heightDeltaPercent": 0.05 },
+    "390x844": { "sourceHeight": 5240, "beforeHeight": 7299, "afterHeight": 5204, "heightDeltaPercent": 0.69 }
+  },
+  "runtime": { "contentCards": 6, "faqs": 5, "toolPills": 36, "faqOpenTransfer": true, "opposedMarquees": true, "reducedMotionDuplicates": 0, "horizontalOverflow": false, "brokenImages": 0, "consoleErrors": 0, "hydrationErrors": 0 }
+}

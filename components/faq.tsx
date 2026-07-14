@@ -1,112 +1,25 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { useState } from 'react'
+import Link from 'next/link'
+import { ChevronDown, CircleHelp, MessageCircle } from 'lucide-react'
 
-export interface FaqItem {
-  q: string
-  a: string
-}
-
-export interface FAQProps {
-  items: FaqItem[]
-  title?: string
-}
-
-function FaqAccordionItem({
-  item,
-  isOpen,
-  toggle,
-  index,
-}: {
-  item: FaqItem
-  isOpen: boolean
-  toggle: () => void
-  index: number
-}) {
-  const contentRef = useRef<HTMLDivElement>(null)
-  const [height, setHeight] = useState(0)
-
-  useEffect(() => {
-    if (contentRef.current) {
-      setHeight(contentRef.current.scrollHeight)
-    }
-  }, [])
-
-  return (
-    <div
-      id={`faq-item-${index}`}
-      className="bg-white/[0.03] border border-white/10 rounded-xl overflow-hidden transition-colors duration-300"
-    >
-      <button
-        onClick={toggle}
-        className="w-full flex items-center justify-between gap-4 px-6 md:px-8 py-6 text-left focus-visible:outline-2 focus-visible:outline-[#D9B36A] focus-visible:outline-offset-2 focus-visible:outline-inset transition-colors duration-200 group"
-        aria-expanded={isOpen}
-        aria-controls={`faq-answer-${index}`}
-      >
-        <span className="text-white/90 font-medium text-lg leading-snug group-hover:text-white transition-colors duration-200">
-          {item.q}
-        </span>
-        <ChevronDown
-          className={`w-5 h-5 flex-shrink-0 text-[#D9B36A] transition-transform duration-300 ease-out ${isOpen ? 'rotate-180' : ''}`}
-        />
-      </button>
-      <div
-        id={`faq-answer-${index}`}
-        role="region"
-        className="overflow-hidden transition-all duration-300 ease-out"
-        style={{
-          maxHeight: isOpen ? height : 0,
-          opacity: isOpen ? 1 : 0,
-        }}
-      >
-        <div ref={contentRef} className="px-6 md:px-8 pb-6 text-[#8A857B] leading-relaxed">
-          {item.a}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-export const homepageFaqs: FaqItem[] = [
-  { q: 'How much does an automation project cost?', a: 'There are no generic packages or fixed pricing tiers. Every build is scoped individually after a free discovery call, and you get a fixed proposal before any work starts — no hourly creep, no surprises.' },
-  { q: 'Really — live in 7 days?', a: 'For a single well-defined workflow, yes. Larger multi-system builds take longer. Either way you get a working preview early and approve everything before it goes live.' },
-  { q: 'Do I need a technical team on my side?', a: 'No. We handle every technical detail — integrations, hosting, monitoring. You only need to show us how the work happens today and approve the result.' },
-  { q: 'What tools do you work with?', a: 'WhatsApp Business, Anthropic Claude, n8n, Make, Zapier, Airtable, Notion, Google Workspace, and most CRMs. If your stack is unusual, we tell you on the discovery call whether we can connect it.' },
-  { q: 'What happens if something breaks?', a: 'Every build includes post-launch support, and we monitor your automations continuously. Most issues are fixed before you notice them.' },
+export interface FaqItem { q:string; a:string }
+export const homepageFaqs:FaqItem[] = [
+ {q:'How much does an automation project cost?',a:'Every build is scoped individually after the free discovery call. Most single-workflow automations land in the low four figures; you get a fixed quote before we start — no surprises, no hourly creep.'},
+ {q:'Really — live in 7 days?',a:'For a single well-defined workflow, yes. Larger multi-system builds take 2–4 weeks. Either way you get a working preview within the first week and approve everything before it goes live.'},
+ {q:'Do I need a technical team on my side?',a:'No. We handle every technical detail — integrations, hosting, monitoring. You only need to show us how the work happens today and approve the result.'},
+ {q:'What tools do you work with?',a:'WhatsApp Business, Anthropic Claude, n8n, Make, Zapier, Airtable, Notion, Google Workspace, and most CRMs. If your stack is unusual, we tell you on the discovery call whether we can connect it.'},
+ {q:'What happens if something breaks?',a:'Every build includes 30 days of support, and we monitor your automations continuously. Most issues are fixed before you notice them.'},
 ]
 
-export function FAQ({ items = homepageFaqs, title = 'Frequently Asked Questions' }: { items?: FaqItem[]; title?: string }) {
-  const [openIndex, setOpenIndex] = useState<number | null>(null)
-
-  const toggle = (index: number) => {
-    setOpenIndex(openIndex === index ? null : index)
-  }
-
-  return (
-    <section
-      className="py-24 md:py-32 px-5 md:px-8 relative overflow-hidden"
-      style={{ background: 'linear-gradient(178deg, #10301F, #0C2417)' }}
-    >
-      <div className="max-w-3xl mx-auto relative z-10">
-        {title && (
-          <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-12 md:mb-16">
-            {title}
-          </h2>
-        )}
-
-        <div className="space-y-3">
-          {items.map((item, index) => (
-            <FaqAccordionItem
-              key={index}
-              item={item}
-              index={index}
-              isOpen={openIndex === index}
-              toggle={() => toggle(index)}
-            />
-          ))}
-        </div>
-      </div>
-    </section>
-  )
+export function FAQ({items=homepageFaqs,title='Frequently Asked Questions'}:{items?:FaqItem[];title?:string}){
+ const [open,setOpen]=useState(0)
+ return <section className="hp-faq" id="faq"><div className="hp-faq-inner">
+  <header><span><CircleHelp size={13}/>FAQ</span><h2>{title}</h2><p>Have a question? We&apos;ve got answers. If you don&apos;t find what you&apos;re looking for, feel free to contact us.</p></header>
+  <div className="hp-faq-list">{items.map((item,i)=><article className={open===i?'is-open':''} key={item.q}><button onClick={()=>setOpen(open===i?-1:i)} aria-expanded={open===i}><span>{item.q}</span><ChevronDown size={20}/></button><div className="hp-faq-answer"><div><p>{item.a}</p></div></div></article>)}</div>
+  <aside><MessageCircle size={48}/><h3>Still have questions?</h3><p>Our team is here to help. Get in touch and we&apos;ll respond as soon as possible.</p><div><Link href="/contact">Contact Support</Link><Link href="#services">View Our Services</Link></div></aside>
+ </div><style>{`
+  .hp-faq{width:100%;background:linear-gradient(180deg,#F7F2EA,#EFE7D6)}.hp-faq-inner{max-width:896px;margin:0 auto;padding:clamp(56px,8vw,96px) clamp(16px,3vw,32px)}.hp-faq header{display:flex;flex-direction:column;align-items:center;margin-bottom:clamp(44px,6vw,64px);text-align:center}.hp-faq header>span{display:inline-flex;align-items:center;gap:5px;margin-bottom:16px;background:#E8DFCC;color:#0A120E;border-radius:999px;padding:4px 11px;font:600 12.5px 'Instrument Sans',sans-serif}.hp-faq h2{margin:0 0 16px;font:700 clamp(30px,4.4vw,50px)/1.1 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.02em}.hp-faq header p{margin:0;max-width:672px;font:400 clamp(16px,1.6vw,18px)/1.6 'Instrument Sans',sans-serif;color:#68705F}.hp-faq-list{display:flex;flex-direction:column;gap:16px}.hp-faq-list article{background:#fff;border:1px solid #E8DFCC;border-radius:12px;overflow:hidden;transition:border-color .5s cubic-bezier(.16,1,.3,1),box-shadow .5s cubic-bezier(.16,1,.3,1)}.hp-faq-list article.is-open{border-color:rgba(23,160,99,.5);box-shadow:0 4px 6px -1px rgba(18,32,27,.1),0 2px 4px -2px rgba(18,32,27,.1)}.hp-faq-list button{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;padding:clamp(16px,2.4vw,24px);cursor:pointer;background:transparent;border:0;text-align:left;font:600 clamp(16px,1.7vw,18px) 'Space Grotesk',sans-serif;color:#0A120E}.hp-faq-list button svg{flex-shrink:0;color:#68705F;transition:transform .4s cubic-bezier(.34,1.56,.64,1)}.hp-faq-list .is-open button svg{transform:rotate(180deg)}.hp-faq-answer{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .45s cubic-bezier(.16,1,.3,1),opacity .35s}.hp-faq-answer>div{overflow:hidden;min-height:0}.hp-faq-answer p{margin:0;border-top:1px solid #E8DFCC;padding:clamp(16px,2.4vw,24px);font:400 clamp(14px,1.5vw,16px)/1.65 'Instrument Sans',sans-serif;color:#68705F}.hp-faq-list .is-open .hp-faq-answer{grid-template-rows:1fr;opacity:1}.hp-faq aside{margin-top:clamp(44px,6vw,64px);text-align:center;background:linear-gradient(135deg,#fff,#EFE7D6);border:1px solid #E8DFCC;border-radius:12px;padding:clamp(24px,3.5vw,32px)}.hp-faq aside>svg{display:block;margin:0 auto 16px;color:#17A063}.hp-faq aside h3{margin:0 0 8px;font:700 clamp(20px,2.2vw,24px)/1.3 'Space Grotesk',sans-serif;color:#0A120E}.hp-faq aside p{margin:0 0 24px;font:400 clamp(14px,1.5vw,16px)/1.6 'Instrument Sans',sans-serif;color:#68705F}.hp-faq aside>div{display:flex;justify-content:center;gap:12px}.hp-faq aside a{display:inline-flex;align-items:center;justify-content:center;font:600 16px 'Instrument Sans',sans-serif;color:#fff;background:#17A063;border-radius:8px;padding:12px 32px;text-decoration:none;white-space:nowrap}.hp-faq aside a+ a{color:#0A120E;background:transparent;border:1px solid #D8CDB4}@media(max-width:640px){.hp-faq aside>div{flex-direction:column}}
+ `}</style></section>
 }

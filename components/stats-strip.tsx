@@ -3,10 +3,10 @@
 import { useScrollReveal } from '@/hooks/useScrollReveal'
 
 const stats = [
-  { value: '50K+', label: 'representative hours automated', color: '#2BD483' },
-  { value: '120+', label: 'representative automations shipped', color: '#F5F0E8' },
-  { value: '12', label: 'industries (sample range)', color: '#F5F0E8' },
-  { value: '98%', label: 'representative retention metric', color: '#D9B36A' },
+  { value: '50K+', label: 'hours automated for clients', color: '#2BD483' },
+  { value: '120+', label: 'automations shipped', color: '#F5F0E8' },
+  { value: '12', label: 'industries served', color: '#F5F0E8' },
+  { value: '98%', label: 'client retention', color: '#D9B36A' },
 ]
 
 export function StatsStrip() {
@@ -17,10 +17,10 @@ export function StatsStrip() {
       ref={ref}
       style={{ background: '#0A120E', borderTop: '1px solid rgba(255,255,255,.07)' }}
     >
-      <div
+      <div className="hp-stats-grid"
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
           gap: '1px',
           background: 'rgba(255,255,255,.07)',
         }}
@@ -55,6 +55,7 @@ export function StatsStrip() {
           </div>
         ))}
       </div>
+      <style>{`@media(max-width:600px){.hp-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}`}</style>
     </section>
   )
 }

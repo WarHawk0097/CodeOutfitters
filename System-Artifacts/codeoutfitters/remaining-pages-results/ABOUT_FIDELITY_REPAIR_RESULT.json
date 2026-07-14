@@ -1,0 +1,11 @@
+{
+  "route": "/about",
+  "status": "PASS",
+  "native": true,
+  "viewports": {
+    "1440x1000": { "sourceHeight": 3800, "beforeHeight": 4768, "afterHeight": 3800, "heightDeltaPercent": 0 },
+    "820x1180": { "sourceHeight": 4059, "beforeHeight": 5093, "afterHeight": 4059, "heightDeltaPercent": 0 },
+    "390x844": { "sourceHeight": 5607, "beforeHeight": 6817, "afterHeight": 5577, "heightDeltaPercent": 0.54 }
+  },
+  "runtime": { "beliefCards": 4, "workPrinciples": 4, "trustCards": 3, "spotlightMotion": true, "reducedMotionReadable": true, "horizontalOverflow": false, "brokenImages": 0, "consoleErrors": 0, "hydrationErrors": 0 }
+}

@@ -2,275 +2,64 @@
 
 import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
-import { ArrowRight, Zap, Search, Hammer, Clock } from 'lucide-react'
-import Link from 'next/link'
-
 
 const steps = [
-  {
-    number: 1,
-    title: 'Discovery Call',
-    description: 'We hop on a 30-minute call to map your biggest time drains, understand your stack, and identify the highest-ROI automation opportunities.',
-    day: 'Day 1',
-    icon: Search,
-  },
-  {
-    number: 2,
-    title: 'Custom Scope',
-    description: 'You receive a fixed-scope proposal with clear deliverables, timeline, and pricing — no surprises, no hourly creep.',
-    day: 'Day 2-3',
-    icon: Zap,
-  },
-  {
-    number: 3,
-    title: 'We Build It',
-    description: 'We build, connect, and test every piece of your automation end-to-end. You get a working preview before anything goes live.',
-    day: 'Day 4-6',
-    icon: Hammer,
-  },
-  {
-    number: 4,
-    title: 'You Save Time',
-    description: 'Your automation ships live. We hand over full documentation, and you start reclaiming hours every single day. Support included.',
-    day: 'Day 7 LIVE',
-    icon: Clock,
-  },
+  { day: 'Day 1', title: 'Discovery Call', body: '30 minutes — we map your exact workflow, find your biggest time drains, and tell you honestly whether automation fits.' },
+  { day: 'Day 2–3', title: 'Custom Scope', body: 'We design the automation architecture for your exact tools, then send a clear scope with timeline and cost before we start.' },
+  { day: 'Day 4–6', title: 'We Build It', body: 'We handle every technical detail — integrations, hosting, testing. You just review and approve before anything goes live.' },
+  { day: 'Day 7 · Live', title: 'You Save Time', body: 'Ongoing support included. We monitor your automations, fix issues fast, and optimize as your business grows.' },
 ]
 
-function StepCard({
-  step,
-  index,
-  spineProgress,
-}: {
-  step: (typeof steps)[0]
-  index: number
-  spineProgress: number
-}) {
-  const isLeft = index % 2 === 0
-  const Icon = step.icon
-  const cardRef = useRef<HTMLDivElement>(null)
-  const isInView = useInView(cardRef, { once: true, amount: 0.3 })
-
-  return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr auto 1fr',
-        gap: 'clamp(16px,3vw,40px)',
-        alignItems: 'center',
-      }}
-    >
-      {/* Left card (or spacer on right side) */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: isLeft ? 'flex-end' : 'flex-start',
-          order: isLeft ? 1 : 3,
-        }}
-      >
-        <motion.div
-          ref={cardRef}
-          initial={{ opacity: 0, x: isLeft ? -30 : 30, y: 20 }}
-          animate={isInView ? { opacity: 1, x: 0, y: 0 } : {}}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          style={{
-            width: '100%',
-            maxWidth: '380px',
-            background: 'rgba(255,255,255,.04)',
-            border: '1px solid rgba(255,255,255,.10)',
-            borderRadius: '18px',
-            padding: '22px 24px',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            <h3 style={{ font: '600 17px/1.2 "Space Grotesk",sans-serif', color: '#F5F0E8', margin: 0 }}>
-              {step.title}
-            </h3>
-          </div>
-          <p style={{ font: '400 13.5px/1.6 "Instrument Sans",sans-serif', color: 'rgba(245,240,232,.55)', margin: '0 0 12px' }}>
-            {step.description}
-          </p>
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '5px',
-              font: '700 10.5px "Instrument Sans",sans-serif',
-              color: step.day === 'Day 7 LIVE' ? '#2BD483' : '#D9B36A',
-              background: step.day === 'Day 7 LIVE'
-                ? 'rgba(43,212,131,.10)'
-                : 'rgba(217,179,106,.10)',
-              border: `1px solid ${
-                step.day === 'Day 7 LIVE'
-                  ? 'rgba(43,212,131,.25)'
-                  : 'rgba(217,179,106,.25)'
-              }`,
-              borderRadius: '999px',
-              padding: '4px 11px',
-            }}
-          >
-            <span
-              style={{
-                width: '5px', height: '5px', borderRadius: '999px',
-                background: step.day === 'Day 7 LIVE' ? '#2BD483' : '#D9B36A',
-              }}
-            />
-            {step.day}
-          </span>
-        </motion.div>
-      </div>
-
-      {/* Center spine + node */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          position: 'relative',
-          order: 2,
-        }}
-      >
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={isInView ? { scale: 1 } : {}}
-          transition={{ duration: 0.4, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-          style={{
-            width: '64px',
-            height: '64px',
-            borderRadius: '999px',
-            background: step.day === 'Day 7 LIVE'
-              ? 'linear-gradient(135deg,#2BD483,#17A063)'
-              : 'linear-gradient(135deg,#D9B36A,#C8A96E)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative',
-            zIndex: 2,
-            flexShrink: 0,
-            boxShadow: step.day === 'Day 7 LIVE'
-              ? '0 0 30px rgba(43,212,131,.35)'
-              : '0 0 24px rgba(217,179,106,.2)',
-          }}
-        >
-          <Icon size={24} color="#0A120E" />
-          <span
-            style={{
-              position: 'absolute',
-              top: '-4px',
-              right: '-4px',
-              width: '22px',
-              height: '22px',
-              borderRadius: '999px',
-              background: '#0A120E',
-              border: '2px solid #D9B36A',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              font: '700 10px "Space Grotesk",sans-serif',
-              color: '#F5F0E8',
-            }}
-          >
-            {step.number}
-          </span>
-        </motion.div>
-      </div>
-
-      {/* Right spacer (or card) */}
-      <div style={{ order: isLeft ? 3 : 1 }} />
-    </div>
-  )
-}
-
 export function ProcessPreview() {
-  const sectionRef = useRef<HTMLElement>(null)
-  const isInView = useInView(sectionRef, { once: true, amount: 0.15 })
+  const ref = useRef<HTMLElement>(null)
+  const visible = useInView(ref, { once: true, amount: 0.08 })
 
   return (
-    <section
-      ref={sectionRef}
-      style={{
-        background: '#0A120E',
-        padding: '80px 0',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: 'radial-gradient(800px 500px at 50% 0%, rgba(43,212,131,.06), transparent 60%)',
-        }}
-      />
-
-      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '0 24px', position: 'relative', zIndex: 1 }}>
-        <div style={{ textAlign: 'center', marginBottom: '56px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '16px' }}>
-            <span style={{ width: '40px', height: '1px', background: '#D9B36A', flexShrink: 0 }} />
-            <span style={{ font: '700 11.5px "Instrument Sans",sans-serif', letterSpacing: '.18em', color: '#D9B36A', textTransform: 'uppercase' }}>
-              02 · How it works
-            </span>
-            <span style={{ width: '40px', height: '1px', background: '#D9B36A', flexShrink: 0 }} />
-          </div>
-          <h2
-            style={{
-              font: '600 clamp(28px,3.8vw,42px)/1.15 "Space Grotesk",sans-serif',
-              color: '#F5F0E8',
-              letterSpacing: '-.02em',
-              maxWidth: '600px',
-              margin: '0 auto',
-            }}
-          >
-            From hello to live automation in 7 days
-          </h2>
-        </div>
-
-        {/* Desktop: grid layout with center spine */}
-        <div style={{ position: 'relative' }}>
-          {/* Animated spine line */}
-          <div
-            style={{
-              position: 'absolute',
-              left: '50%',
-              top: '0',
-              bottom: '0',
-              width: '4px',
-              transform: 'translateX(-50%)',
-              background: 'rgba(255,255,255,.06)',
-              borderRadius: '2px',
-            }}
-          >
-            <motion.div
-              initial={{ height: '0%' }}
-              animate={isInView ? { height: '100%' } : {}}
-              transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }}
-              style={{
-                width: '100%',
-                background: 'linear-gradient(180deg, #D9B36A 0%, #2BD483 60%, #2BD483 100%)',
-                borderRadius: '2px',
-              }}
-            />
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(32px,5vw,60px)' }}>
-            {steps.map((step, index) => (
-              <StepCard key={step.number} step={step} index={index} spineProgress={0} />
-            ))}
-          </div>
-        </div>
-
-        <div style={{ textAlign: 'center', marginTop: '48px' }}>
-          <Link
-            href="/process"
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '8px',
-              font: '600 14px "Instrument Sans",sans-serif',
-              color: '#D9B36A', textDecoration: 'none',
-            }}
-          >
-            See the full process <ArrowRight size={14} />
-          </Link>
+    <section ref={ref} className="hp-process">
+      <div className="hp-section-inner">
+        <header className="hp-section-head">
+          <div className="hp-kicker"><i />02 · How it works<i /></div>
+          <h2>From Discovery to <span>Deployed in 7 Days</span></h2>
+          <p>A streamlined process designed to minimize your time investment while maximizing results.</p>
+        </header>
+        <div className="hp-timeline">
+          <div className="hp-spine"><motion.span initial={false} animate={{ scaleY: 1 }} transition={{ duration: 1.9, ease: [0.16, 1, 0.3, 1] }} /></div>
+          {steps.map((step, index) => (
+            <motion.div className="hp-step" key={step.title} initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: .65, delay: index * .1, ease: [0.16, 1, 0.3, 1] }}>
+              <div className={`hp-step-node ${index === 3 ? 'is-live' : ''}`}>
+                {index === 3 ? <><b>DAY 7</b><small>LIVE</small></> : <b>{index + 1}</b>}
+              </div>
+              <article className={`hp-step-card ${index % 2 ? 'is-right' : 'is-left'} ${index === 3 ? 'is-final' : ''}`}>
+                <span className={`hp-step-day ${index === 3 ? 'is-live' : ''}`}>{step.day}</span>
+                <h3>{step.title}</h3>
+                <p>{step.body}</p>
+              </article>
+            </motion.div>
+          ))}
         </div>
       </div>
+      <style>{`
+        .hp-process{position:relative;background:#FDFBF6;border-top:1px solid #EDE6D8;overflow:hidden}
+        .hp-section-inner{position:relative;max-width:1180px;margin:0 auto;padding:clamp(56px,8vw,92px) clamp(20px,3vw,32px)}
+        .hp-section-head{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:48px;text-align:center}
+        .hp-kicker{display:flex;align-items:center;gap:14px;font:700 12px 'Instrument Sans',sans-serif;letter-spacing:.18em;color:#128A54;text-transform:uppercase}
+        .hp-kicker i{display:block;width:38px;height:2px;background:#D9B36A}
+        .hp-section-head h2{margin:0;font:600 clamp(32px,4.2vw,50px)/1.12 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.02em}
+        .hp-section-head h2 span{color:#128A54}.hp-section-head p{margin:0;font:400 17.5px/1.6 'Instrument Sans',sans-serif;color:#68705F;max-width:460px}
+        .hp-timeline{position:relative;max-width:940px;margin:0 auto;display:flex;flex-direction:column;gap:30px}
+        .hp-spine{position:absolute;left:50%;top:14px;bottom:14px;width:4px;transform:translateX(-50%);border-radius:2px;background:#E7DEC9;overflow:hidden;mask-image:linear-gradient(180deg,transparent,#000 5%,#000 95%,transparent)}
+        .hp-spine span{position:absolute;inset:0;transform-origin:top;background:linear-gradient(180deg,#17A063,#D9B36A)}
+        .hp-step{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 104px minmax(0,1fr);align-items:center}
+        .hp-step-node{grid-column:2;grid-row:1;justify-self:center;width:64px;height:64px;border-radius:18px;background:linear-gradient(160deg,#17A063,#0E7A4E);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#F5F0E8;box-shadow:0 18px 38px rgba(23,160,99,.44);z-index:3}
+        .hp-step-node b{font:700 24px/1 'Space Grotesk',sans-serif}.hp-step-node.is-live{background:linear-gradient(160deg,#17A063,#0E7A4E);box-shadow:0 14px 30px rgba(23,160,99,.42)}
+        .hp-step-node.is-live b{font-size:13px;letter-spacing:.06em}.hp-step-node small{font:700 9px 'Instrument Sans',sans-serif;letter-spacing:.12em;color:rgba(255,255,255,.85)}
+        .hp-step-card{grid-row:1;position:relative;background:linear-gradient(178deg,#fff,#FBF7EE 72%,#F6F1E4);border:1px solid rgba(13,58,49,.14);border-radius:18px;padding:22px 26px;box-shadow:0 14px 40px rgba(18,32,27,.08),inset 0 1px 0 rgba(255,255,255,.8);display:flex;flex-direction:column;gap:9px;min-width:0;transition:.5s cubic-bezier(.16,1,.3,1)}
+        .hp-step-card:hover{transform:translateY(-4px);border-color:rgba(23,160,99,.3);box-shadow:0 24px 60px rgba(18,32,27,.14)}.hp-step-card.is-left{grid-column:1}.hp-step-card.is-right{grid-column:3}.hp-step-card.is-final{border-color:rgba(18,138,84,.32)}
+        .hp-step-day{align-self:flex-start;white-space:nowrap;font:700 10px 'Instrument Sans',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#B08A3E;background:#F8EFDD;border:1px solid rgba(217,179,106,.4);border-radius:999px;padding:4px 12px}.hp-step-day.is-live{color:#128A54;background:#EAF6EF;border-color:rgba(18,138,84,.3)}
+        .hp-step-card h3{margin:0;font:600 21px 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.01em}.hp-step-card p{margin:0;font:400 15px/1.6 'Instrument Sans',sans-serif;color:#68705F}
+        @media(max-width:760px){.hp-timeline{gap:22px}.hp-spine{left:31px;transform:none}.hp-step{grid-template-columns:64px minmax(0,1fr);align-items:start}.hp-step-node{grid-column:1;justify-self:start;width:52px;height:52px;border-radius:15px}.hp-step-node b{font-size:19px}.hp-step-card.is-left,.hp-step-card.is-right{grid-column:2}.hp-step-card h3{font-size:19px}}
+        @media(prefers-reduced-motion:reduce){.hp-spine span{transform:scaleY(1)!important}.hp-step{opacity:1!important;transform:none!important}}
+      `}</style>
     </section>
   )
 }

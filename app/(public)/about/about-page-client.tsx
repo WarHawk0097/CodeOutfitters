@@ -1,409 +1,58 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { ArrowRight, ShieldCheck, GitBranch, Users, MessageCircle } from 'lucide-react'
+import type { CSSProperties, PointerEvent } from 'react'
 import Link from 'next/link'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
 
 const beliefs = [
-  {
-    icon: GitBranch, title: 'Automation should disappear',
-    desc: 'Great tools don\'t add friction. Invisible automation is the only kind worth building — everything else is just more busywork.',
-  },
-  {
-    icon: Users, title: 'Scope before code',
-    desc: 'We map the full workflow — every handoff, every exception — before writing a single line. Speed comes from clarity, not rushing.',
-  },
-  {
-    icon: MessageCircle, title: 'Humans stay in the loop',
-    desc: 'AI handles volume. People handle decisions. We never design a system that removes human judgment from things that matter.',
-  },
-  {
-    icon: ShieldCheck, title: 'Clear communication over jargon',
-    desc: 'No technical gatekeeping. You understand every part of what we build, how it works, and why it\'s set up that way.',
-  },
+  { title: 'Automation should disappear', icon: 'icon-automate.svg', bg: ['#EAF6EF', '#DCF0E5'], desc: 'The best system is one your team stops noticing — it just quietly does the repetitive part.' },
+  { title: 'Scope before code', icon: 'icon-database-stack.svg', bg: ['#F8EFDD', '#F0E2C4'], desc: "We map the real workflow before writing anything. Guessing at requirements wastes everyone's time." },
+  { title: 'Humans stay in the loop', icon: 'icon-ai-agent-face.svg', bg: ['#E8EDE9', '#DBE3DC'], desc: 'AI handles the repetitive parts; anything sensitive or ambiguous gets routed to a person, by design.' },
+  { title: 'Clear communication over jargon', icon: 'icon-chat-square.svg', bg: ['#EAF6EF', '#DCF0E5'], desc: 'You should always know what was built, why, and how to get help — in plain language, not engineer-speak.' },
+]
+const working = [
+  { num: '01', title: 'You talk, we listen', desc: 'Discovery starts with your workflow, not our template.' },
+  { num: '02', title: 'One point of contact', desc: 'Clear communication throughout — no ticket queues.' },
+  { num: '03', title: 'Documented handoff', desc: 'You get real documentation, not tribal knowledge.' },
+  { num: '04', title: 'Support after launch', desc: '30 days included to fix issues and fine-tune.' },
+]
+const trust = [
+  { title: 'Fixed-scope proposals', desc: 'You see the exact deliverables and timeline before we start building.' },
+  { title: 'Testing before launch', desc: 'Automations are run through real scenarios before they touch your business.' },
+  { title: 'Direct communication', desc: 'You talk to the people actually building your system — not an account layer.' },
 ]
 
-const processSteps = [
-  { num: '01', title: 'You talk, we listen', desc: 'We learn your actual workflow — no assumptions, no template questions.' },
-  { num: '02', title: 'One point of contact', desc: 'You deal with one person end-to-end, not a rotation of strangers.' },
-  { num: '03', title: 'Documented handoff', desc: 'Every system ships with docs you can actually use — not tribal knowledge.' },
-  { num: '04', title: 'Support after launch', desc: 'We stay on deck post-launch to catch issues and answer questions.' },
-]
-
-const qualityItems = [
-  {
-    title: 'Quality & reliability',
-    desc: 'Every system is tested against real data before it touches your customers. Edge cases, slow integrations, unexpected inputs — we simulate the mess before you encounter it live.',
-  },
-  {
-    title: 'Tool & automation mindset',
-    desc: 'We don\'t sell you a platform or lock you into a proprietary stack. Every build uses proven tools — n8n, Make, Claude, your CRM — connected in a way that stays yours after handoff.',
-  },
-]
-
-const trustItems = [
-  { title: 'Fixed-scope proposals', desc: 'You see exactly what gets built and what it costs before we start. No hourly creep, no surprise invoices.' },
-  { title: 'Testing before launch', desc: 'Nothing goes live until you\'ve approved it. We test against real scenarios, not demo data.' },
-  { title: 'Direct communication', desc: 'No account managers, no ticket queues. You talk directly to the person building your system.' },
-]
-
-function AboutHero() {
-  return (
-    <section
-      className="relative pt-28 pb-20 md:pt-32 md:pb-28 px-5 md:px-8 overflow-hidden"
-      style={{ background: '#0A120E' }}
-    >
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(760px 420px at 50% -15%, rgba(23,160,99,.18), transparent 62%)' }}
-        aria-hidden="true"
-      />
-      <div className="relative max-w-4xl mx-auto text-center">
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          <span
-            className="inline-block text-[11px] font-semibold uppercase tracking-[.18em] px-4 py-2 rounded-full mb-6"
-            style={{
-              color: '#D9B36A',
-              background: 'rgba(217,179,106,.1)',
-              border: '1px solid rgba(217,179,106,.2)',
-            }}
-          >
-            The studio
-          </span>
-        </motion.div>
-
-        <motion.h1
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-          className="text-[clamp(2.2rem,5vw,3.8rem)] font-semibold leading-[1.1] text-[#F5F0E8] -tracking-[.02em] mb-6"
-          style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-        >
-          An automation studio,<br />
-          <span style={{ color: 'rgba(245,240,232,.65)' }}>not an agency of decks.</span>
-        </motion.h1>
-
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.18 }}
-          className="text-lg leading-relaxed max-w-2xl mx-auto"
-          style={{ color: 'rgba(245,240,232,.62)' }}
-        >
-          We build automation systems that replace busywork — not meetings about busywork.
-          Fixed scope, documented handoff, fully owned by you.
-        </motion.p>
-      </div>
-    </section>
-  )
-}
-
-function MissionSection() {
-  return (
-    <section className="py-20 md:py-28 px-5 md:px-8 relative overflow-hidden" style={{ background: '#F7F2EA' }}>
-      <div className="max-w-3xl mx-auto text-center">
-        <motion.p
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="text-lg md:text-xl leading-relaxed"
-          style={{ color: '#5B6355' }}
-        >
-          Most small businesses don&apos;t need more software. They need the software they already have to
-          stop requiring human babysitting. CodeOutfitters connects the tools you already use so data
-          moves, replies send, and follow-ups happen — without someone at a desk making it all work.
-        </motion.p>
-      </div>
-    </section>
-  )
-}
-
-function WhatWeBelieve() {
-  const ref = useScrollReveal<HTMLDivElement>(0.08)
-
-  return (
-    <section className="py-20 md:py-28 px-5 md:px-8 relative overflow-hidden" style={{ background: '#fff' }}>
-      <div className="max-w-6xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-14"
-        >
-          <span
-            className="inline-block text-[11px] font-semibold uppercase tracking-[.18em] px-4 py-2 rounded-full mb-4"
-            style={{
-              color: '#17A063',
-              background: 'rgba(23,160,99,.08)',
-              border: '1px solid rgba(23,160,99,.16)',
-            }}
-          >
-            What we believe
-          </span>
-          <h2
-            className="text-[clamp(1.75rem,3.5vw,2.75rem)] font-semibold leading-[1.15] -tracking-[.02em]"
-            style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#0A120E' }}
-          >
-            Principles that shape every build
-          </h2>
-        </motion.div>
-
-        <div ref={ref} className="grid grid-cols-1 md:grid-cols-12 gap-6">
-          {beliefs.map((b, i) => {
-            const span = i % 2 === 0 ? 'md:col-span-7' : 'md:col-span-5'
-            const Icon = b.icon
-            return (
-              <div
-                key={b.title}
-                data-reveal
-                className={`${span} col-span-1 rounded-[22px] p-7 md:p-8 transition-all duration-300 hover:-translate-y-0.5`}
-                style={{
-                  background: 'linear-gradient(180deg,#fff,#FBF7EE 68%,#F6F1E4)',
-                  border: '1px solid rgba(13,58,49,.14)',
-                  boxShadow: '0 2px 20px rgba(0,0,0,.04)',
-                }}
-              >
-                <div
-                  className="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
-                  style={{ background: 'rgba(23,160,99,.1)' }}
-                >
-                  <Icon className="w-5 h-5" style={{ color: '#17A063' }} />
-                </div>
-                <h3
-                  className="text-lg font-semibold mb-2"
-                  style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#0A120E' }}
-                >
-                  {b.title}
-                </h3>
-                <p className="text-sm leading-relaxed" style={{ color: '#5B6355' }}>{b.desc}</p>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function HowWeWork() {
-  const ref = useScrollReveal<HTMLDivElement>(0.1)
-
-  return (
-    <section
-      className="py-20 md:py-28 px-5 md:px-8 relative overflow-hidden"
-      style={{ background: '#0E241A' }}
-    >
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(540px 340px at 30% 50%, rgba(23,160,99,.08), transparent 60%)' }}
-        aria-hidden="true"
-      />
-      <div className="relative max-w-6xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-14"
-        >
-          <span
-            className="inline-block text-[11px] font-semibold uppercase tracking-[.18em] px-4 py-2 rounded-full"
-            style={{
-              color: '#D9B36A',
-              background: 'rgba(217,179,106,.1)',
-              border: '1px solid rgba(217,179,106,.2)',
-            }}
-          >
-            How we work
-          </span>
-          <h2
-            className="text-[clamp(1.75rem,3.5vw,2.75rem)] font-semibold leading-[1.15] -tracking-[.02em] mt-5"
-            style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#F5F0E8' }}
-          >
-            Process without the overhead
-          </h2>
-        </motion.div>
-
-        <div ref={ref} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {processSteps.map((s) => (
-            <div key={s.num} data-reveal className="flex flex-col gap-3">
-              <span
-                className="text-[clamp(2.5rem,4vw,3rem)] font-semibold leading-none"
-                style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'rgba(217,179,106,.3)' }}
-              >
-                {s.num}
-              </span>
-              <h3
-                className="text-lg font-semibold"
-                style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#F5F0E8' }}
-              >
-                {s.title}
-              </h3>
-              <p className="text-sm leading-relaxed" style={{ color: 'rgba(245,240,232,.55)' }}>{s.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function QualityPrinciples() {
-  return (
-    <section className="py-20 md:py-28 px-5 md:px-8 relative overflow-hidden" style={{ background: '#fff' }}>
-      <div className="max-w-5xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16">
-          {qualityItems.map((item, i) => (
-            <motion.div
-              key={item.title}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
-            >
-              <div
-                className="w-1 h-10 rounded-full mb-5"
-                style={{ background: 'linear-gradient(180deg,#17A063,transparent)' }}
-              />
-              <h3
-                className="text-xl font-semibold mb-3"
-                style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#0A120E' }}
-              >
-                {item.title}
-              </h3>
-              <p className="text-sm leading-relaxed" style={{ color: '#5B6355' }}>{item.desc}</p>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function TrustSection() {
-  const ref = useScrollReveal<HTMLDivElement>(0.08)
-
-  return (
-    <section
-      className="py-20 md:py-28 px-5 md:px-8 relative overflow-hidden"
-      style={{ background: '#08160F' }}
-    >
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(540px 340px at 70% 30%, rgba(23,160,99,.06), transparent 60%)' }}
-        aria-hidden="true"
-      />
-      <div className="relative max-w-5xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-14"
-        >
-          <span
-            className="inline-block text-[11px] font-semibold uppercase tracking-[.18em] px-4 py-2 rounded-full"
-            style={{
-              color: '#D9B36A',
-              background: 'rgba(217,179,106,.1)',
-              border: '1px solid rgba(217,179,106,.2)',
-            }}
-          >
-            Why trust us
-          </span>
-          <h2
-            className="text-[clamp(1.75rem,3.5vw,2.75rem)] font-semibold leading-[1.15] -tracking-[.02em] mt-5"
-            style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#F5F0E8' }}
-          >
-            No surprises. No fine print.
-          </h2>
-        </motion.div>
-
-        <div ref={ref} className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {trustItems.map((t) => (
-            <div
-              key={t.title}
-              data-reveal
-              className="rounded-[20px] p-7"
-              style={{
-                background: 'rgba(255,255,255,.03)',
-                border: '1px solid rgba(255,255,255,.08)',
-              }}
-            >
-              <h3
-                className="text-base font-semibold mb-2"
-                style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#F5F0E8' }}
-              >
-                {t.title}
-              </h3>
-              <p className="text-sm leading-relaxed" style={{ color: 'rgba(245,240,232,.55)' }}>{t.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function CTASection() {
-  return (
-    <section className="py-20 md:py-28 px-5 md:px-8 relative overflow-hidden" style={{ background: '#F7F2EA' }}>
-      <div className="max-w-3xl mx-auto text-center">
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="text-[clamp(1.75rem,3.5vw,2.75rem)] font-semibold leading-[1.15] -tracking-[.02em] mb-4"
-          style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#0A120E' }}
-        >
-          Ready to stop working <span style={{ color: '#17A063' }}>in</span> your business?
-        </motion.h2>
-        <motion.p
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.08 }}
-          className="text-base leading-relaxed mb-8"
-          style={{ color: '#5B6355' }}
-        >
-          Book a free discovery call. We&apos;ll map your biggest time drains and tell you exactly what
-          automation looks like for your business.
-        </motion.p>
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4, delay: 0.16 }}
-        >
-          <Link
-            href="/contact"
-            className="inline-flex items-center gap-2 px-7 py-4 rounded-xl text-sm font-semibold transition-all duration-200 hover:gap-3"
-            style={{
-              background: 'linear-gradient(160deg,#E7C57E,#D9B36A)',
-              color: '#0A120E',
-              boxShadow: '0 12px 32px rgba(217,179,106,.25), inset 0 1px 0 rgba(255,255,255,.4)',
-            }}
-          >
-            Book Free Discovery Call
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-        </motion.div>
-      </div>
-    </section>
-  )
+function BeliefCard({ item }: { item: typeof beliefs[number] }) {
+  const move = (event: PointerEvent<HTMLElement>) => { const r = event.currentTarget.getBoundingClientRect(); event.currentTarget.style.setProperty('--sx', `${(event.clientX-r.left)/r.width*100}%`); event.currentTarget.style.setProperty('--sy', `${(event.clientY-r.top)/r.height*100}%`) }
+  const style = { '--sx': '50%', '--sy': '50%', '--tile': `linear-gradient(160deg,${item.bg[0]},${item.bg[1]})` } as CSSProperties
+  return <article className="abt-belief-card" data-reveal style={style} onPointerMove={move}><span><img src={`/assets/${item.icon}`} alt="" /></span><h3>{item.title}</h3><p>{item.desc}</p></article>
 }
 
 export function AboutPageClient() {
-  return (
-    <>
-      <AboutHero />
-      <MissionSection />
-      <WhatWeBelieve />
-      <HowWeWork />
-      <QualityPrinciples />
-      <TrustSection />
-      <CTASection />
-    </>
-  )
+  const missionRef = useScrollReveal<HTMLElement>(0.1)
+  const beliefRef = useScrollReveal<HTMLElement>(0.1)
+  const workRef = useScrollReveal<HTMLElement>(0.1)
+  const qualityRef = useScrollReveal<HTMLElement>(0.1)
+  const trustRef = useScrollReveal<HTMLElement>(0.1)
+  const ctaRef = useScrollReveal<HTMLElement>(0.1)
+  return <div className="about-approved">
+    <section className="abt-hero"><div><div className="abt-badge"><i />The studio</div><h1>An automation studio, <span>not an agency of decks.</span></h1><p>CodeOutfitters exists to remove the repetitive work that quietly eats a small business&apos;s week — replies, reminders, entry, follow-up — and hand that time back.</p></div></section>
+    <section className="abt-mission" ref={missionRef}><div data-reveal><div className="abt-kicker"><i />Why we exist<i /></div><h2>Most small businesses run on manual work that was never meant to scale.</h2><p>Owners and staff spend hours a week on replies, scheduling, data entry, and follow-up — work that doesn&apos;t need a human doing it by hand. We build the automation layer underneath those workflows so your team spends time on the parts of the business that actually need a person.</p></div></section>
+    <section className="abt-beliefs" ref={beliefRef}><div><header data-reveal><h2>What we believe.</h2></header><div className="abt-belief-grid">{beliefs.map(item => <BeliefCard key={item.title} item={item} />)}</div></div></section>
+    <section className="abt-work" ref={workRef}><div><header data-reveal><h2>How we work with clients.</h2><p>Direct communication and clear scope, from the first call to the last handoff doc.</p></header><div>{working.map(item => <article data-reveal key={item.num}><b>{item.num}</b><strong>{item.title}</strong><p>{item.desc}</p></article>)}</div></div></section>
+    <section className="abt-quality" ref={qualityRef}><div data-reveal><article><strong>Quality & reliability</strong><h2>We test before it touches your business.</h2><p>Every automation is tested against real scenarios — including the messy edge cases — before it goes live. If something breaks after launch, fixing it is part of the support window, not a separate invoice.</p></article><article><strong>Tool & automation mindset</strong><h2>We fit into your stack, not the other way around.</h2><p>We&apos;d rather connect the tools you already trust than force a migration. Custom builds are scoped only when nothing off-the-shelf covers the workflow.</p></article></div></section>
+    <section className="abt-trust" ref={trustRef}><div><header data-reveal><h2>What you can count on.</h2></header><div>{trust.map(item => <article data-reveal key={item.title}><strong>{item.title}</strong><p>{item.desc}</p></article>)}</div></div></section>
+    <section className="abt-cta" ref={ctaRef}><div className="abt-cta-wrap"><div className="abt-cta-panel" data-reveal><div className="abt-cta-copy"><strong>Like how we think?</strong><h2>Let&apos;s Talk About <span>Your Workflow</span></h2><p>A free discovery call is the fastest way to see whether we&apos;re the right fit for how your business runs.</p><div>{['Free audit included','No long contracts','30-day support'].map(x=><span key={x}><b>✓</b>{x}</span>)}</div></div><div className="abt-cta-action"><strong>What you get in 30 minutes</strong><div>{['A map of your biggest time drains','Which workflow to automate first','A fixed quote — before we build anything'].map(x=><span key={x}><b>✓</b>{x}</span>)}</div><Link className="cta-sweep" href="/contact">Book Free Discovery Call <img src="/assets/icon-arrow-right.svg" alt="" /></Link></div></div></div></section>
+    <style>{`
+      .about-approved,.about-approved *{box-sizing:border-box}.about-approved{overflow:hidden;background:#F7F2EA}.abt-hero{background:radial-gradient(1000px 600px at 78% -15%,rgba(23,160,99,.2),transparent 60%),#0A120E}.abt-hero>div{max-width:780px;margin:auto;padding:clamp(56px,8vw,88px) clamp(20px,3vw,32px) clamp(44px,6vw,64px);display:flex;flex-direction:column;align-items:center;gap:22px;text-align:center}.abt-badge{display:flex;align-items:center;gap:9px;padding:8px 16px;border-radius:999px;background:rgba(217,179,106,.1);border:1px solid rgba(217,179,106,.4);font:700 11.5px 'Instrument Sans',sans-serif;letter-spacing:.14em;color:#D9B36A;text-transform:uppercase;animation:v3Rise .65s var(--ease-premium) both}.abt-badge i{width:7px;height:7px;border-radius:50%;background:#D9B36A}.abt-hero h1{margin:0;font:600 clamp(34px,4.6vw,54px)/1.1 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.025em;text-wrap:balance;animation:v3Rise .7s .08s var(--ease-premium) both}.abt-hero h1 span{color:#2BD483}.abt-hero p{max-width:560px;margin:0;font:400 18px/1.65 'Instrument Sans',sans-serif;color:rgba(245,240,232,.62);animation:v3Rise .7s .16s var(--ease-premium) both}
+      .abt-mission{background:#F7F2EA}.abt-mission>div{max-width:900px;margin:auto;padding:clamp(56px,8vw,88px) clamp(20px,3vw,32px);display:flex;flex-direction:column;align-items:center;gap:20px;text-align:center}.abt-kicker{display:flex;align-items:center;gap:14px;font:700 12px 'Instrument Sans',sans-serif;letter-spacing:.18em;color:#128A54;text-transform:uppercase}.abt-kicker i{width:38px;height:2px;background:#D9B36A}.abt-mission h2{margin:0;font:600 clamp(28px,3.6vw,42px)/1.2 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.02em}.abt-mission p{max-width:660px;margin:0;font:400 17px/1.7 'Instrument Sans',sans-serif;color:#5B6355}
+      .abt-beliefs{background-color:#F7F2EA;background-image:radial-gradient(rgba(14,42,29,.06) 1px,transparent 1.5px);background-size:26px 26px}.abt-beliefs>div{max-width:1180px;margin:auto;padding:0 clamp(20px,3vw,32px) clamp(56px,8vw,92px)}.abt-beliefs header,.abt-trust header{display:flex;justify-content:center;margin-bottom:38px;text-align:center}.abt-beliefs h2,.abt-trust h2,.abt-work h2{margin:0;font:600 clamp(28px,3.6vw,42px)/1.15 'Space Grotesk',sans-serif;letter-spacing:-.02em}.abt-belief-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:20px}.abt-belief-card{position:relative;grid-column:span 6;padding:clamp(24px,2.6vw,30px);display:flex;flex-direction:column;gap:12px;overflow:hidden;background:linear-gradient(178deg,#fff,#FBF7EE 68%,#F6F1E4);border:1px solid rgba(13,58,49,.14);border-radius:22px;box-shadow:0 20px 54px rgba(18,32,27,.1),inset 0 1px 0 rgba(255,255,255,.8);transition:.5s}.abt-belief-card:before{content:'';position:absolute;inset:0;background:radial-gradient(380px circle at var(--sx) var(--sy),rgba(43,212,131,.16),transparent 70%);opacity:0;transition:.35s;pointer-events:none}.abt-belief-card:hover{transform:translateY(-6px);border-color:rgba(23,160,99,.34);box-shadow:0 34px 82px rgba(18,32,27,.16)}.abt-belief-card:hover:before{opacity:1}.abt-belief-card>*{position:relative}.abt-belief-card>span{width:50px;height:50px;display:flex;align-items:center;justify-content:center;border-radius:14px;background:var(--tile);box-shadow:0 10px 24px rgba(18,32,27,.14),inset 0 1px 0 rgba(255,255,255,.7)}.abt-belief-card img{width:22px;height:22px}.abt-belief-card h3{margin:0;font:600 19px/1.3 'Space Grotesk',sans-serif}.abt-belief-card p{margin:0;font:400 14.5px/1.62 'Instrument Sans',sans-serif;color:#5B6355}
+      .abt-work{background:#0E241A}.abt-work>div{max-width:1180px;margin:auto;padding:clamp(56px,8vw,88px) clamp(20px,3vw,32px)}.abt-work header{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:40px;text-align:center}.abt-work h2{color:#F5F0E8}.abt-work header p{max-width:560px;margin:0;font:400 16px/1.6 'Instrument Sans',sans-serif;color:rgba(245,240,232,.6)}.abt-work>div>div{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}.abt-work article{padding:22px 20px;display:flex;flex-direction:column;gap:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:16px}.abt-work article b{font:700 20px 'Space Grotesk',sans-serif;color:#2BD483}.abt-work article strong{font:600 15px 'Instrument Sans',sans-serif;color:#F5F0E8}.abt-work article p{margin:0;font:400 13.5px/1.55 'Instrument Sans',sans-serif;color:rgba(245,240,232,.55)}
+      .abt-quality{background:#F7F2EA}.abt-quality>div{max-width:1100px;margin:auto;padding:clamp(56px,8vw,92px) clamp(20px,3vw,32px);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(28px,4vw,48px);align-items:start}.abt-quality article{display:flex;flex-direction:column;gap:14px}.abt-quality strong{font:700 11px 'Instrument Sans',sans-serif;letter-spacing:.16em;color:#128A54;text-transform:uppercase}.abt-quality h2{margin:0;font:600 clamp(24px,2.8vw,32px)/1.2 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.02em}.abt-quality p{margin:0;font:400 15.5px/1.65 'Instrument Sans',sans-serif;color:#5B6355}
+      .abt-trust{background:#0A120E;border-top:1px solid rgba(255,255,255,.07)}.abt-trust>div{max-width:1180px;margin:auto;padding:clamp(56px,8vw,88px) clamp(20px,3vw,32px)}.abt-trust header{margin-bottom:36px}.abt-trust h2{color:#F5F0E8}.abt-trust>div>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.abt-trust article{padding:24px 22px;display:flex;flex-direction:column;gap:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:16px}.abt-trust strong{font:600 15.5px 'Instrument Sans',sans-serif;color:#F5F0E8}.abt-trust p{margin:0;font:400 13.5px/1.6 'Instrument Sans',sans-serif;color:rgba(245,240,232,.55)}
+      .abt-cta{background:radial-gradient(760px 420px at 50% -15%,rgba(23,160,99,.18),transparent 62%),#0A120E}.abt-cta-wrap{max-width:1180px;margin:auto;padding:clamp(56px,8vw,96px) clamp(20px,3vw,32px)}.abt-cta-panel{max-width:1060px;margin:auto;padding:clamp(26px,4.5vw,54px);display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(28px,4vw,56px);align-items:center;background:linear-gradient(160deg,#10301F,#0A1C12);border:1px solid rgba(255,253,246,.14);border-radius:28px;box-shadow:0 44px 100px rgba(0,0,0,.45)}.abt-cta-copy{display:flex;flex-direction:column;align-items:flex-start;gap:18px}.abt-cta-copy>strong{font:700 12px 'Instrument Sans',sans-serif;letter-spacing:.18em;color:#D9B36A;text-transform:uppercase}.abt-cta-copy h2{margin:0;font:600 clamp(30px,3.8vw,46px)/1.12 'Space Grotesk',sans-serif;color:#F5F0E8;letter-spacing:-.02em}.abt-cta-copy h2 span{white-space:nowrap}.abt-cta-copy p{max-width:440px;margin:0;font:400 17px/1.65 'Instrument Sans',sans-serif;color:rgba(245,240,232,.62)}.abt-cta-copy>div{display:flex;flex-wrap:wrap;gap:10px}.abt-cta-copy>div span{display:flex;align-items:center;gap:8px;padding:9px 15px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);white-space:nowrap;font:600 13.5px/1.4 'Instrument Sans',sans-serif;color:rgba(245,240,232,.78)}.abt-cta-copy b,.abt-cta-action b{color:#2BD483}.abt-cta-action{padding:clamp(20px,2.6vw,30px);display:flex;flex-direction:column;gap:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:20px}.abt-cta-action>strong{font:700 10.5px 'Instrument Sans',sans-serif;letter-spacing:.14em;color:rgba(245,240,232,.5);text-transform:uppercase}.abt-cta-action>div{display:flex;flex-direction:column;gap:11px}.abt-cta-action>div span{display:flex;gap:10px;font:500 14.5px/1.5 'Instrument Sans',sans-serif;color:rgba(245,240,232,.8)}.abt-cta-action a{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:4px;padding:17px 20px;border-radius:13px;background:linear-gradient(160deg,#E7C57E,#D9B36A);box-shadow:0 16px 40px rgba(217,179,106,.3);white-space:nowrap;text-decoration:none;font:600 16px 'Instrument Sans',sans-serif;color:#0A120E}.abt-cta-action a img{width:15px;height:15px}
+      @media(max-width:860px){.abt-cta-panel{grid-template-columns:1fr}}@media(max-width:820px){.abt-belief-grid{grid-template-columns:1fr}.abt-belief-card{grid-column:auto}}@media(max-width:760px){.abt-work>div>div{grid-template-columns:repeat(2,1fr)}.abt-quality>div,.abt-trust>div>div{grid-template-columns:1fr}}@media(max-width:560px){.abt-work>div>div{grid-template-columns:1fr}.abt-cta-panel{padding:24px 20px}.abt-cta-copy h2{font-size:29px}.abt-cta-action a{padding:16px 14px;font-size:15px}}
+      @media(min-width:821px){.abt-belief-card:nth-child(1),.abt-belief-card:nth-child(4){grid-column:span 7}.abt-belief-card:nth-child(2),.abt-belief-card:nth-child(3){grid-column:span 5}}@media(max-width:820px){.abt-trust>div>div{grid-template-columns:1fr}}@media(max-width:760px){.abt-work>div>div{grid-template-columns:1fr}.abt-quality>div{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    `}</style>
+  </div>
 }

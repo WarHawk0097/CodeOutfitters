@@ -1,14 +1,16 @@
 'use client'
 import { useEffect, useRef } from 'react'
 import { gsap } from '@/lib/animations/gsap-setup'
+import { useMotionMode } from '@/components/motion-mode-provider'
 
 export function useParallaxFloat<T extends HTMLElement>(strength = 15) {
   const ref = useRef<T>(null)
+  const { reduced } = useMotionMode()
 
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    if (reduced) return
 
     const handleMouseMove = (e: MouseEvent) => {
       const rect = el.getBoundingClientRect()
@@ -46,7 +48,7 @@ export function useParallaxFloat<T extends HTMLElement>(strength = 15) {
       window.removeEventListener('mousemove', handleMouseMove)
       window.removeEventListener('mouseleave', handleMouseLeave)
     }
-  }, [strength])
+  }, [strength, reduced])
 
   return ref
 }

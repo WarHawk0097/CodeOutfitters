@@ -9,6 +9,7 @@ export function CTABanner() {
 
   return (
     <section
+      id="cta"
       ref={sectionRef}
       className="py-24 md:py-32 px-5 md:px-8 relative overflow-hidden"
       aria-label="Call to action"
@@ -202,6 +203,7 @@ export function CTABanner() {
           </div>
         </div>
       </div>
+      <style>{`@media(max-width:860px){.cta-v7{grid-template-columns:1fr!important;align-items:stretch!important}}@media(max-width:640px){.cta-v7{padding:24px 20px!important}.cta-v7 h2{font-size:29px!important}}`}</style>
     </section>
   )
 }
