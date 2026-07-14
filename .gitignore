@@ -32,3 +32,6 @@ pnpm-lock.yaml
 .env*
 .tokensave/
 graphify-out/
+
+# Local approved design-source archive (not used by the native production build)
+\# CodeOutfitters Project Audit)/

@@ -1,0 +1,23 @@
+{
+  "status": "PASS",
+  "productionUrl": "https://codeoutfitters.vercel.app",
+  "deploymentUrl": "https://codeoutfitters-pgrbqpfhz-warhawk0097s-projects.vercel.app",
+  "deploymentId": "dpl_17yS3ZiSKH7xwTJtXHhJvVd1tbrf",
+  "branch": "main",
+  "commit": "fe43d8765edbf03854d6d79527fbccb19ab68b7a",
+  "readyState": "READY",
+  "readySubstate": "PROMOTED",
+  "productionAliasActive": true,
+  "deploymentCommitMatches": true,
+  "responsiveChecks": { "passed": 24, "total": 24, "screenshots": 24, "overflow": 0, "brokenImages": 0, "consoleErrors": 0, "hydrationErrors": 0, "hiddenReveals": 0, "settledLayoutShift": 0 },
+  "reducedMotionChecks": { "passed": 24, "total": 24, "runningAnimations": 0, "hiddenReveals": 0 },
+  "marquees": {
+    "homepage": { "moved": true, "pointerPaused": true, "resumed": true },
+    "services": { "moved": true, "pointerPaused": true, "resumed": true },
+    "security": { "moved": true, "pointerPaused": true, "resumed": true }
+  },
+  "process": { "timelines": 1, "spines": 1, "fills": 1, "steps": 6, "markers": 6, "headings": 6 },
+  "interactions": { "navigation": true, "footer": true, "workflowTabs": true, "calculator": true, "serviceSearch": true, "serviceExpansion": true, "caseStudyFilters": true, "caseStudyExpansion": true, "contactValidation": true, "contactHonestPreview": true, "contactDirectEmail": true, "faq": true },
+  "obsoleteRoutes": { "/pricing": 404, "/book": 404, "/portfolio": 404, "internalLinksClean": true },
+  "remainingIssues": []
+}
