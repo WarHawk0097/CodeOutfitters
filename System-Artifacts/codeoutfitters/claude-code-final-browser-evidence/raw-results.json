@@ -437,8 +437,342 @@
     }
   ],
   "homepage": {
-    "tasksAutomatedLiveValue": "328",
-    "requiredFound": [
+    "perViewport": [
+      {
+        "viewport": "desktop",
+        "dimensions": "1440x1000",
+        "requiredFound": [
+          {
+            "text": "app.codeoutfitters.ai/live",
+            "present": true
+          },
+          {
+            "text": "Built in 7 days",
+            "present": true
+          },
+          {
+            "text": "Automation Engine",
+            "present": true
+          },
+          {
+            "text": "Running",
+            "present": true
+          },
+          {
+            "text": "1,285.8 hrs saved",
+            "present": true
+          },
+          {
+            "text": "WhatsApp",
+            "present": true
+          },
+          {
+            "text": "Email",
+            "present": true
+          },
+          {
+            "text": "Support",
+            "present": true
+          },
+          {
+            "text": "Route hot lead to sales",
+            "present": true
+          },
+          {
+            "text": "Reconcile daily invoices",
+            "present": true
+          },
+          {
+            "text": "Send onboarding email #2",
+            "present": true
+          },
+          {
+            "text": "Update CRM contact record",
+            "present": true
+          },
+          {
+            "text": "Done",
+            "present": true
+          },
+          {
+            "text": "Running task status",
+            "present": false
+          },
+          {
+            "text": "Queued",
+            "present": true
+          },
+          {
+            "text": "328 tasks automated",
+            "present": true
+          },
+          {
+            "text": "$0 payroll spent",
+            "present": true
+          }
+        ],
+        "forbiddenFound": [
+          {
+            "text": "Maple St",
+            "present": false
+          },
+          {
+            "text": "private viewing",
+            "present": false
+          },
+          {
+            "text": "lead qualified",
+            "present": false
+          },
+          {
+            "text": "booking confirmation",
+            "present": false
+          },
+          {
+            "text": "Handled end-to-end in 26 seconds",
+            "present": false
+          },
+          {
+            "text": "312 tasks automated",
+            "present": false
+          },
+          {
+            "text": "real-estate chat bubbles",
+            "present": false
+          }
+        ],
+        "horizontalOverflow": false,
+        "whatsappActive": true,
+        "rowsVisible": {
+          "total": 4,
+          "visible": 4
+        },
+        "screenshot": "prod_home_acceptance_desktop.png"
+      },
+      {
+        "viewport": "tablet",
+        "dimensions": "820x1180",
+        "requiredFound": [
+          {
+            "text": "app.codeoutfitters.ai/live",
+            "present": true
+          },
+          {
+            "text": "Built in 7 days",
+            "present": true
+          },
+          {
+            "text": "Automation Engine",
+            "present": true
+          },
+          {
+            "text": "Running",
+            "present": true
+          },
+          {
+            "text": "1,285.8 hrs saved",
+            "present": true
+          },
+          {
+            "text": "WhatsApp",
+            "present": true
+          },
+          {
+            "text": "Email",
+            "present": true
+          },
+          {
+            "text": "Support",
+            "present": true
+          },
+          {
+            "text": "Route hot lead to sales",
+            "present": true
+          },
+          {
+            "text": "Reconcile daily invoices",
+            "present": true
+          },
+          {
+            "text": "Send onboarding email #2",
+            "present": true
+          },
+          {
+            "text": "Update CRM contact record",
+            "present": true
+          },
+          {
+            "text": "Done",
+            "present": true
+          },
+          {
+            "text": "Running task status",
+            "present": false
+          },
+          {
+            "text": "Queued",
+            "present": true
+          },
+          {
+            "text": "328 tasks automated",
+            "present": true
+          },
+          {
+            "text": "$0 payroll spent",
+            "present": true
+          }
+        ],
+        "forbiddenFound": [
+          {
+            "text": "Maple St",
+            "present": false
+          },
+          {
+            "text": "private viewing",
+            "present": false
+          },
+          {
+            "text": "lead qualified",
+            "present": false
+          },
+          {
+            "text": "booking confirmation",
+            "present": false
+          },
+          {
+            "text": "Handled end-to-end in 26 seconds",
+            "present": false
+          },
+          {
+            "text": "312 tasks automated",
+            "present": false
+          },
+          {
+            "text": "real-estate chat bubbles",
+            "present": false
+          }
+        ],
+        "horizontalOverflow": false,
+        "whatsappActive": true,
+        "rowsVisible": {
+          "total": 4,
+          "visible": 4
+        },
+        "screenshot": "prod_home_acceptance_tablet.png"
+      },
+      {
+        "viewport": "mobile",
+        "dimensions": "390x844",
+        "requiredFound": [
+          {
+            "text": "app.codeoutfitters.ai/live",
+            "present": true
+          },
+          {
+            "text": "Built in 7 days",
+            "present": true
+          },
+          {
+            "text": "Automation Engine",
+            "present": true
+          },
+          {
+            "text": "Running",
+            "present": true
+          },
+          {
+            "text": "1,285.8 hrs saved",
+            "present": true
+          },
+          {
+            "text": "WhatsApp",
+            "present": true
+          },
+          {
+            "text": "Email",
+            "present": true
+          },
+          {
+            "text": "Support",
+            "present": true
+          },
+          {
+            "text": "Route hot lead to sales",
+            "present": true
+          },
+          {
+            "text": "Reconcile daily invoices",
+            "present": true
+          },
+          {
+            "text": "Send onboarding email #2",
+            "present": true
+          },
+          {
+            "text": "Update CRM contact record",
+            "present": true
+          },
+          {
+            "text": "Done",
+            "present": true
+          },
+          {
+            "text": "Running task status",
+            "present": false
+          },
+          {
+            "text": "Queued",
+            "present": true
+          },
+          {
+            "text": "328 tasks automated",
+            "present": true
+          },
+          {
+            "text": "$0 payroll spent",
+            "present": true
+          }
+        ],
+        "forbiddenFound": [
+          {
+            "text": "Maple St",
+            "present": false
+          },
+          {
+            "text": "private viewing",
+            "present": false
+          },
+          {
+            "text": "lead qualified",
+            "present": false
+          },
+          {
+            "text": "booking confirmation",
+            "present": false
+          },
+          {
+            "text": "Handled end-to-end in 26 seconds",
+            "present": false
+          },
+          {
+            "text": "312 tasks automated",
+            "present": false
+          },
+          {
+            "text": "real-estate chat bubbles",
+            "present": false
+          }
+        ],
+        "horizontalOverflow": false,
+        "whatsappActive": true,
+        "rowsVisible": {
+          "total": 4,
+          "visible": 4
+        },
+        "screenshot": "prod_home_acceptance_mobile.png"
+      }
+    ],
+    "reducedModeContentReadable": [
       {
         "text": "app.codeoutfitters.ai/live",
         "present": true
@@ -448,38 +782,64 @@
         "present": true
       },
       {
+        "text": "Automation Engine",
+        "present": true
+      },
+      {
         "text": "Running",
         "present": true
       },
       {
-        "text": "tasks automated",
+        "text": "1,285.8 hrs saved",
+        "present": true
+      },
+      {
+        "text": "WhatsApp",
+        "present": true
+      },
+      {
+        "text": "Email",
+        "present": true
+      },
+      {
+        "text": "Support",
+        "present": true
+      },
+      {
+        "text": "Route hot lead to sales",
+        "present": true
+      },
+      {
+        "text": "Reconcile daily invoices",
+        "present": true
+      },
+      {
+        "text": "Send onboarding email #2",
+        "present": true
+      },
+      {
+        "text": "Update CRM contact record",
+        "present": true
+      },
+      {
+        "text": "Done",
+        "present": true
+      },
+      {
+        "text": "Running task status",
+        "present": false
+      },
+      {
+        "text": "Queued",
+        "present": true
+      },
+      {
+        "text": "328 tasks automated",
         "present": true
       },
       {
         "text": "$0 payroll spent",
         "present": true
-      }
-    ],
-    "forbiddenFound": [
-      {
-        "text": "Maple St",
-        "present": false
-      },
-      {
-        "text": "private viewing",
-        "present": false
-      },
-      {
-        "text": "lead qualified",
-        "present": false
-      },
-      {
-        "text": "booking confirmation",
-        "present": false
-      },
-      {
-        "text": "Handled end-to-end in 26 seconds",
-        "present": false
       }
     ]
   },
@@ -489,48 +849,96 @@
       "selector": ".hp-tool-row",
       "found": true,
       "hasHoverPauseImplemented": true,
-      "t0": "matrix(1, 0, 0, 1, -16.6738, 0)",
-      "t2": "matrix(1, 0, 0, 1, -53.0501, 0)",
-      "t4": "matrix(1, 0, 0, 1, -89.4264, 0)",
-      "hoverStart": "matrix(1, 0, 0, 1, -90.3359, 0)",
-      "hover2": "matrix(1, 0, 0, 1, -90.3359, 0)",
-      "resumed": "matrix(1, 0, 0, 1, -117.012, 0)",
+      "t0": "matrix(1, 0, 0, 1, -17.2789, 0)",
+      "t2": "matrix(1, 0, 0, 1, -53.6552, 0)",
+      "t4": "matrix(1, 0, 0, 1, -90.0316, 0)",
+      "hoverStart": "matrix(1, 0, 0, 1, -90.941, 0)",
+      "hover2": "matrix(1, 0, 0, 1, -90.941, 0)",
+      "resumed": "matrix(1, 0, 0, 1, -117.617, 0)",
+      "animationName": "hpToolsL",
+      "animationDuration": "60s",
+      "animationPlayState": "running",
       "display": "flex",
       "flexWrap": "nowrap",
+      "width": "2182.69px",
+      "sequenceCount": 2,
+      "originalItemCount": 1,
+      "duplicateItemCount": 1,
+      "duplicateAriaHiddenAllTrue": true,
+      "duplicateTabbableCount": 0,
       "movingBeforeHover": true,
-      "pausedOnHover": true
+      "pausedOnHover": true,
+      "resumedAfterLeave": true,
+      "reducedMode": {
+        "static": true,
+        "duplicateHidden": true,
+        "t0": "none",
+        "t1": "none"
+      }
     },
     {
       "route": "/services",
       "selector": ".services-marquee-row",
       "found": true,
       "hasHoverPauseImplemented": true,
-      "t0": "matrix(1, 0, 0, 1, -28.4337, 0)",
-      "t2": "matrix(1, 0, 0, 1, -91.6262, 0)",
-      "t4": "matrix(1, 0, 0, 1, -154.815, 0)",
-      "hoverStart": "matrix(1, 0, 0, 1, -155.868, 0)",
-      "hover2": "matrix(1, 0, 0, 1, -155.868, 0)",
-      "resumed": "matrix(1, 0, 0, 1, -202.734, 0)",
+      "t0": "matrix(1, 0, 0, 1, -28.4348, 0)",
+      "t2": "matrix(1, 0, 0, 1, -91.624, 0)",
+      "t4": "matrix(1, 0, 0, 1, -154.813, 0)",
+      "hoverStart": "matrix(1, 0, 0, 1, -155.869, 0)",
+      "hover2": "matrix(1, 0, 0, 1, -155.869, 0)",
+      "resumed": "matrix(1, 0, 0, 1, -202.733, 0)",
+      "animationName": "servicesMarqueeL",
+      "animationDuration": "38s",
+      "animationPlayState": "running",
       "display": "flex",
       "flexWrap": "nowrap",
+      "width": "2401.31px",
+      "sequenceCount": 2,
+      "originalItemCount": 1,
+      "duplicateItemCount": 1,
+      "duplicateAriaHiddenAllTrue": true,
+      "duplicateTabbableCount": 0,
       "movingBeforeHover": true,
-      "pausedOnHover": true
+      "pausedOnHover": true,
+      "resumedAfterLeave": true,
+      "reducedMode": {
+        "static": true,
+        "duplicateHidden": false,
+        "t0": "none",
+        "t1": "none"
+      }
     },
     {
       "route": "/security",
       "selector": ".sec-tool-row",
       "found": true,
-      "hasHoverPauseImplemented": false,
-      "t0": "matrix(1, 0, 0, 1, -33.9547, 0)",
-      "t2": "matrix(1, 0, 0, 1, -108.042, 0)",
-      "t4": "matrix(1, 0, 0, 1, -182.125, 0)",
-      "hoverStart": "matrix(1, 0, 0, 1, -182.744, 0)",
-      "hover2": "matrix(1, 0, 0, 1, -182.744, 0)",
-      "resumed": "matrix(1, 0, 0, 1, -238.309, 0)",
+      "hasHoverPauseImplemented": true,
+      "t0": "matrix(1, 0, 0, 1, -33.335, 0)",
+      "t2": "matrix(1, 0, 0, 1, -107.422, 0)",
+      "t4": "matrix(1, 0, 0, 1, -181.506, 0)",
+      "hoverStart": "matrix(1, 0, 0, 1, -182.739, 0)",
+      "hover2": "matrix(1, 0, 0, 1, -182.739, 0)",
+      "resumed": "matrix(1, 0, 0, 1, -238.304, 0)",
+      "animationName": "secDriftL",
+      "animationDuration": "38s",
+      "animationPlayState": "running",
       "display": "flex",
       "flexWrap": "nowrap",
+      "width": "2815.31px",
+      "sequenceCount": 2,
+      "originalItemCount": 9,
+      "duplicateItemCount": 9,
+      "duplicateAriaHiddenAllTrue": true,
+      "duplicateTabbableCount": 0,
       "movingBeforeHover": true,
-      "pausedOnHover": "n/a - no hover-pause implemented for this marquee"
+      "pausedOnHover": true,
+      "resumedAfterLeave": true,
+      "reducedMode": {
+        "static": true,
+        "duplicateHidden": true,
+        "t0": "none",
+        "t1": "none"
+      }
     }
   ],
   "process": {
@@ -538,9 +946,27 @@
     "timelines": 1,
     "fills": 1,
     "stages": 6,
-    "progressStart": "matrix(1, 0, 0, 0.934694, 0, 0)",
-    "progressMid": "matrix(1, 0, 0, 0.996682, 0, 0)",
-    "progressEnd": "matrix(1, 0, 0, 1, 0, 0)"
+    "timelineBounds": {
+      "top": 597.84375,
+      "bottom": 2157.84375,
+      "height": 1560
+    },
+    "viewportHeight": 1200,
+    "atTop": {
+      "scrollY": 0,
+      "transform": "matrix(1, 0, 0, 0.169691, 0, 0)",
+      "activeMarkers": 1
+    },
+    "atMiddle": {
+      "scrollY": 778,
+      "transform": "matrix(1, 0, 0, 0.524709, 0, 0)",
+      "activeMarkers": 3
+    },
+    "atEnd": {
+      "scrollY": 1798,
+      "transform": "matrix(1, 0, 0, 0.993421, 0, 0)",
+      "activeMarkers": 6
+    }
   },
   "obsolete": [
     {

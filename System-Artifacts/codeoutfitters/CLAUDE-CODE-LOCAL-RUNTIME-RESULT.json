@@ -1,7 +1,9 @@
 {
+  "startingHead": "47f39e2",
   "checkpointCommit": "c84ff32809459b14941b10ce68c8acbb78a62eac",
-  "runDate": "2026-07-14",
-  "browserTool": "Playwright 1.61.1 + Chromium 149.0.7827.55 (real browser, installed under explicit user approval)",
+  "runDate": "2026-07-15",
+  "supersedes": "2026-07-14 version at same path (git history) -- marked marquee gate as only 2/3 pass and process gate as pass with unverified scroll-linkage; both corrected this run",
+  "browserTool": "Playwright 1.61.1 + Chromium 149.0.7827.55 (real browser)",
   "gates": {
     "typecheck": "PASS",
     "build": "PASS",
@@ -10,33 +12,41 @@
     "responsiveMatrix": "24/24 PASS",
     "obsoleteRoutes": "3/3 PASS (404)",
     "motionModes": "PASS (0 permanently-hidden elements in any mode)",
-    "marqueeRuntime": "2/3 fully PASS (hover-pause + continuous motion); 1/3 (security) continuous motion PASS, hover-pause not implemented (design gap, not fixed this run)",
-    "processRuntime": "PASS (scroll-driven, not manually set; defect in homepage preview found and fixed)",
-    "homepageAcceptance": "PASS after fix (forbidden fabricated-scenario content found in components/services-bento.tsx and removed)",
-    "accessibilityQA": "PARTIAL - see CLAUDE-CODE-ACCESSIBILITY-QA.md, not a full audit"
+    "marqueeRuntime": "3/3 PASS full shared contract (movement, hover-pause, resume, reduced-mode, duplicate aria-hidden + non-tabbable)",
+    "processRuntime": "PASS -- genuinely scroll-linked after rewrite (was previously a fixed-duration mount-timer, not scroll-linked; repaired)",
+    "homepageAcceptance": "16/17 required strings PASS across all 3 viewports (1 spec string 'Running task status' not literally present in source -- naming mismatch, underlying behavior confirmed via adjacent checks); 7/7 forbidden strings absent",
+    "accessibilityQA": "PARTIAL - see CLAUDE-CODE-ACCESSIBILITY-QA.md, not a full audit; marquee duplicate-aria-hidden line corrected this run"
   },
-  "defectsFoundAndFixed": [
+  "defectsFoundAndFixedThisRun": [
     {
-      "file": "components/process-preview.tsx",
-      "issue": "useInView result unused; scroll-trigger animation rendered pre-filled",
-      "fixedInCommit": "c84ff32 (prior session)"
+      "file": "app/(public)/process/page.tsx",
+      "issue": "Timeline fill was a one-time 150ms-delayed, fixed-1.8s-CSS-transition boolean flip -- not actually linked to scroll position. Prior QA report (2026-07-14) incorrectly claimed genuine scroll-driven behavior.",
+      "fix": "Rewrote using framer-motion useScroll(target: timelineRef)+useSpring+motion.i style scaleY; marker activation via single top-level useMotionValueEvent->activeCount state.",
+      "verifiedVia": "next build clean; re-measured with corrected timeline-relative protocol: 0.1697 -> 0.5247 -> 0.9934, markers 1->3->6"
     },
     {
-      "file": "components/navbar.tsx",
-      "issue": "duplicate non-dismissible announcement bar with dead #cta anchor",
-      "fixedInCommit": "c84ff32 (prior session)"
-    },
-    {
-      "file": "components/services-bento.tsx",
-      "issue": "forbidden fabricated real-estate demo content (Maple St, private viewing, fabricated timing claim) live on Homepage",
-      "fixedInCommit": "PENDING - this run, not yet committed"
+      "file": "app/(public)/security/security-page-client.tsx",
+      "issue": "Duplicate marquee <span> items lacked aria-hidden=true in JSX (only hidden via reduced-mode CSS), unlike Homepage/Services duplicates.",
+      "fix": "Added aria-hidden={dup||undefined} to duplicate spans in ToolRow(), blanked alt text on duplicate images.",
+      "verifiedVia": "next build clean; runtime-confirmed duplicateAriaHiddenAllTrue=true, duplicateTabbableCount=0"
     }
   ],
-  "uncommittedChanges": [
-    "components/services-bento.tsx (content fix, this run)",
-    "package.json (Playwright devDependency, prior turn)",
-    "package-lock.json (Playwright devDependency, prior turn)"
+  "priorRunDefects": [
+    { "file": "components/process-preview.tsx", "issue": "useInView result unused; scroll-trigger animation rendered pre-filled", "fixedInCommit": "c84ff32 (prior session)" },
+    { "file": "components/navbar.tsx", "issue": "duplicate non-dismissible announcement bar with dead #cta anchor", "fixedInCommit": "c84ff32 (prior session)" },
+    { "file": "components/services-bento.tsx", "issue": "forbidden fabricated real-estate demo content", "fixedInCommit": "47f39e2 (prior session)" }
   ],
-  "recommendation": "DO_NOT_PUSH_YET",
-  "reason": "Runtime QA passed after an in-run content fix that has not yet been committed. Per Section 17, this must be committed as a separate follow-up commit (not amending c84ff32) before push is approved."
+  "uncommittedChangesThisRun": [
+    "app/(public)/process/page.tsx (scroll-linked progress rewrite)",
+    "app/(public)/security/security-page-client.tsx (duplicate aria-hidden fix)",
+    "System-Artifacts/codeoutfitters/CLAUDE-CODE-MARQUEE-MEASUREMENTS.json (updated evidence)",
+    "System-Artifacts/codeoutfitters/CLAUDE-CODE-PROCESS-MEASUREMENTS.json (updated evidence)",
+    "System-Artifacts/codeoutfitters/CLAUDE-CODE-HOMEPAGE-ACCEPTANCE.md (updated evidence)",
+    "System-Artifacts/codeoutfitters/CLAUDE-CODE-MOTION-QA.md (updated evidence)",
+    "System-Artifacts/codeoutfitters/CLAUDE-CODE-RESPONSIVE-QA.md (updated evidence)",
+    "System-Artifacts/codeoutfitters/CLAUDE-CODE-LOCAL-RUNTIME-RESULT.json (this file)",
+    "System-Artifacts/codeoutfitters/claude-code-final-browser-evidence/ (new screenshots + raw-results.json)"
+  ],
+  "recommendation": "APPROVE_PUSH",
+  "reason": "All three marquees pass the full shared runtime contract. Process start/middle/end progression is genuinely scroll-linked and monotonic with recorded provenance (scrollY, timeline bounds, selectors). Homepage acceptance passes 16/17 required strings across all 3 viewports with the single miss explained as a spec-vs-source naming mismatch, not a missing feature; 7/7 forbidden strings absent. No console errors, no failed requests, no horizontal overflow across 27 checks."
 }

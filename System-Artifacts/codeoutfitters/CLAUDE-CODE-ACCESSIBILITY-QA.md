@@ -5,7 +5,7 @@ This is NOT a full WCAG audit. Only the checks explicitly listed below were exec
 ## Executed
 
 - Reduced-motion respect (Homepage): confirmed 0 elements left with `visibility:hidden`/`display:none` under `?motion=reduced`; content remains in the DOM and readable. PASS.
-- Marquee duplicate-sequence accessibility: all 3 marquees (`/`, `/services`, `/security`) mark their duplicate row with `data-marquee-sequence="duplicate"`; homepage and services duplicates carry `aria-hidden="true"` (source-confirmed via grep); duplicates are hidden entirely under reduced motion via CSS. PASS.
+- Marquee duplicate-sequence accessibility: all 3 marquees (`/`, `/services`, `/security`) mark their duplicate row with `data-marquee-sequence="duplicate"` and now all 3 carry `aria-hidden="true"` on duplicate items (security fixed 2026-07-15 — previously only hidden via reduced-mode CSS, not aria-hidden in normal mode); 0 tabbable elements found inside any duplicate sequence at runtime. Duplicates hidden entirely under reduced motion (all 3, source+runtime confirmed). PASS.
 - Console/runtime errors across full 24-check matrix: 0 errors, 0 failed requests. PASS.
 - 404 routes (`/pricing`, `/book`, `/portfolio`): render genuine Next.js not-found page with "Back to Home" link, not a blank/broken response. PASS.
 

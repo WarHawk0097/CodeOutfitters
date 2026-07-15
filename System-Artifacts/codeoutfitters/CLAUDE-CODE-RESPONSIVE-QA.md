@@ -1,5 +1,7 @@
 # CodeOutfitters — Responsive QA (Production Server)
 
+Run date: 2026-07-15 (rerun after security-marquee aria-hidden fix and process scroll-link rewrite; matrix unchanged, re-verified clean, 0 console errors, 0 failed requests across all 27 checks including the 3 motion-mode homepage checks).
+
 Server: `http://127.0.0.1:3999` (genuine `next start` production build, post-fix)
 Chromium: 149.0.7827.55 (Playwright 1.61.1)
 Viewports: 1440x1000 (desktop), 820x1180 (tablet), 390x844 (mobile)
