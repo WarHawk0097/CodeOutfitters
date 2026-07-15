@@ -1,0 +1,42 @@
+{
+  "checkpointCommit": "c84ff32809459b14941b10ce68c8acbb78a62eac",
+  "runDate": "2026-07-14",
+  "browserTool": "Playwright 1.61.1 + Chromium 149.0.7827.55 (real browser, installed under explicit user approval)",
+  "gates": {
+    "typecheck": "PASS",
+    "build": "PASS",
+    "lint": "BLOCKED_BY_MISSING_PROJECT_TOOLING",
+    "tests": "NOT_AVAILABLE",
+    "responsiveMatrix": "24/24 PASS",
+    "obsoleteRoutes": "3/3 PASS (404)",
+    "motionModes": "PASS (0 permanently-hidden elements in any mode)",
+    "marqueeRuntime": "2/3 fully PASS (hover-pause + continuous motion); 1/3 (security) continuous motion PASS, hover-pause not implemented (design gap, not fixed this run)",
+    "processRuntime": "PASS (scroll-driven, not manually set; defect in homepage preview found and fixed)",
+    "homepageAcceptance": "PASS after fix (forbidden fabricated-scenario content found in components/services-bento.tsx and removed)",
+    "accessibilityQA": "PARTIAL - see CLAUDE-CODE-ACCESSIBILITY-QA.md, not a full audit"
+  },
+  "defectsFoundAndFixed": [
+    {
+      "file": "components/process-preview.tsx",
+      "issue": "useInView result unused; scroll-trigger animation rendered pre-filled",
+      "fixedInCommit": "c84ff32 (prior session)"
+    },
+    {
+      "file": "components/navbar.tsx",
+      "issue": "duplicate non-dismissible announcement bar with dead #cta anchor",
+      "fixedInCommit": "c84ff32 (prior session)"
+    },
+    {
+      "file": "components/services-bento.tsx",
+      "issue": "forbidden fabricated real-estate demo content (Maple St, private viewing, fabricated timing claim) live on Homepage",
+      "fixedInCommit": "PENDING - this run, not yet committed"
+    }
+  ],
+  "uncommittedChanges": [
+    "components/services-bento.tsx (content fix, this run)",
+    "package.json (Playwright devDependency, prior turn)",
+    "package-lock.json (Playwright devDependency, prior turn)"
+  ],
+  "recommendation": "DO_NOT_PUSH_YET",
+  "reason": "Runtime QA passed after an in-run content fix that has not yet been committed. Per Section 17, this must be committed as a separate follow-up commit (not amending c84ff32) before push is approved."
+}

@@ -1,0 +1,58 @@
+{
+  "server": "http://127.0.0.1:3999",
+  "chromiumVersion": "149.0.7827.55",
+  "protocol": "T0 -> wait 2s -> T2 -> wait 2s -> T4 -> hover -> hoverStart -> wait 2s -> hover2 -> mouse away -> wait 1.5s -> resumed",
+  "marquees": [
+    {
+      "route": "/",
+      "component": "components/tools-marquee.tsx",
+      "selector": ".hp-tool-row",
+      "hasHoverPauseImplemented": true,
+      "duplicateSequenceForAccessibility": "present via data-marquee-sequence=duplicate, aria-hidden=true, hidden under reduced motion",
+      "t0": "matrix(1, 0, 0, 1, -16.6738, 0)",
+      "t2": "matrix(1, 0, 0, 1, -53.0501, 0)",
+      "t4": "matrix(1, 0, 0, 1, -89.4264, 0)",
+      "hoverStart": "matrix(1, 0, 0, 1, -90.3359, 0)",
+      "hover2": "matrix(1, 0, 0, 1, -90.3359, 0)",
+      "resumed": "matrix(1, 0, 0, 1, -117.012, 0)",
+      "movingBeforeHover": true,
+      "pausedOnHover": true,
+      "resumesAfterHoverEnds": true,
+      "pass": true
+    },
+    {
+      "route": "/services",
+      "component": "app/(public)/services/page.tsx",
+      "selector": ".services-marquee-row",
+      "hasHoverPauseImplemented": true,
+      "duplicateSequenceForAccessibility": "present via data-marquee-sequence=duplicate/original",
+      "t0": "matrix(1, 0, 0, 1, -28.4337, 0)",
+      "t2": "matrix(1, 0, 0, 1, -91.6262, 0)",
+      "t4": "matrix(1, 0, 0, 1, -154.815, 0)",
+      "hoverStart": "matrix(1, 0, 0, 1, -155.868, 0)",
+      "hover2": "matrix(1, 0, 0, 1, -155.868, 0)",
+      "resumed": "matrix(1, 0, 0, 1, -202.734, 0)",
+      "movingBeforeHover": true,
+      "pausedOnHover": true,
+      "resumesAfterHoverEnds": true,
+      "pass": true
+    },
+    {
+      "route": "/security",
+      "component": "app/(public)/security/security-page-client.tsx",
+      "selector": ".sec-tool-row",
+      "hasHoverPauseImplemented": false,
+      "duplicateSequenceForAccessibility": "present via data-marquee-sequence=duplicate/original",
+      "t0": "matrix(1, 0, 0, 1, -33.9547, 0)",
+      "t2": "matrix(1, 0, 0, 1, -108.042, 0)",
+      "t4": "matrix(1, 0, 0, 1, -182.125, 0)",
+      "hoverStart": "matrix(1, 0, 0, 1, -182.744, 0)",
+      "hover2": "matrix(1, 0, 0, 1, -182.744, 0)",
+      "resumed": "matrix(1, 0, 0, 1, -238.309, 0)",
+      "movingBeforeHover": true,
+      "pausedOnHover": null,
+      "note": "No onPointerEnter/onPointerLeave handler exists in source for this marquee -- design gap, not a regression. Not fixed this run (out of reported-defect scope; user did not request this fix).",
+      "pass": "partial - continuous motion confirmed working, hover-pause not implemented"
+    }
+  ]
+}

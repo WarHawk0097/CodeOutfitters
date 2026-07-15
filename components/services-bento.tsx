@@ -102,9 +102,9 @@ function ChatDemo() {
         <span style={{ marginLeft: 'auto', font: '500 9px "Instrument Sans",sans-serif', color: '#128A54', background: '#EAF6EF', borderRadius: '999px', padding: '2px 7px' }}>Online</span>
       </div>
 
-      {msg('start', { background: '#fff', color: '#26312A', boxShadow: '0 1px 2px rgba(0,0,0,.06)' }, 'Hi! Is the 2-bed on Maple St still available? Can I view it this week?', 0)}
+      {msg('start', { background: '#fff', color: '#26312A', boxShadow: '0 1px 2px rgba(0,0,0,.06)' }, 'Hi, can I book a call to talk through what you offer?', 0)}
       {dots(1.2)}
-      {msg('end', { background: '#DCF0E5', color: '#14532D' }, 'It is! I can book you a private viewing this week — which day suits you best?', 2)}
+      {msg('end', { background: '#DCF0E5', color: '#14532D' }, 'Of course! I can get you on the calendar this week — which day suits you best?', 2)}
       {msg('start', { background: '#fff', color: '#26312A', boxShadow: '0 1px 2px rgba(0,0,0,.06)' }, 'Thursday afternoon works best.', 3.5)}
       {dots(4.5)}
       {msg('end', {
@@ -120,14 +120,14 @@ function ChatDemo() {
             <path d="M6 10l3 3 5-5" stroke="#17A063" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           <div>
-            <div style={{ font: '700 10.5px "Instrument Sans",sans-serif', color: '#0A120E' }}>Viewing booked — Thu 4:00 PM</div>
-            <div style={{ font: '400 9.5px "Instrument Sans",sans-serif', color: '#8A857B' }}>12 Maple St · calendar invites sent to both sides</div>
+            <div style={{ font: '700 10.5px "Instrument Sans",sans-serif', color: '#0A120E' }}>Call booked — Thu 4:00 PM</div>
+            <div style={{ font: '400 9.5px "Instrument Sans",sans-serif', color: '#8A857B' }}>Calendar invite sent automatically</div>
           </div>
         </div>
       ), 6)}
       {t >= 8 && (
         <div style={{ alignSelf: 'center', font: '600 9.5px "Instrument Sans",sans-serif', color: '#128A54', background: '#EAF6EF', border: '1px solid rgba(18,138,84,.25)', borderRadius: '999px', padding: '4px 10px', marginTop: '4px' }}>
-          Handled end-to-end in 26 seconds — no human needed
+          Handled automatically — no human needed
         </div>
       )}
       {t >= 9.5 && (

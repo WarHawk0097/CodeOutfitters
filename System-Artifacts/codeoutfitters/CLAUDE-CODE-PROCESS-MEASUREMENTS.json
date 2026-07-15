@@ -1,0 +1,21 @@
+{
+  "route": "/process",
+  "server": "http://127.0.0.1:3999",
+  "component": "app/(public)/process/page.tsx",
+  "timelineCount": 1,
+  "fillCount": 1,
+  "stageCount": 6,
+  "scrollDrivenFill": {
+    "atTop": "matrix(1, 0, 0, 0.925356, 0, 0)",
+    "atMidScroll": "matrix(1, 0, 0, 0.996287, 0, 0)",
+    "atBottom": "matrix(1, 0, 0, 1, 0, 0)",
+    "genuinelyScrollDriven": true,
+    "note": "scaleY progresses monotonically with real window.scrollTo calls; not manually set by the test."
+  },
+  "homepagePreview": {
+    "component": "components/process-preview.tsx",
+    "defectFound": "useInView() result 'visible' was computed but never read in JSX; spine fill and step cards rendered fully visible on mount via initial={false} with static animate targets, bypassing scroll-trigger entirely.",
+    "fixApplied": "initial/animate props now gated on 'visible' (initial={{scaleY:0}} / animate={{scaleY: visible?1:0}} for spine; initial={{opacity:0,y:24}} / animate={visible?{opacity:1,y:0}:{}} for step cards).",
+    "verifiedVia": "next build clean post-edit; included in checkpoint commit c84ff32 per prior session."
+  }
+}
