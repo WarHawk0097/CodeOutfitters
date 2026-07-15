@@ -59,5 +59,12 @@
     "Process 'middle' state not screenshotted (only numeric measurement)",
     "Local regression had 1 test-selector false positive on /services (verified as test issue, not product defect)"
   ],
-  "finalVerdict": "PASSED"
+  "finalVerdict": "PASSED",
+  "verdictRevocationNotice": {
+    "revokedOn": "2026-07-15",
+    "reason": "User directly observed the Homepage hero had no visible entrance animation in production, contradicting this PASSED verdict. Root cause: components/hero.tsx used initial={false}, causing the stagger tree to mount already in its final state. This PASSED verdict covered structural/contract checks (responsive matrix, motion-mode toggling, marquee contracts, Process scroll math) but did not catch that the hero's initial visual state made animation imperceptible to a human viewer.",
+    "repairCommit": "e0c324c",
+    "supersededBy": "System-Artifacts/codeoutfitters/CLAUDE-CODE-VISIBLE-MOTION-RESULT.json and CLAUDE-CODE-VISIBLE-MOTION-ROOT-CAUSE.md / -REPAIR.md / -PRODUCTION-QA.md",
+    "currentVerdict": "PARTIAL — see CLAUDE-CODE-VISIBLE-MOTION-RESULT.json"
+  }
 }

@@ -1,0 +1,70 @@
+{
+  "runDate": "2026-07-15",
+  "priorVerdictRevoked": "PASSED (2026-07-15, CLAUDE-CODE-FINAL-RESULT.json) invalidated by user observation: no visible animations on production",
+  "rootCause": {
+    "file": "components/hero.tsx",
+    "line": 60,
+    "defect": "motion.div initial={false} skipped the hidden variant entirely, mounting directly in the show state; no entrance/stagger transition ever played for hero content",
+    "scopeConfirmed": "repo-wide grep for initial={false} across all .tsx found exactly 1 match, this line"
+  },
+  "fix": {
+    "change": "initial={false} -> initial=\"hidden\"",
+    "filesChanged": 1,
+    "linesChanged": 1,
+    "durationsOrDistancesAltered": false,
+    "visualRedesign": false
+  },
+  "verification": {
+    "typecheck": "PASS",
+    "build": "PASS (17/17 static routes)",
+    "localProductionServer": "PASS - opacity 0->1, translateY 20px->0px interpolation confirmed over ~872ms",
+    "productionCacheBustedRetest": "PASS - opacity 0.26->1, translateY 14.75px->0px interpolation confirmed on live deployment"
+  },
+  "git": {
+    "priorHead": "927641477546c7d907e39e5c2c052f6abb7d6824",
+    "fixCommit": "e0c324c7cb457fc88a71c72969c4b6442a73e26b",
+    "shortFixCommit": "e0c324c",
+    "commitMessage": "fix: restore visible production animations",
+    "amended": false,
+    "forcePush": false,
+    "pushOutput": "9276414..e0c324c main -> main"
+  },
+  "deployment": {
+    "url": "https://codeoutfitters-hz6b1dubd-warhawk0097s-projects.vercel.app",
+    "status": "Ready",
+    "commitIdentityProof": "build-log line: Cloning github.com/WarHawk0097/CodeOutfitters (Branch: main, Commit: e0c324c)",
+    "aliasVerified": true,
+    "aliasTarget": "codeoutfitters.vercel.app"
+  },
+  "runtimeMotionModeInspection": {
+    "normal": { "dataMotion": "full", "marqueeAnimationName": "hpToolsL", "marqueePlayState": "running" },
+    "motionFull": { "dataMotion": "full", "marqueeAnimationName": "hpToolsL", "marqueePlayState": "running" },
+    "motionReduced": { "dataMotion": "reduced", "marqueeAnimationName": "none" }
+  },
+  "followupPass": {
+    "runDate": "2026-07-15 (session 2)",
+    "captureTool": "gstack browse (headless Chromium via Playwright) — no headed-browser or video-recording tool was available; user selected this as fallback after being asked",
+    "evidenceType": "timed screenshot sequence, NOT video",
+    "evidenceDir": "System-Artifacts/codeoutfitters/claude-code-visible-motion-evidence/",
+    "homepageEntranceProof": "3-frame burst immediately post-hard-reload: frame1 shows hero badge/heading/CTA/mockup fully invisible, frame2 (~1s later) shows full stagger complete with residual fade on last stat card, frame3 fully settled. Visually confirms entrance animation genuinely plays on production.",
+    "marqueeProof": "2 screenshots 2s apart show logo row shifted position and Automation Engine tab auto-cycled WhatsApp->Support",
+    "reducedModeProof": "dataset.motion=reduced, h1 opacity=1 transform=none, all content visible immediately, no hidden/clipped elements",
+    "routesSpotChecked": ["services", "industries", "process", "about", "security", "case-studies", "contact"],
+    "routesResult": "all 8 routes (incl. homepage) return 200 and render full hero + primary content with correct copy at rest; per-category animation (card stagger, filter transition, chevron rotation, FAQ open/close, Process scroll-linked progress, story expansion) NOT individually captured",
+    "mobileResult": "390x844 homepage hero renders clean, no horizontal overflow (scrollWidth<=clientWidth), hamburger menu opens showing all nav links + Close button",
+    "notVerified": [
+      "Full mode overriding OS-level prefers-reduced-motion emulation (no media-emulation flag in this browse tool)",
+      "Scroll-motion video: section reveals, hover lift, calculator feedback, testimonials, footer reveal, marquee pause/resume via real pointer",
+      "FAQ open/close interaction on any route",
+      "Deployed commit cross-check via Vercel API (connected Vercel account has no codeoutfitters project registered; relied on verify= query param + git HEAD match instead)"
+    ]
+  },
+  "coverageGaps": [
+    "No headed-browser, human-reviewable VIDEO was captured in either pass. Session 2 upgraded evidence from computed-style sampling to actual timed screenshots proving the entrance transition mid-flight, which is stronger than session 1's evidence but still not video.",
+    "Per-route category coverage (card stagger, filter/chevron/FAQ transitions, Process scroll progression, case-study expansion, contact form focus/validation states) verified only as 'renders correctly at rest', not as 'animation visibly plays' on 7 of 8 routes.",
+    "OS-level prefers-reduced-motion override test not executed — no tooling available to emulate it in this session.",
+    "Scroll-driven motion (section reveals, hover states, marquee pause/resume by pointer) not captured at all in this pass."
+  ],
+  "finalVerdict": "PARTIAL",
+  "finalVerdictReason": "The specific reported defect (hero entrance animation not visibly playing) is root-caused, fixed, deployed, and now confirmed with a real timed screenshot sequence showing the hero genuinely hidden-then-staggered-in on live production — stronger evidence than the original computed-interpolation-only pass. Reduced-motion mode and marquee motion are also confirmed working. However true headed-browser video evidence across all required categories (scroll motion, hover, FAQ, override test, full per-route animation playback) was not produced this pass, so the strict PASSED bar from the task's Section 14 is not met. PARTIAL stands, on stronger evidence than before."
+}

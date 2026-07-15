@@ -1,5 +1,7 @@
 # CodeOutfitters — Production Verification
 
+> **REVOKED / SUPERSEDED NOTICE (2026-07-15, session 2):** This document's structural/contract checks (responsive matrix, motion-mode gate, marquee gate, Process gate) remain valid, but any implied overall motion PASSED verdict is revoked. User directly observed the Homepage hero had no visible entrance animation in production. Root cause: `components/hero.tsx` used `initial={false}`, mounting the stagger tree already in its final state — invisible to structural checks that only verify contract compliance, not human-perceptible motion. Repaired at commit `e0c324c`. See `CLAUDE-CODE-VISIBLE-MOTION-RESULT.json` and `CLAUDE-CODE-VISIBLE-MOTION-ROOT-CAUSE.md` for the corrected verdict (currently PARTIAL, not PASSED).
+
 Run date: 2026-07-15 (updated after production interaction QA found and repaired 3 defects — see CLAUDE-CODE-PRODUCTION-INTERACTION-QA.md; this document's Sections 1-11 describe the `51bcd9c` pass, superseded on commit identity by the `2508a99` repair below.)
 Production URL: `https://codeoutfitters.vercel.app`
 Original commit verified in this document: `51bcd9c0dc2131c81cd3910ca3e42b3eb2faed35` (short `51bcd9c`)
