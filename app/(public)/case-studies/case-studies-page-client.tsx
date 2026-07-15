@@ -27,7 +27,7 @@ const caseStudies: CaseStudy[] = [
     problem: 'Leads emailed or texted after hours went unanswered until the next morning — by then, competing agencies had often already booked the viewing.',
     solution: 'A WhatsApp bot now answers instantly, qualifies buyer intent, checks listing availability, and books viewing slots straight into the team calendar.',
     metrics: [
-      { value: '2x', label: 'Response Rate' },
+      { value: '2x', label: 'Response rate' },
       { value: '87%', label: 'Faster follow-ups' },
       { value: '18 hrs', label: 'Saved / week' },
     ],
@@ -316,9 +316,9 @@ function TestimonialsRotator() {
           <span
             className="inline-block text-[11px] font-semibold uppercase tracking-[.18em] px-4 py-2 rounded-full mb-6"
             style={{
-              color: '#D9B36A',
-              background: 'rgba(217,179,106,.1)',
-              border: '1px solid rgba(217,179,106,.2)',
+              color: '#2BD483',
+              background: 'rgba(43,212,131,.1)',
+              border: '1px solid rgba(43,212,131,.2)',
             }}
           >
             In their words

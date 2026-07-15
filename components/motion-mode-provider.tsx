@@ -32,8 +32,9 @@ export function MotionModeProvider({ children }: { children: React.ReactNode }) 
   const reduced = preference === 'reduced' || (preference === 'system' && systemReduced)
 
   useEffect(() => {
-    document.documentElement.dataset.motion = preference
+    document.documentElement.dataset.motion = reduced ? 'reduced' : 'full'
     document.documentElement.dataset.motionReduced = String(reduced)
+    document.documentElement.classList.add('motion-ready')
   }, [preference, reduced])
 
   const value = useMemo(() => ({ preference, reduced }), [preference, reduced])

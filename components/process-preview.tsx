@@ -22,10 +22,10 @@ export function ProcessPreview() {
           <h2>From Discovery to <span>Deployed in 7 Days</span></h2>
           <p>A streamlined process designed to minimize your time investment while maximizing results.</p>
         </header>
-        <div className="hp-timeline">
-          <div className="hp-spine"><motion.span initial={false} animate={{ scaleY: 1 }} transition={{ duration: 1.9, ease: [0.16, 1, 0.3, 1] }} /></div>
+        <div className="hp-timeline" data-process-timeline>
+          <div className="hp-spine"><motion.span data-process-fill initial={{ scaleY: 0 }} animate={{ scaleY: visible ? 1 : 0 }} transition={{ duration: 1.9, ease: [0.16, 1, 0.3, 1] }} /></div>
           {steps.map((step, index) => (
-            <motion.div className="hp-step" key={step.title} initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: .65, delay: index * .1, ease: [0.16, 1, 0.3, 1] }}>
+            <motion.div className="hp-step" data-process-stage key={step.title} initial={{ opacity: 0, y: 24 }} animate={visible ? { opacity: 1, y: 0 } : {}} transition={{ duration: .65, delay: index * .1, ease: [0.16, 1, 0.3, 1] }}>
               <div className={`hp-step-node ${index === 3 ? 'is-live' : ''}`}>
                 {index === 3 ? <><b>DAY 7</b><small>LIVE</small></> : <b>{index + 1}</b>}
               </div>

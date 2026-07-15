@@ -35,3 +35,6 @@ graphify-out/
 
 # Local approved design-source archive (not used by the native production build)
 \# CodeOutfitters Project Audit)/
+
+# Design-handoff bundle (implementation guidance only, not part of the native production build)
+CODEOUTFITTERS-FINAL-HANDOFF/

@@ -91,6 +91,7 @@ function ChatDemo() {
       display: 'flex', flexDirection: 'column', minHeight: '380px', padding: '16px',
         background: 'rgba(10,18,14,.03)', borderRadius: '14px',
         border: '1px solid rgba(13,58,49,.10)',
+        position: 'relative',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', paddingBottom: '8px', borderBottom: '1px solid rgba(13,58,49,.08)' }}>
@@ -101,9 +102,9 @@ function ChatDemo() {
         <span style={{ marginLeft: 'auto', font: '500 9px "Instrument Sans",sans-serif', color: '#128A54', background: '#EAF6EF', borderRadius: '999px', padding: '2px 7px' }}>Online</span>
       </div>
 
-      {msg('start', { background: '#fff', color: '#26312A', boxShadow: '0 1px 2px rgba(0,0,0,.06)' }, 'Hi! Is the 2-bed on Maple St still available?', 0)}
+      {msg('start', { background: '#fff', color: '#26312A', boxShadow: '0 1px 2px rgba(0,0,0,.06)' }, 'Hi! Is the 2-bed on Maple St still available? Can I view it this week?', 0)}
       {dots(1.2)}
-      {msg('end', { background: '#DCF0E5', color: '#14532D' }, 'It is! I can book a private viewing — which day works?', 2)}
+      {msg('end', { background: '#DCF0E5', color: '#14532D' }, 'It is! I can book you a private viewing this week — which day suits you best?', 2)}
       {msg('start', { background: '#fff', color: '#26312A', boxShadow: '0 1px 2px rgba(0,0,0,.06)' }, 'Thursday afternoon works best.', 3.5)}
       {dots(4.5)}
       {msg('end', {
@@ -119,15 +120,20 @@ function ChatDemo() {
             <path d="M6 10l3 3 5-5" stroke="#17A063" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           <div>
-            <div style={{ font: '700 10.5px "Instrument Sans",sans-serif', color: '#0A120E' }}>Viewing booked · Thu 4:00 PM</div>
-            <div style={{ font: '400 9.5px "Instrument Sans",sans-serif', color: '#8A857B' }}>Calendar invites sent</div>
+            <div style={{ font: '700 10.5px "Instrument Sans",sans-serif', color: '#0A120E' }}>Viewing booked — Thu 4:00 PM</div>
+            <div style={{ font: '400 9.5px "Instrument Sans",sans-serif', color: '#8A857B' }}>12 Maple St · calendar invites sent to both sides</div>
           </div>
         </div>
       ), 6)}
       {t >= 8 && (
         <div style={{ alignSelf: 'center', font: '600 9.5px "Instrument Sans",sans-serif', color: '#128A54', background: '#EAF6EF', border: '1px solid rgba(18,138,84,.25)', borderRadius: '999px', padding: '4px 10px', marginTop: '4px' }}>
-          Done in 26s — no human needed
+          Handled end-to-end in 26 seconds — no human needed
         </div>
+      )}
+      {t >= 9.5 && (
+        <span style={{ position: 'absolute', top: '10px', right: '12px', font: '700 10px "Space Grotesk",sans-serif', color: '#0A120E', background: 'linear-gradient(160deg,#E9C783,#D9B36A)', borderRadius: '999px', padding: '5px 10px', boxShadow: '0 6px 16px rgba(217,179,106,.5)' }}>
+          ★ Lead qualified · 9/10
+        </span>
       )}
     </div>
   )

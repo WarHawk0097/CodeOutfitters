@@ -3,6 +3,7 @@
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
 import { MotionModeProvider } from '@/components/motion-mode-provider'
+import { AnnouncementBar } from '@/components/announcement-bar'
 
 const organizationSchema = {
   '@context': 'https://schema.org',
@@ -24,6 +25,7 @@ export default function PublicLayout({
   return (
     <MotionModeProvider>
       <script type="application/ld+json">{JSON.stringify(organizationSchema)}</script>
+      <AnnouncementBar />
       <Navbar />
       <main>{children}</main>
       <Footer />

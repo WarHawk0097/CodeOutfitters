@@ -16,12 +16,12 @@ export function AnnouncementBar() {
           exit={{ height: 0, opacity: 0 }}
           transition={{ duration: 0.3 }}
           className="relative z-50 text-white text-center text-xs sm:text-sm font-medium overflow-hidden flex items-center justify-center px-4"
-          style={{ background: 'var(--brand-primary)' }}
+          style={{ background: '#0E2A1D' }}
         >
           <span className="flex items-center">
-            Limited time: Free workflow audit with every Discovery Call 
+            Free workflow audit with every discovery call this July.
             <Link href="/contact" className="underline underline-offset-2 ml-1 font-semibold hover:no-underline">
-              Book yours 
+              Book yours →
             </Link>
           </span>
           <button

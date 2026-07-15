@@ -27,11 +27,21 @@ const tabContent = (tab: number, key: string, children: React.ReactNode) => (
 export function Hero() {
   const [tab, setTab] = useState(0)
   const [mounted, setMounted] = useState(false)
+  const [hoursSaved, setHoursSaved] = useState(1285.8)
+  const [tasksToday, setTasksToday] = useState(328)
   const { reduced } = useMotionMode()
   useEffect(() => { setMounted(true) }, [])
   useEffect(() => {
     if (reduced) return
     const timer = window.setInterval(() => setTab((value) => (value + 1) % 3), 6200)
+    return () => window.clearInterval(timer)
+  }, [reduced])
+  useEffect(() => {
+    if (reduced) return
+    const timer = window.setInterval(() => {
+      setHoursSaved((v) => Math.round((v + 0.1) * 10) / 10)
+      setTasksToday((v) => v + 1)
+    }, 4000)
     return () => window.clearInterval(timer)
   }, [reduced])
 
@@ -113,7 +123,7 @@ export function Hero() {
                         <span style={{ width: '7px', height: '7px', borderRadius: '999px', background: '#2BD483' }} />Running
                       </span>
                     </div>
-                    <span style={{ font: '600 12px ui-monospace,monospace', color: '#8A857B', whiteSpace: 'nowrap', flexShrink: 0 }}>1,284 hrs saved</span>
+                    <span style={{ font: '600 12px ui-monospace,monospace', color: '#8A857B', whiteSpace: 'nowrap', flexShrink: 0 }}>{hoursSaved.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} hrs saved</span>
                   </div>
 
                   <div style={{ display: 'flex', gap: '6px', padding: '10px 14px 0' }}>
@@ -126,14 +136,14 @@ export function Hero() {
                   </div>
 
                   <AnimatePresence mode="wait">
-                    {tab === 0 && tabContent(0, 'wa', <ActiveChatMessages />)}
+                    {tab === 0 && tabContent(0, 'wa', <AutomationTaskList />)}
                     {tab === 1 && tabContent(1, 'em', <div style={{ minHeight: '252px', padding: '22px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '18px' }}><EmailFlow /></div>)}
                     {tab === 2 && tabContent(2, 'sp', <div style={{ position: 'relative', minHeight: '252px', padding: '18px 16px', display: 'flex', flexDirection: 'column', gap: '8px', background: 'radial-gradient(120% 100% at 50% 0%, rgba(23,160,99,.10), transparent 60%), linear-gradient(180deg, #0D1C15, #0A1712)' }}><SupportConsole /></div>)}
                   </AnimatePresence>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '18px', flexWrap: 'wrap', padding: '13px 18px', background: '#F4EEE2', borderTop: '1px solid #EDE6D8' }}>
                     <span style={{ font: '500 12px "Instrument Sans",sans-serif', color: '#68705F' }}>Today</span>
-                    <span style={{ font: '600 12px ui-monospace,monospace', color: '#128A54', whiteSpace: 'nowrap' }}>312 tasks automated</span>
+                    <span style={{ font: '600 12px ui-monospace,monospace', color: '#128A54', whiteSpace: 'nowrap' }}>{tasksToday.toLocaleString('en-US')} tasks automated</span>
                     <span style={{ font: '600 12px ui-monospace,monospace', color: '#B08A3E', whiteSpace: 'nowrap' }}>$0 payroll spent</span>
                   </div>
                 </div>
@@ -153,43 +163,30 @@ export function Hero() {
   )
 }
 
-function ActiveChatMessages() {
-  const { reduced } = useMotionMode()
-  const [t, setT] = useState(13)
-  useEffect(() => {
-    if (reduced) { setT(13); return }
-    setT(13)
-    const i = setInterval(() => setT(13), 13000)
-    return () => clearInterval(i)
-  }, [reduced])
-  const b = (align: string, style: Record<string, string>, children: React.ReactNode) => <div style={{ alignSelf: align === 'l' ? 'flex-start' : align === 'r' ? 'flex-end' : 'center', ...style }}>{children}</div>
-  const dots = (offset: number) => (
-    <div style={{ alignSelf: 'flex-end', display: 'flex', gap: '4px', background: '#DCF0E5', borderRadius: '10px', padding: '9px 11px', marginTop: '4px' }}>
-      {[0, 0.15, 0.3].map((d) => <span key={d} style={{ width: '5px', height: '5px', borderRadius: '999px', background: '#128A54', opacity: Math.sin((t - offset + d) * 10) > 0 ? 1 : 0.25 }} />)}
-    </div>
-  )
+const AUTOMATION_TASKS = [
+  { label: 'Route hot lead to sales', status: 'done' as const },
+  { label: 'Reconcile daily invoices', status: 'processing' as const },
+  { label: 'Send onboarding email #2', status: 'queued' as const },
+  { label: 'Update CRM contact record', status: 'queued' as const },
+]
+
+function AutomationTaskList() {
+  const dotColor = (status: string) => status === 'done' ? '#2BD483' : status === 'processing' ? '#D9B36A' : '#D5CDBC'
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '252px', padding: '10px 12px', position: 'relative' }}>
-      <div style={{ alignSelf: 'flex-start', maxWidth: '86%', background: '#fff', borderRadius: '11px 11px 11px 3px', padding: '8px 11px', font: '400 12.5px/1.45 "Instrument Sans",sans-serif', color: '#26312A', boxShadow: '0 1px 3px rgba(0,0,0,.08)', opacity: 1 }}>
-        Hi! Is the 2-bed on Maple St still available? Can I view it this week?{' '}
-        <span style={{ font: '600 9px "Instrument Sans",sans-serif', color: t >= 0.8 ? '#2D9CDB' : '#9AA79E', transition: 'color .2s' }}>✓✓</span>
-      </div>
-      {t >= 1.5 && dots(1.5)}
-      {t >= 2.2 && <div style={{ alignSelf: 'flex-end', maxWidth: '86%', background: '#DCF0E5', borderRadius: '11px 11px 3px 11px', padding: '8px 11px', font: '400 12.5px/1.45 "Instrument Sans",sans-serif', color: '#14532D', marginTop: '4px' }}>It is! I can book you a private viewing this week — which day suits you best?</div>}
-      {t >= 4.5 && <div style={{ alignSelf: 'flex-start', maxWidth: '86%', background: '#fff', borderRadius: '11px 11px 11px 3px', padding: '8px 11px', font: '400 12.5px/1.45 "Instrument Sans",sans-serif', color: '#26312A', boxShadow: '0 1px 3px rgba(0,0,0,.08)', marginTop: '4px' }}>Thursday afternoon works best.</div>}
-      {t >= 5.8 && dots(5.8)}
-      {t >= 6.5 && <div style={{ alignSelf: 'flex-end', width: '86%', background: 'linear-gradient(180deg,#fff,#FBF8F1)', borderLeft: '3px solid #D9B36A', borderRadius: '10px', padding: '9px 12px', display: 'flex', alignItems: 'center', gap: '9px', boxShadow: '0 6px 16px rgba(0,0,0,.12)', marginTop: '4px' }}>
-        <svg style={{ width: '18px', height: '18px', flexShrink: 0 }} viewBox="0 0 20 20" fill="none">
-          <rect x="1" y="3" width="18" height="14" rx="3" stroke="#17A063" strokeWidth="1.5" fill="#EAF6EF" />
-          <path d="M6 10l3 3 5-5" stroke="#17A063" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0 }}>
-          <span style={{ font: '700 11.5px "Instrument Sans",sans-serif', color: '#0A120E' }}>Viewing booked — Thu 4:00 PM</span>
-          <span style={{ font: '400 10.5px "Instrument Sans",sans-serif', color: '#8A857B' }}>12 Maple St · calendar invites sent to both sides</span>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', minHeight: '252px', padding: '14px 14px' }}>
+      {AUTOMATION_TASKS.map((task) => (
+        <div key={task.label} style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#fff', borderRadius: '10px', padding: '10px 12px', boxShadow: '0 1px 3px rgba(0,0,0,.06)' }}>
+          <span style={{ width: '8px', height: '8px', borderRadius: '999px', background: dotColor(task.status), flexShrink: 0 }} />
+          <span style={{ flex: 1, minWidth: 0, font: '500 12.5px "Instrument Sans",sans-serif', color: '#26312A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{task.label}</span>
+          {task.status === 'done' && <span style={{ font: '600 10.5px "Instrument Sans",sans-serif', color: '#128A54', whiteSpace: 'nowrap' }}>Done ✓</span>}
+          {task.status === 'processing' && (
+            <span style={{ position: 'relative', width: '46px', height: '5px', borderRadius: '3px', background: '#EDE6D8', overflow: 'hidden', flexShrink: 0 }}>
+              <span style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '40%', borderRadius: '3px', background: '#D9B36A' }} />
+            </span>
+          )}
+          {task.status === 'queued' && <span style={{ font: '600 10.5px "Instrument Sans",sans-serif', color: '#8A857B', whiteSpace: 'nowrap' }}>Queued</span>}
         </div>
-      </div>}
-      {t >= 8.5 && <div style={{ alignSelf: 'center', font: '600 10px "Instrument Sans",sans-serif', color: '#128A54', background: '#EAF6EF', border: '1px solid rgba(18,138,84,.25)', borderRadius: '999px', padding: '4px 10px', marginTop: '4px' }}>Handled end-to-end in 26 seconds — no human needed</div>}
-      {t >= 10 && <span style={{ position: 'absolute', top: '10px', right: '12px', font: '700 10px "Space Grotesk",sans-serif', color: '#0A120E', background: 'linear-gradient(160deg,#E9C783,#D9B36A)', borderRadius: '999px', padding: '5px 10px', boxShadow: '0 6px 16px rgba(217,179,106,.5)' }}>★ Lead qualified · 9/10</span>}
+      ))}
     </div>
   )
 }
@@ -204,7 +201,7 @@ function EmailFlow() {
         {[
           { num: '1', label: 'Lead captured', sub: 'Tagged & synced ✓' },
           { num: '2', label: 'Nurture sent', sub: '68% opened' },
-          { num: '3', label: 'Call booked', sub: 'Booked · Tue 10:30 ✓', gold: true },
+          { num: '3', label: 'Call booked', sub: 'Booked ✓', gold: true },
         ].map((item) => (
           <div key={item.num} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '7px', minWidth: 0 }}>
             <span style={{ position: 'relative', width: '36px', height: '36px', borderRadius: '999px', border: '2px solid #CFE8DA', background: '#EAF6EF', display: 'flex', alignItems: 'center', justifyContent: 'center', font: '700 13px "Space Grotesk",sans-serif', color: '#128A54', flexShrink: 0 }}>{item.num}</span>
