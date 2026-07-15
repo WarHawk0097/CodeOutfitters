@@ -15,8 +15,8 @@ function Logo({ size = 12 }: { size?: number }) {
   )
 }
 
-const cont = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.1 } } }
-const itemV = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] as const } } }
+const cont = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.12, delayChildren: 0.1 } } }
+const itemV = { hidden: { opacity: 0, y: 24 }, show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] as const } } }
 
 export function Hero() {
   const [hoursSaved, setHoursSaved] = useState(1285.8)
@@ -43,7 +43,7 @@ export function Hero() {
       </svg>
 
       <div className="hp-hero-inner relative z-10 mx-auto w-full">
-        <motion.div className="hp-hero-grid items-center" variants={cont} initial="hidden" animate="show">
+        <motion.div className="hp-hero-grid items-center" variants={cont} initial={reduced ? false : 'hidden'} animate="show">
           <motion.div variants={itemV} className="flex flex-col items-start gap-6 min-w-0">
             <div className="relative inline-flex items-center gap-2 px-4 py-2 rounded-full overflow-hidden animate-[badgeGlow_4s_ease-in-out_1.2s_infinite]" style={{ background: 'rgba(217,179,106,.10)', border: '1px solid rgba(217,179,106,.4)' }}>
               <span className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'linear-gradient(110deg,transparent 40%,rgba(217,179,106,.35) 50%,transparent 60%)', backgroundSize: '200% 100%', animation: 'shimmerSweep 3.2s ease-in-out 1.5s infinite' }} />
@@ -128,9 +128,8 @@ export function Hero() {
       <style>{`
         .hp-hero-inner{max-width:1180px;padding:clamp(48px,7vw,84px) clamp(20px,3vw,32px) clamp(56px,8vw,96px)}
         .hp-hero-grid{display:grid;grid-template-columns:minmax(0,1.02fr) minmax(0,.98fr);gap:clamp(32px,4vw,58px)}
-        .hp-hero-grid>div{animation:hpHeroEnter .72s cubic-bezier(.16,1,.3,1) both}.hp-hero-grid>div+div{animation-delay:.12s}@keyframes hpHeroEnter{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
         @media(max-width:900px){.hp-hero-grid{grid-template-columns:1fr}.hp-hero-grid>div:last-child{margin-top:36px}}
-        @media(max-width:520px){.hp-hero-inner{padding-top:42px}.hp-hero-grid>div:first-child{gap:18px}.hp-hero-grid>div:last-child{margin-top:28px}.hp-hero-grid>div:last-child>div{transform:scale(.94);transform-origin:top center}}html[data-motion='reduced'] .hp-hero-grid>div{animation:none}@media(prefers-reduced-motion:reduce){html:not([data-motion='full']) .hp-hero-grid>div{animation:none}}
+        @media(max-width:520px){.hp-hero-inner{padding-top:42px}.hp-hero-grid>div:first-child{gap:18px}.hp-hero-grid>div:last-child{margin-top:28px}.hp-hero-grid>div:last-child>div{transform:scale(.94);transform-origin:top center}}
         .hp-task-pulse{animation:hpTaskPulse 1.6s ease-in-out infinite}@keyframes hpTaskPulse{0%,100%{opacity:1}50%{opacity:.55}}@media(prefers-reduced-motion:reduce){.hp-task-pulse{animation:none}}
       `}</style>
     </section>
