@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useMotionMode } from '@/components/motion-mode-provider'
 import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
@@ -18,24 +18,10 @@ function Logo({ size = 12 }: { size?: number }) {
 const cont = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.1 } } }
 const itemV = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] as const } } }
 
-const tabContent = (tab: number, key: string, children: React.ReactNode) => (
-  <motion.div key={key} id={`hero-tabpanel-${tab}`} role="tabpanel" aria-labelledby={`hero-tab-${tab}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
-    {children}
-  </motion.div>
-)
-
 export function Hero() {
-  const [tab, setTab] = useState(0)
-  const [mounted, setMounted] = useState(false)
   const [hoursSaved, setHoursSaved] = useState(1285.8)
   const [tasksToday, setTasksToday] = useState(328)
   const { reduced } = useMotionMode()
-  useEffect(() => { setMounted(true) }, [])
-  useEffect(() => {
-    if (reduced) return
-    const timer = window.setInterval(() => setTab((value) => (value + 1) % 3), 6200)
-    return () => window.clearInterval(timer)
-  }, [reduced])
   useEffect(() => {
     if (reduced) return
     const timer = window.setInterval(() => {
@@ -126,20 +112,7 @@ export function Hero() {
                     <span style={{ font: '600 12px ui-monospace,monospace', color: '#8A857B', whiteSpace: 'nowrap', flexShrink: 0 }}>{hoursSaved.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} hrs saved</span>
                   </div>
 
-                  <div role="tablist" aria-label="Live channel preview" style={{ display: 'flex', gap: '6px', padding: '10px 14px 0' }}>
-                    {['WhatsApp', 'Email', 'Support'].map((label, i) => (
-                      <button key={label} role="tab" id={`hero-tab-${i}`} aria-selected={tab === i} aria-controls={`hero-tabpanel-${i}`} onClick={() => setTab(i)}
-                        style={{ display: 'flex', alignItems: 'center', gap: '7px', border: 'none', cursor: 'pointer', font: `600 ${tab === i ? '12.5' : '12'}px "Instrument Sans",sans-serif`, padding: tab === i ? '7px 13px' : '6px 11px', borderRadius: '8px', background: tab === i ? '#0E2A1D' : 'transparent', color: tab === i ? '#F5F0E8' : '#8A857B', transition: 'all .15s ease' }}>
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-
-                  <AnimatePresence mode="wait">
-                    {tab === 0 && tabContent(0, 'wa', <AutomationTaskList />)}
-                    {tab === 1 && tabContent(1, 'em', <div style={{ minHeight: '252px', padding: '22px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '18px' }}><EmailFlow /></div>)}
-                    {tab === 2 && tabContent(2, 'sp', <div style={{ position: 'relative', minHeight: '252px', padding: '18px 16px', display: 'flex', flexDirection: 'column', gap: '8px', background: 'radial-gradient(120% 100% at 50% 0%, rgba(23,160,99,.10), transparent 60%), linear-gradient(180deg, #0D1C15, #0A1712)' }}><SupportConsole /></div>)}
-                  </AnimatePresence>
+                  <AutomationTaskList />
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '18px', flexWrap: 'wrap', padding: '13px 18px', background: '#F4EEE2', borderTop: '1px solid #EDE6D8' }}>
                     <span style={{ font: '500 12px "Instrument Sans",sans-serif', color: '#68705F' }}>Today</span>
@@ -170,77 +143,27 @@ const AUTOMATION_TASKS = [
   { label: 'Update CRM contact record', status: 'queued' as const },
 ]
 
+const taskListV = { hidden: {}, show: { transition: { staggerChildren: 0.1, delayChildren: 0.4 } } }
+const taskRowV = { hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const } } }
+
 function AutomationTaskList() {
+  const { reduced } = useMotionMode()
   const dotColor = (status: string) => status === 'done' ? '#2BD483' : status === 'processing' ? '#D9B36A' : '#D5CDBC'
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', minHeight: '252px', padding: '14px 14px' }}>
+    <motion.ul variants={taskListV} initial={reduced ? false : 'hidden'} animate="show" style={{ listStyle: 'none', margin: 0, display: 'flex', flexDirection: 'column', gap: '8px', minHeight: '252px', padding: '14px 14px' }}>
       {AUTOMATION_TASKS.map((task) => (
-        <div key={task.label} style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#fff', borderRadius: '10px', padding: '10px 12px', boxShadow: '0 1px 3px rgba(0,0,0,.06)' }}>
+        <motion.li variants={taskRowV} key={task.label} style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#fff', borderRadius: '10px', padding: '10px 12px', boxShadow: '0 1px 3px rgba(0,0,0,.06)' }}>
           <span style={{ width: '8px', height: '8px', borderRadius: '999px', background: dotColor(task.status), flexShrink: 0 }} />
           <span style={{ flex: 1, minWidth: 0, font: '500 12.5px "Instrument Sans",sans-serif', color: '#26312A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{task.label}</span>
           {task.status === 'done' && <span style={{ font: '600 10.5px "Instrument Sans",sans-serif', color: '#128A54', whiteSpace: 'nowrap' }}>Done ✓</span>}
           {task.status === 'processing' && (
-            <span style={{ position: 'relative', width: '46px', height: '5px', borderRadius: '3px', background: '#EDE6D8', overflow: 'hidden', flexShrink: 0 }}>
+            <span role="progressbar" aria-label="Reconciling daily invoices" aria-valuetext="In progress" style={{ position: 'relative', width: '46px', height: '5px', borderRadius: '3px', background: '#EDE6D8', overflow: 'hidden', flexShrink: 0 }}>
               <span style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '40%', borderRadius: '3px', background: '#D9B36A' }} />
             </span>
           )}
           {task.status === 'queued' && <span style={{ font: '600 10.5px "Instrument Sans",sans-serif', color: '#8A857B', whiteSpace: 'nowrap' }}>Queued</span>}
-        </div>
+        </motion.li>
       ))}
-    </div>
+    </motion.ul>
   )
-}
-
-function EmailFlow() {
-  return <>
-    <div style={{ position: 'relative', paddingTop: '4px' }}>
-      <div style={{ position: 'absolute', top: '20px', left: '9%', right: '9%', height: '4px', borderRadius: '2px', background: 'repeating-linear-gradient(90deg,#D9C9A8 0 6px,transparent 6px 12px)' }}>
-        <span style={{ position: 'absolute', top: '-5px', width: '14px', height: '14px', borderRadius: '999px', background: 'linear-gradient(160deg,#E9C783,#D9B36A)', boxShadow: '0 0 18px rgba(217,179,106,.95)' }} />
-      </div>
-      <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: '8px' }}>
-        {[
-          { num: '1', label: 'Lead captured', sub: 'Tagged & synced ✓' },
-          { num: '2', label: 'Nurture sent', sub: '68% opened' },
-          { num: '3', label: 'Call booked', sub: 'Booked ✓', gold: true },
-        ].map((item) => (
-          <div key={item.num} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '7px', minWidth: 0 }}>
-            <span style={{ position: 'relative', width: '36px', height: '36px', borderRadius: '999px', border: '2px solid #CFE8DA', background: '#EAF6EF', display: 'flex', alignItems: 'center', justifyContent: 'center', font: '700 13px "Space Grotesk",sans-serif', color: '#128A54', flexShrink: 0 }}>{item.num}</span>
-            <span style={{ font: '600 10.5px "Instrument Sans",sans-serif', color: '#68705F', textAlign: 'center' }}>{item.label}</span>
-            <span style={{ font: `${item.gold ? '700' : '600'} 9.5px/1.35 "Instrument Sans",sans-serif`, color: item.gold ? '#B08A3E' : '#128A54', background: '#fff', borderRadius: '8px', padding: '5px 8px', textAlign: 'center', boxShadow: item.gold ? '0 4px 12px rgba(217,179,106,.25)' : '0 2px 8px rgba(32,24,12,.08)', border: item.gold ? '1px solid rgba(217,179,106,.5)' : 'none' }}>{item.sub}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', font: '600 12px "Instrument Sans",sans-serif', color: '#128A54' }}>
-      <span style={{ width: '7px', height: '7px', borderRadius: '999px', background: '#2BD483', flexShrink: 0 }} />412 emails automated this week
-    </div>
-  </>
-}
-
-function SupportConsole() {
-  const { reduced } = useMotionMode()
-  const [t, setT] = useState(12)
-  useEffect(() => {
-    if (reduced) { setT(12); return }
-    setT(12)
-    const i = setInterval(() => setT(12), 12000)
-    return () => clearInterval(i)
-  }, [reduced])
-  const items = [
-    { text: '> visitor: "Can this integrate with my CRM?"', at: 0, c: 'rgba(245,240,232,.85)' },
-    { text: '✓ intent detected: integration question · 0.19s', at: 3.5, c: '#8FE3C0' },
-    { text: '→ drafting reply from knowledge base…', at: 5, c: 'rgba(245,240,232,.6)' },
-    { text: '✓ replied in 2.4s — visitor satisfied', at: 8, c: '#2BD483' },
-  ]
-  return <>
-    <span style={{ position: 'absolute', left: 0, right: 0, height: '34px', background: 'linear-gradient(180deg,transparent,rgba(43,212,131,.07),transparent)', pointerEvents: 'none', top: `${(t * 6) % 120}%` }} />
-    {items.map((item, i) => (
-      <div key={i} style={{ font: '500 11.5px/1.5 ui-monospace,monospace', color: item.c, opacity: t >= item.at ? 1 : 0, transform: t >= item.at ? 'translateX(0)' : 'translateX(-6px)', transition: 'opacity .2s, transform .2s' }}>{item.text}</div>
-    ))}
-    {t >= 9.5 && <div style={{ alignSelf: 'flex-start', maxWidth: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', font: '700 11.5px ui-monospace,monospace', color: '#D9B36A', backgroundColor: 'rgba(217,179,106,.14)', backgroundImage: 'linear-gradient(110deg,transparent 35%,rgba(217,179,106,.5) 50%,transparent 65%)', backgroundSize: '250% 100%', backgroundRepeat: 'no-repeat', border: '1px solid rgba(217,179,106,.45)', borderRadius: '7px', padding: '6px 10px' }}>★ QUALIFIED LEAD — routed to sales team</div>}
-    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: 'auto' }}>
-      <span style={{ font: '500 11.5px ui-monospace,monospace', color: 'rgba(245,240,232,.5)' }}>&gt;</span>
-      <span style={{ display: 'inline-block', width: '8px', height: '13px', background: '#2BD483' }} />
-    </div>
-  </>
 }

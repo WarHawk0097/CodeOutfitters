@@ -188,13 +188,11 @@ html[data-motion='reduced'] .marquee-animated { display: none !important; }
 html[data-motion='reduced'] .marquee-static-fallback { display: flex !important; }
 
 html[data-motion='reduced'] .hp-tool-row,
-html[data-motion='reduced'] .hp-tm-row,
 html[data-motion='reduced'] .hp-hero-grid > div {
   animation: none !important;
 }
 
-html[data-motion='reduced'] .hp-tool-row > [data-marquee-sequence='duplicate'],
-html[data-motion='reduced'] .hp-tm-row > [data-marquee-sequence='duplicate'] {
+html[data-motion='reduced'] .hp-tool-row > [data-marquee-sequence='duplicate'] {
   display: none !important;
 }
 
