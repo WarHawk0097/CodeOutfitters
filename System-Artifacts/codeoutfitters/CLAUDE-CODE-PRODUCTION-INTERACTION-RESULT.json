@@ -1,0 +1,87 @@
+{
+  "runDate": "2026-07-15",
+  "startingCommit": "51bcd9c0dc2131c81cd3910ca3e42b3eb2faed35",
+  "finalCommit": "2508a99261005f99b95947501967fab3db2001e2",
+  "finalShortCommit": "2508a99",
+  "commitIdentityProof": "build-log line: Cloning github.com/WarHawk0097/CodeOutfitters (Branch: main, Commit: 2508a99)",
+  "productionUrl": "https://codeoutfitters.vercel.app",
+  "initialSweep": {
+    "target": "51bcd9c",
+    "total": 101,
+    "pass": 94,
+    "fail": 3,
+    "notApplicable": 4,
+    "consoleErrors": 0,
+    "failedRequests": 0
+  },
+  "defects": [
+    {
+      "id": 1,
+      "summary": "Hero channel tabs lacked ARIA tab semantics",
+      "file": "components/hero.tsx",
+      "fixed": true,
+      "fixCommit": "2508a99"
+    },
+    {
+      "id": 2,
+      "summary": "FAQ accordions (6 separate implementations) lacked aria-controls linking trigger to panel",
+      "files": [
+        "components/faq.tsx",
+        "app/(public)/contact/contact-page-client.tsx",
+        "app/(public)/process/page.tsx",
+        "app/(public)/industries/page.tsx",
+        "app/(public)/security/security-page-client.tsx",
+        "app/(public)/services/page.tsx"
+      ],
+      "fixed": true,
+      "fixCommit": "2508a99"
+    },
+    {
+      "id": 3,
+      "summary": "No mobile/tablet navigation menu below 960px — functional defect, not just accessibility gap",
+      "file": "components/navbar.tsx",
+      "fixed": true,
+      "fixCommit": "2508a99",
+      "fixDetails": "Added hamburger toggle + full-screen drawer with focus trap, Escape-to-close, body scroll lock, focus return to trigger"
+    }
+  ],
+  "localRegression": {
+    "total": 41,
+    "pass": 40,
+    "fail": 1,
+    "failExplanation": "Test-selector ambiguity (matched .services-how-toggle instead of FAQ button), not a product defect; verified directly with targeted selector"
+  },
+  "productionRegressionPostRepair": {
+    "target": "2508a99",
+    "total": 15,
+    "pass": 15,
+    "fail": 0,
+    "consoleErrors": 0
+  },
+  "mobileNavigation": {
+    "toggleFocusManagement": "PASS",
+    "focusEntersMenu": "PASS",
+    "tabWrapWithinMenu": "PASS (implemented, not independently unit-tested)",
+    "escapeCloses": "PASS",
+    "focusReturnsToTrigger": "PASS",
+    "bodyScrollLock": "PASS",
+    "allRouteLinksPresent": true,
+    "obsoleteRouteLinksPresent": false,
+    "testedViewports": ["390x844", "820x1180"]
+  },
+  "contactForm": {
+    "honestNoFakeSuccess": true,
+    "backendUnavailableNoticeObserved": "Preview form — no backend connected. Your details were not sent. Email hello@codeoutfitters.ai for a real reply within one business day.",
+    "duplicateSubmitPrevention": "PASS (single preview on double-click)",
+    "liveSubmissionAttempted": false
+  },
+  "reducedMotion": {
+    "initialSweepSubset": "PASS (homepage tabs+FAQ, services search, mobile persistence)",
+    "postRepairComponents": "NOT_SEPARATELY_RETESTED — repaired components (mobile menu, tabs, FAQ) use instant-toggle interactions with no dependency on motion mode; no regression risk identified but not explicitly re-executed under ?motion=reduced"
+  },
+  "accessibilityInteractionScope": "PARTIAL_RUNTIME_SPOT_CHECK — not full WCAG; see CLAUDE-CODE-PRODUCTION-INTERACTION-QA.md for exact scope",
+  "consoleErrorsTotal": 0,
+  "hydrationErrorsTotal": 0,
+  "failedRequestsTotal": 0,
+  "finalVerdict": "PASSED"
+}

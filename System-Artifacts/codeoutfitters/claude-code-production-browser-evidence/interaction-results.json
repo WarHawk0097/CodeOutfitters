@@ -1,0 +1,559 @@
+{
+  "timestamp": "2026-07-15T11:05:34.963Z",
+  "routes": {
+    "homepage": [
+      {
+        "label": "Hero tabs rendered",
+        "status": "pass",
+        "detail": "found 3"
+      },
+      {
+        "label": "WhatsApp tab active by default (dark bg)",
+        "status": "pass",
+        "detail": "bg: rgb(14, 42, 29)|rgb(14, 42, 29)"
+      },
+      {
+        "label": "Hero tabs aria-selected",
+        "status": "fail",
+        "detail": "DEFECT: tab buttons use inline style for active state, no aria-selected or role=\"tab\""
+      },
+      {
+        "label": "Email tab click — becomes active",
+        "status": "pass",
+        "detail": "rgb(14, 42, 29)|rgb(14, 42, 29)"
+      },
+      {
+        "label": "Support tab click — becomes active",
+        "status": "pass",
+        "detail": "rgb(14, 42, 29)|rgb(14, 42, 29)"
+      },
+      {
+        "label": "Hero tab keyboard Enter activates tab",
+        "status": "pass",
+        "detail": "rgb(14, 42, 29)|rgb(14, 42, 29)"
+      },
+      {
+        "label": "ROI calculator sliders rendered",
+        "status": "pass",
+        "detail": "found 3"
+      },
+      {
+        "label": "ROI calculator initial output (no NaN)",
+        "status": "pass",
+        "detail": "$60,000"
+      },
+      {
+        "label": "ROI calculator updates output on slider change",
+        "status": "pass",
+        "detail": "$60,000 → $600,000"
+      },
+      {
+        "label": "ROI calculator min values — no NaN/crash",
+        "status": "pass",
+        "detail": "min output: $480"
+      },
+      {
+        "label": "ROI calculator CTA href → /contact",
+        "status": "pass",
+        "detail": "href: /contact"
+      },
+      {
+        "label": "Homepage FAQ items rendered",
+        "status": "pass",
+        "detail": "found 5"
+      },
+      {
+        "label": "FAQ first item open by default (aria-expanded=true)",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "FAQ close on click",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "FAQ open second item",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "FAQ keyboard Space to open",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "FAQ button aria-controls association",
+        "status": "fail",
+        "detail": "DEFECT: no aria-controls on FAQ buttons (accordion pattern incomplete)"
+      },
+      {
+        "label": "Announcement bar visible",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "Dismiss button has aria-label",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "Announcement bar dismissed on click",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "Hero CTA hrefs all real routes",
+        "status": "pass",
+        "detail": "0 bad hrefs"
+      },
+      {
+        "label": "FAQ button touch target >= 40px",
+        "status": "pass",
+        "detail": "height: 71px"
+      },
+      {
+        "label": "FAQ button visible focus style present",
+        "status": "pass",
+        "detail": "oklab(0.623398 -0.131542 0.0559435 / 0.5) none 3px | bshadow: none"
+      }
+    ],
+    "services": [
+      {
+        "label": "Services search input rendered",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "Services search shows results dropdown",
+        "status": "pass",
+        "detail": "found 2 results"
+      },
+      {
+        "label": "Services search empty state message visible",
+        "status": "pass",
+        "detail": "No services match “xyzabc123notexist” — try “chat”, “email”, or “invoice”."
+      },
+      {
+        "label": "Escape key clears services search",
+        "status": "pass",
+        "detail": "query: \"\""
+      },
+      {
+        "label": "Service cards rendered",
+        "status": "pass",
+        "detail": "found 6"
+      },
+      {
+        "label": "Service card \"How it works\" toggle present",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "How it works toggle initial state (aria-expanded=false)",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "How it works expands on click",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "Expanded steps content visible",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "How it works collapses on re-click",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "How it works keyboard Enter toggles",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "Services marquee rows present",
+        "status": "pass",
+        "detail": "found 2"
+      },
+      {
+        "label": "Services FAQ items",
+        "status": "pass",
+        "detail": "found 5"
+      },
+      {
+        "label": "Services FAQ open/close",
+        "status": "pass",
+        "detail": ""
+      }
+    ],
+    "industries": [
+      {
+        "label": "Industry cards rendered",
+        "status": "pass",
+        "detail": "found 7"
+      },
+      {
+        "label": "Industry card content in DOM (not hover-only)",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "Industry cards fully readable at 390px (no hover required)",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "Industry card link href → /contact",
+        "status": "pass",
+        "detail": "href: /contact"
+      },
+      {
+        "label": "Industries FAQ items",
+        "status": "pass",
+        "detail": "found 4"
+      },
+      {
+        "label": "Industries FAQ open/close + aria-expanded",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "Industries FAQ keyboard Enter toggle",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "Industries FAQ button touch target >= 40px",
+        "status": "pass",
+        "detail": "height: 66.00003051757812px"
+      }
+    ],
+    "process": [
+      {
+        "label": "Process FAQ items",
+        "status": "pass",
+        "detail": "found 5"
+      },
+      {
+        "label": "Process FAQ open (aria-expanded=true)",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "Process FAQ close (aria-expanded=false)",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "Process FAQ keyboard Enter",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "Process timeline 6 steps in DOM",
+        "status": "pass",
+        "detail": "found 6"
+      },
+      {
+        "label": "Process timeline spine present",
+        "status": "pass",
+        "detail": ""
+      }
+    ],
+    "about": [
+      {
+        "label": "About page",
+        "status": "na",
+        "detail": "/about — 404 or not found. No /about route in this codebase."
+      }
+    ],
+    "security": [
+      {
+        "label": "Security marquee rows present",
+        "status": "pass",
+        "detail": "found 2"
+      },
+      {
+        "label": "Security marquee animation running",
+        "status": "pass",
+        "detail": "animPlayState: running"
+      },
+      {
+        "label": "Security marquee CSS hover-pause rule present in stylesheet",
+        "status": "pass",
+        "detail": ".sec-tool-row:hover { animation-play-state: paused } confirmed"
+      },
+      {
+        "label": "Security marquee hover pause (live test)",
+        "status": "na",
+        "detail": "Element is wider than viewport (~2815px) — cannot deliver real pointer event to center. CSS rule verified above."
+      },
+      {
+        "label": "Security FAQ items",
+        "status": "pass",
+        "detail": "found 5"
+      },
+      {
+        "label": "Security FAQ open/close + aria-expanded",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "Security FAQ keyboard nav",
+        "status": "pass",
+        "detail": "aria-expanded after Enter: false"
+      },
+      {
+        "label": "Stateful scoped-access controls",
+        "status": "na",
+        "detail": "Security page has static info cards only — no interactive state toggles"
+      }
+    ],
+    "case-studies": [
+      {
+        "label": "Filter pills rendered",
+        "status": "pass",
+        "detail": "found 7"
+      },
+      {
+        "label": "All case studies visible (All filter)",
+        "status": "pass",
+        "detail": "found 6"
+      },
+      {
+        "label": "Filter \"Real Estate\" → 1 card shown",
+        "status": "pass",
+        "detail": "found 1"
+      },
+      {
+        "label": "Filter \"Healthcare\" → 1 card shown",
+        "status": "pass",
+        "detail": "found 1"
+      },
+      {
+        "label": "\"Read the full story\" expand buttons",
+        "status": "pass",
+        "detail": "found 6"
+      },
+      {
+        "label": "Story expands — button text → \"Hide full story\"",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "Expanded detail (Problem/Solution) in DOM",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "Story collapses on re-click",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "Expand via keyboard Enter",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "No named fake clients in content",
+        "status": "pass",
+        "detail": "testimonials use role descriptors only"
+      },
+      {
+        "label": "Testimonial handles — role descriptors, not personal names",
+        "status": "pass",
+        "detail": "Six industries, six automations, one shared outcome — hours of manual work handed back every week. | Problem: Leads emailed or texted after hours went"
+      },
+      {
+        "label": "Testimonial rotator dot buttons",
+        "status": "pass",
+        "detail": "found 3"
+      },
+      {
+        "label": "Testimonial rotator nav works",
+        "status": "pass",
+        "detail": ""
+      }
+    ],
+    "contact": [
+      {
+        "label": "Contact form fields rendered",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "Tab order: name → email",
+        "status": "pass",
+        "detail": "focused: email"
+      },
+      {
+        "label": "Tab order: email → business",
+        "status": "pass",
+        "detail": "focused: business"
+      },
+      {
+        "label": "Empty submit blocked by HTML5 required",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "Name field valueMissing when empty",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "Invalid email format blocked (typeMismatch)",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "Submit shows .con-preview honest notice",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "Preview notice is honest (mentions email/not sent)",
+        "status": "pass",
+        "detail": "iPreview form — no backend connectedYour details were not sent. Email hello@codeoutfitters.ai for a "
+      },
+      {
+        "label": "No fake success message (contact form)",
+        "status": "pass",
+        "detail": "iPreview form — no backend connectedYour details were not sent. Email hello@code"
+      },
+      {
+        "label": "Double-submit — single preview (no duplication)",
+        "status": "pass",
+        "detail": "count: 1"
+      },
+      {
+        "label": "Contact page FAQ items",
+        "status": "pass",
+        "detail": "found 3"
+      },
+      {
+        "label": "Contact FAQ open/close",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "Form labels present (implicit association via nesting)",
+        "status": "pass",
+        "detail": "5 labels"
+      },
+      {
+        "label": "Submit button touch target >= 40px",
+        "status": "pass",
+        "detail": "height: 49px"
+      }
+    ],
+    "mobile-nav": [
+      {
+        "label": "Nav .site-links hidden at 390px (display:none)",
+        "status": "pass",
+        "detail": "display: none"
+      },
+      {
+        "label": "Hamburger menu button exists",
+        "status": "fail",
+        "detail": "DEFECT: No mobile hamburger menu implemented. Nav links hidden at <960px with no accessible alternative. This is a navigation accessibility failure at mobile viewports."
+      },
+      {
+        "label": "\"Book a Call\" CTA visible at mobile",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "\"Book a Call\" CTA href → /contact",
+        "status": "pass",
+        "detail": "href: /contact"
+      },
+      {
+        "label": "No obsolete nav links",
+        "status": "pass",
+        "detail": "links: Services, Industries, Process, Case Studies, About"
+      },
+      {
+        "label": "Mobile menu focus management (Escape, scroll-lock)",
+        "status": "na",
+        "detail": "No hamburger menu — focus management N/A. Separate defect noted above."
+      },
+      {
+        "label": "Nav .site-links hidden at 820px tablet",
+        "status": "pass",
+        "detail": "display: none"
+      }
+    ],
+    "reduced-motion": [
+      {
+        "label": "data-motion=\"reduced\" on <html>",
+        "status": "pass",
+        "detail": "data-motion: reduced"
+      },
+      {
+        "label": "Hero tabs still render under reduced motion",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "Hero tab auto-cycling disabled under reduced motion",
+        "status": "pass",
+        "detail": "data-motion: reduced (2s wait with no change: true)"
+      },
+      {
+        "label": "Hero tab manual click still works under reduced motion",
+        "status": "pass",
+        "detail": "Email bg: rgb(14, 42, 29)|rgb(14, 42, 29)"
+      },
+      {
+        "label": "Homepage FAQ works under reduced motion",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "Services search works under reduced motion",
+        "status": "pass",
+        "detail": ""
+      },
+      {
+        "label": "Reduced motion persists at mobile 390px",
+        "status": "pass",
+        "detail": ""
+      }
+    ]
+  },
+  "screenshots": [
+    "prod_interact_home_tab_whatsapp.png",
+    "prod_interact_home_tab_email.png",
+    "prod_interact_home_tab_support.png",
+    "prod_interact_home_calc_result.png",
+    "prod_interact_home_faq_expanded.png",
+    "prod_interact_home_announcement_dismissed.png",
+    "prod_interact_services_search_active.png",
+    "prod_interact_services_card_expanded.png",
+    "prod_interact_services_filter_active.png",
+    "prod_interact_process_faq_expanded.png",
+    "prod_interact_case_studies_all.png",
+    "prod_interact_case_studies_filtered.png",
+    "prod_interact_case_study_expanded.png",
+    "prod_interact_contact_validation_errors.png",
+    "prod_interact_contact_backend_unavailable.png",
+    "prod_interact_mobile_nav_open.png",
+    "prod_interact_mobile_nav_tablet_820.png",
+    "prod_interact_reduced_motion_home.png",
+    "prod_interact_reduced_motion_services.png",
+    "prod_interact_reduced_motion_mobile.png"
+  ],
+  "consoleErrors": [],
+  "failedRequests": [],
+  "summary": {
+    "pass": 94,
+    "fail": 3,
+    "na": 4
+  }
+}

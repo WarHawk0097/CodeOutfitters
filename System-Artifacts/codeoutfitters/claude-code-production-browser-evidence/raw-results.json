@@ -1,0 +1,999 @@
+{
+  "checks": [
+    {
+      "env": "production",
+      "route": "/",
+      "viewport": "1440x1000",
+      "mode": "normal",
+      "url": "https://codeoutfitters.vercel.app/?verify=51bcd9c",
+      "httpStatus": 200,
+      "loadOk": true,
+      "title": "CodeOutfitters — AI Automation for Small Businesses",
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "screenshot": "prod_home_desktop.png",
+      "pass": true
+    },
+    {
+      "env": "production",
+      "route": "/",
+      "viewport": "820x1180",
+      "mode": "normal",
+      "url": "https://codeoutfitters.vercel.app/?verify=51bcd9c",
+      "httpStatus": 200,
+      "loadOk": true,
+      "title": "CodeOutfitters — AI Automation for Small Businesses",
+      "scrollWidth": 820,
+      "clientWidth": 820,
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "screenshot": "prod_home_tablet.png",
+      "pass": true
+    },
+    {
+      "env": "production",
+      "route": "/",
+      "viewport": "390x844",
+      "mode": "normal",
+      "url": "https://codeoutfitters.vercel.app/?verify=51bcd9c",
+      "httpStatus": 200,
+      "loadOk": true,
+      "title": "CodeOutfitters — AI Automation for Small Businesses",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "screenshot": "prod_home_mobile.png",
+      "pass": true
+    },
+    {
+      "env": "production",
+      "route": "/services",
+      "viewport": "1440x1000",
+      "mode": "normal",
+      "url": "https://codeoutfitters.vercel.app/services?verify=51bcd9c",
+      "httpStatus": 200,
+      "loadOk": true,
+      "title": "CodeOutfitters — AI Automation for Small Businesses",
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "screenshot": "prod_services_desktop.png",
+      "pass": true
+    },
+    {
+      "env": "production",
+      "route": "/services",
+      "viewport": "820x1180",
+      "mode": "normal",
+      "url": "https://codeoutfitters.vercel.app/services?verify=51bcd9c",
+      "httpStatus": 200,
+      "loadOk": true,
+      "title": "CodeOutfitters — AI Automation for Small Businesses",
+      "scrollWidth": 820,
+      "clientWidth": 820,
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "screenshot": "prod_services_tablet.png",
+      "pass": true
+    },
+    {
+      "env": "production",
+      "route": "/services",
+      "viewport": "390x844",
+      "mode": "normal",
+      "url": "https://codeoutfitters.vercel.app/services?verify=51bcd9c",
+      "httpStatus": 200,
+      "loadOk": true,
+      "title": "CodeOutfitters — AI Automation for Small Businesses",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "screenshot": "prod_services_mobile.png",
+      "pass": true
+    },
+    {
+      "env": "production",
+      "route": "/industries",
+      "viewport": "1440x1000",
+      "mode": "normal",
+      "url": "https://codeoutfitters.vercel.app/industries?verify=51bcd9c",
+      "httpStatus": 200,
+      "loadOk": true,
+      "title": "CodeOutfitters — AI Automation for Small Businesses",
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "screenshot": "prod_industries_desktop.png",
+      "pass": true
+    },
+    {
+      "env": "production",
+      "route": "/industries",
+      "viewport": "820x1180",
+      "mode": "normal",
+      "url": "https://codeoutfitters.vercel.app/industries?verify=51bcd9c",
+      "httpStatus": 200,
+      "loadOk": true,
+      "title": "CodeOutfitters — AI Automation for Small Businesses",
+      "scrollWidth": 820,
+      "clientWidth": 820,
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "screenshot": "prod_industries_tablet.png",
+      "pass": true
+    },
+    {
+      "env": "production",
+      "route": "/industries",
+      "viewport": "390x844",
+      "mode": "normal",
+      "url": "https://codeoutfitters.vercel.app/industries?verify=51bcd9c",
+      "httpStatus": 200,
+      "loadOk": true,
+      "title": "CodeOutfitters — AI Automation for Small Businesses",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "screenshot": "prod_industries_mobile.png",
+      "pass": true
+    },
+    {
+      "env": "production",
+      "route": "/process",
+      "viewport": "1440x1000",
+      "mode": "normal",
+      "url": "https://codeoutfitters.vercel.app/process?verify=51bcd9c",
+      "httpStatus": 200,
+      "loadOk": true,
+      "title": "CodeOutfitters — AI Automation for Small Businesses",
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "screenshot": "prod_process_desktop.png",
+      "pass": true
+    },
+    {
+      "env": "production",
+      "route": "/process",
+      "viewport": "820x1180",
+      "mode": "normal",
+      "url": "https://codeoutfitters.vercel.app/process?verify=51bcd9c",
+      "httpStatus": 200,
+      "loadOk": true,
+      "title": "CodeOutfitters — AI Automation for Small Businesses",
+      "scrollWidth": 820,
+      "clientWidth": 820,
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "screenshot": "prod_process_tablet.png",
+      "pass": true
+    },
+    {
+      "env": "production",
+      "route": "/process",
+      "viewport": "390x844",
+      "mode": "normal",
+      "url": "https://codeoutfitters.vercel.app/process?verify=51bcd9c",
+      "httpStatus": 200,
+      "loadOk": true,
+      "title": "CodeOutfitters — AI Automation for Small Businesses",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "screenshot": "prod_process_mobile.png",
+      "pass": true
+    },
+    {
+      "env": "production",
+      "route": "/about",
+      "viewport": "1440x1000",
+      "mode": "normal",
+      "url": "https://codeoutfitters.vercel.app/about?verify=51bcd9c",
+      "httpStatus": 200,
+      "loadOk": true,
+      "title": "About — CodeOutfitters",
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "screenshot": "prod_about_desktop.png",
+      "pass": true
+    },
+    {
+      "env": "production",
+      "route": "/about",
+      "viewport": "820x1180",
+      "mode": "normal",
+      "url": "https://codeoutfitters.vercel.app/about?verify=51bcd9c",
+      "httpStatus": 200,
+      "loadOk": true,
+      "title": "About — CodeOutfitters",
+      "scrollWidth": 820,
+      "clientWidth": 820,
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "screenshot": "prod_about_tablet.png",
+      "pass": true
+    },
+    {
+      "env": "production",
+      "route": "/about",
+      "viewport": "390x844",
+      "mode": "normal",
+      "url": "https://codeoutfitters.vercel.app/about?verify=51bcd9c",
+      "httpStatus": 200,
+      "loadOk": true,
+      "title": "About — CodeOutfitters",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "screenshot": "prod_about_mobile.png",
+      "pass": true
+    },
+    {
+      "env": "production",
+      "route": "/security",
+      "viewport": "1440x1000",
+      "mode": "normal",
+      "url": "https://codeoutfitters.vercel.app/security?verify=51bcd9c",
+      "httpStatus": 200,
+      "loadOk": true,
+      "title": "Security & Reliability — CodeOutfitters",
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "screenshot": "prod_security_desktop.png",
+      "pass": true
+    },
+    {
+      "env": "production",
+      "route": "/security",
+      "viewport": "820x1180",
+      "mode": "normal",
+      "url": "https://codeoutfitters.vercel.app/security?verify=51bcd9c",
+      "httpStatus": 200,
+      "loadOk": true,
+      "title": "Security & Reliability — CodeOutfitters",
+      "scrollWidth": 820,
+      "clientWidth": 820,
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "screenshot": "prod_security_tablet.png",
+      "pass": true
+    },
+    {
+      "env": "production",
+      "route": "/security",
+      "viewport": "390x844",
+      "mode": "normal",
+      "url": "https://codeoutfitters.vercel.app/security?verify=51bcd9c",
+      "httpStatus": 200,
+      "loadOk": true,
+      "title": "Security & Reliability — CodeOutfitters",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "screenshot": "prod_security_mobile.png",
+      "pass": true
+    },
+    {
+      "env": "production",
+      "route": "/case-studies",
+      "viewport": "1440x1000",
+      "mode": "normal",
+      "url": "https://codeoutfitters.vercel.app/case-studies?verify=51bcd9c",
+      "httpStatus": 200,
+      "loadOk": true,
+      "title": "Case Studies — CodeOutfitters",
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "screenshot": "prod_case-studies_desktop.png",
+      "pass": true
+    },
+    {
+      "env": "production",
+      "route": "/case-studies",
+      "viewport": "820x1180",
+      "mode": "normal",
+      "url": "https://codeoutfitters.vercel.app/case-studies?verify=51bcd9c",
+      "httpStatus": 200,
+      "loadOk": true,
+      "title": "Case Studies — CodeOutfitters",
+      "scrollWidth": 820,
+      "clientWidth": 820,
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "screenshot": "prod_case-studies_tablet.png",
+      "pass": true
+    },
+    {
+      "env": "production",
+      "route": "/case-studies",
+      "viewport": "390x844",
+      "mode": "normal",
+      "url": "https://codeoutfitters.vercel.app/case-studies?verify=51bcd9c",
+      "httpStatus": 200,
+      "loadOk": true,
+      "title": "Case Studies — CodeOutfitters",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "screenshot": "prod_case-studies_mobile.png",
+      "pass": true
+    },
+    {
+      "env": "production",
+      "route": "/contact",
+      "viewport": "1440x1000",
+      "mode": "normal",
+      "url": "https://codeoutfitters.vercel.app/contact?verify=51bcd9c",
+      "httpStatus": 200,
+      "loadOk": true,
+      "title": "Contact — CodeOutfitters",
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "screenshot": "prod_contact_desktop.png",
+      "pass": true
+    },
+    {
+      "env": "production",
+      "route": "/contact",
+      "viewport": "820x1180",
+      "mode": "normal",
+      "url": "https://codeoutfitters.vercel.app/contact?verify=51bcd9c",
+      "httpStatus": 200,
+      "loadOk": true,
+      "title": "Contact — CodeOutfitters",
+      "scrollWidth": 820,
+      "clientWidth": 820,
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "screenshot": "prod_contact_tablet.png",
+      "pass": true
+    },
+    {
+      "env": "production",
+      "route": "/contact",
+      "viewport": "390x844",
+      "mode": "normal",
+      "url": "https://codeoutfitters.vercel.app/contact?verify=51bcd9c",
+      "httpStatus": 200,
+      "loadOk": true,
+      "title": "Contact — CodeOutfitters",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "screenshot": "prod_contact_mobile.png",
+      "pass": true
+    },
+    {
+      "env": "production",
+      "route": "/",
+      "viewport": "default",
+      "mode": "full",
+      "url": "https://codeoutfitters.vercel.app/?motion=full&verify=51bcd9c",
+      "dataMotionAttr": "full",
+      "permanentlyHiddenCount": 0
+    },
+    {
+      "env": "production",
+      "route": "/",
+      "viewport": "default",
+      "mode": "reduced",
+      "url": "https://codeoutfitters.vercel.app/?motion=reduced&verify=51bcd9c",
+      "dataMotionAttr": "reduced",
+      "permanentlyHiddenCount": 0
+    },
+    {
+      "env": "production",
+      "route": "/",
+      "viewport": "default",
+      "mode": "normal",
+      "url": "https://codeoutfitters.vercel.app/?verify=51bcd9c",
+      "dataMotionAttr": "full",
+      "permanentlyHiddenCount": 0
+    }
+  ],
+  "homepage": {
+    "perViewport": [
+      {
+        "viewport": "desktop",
+        "dimensions": "1440x1000",
+        "requiredFound": [
+          {
+            "text": "app.codeoutfitters.ai/live",
+            "present": true
+          },
+          {
+            "text": "Built in 7 days",
+            "present": true
+          },
+          {
+            "text": "Automation Engine",
+            "present": true
+          },
+          {
+            "text": "Running",
+            "present": true
+          },
+          {
+            "text": "1,285.8 hrs saved",
+            "present": true
+          },
+          {
+            "text": "WhatsApp",
+            "present": true
+          },
+          {
+            "text": "Email",
+            "present": true
+          },
+          {
+            "text": "Support",
+            "present": true
+          },
+          {
+            "text": "Route hot lead to sales",
+            "present": true
+          },
+          {
+            "text": "Reconcile daily invoices",
+            "present": true
+          },
+          {
+            "text": "Send onboarding email #2",
+            "present": true
+          },
+          {
+            "text": "Update CRM contact record",
+            "present": true
+          },
+          {
+            "text": "Done",
+            "present": true
+          },
+          {
+            "text": "Running task status",
+            "present": false
+          },
+          {
+            "text": "Queued",
+            "present": true
+          },
+          {
+            "text": "328 tasks automated",
+            "present": true
+          },
+          {
+            "text": "$0 payroll spent",
+            "present": true
+          }
+        ],
+        "forbiddenFound": [
+          {
+            "text": "Maple St",
+            "present": false
+          },
+          {
+            "text": "private viewing",
+            "present": false
+          },
+          {
+            "text": "lead qualified",
+            "present": false
+          },
+          {
+            "text": "booking confirmation",
+            "present": false
+          },
+          {
+            "text": "Handled end-to-end in 26 seconds",
+            "present": false
+          },
+          {
+            "text": "312 tasks automated",
+            "present": false
+          },
+          {
+            "text": "real-estate chat bubbles",
+            "present": false
+          }
+        ],
+        "horizontalOverflow": false,
+        "whatsappActive": true,
+        "rowsVisible": {
+          "total": 4,
+          "visible": 4
+        },
+        "screenshot": "prod_home_acceptance_desktop.png"
+      },
+      {
+        "viewport": "tablet",
+        "dimensions": "820x1180",
+        "requiredFound": [
+          {
+            "text": "app.codeoutfitters.ai/live",
+            "present": true
+          },
+          {
+            "text": "Built in 7 days",
+            "present": true
+          },
+          {
+            "text": "Automation Engine",
+            "present": true
+          },
+          {
+            "text": "Running",
+            "present": true
+          },
+          {
+            "text": "1,285.8 hrs saved",
+            "present": true
+          },
+          {
+            "text": "WhatsApp",
+            "present": true
+          },
+          {
+            "text": "Email",
+            "present": true
+          },
+          {
+            "text": "Support",
+            "present": true
+          },
+          {
+            "text": "Route hot lead to sales",
+            "present": true
+          },
+          {
+            "text": "Reconcile daily invoices",
+            "present": true
+          },
+          {
+            "text": "Send onboarding email #2",
+            "present": true
+          },
+          {
+            "text": "Update CRM contact record",
+            "present": true
+          },
+          {
+            "text": "Done",
+            "present": true
+          },
+          {
+            "text": "Running task status",
+            "present": false
+          },
+          {
+            "text": "Queued",
+            "present": true
+          },
+          {
+            "text": "328 tasks automated",
+            "present": true
+          },
+          {
+            "text": "$0 payroll spent",
+            "present": true
+          }
+        ],
+        "forbiddenFound": [
+          {
+            "text": "Maple St",
+            "present": false
+          },
+          {
+            "text": "private viewing",
+            "present": false
+          },
+          {
+            "text": "lead qualified",
+            "present": false
+          },
+          {
+            "text": "booking confirmation",
+            "present": false
+          },
+          {
+            "text": "Handled end-to-end in 26 seconds",
+            "present": false
+          },
+          {
+            "text": "312 tasks automated",
+            "present": false
+          },
+          {
+            "text": "real-estate chat bubbles",
+            "present": false
+          }
+        ],
+        "horizontalOverflow": false,
+        "whatsappActive": true,
+        "rowsVisible": {
+          "total": 4,
+          "visible": 4
+        },
+        "screenshot": "prod_home_acceptance_tablet.png"
+      },
+      {
+        "viewport": "mobile",
+        "dimensions": "390x844",
+        "requiredFound": [
+          {
+            "text": "app.codeoutfitters.ai/live",
+            "present": true
+          },
+          {
+            "text": "Built in 7 days",
+            "present": true
+          },
+          {
+            "text": "Automation Engine",
+            "present": true
+          },
+          {
+            "text": "Running",
+            "present": true
+          },
+          {
+            "text": "1,285.8 hrs saved",
+            "present": true
+          },
+          {
+            "text": "WhatsApp",
+            "present": true
+          },
+          {
+            "text": "Email",
+            "present": true
+          },
+          {
+            "text": "Support",
+            "present": true
+          },
+          {
+            "text": "Route hot lead to sales",
+            "present": true
+          },
+          {
+            "text": "Reconcile daily invoices",
+            "present": true
+          },
+          {
+            "text": "Send onboarding email #2",
+            "present": true
+          },
+          {
+            "text": "Update CRM contact record",
+            "present": true
+          },
+          {
+            "text": "Done",
+            "present": true
+          },
+          {
+            "text": "Running task status",
+            "present": false
+          },
+          {
+            "text": "Queued",
+            "present": true
+          },
+          {
+            "text": "328 tasks automated",
+            "present": true
+          },
+          {
+            "text": "$0 payroll spent",
+            "present": true
+          }
+        ],
+        "forbiddenFound": [
+          {
+            "text": "Maple St",
+            "present": false
+          },
+          {
+            "text": "private viewing",
+            "present": false
+          },
+          {
+            "text": "lead qualified",
+            "present": false
+          },
+          {
+            "text": "booking confirmation",
+            "present": false
+          },
+          {
+            "text": "Handled end-to-end in 26 seconds",
+            "present": false
+          },
+          {
+            "text": "312 tasks automated",
+            "present": false
+          },
+          {
+            "text": "real-estate chat bubbles",
+            "present": false
+          }
+        ],
+        "horizontalOverflow": false,
+        "whatsappActive": true,
+        "rowsVisible": {
+          "total": 4,
+          "visible": 4
+        },
+        "screenshot": "prod_home_acceptance_mobile.png"
+      }
+    ],
+    "reducedModeContentReadable": [
+      {
+        "text": "app.codeoutfitters.ai/live",
+        "present": true
+      },
+      {
+        "text": "Built in 7 days",
+        "present": true
+      },
+      {
+        "text": "Automation Engine",
+        "present": true
+      },
+      {
+        "text": "Running",
+        "present": true
+      },
+      {
+        "text": "1,285.8 hrs saved",
+        "present": true
+      },
+      {
+        "text": "WhatsApp",
+        "present": true
+      },
+      {
+        "text": "Email",
+        "present": true
+      },
+      {
+        "text": "Support",
+        "present": true
+      },
+      {
+        "text": "Route hot lead to sales",
+        "present": true
+      },
+      {
+        "text": "Reconcile daily invoices",
+        "present": true
+      },
+      {
+        "text": "Send onboarding email #2",
+        "present": true
+      },
+      {
+        "text": "Update CRM contact record",
+        "present": true
+      },
+      {
+        "text": "Done",
+        "present": true
+      },
+      {
+        "text": "Running task status",
+        "present": false
+      },
+      {
+        "text": "Queued",
+        "present": true
+      },
+      {
+        "text": "328 tasks automated",
+        "present": true
+      },
+      {
+        "text": "$0 payroll spent",
+        "present": true
+      }
+    ]
+  },
+  "marquees": [
+    {
+      "route": "/",
+      "selector": ".hp-tool-row",
+      "found": true,
+      "hasHoverPauseImplemented": true,
+      "t0": "matrix(1, 0, 0, 1, -29.102, 0)",
+      "t2": "matrix(1, 0, 0, 1, -65.7803, 0)",
+      "t4": "matrix(1, 0, 0, 1, -102.158, 0)",
+      "hoverStart": "matrix(1, 0, 0, 1, -103.066, 0)",
+      "hover2": "matrix(1, 0, 0, 1, -103.066, 0)",
+      "resumed": "matrix(1, 0, 0, 1, -129.742, 0)",
+      "animationName": "hpToolsL",
+      "animationDuration": "60s",
+      "animationPlayState": "running",
+      "display": "flex",
+      "flexWrap": "nowrap",
+      "width": "2182.69px",
+      "sequenceCount": 2,
+      "originalItemCount": 1,
+      "duplicateItemCount": 1,
+      "duplicateAriaHiddenAllTrue": true,
+      "duplicateTabbableCount": 0,
+      "movingBeforeHover": true,
+      "pausedOnHover": true,
+      "resumedAfterLeave": true,
+      "reducedMode": {
+        "static": true,
+        "duplicateHidden": true,
+        "t0": "none",
+        "t1": "none"
+      }
+    },
+    {
+      "route": "/services",
+      "selector": ".services-marquee-row",
+      "found": true,
+      "hasHoverPauseImplemented": true,
+      "t0": "matrix(1, 0, 0, 1, -50.0244, 0)",
+      "t2": "matrix(1, 0, 0, 1, -113.214, 0)",
+      "t4": "matrix(1, 0, 0, 1, -176.403, 0)",
+      "hoverStart": "matrix(1, 0, 0, 1, -177.458, 0)",
+      "hover2": "matrix(1, 0, 0, 1, -177.458, 0)",
+      "resumed": "matrix(1, 0, 0, 1, -224.326, 0)",
+      "animationName": "servicesMarqueeL",
+      "animationDuration": "38s",
+      "animationPlayState": "running",
+      "display": "flex",
+      "flexWrap": "nowrap",
+      "width": "2401.31px",
+      "sequenceCount": 2,
+      "originalItemCount": 1,
+      "duplicateItemCount": 1,
+      "duplicateAriaHiddenAllTrue": true,
+      "duplicateTabbableCount": 0,
+      "movingBeforeHover": true,
+      "pausedOnHover": true,
+      "resumedAfterLeave": true,
+      "reducedMode": {
+        "static": true,
+        "duplicateHidden": false,
+        "t0": "none",
+        "t1": "none"
+      }
+    },
+    {
+      "route": "/security",
+      "selector": ".sec-tool-row",
+      "found": true,
+      "hasHoverPauseImplemented": true,
+      "t0": "matrix(1, 0, 0, 1, -56.797, 0)",
+      "t2": "matrix(1, 0, 0, 1, -131.499, 0)",
+      "t4": "matrix(1, 0, 0, 1, -205.586, 0)",
+      "hoverStart": "matrix(1, 0, 0, 1, -206.201, 0)",
+      "hover2": "matrix(1, 0, 0, 1, -206.201, 0)",
+      "resumed": "matrix(1, 0, 0, 1, -261.764, 0)",
+      "animationName": "secDriftL",
+      "animationDuration": "38s",
+      "animationPlayState": "running",
+      "display": "flex",
+      "flexWrap": "nowrap",
+      "width": "2815.31px",
+      "sequenceCount": 2,
+      "originalItemCount": 9,
+      "duplicateItemCount": 9,
+      "duplicateAriaHiddenAllTrue": true,
+      "duplicateTabbableCount": 0,
+      "movingBeforeHover": true,
+      "pausedOnHover": true,
+      "resumedAfterLeave": true,
+      "reducedMode": {
+        "static": true,
+        "duplicateHidden": true,
+        "t0": "none",
+        "t1": "none"
+      }
+    }
+  ],
+  "process": {
+    "route": "/process",
+    "timelines": 1,
+    "fills": 1,
+    "stages": 6,
+    "timelineBounds": {
+      "top": 597.84375,
+      "bottom": 2157.84375,
+      "height": 1560
+    },
+    "viewportHeight": 1200,
+    "atTop": {
+      "scrollY": 0,
+      "transform": "matrix(1, 0, 0, 0.16871, 0, 0)",
+      "activeMarkers": 1
+    },
+    "atMiddle": {
+      "scrollY": 778,
+      "transform": "matrix(1, 0, 0, 0.525223, 0, 0)",
+      "activeMarkers": 3
+    },
+    "atEnd": {
+      "scrollY": 1798,
+      "transform": "matrix(1, 0, 0, 0.993427, 0, 0)",
+      "activeMarkers": 6
+    }
+  },
+  "obsolete": [
+    {
+      "route": "/pricing",
+      "httpStatus": 404,
+      "is404": true,
+      "bodySample": "404Page not foundThe page you're looking for doesn't exist. Maybe it was automated away.Back to Home(self.__next_f=self.__next_f||[]).push([0])self.__next_f.push([1,\"1:\\\"$Sreact.fragment\\\"\\n2:I[39756,",
+      "screenshot": "prod_obsolete_pricing.png"
+    },
+    {
+      "route": "/book",
+      "httpStatus": 404,
+      "is404": true,
+      "bodySample": "404Page not foundThe page you're looking for doesn't exist. Maybe it was automated away.Back to Home(self.__next_f=self.__next_f||[]).push([0])self.__next_f.push([1,\"1:\\\"$Sreact.fragment\\\"\\n2:I[39756,",
+      "screenshot": "prod_obsolete_book.png"
+    },
+    {
+      "route": "/portfolio",
+      "httpStatus": 404,
+      "is404": true,
+      "bodySample": "404Page not foundThe page you're looking for doesn't exist. Maybe it was automated away.Back to Home(self.__next_f=self.__next_f||[]).push([0])self.__next_f.push([1,\"1:\\\"$Sreact.fragment\\\"\\n2:I[39756,",
+      "screenshot": "prod_obsolete_portfolio.png"
+    }
+  ],
+  "console": [],
+  "chromiumVersion": "149.0.7827.55",
+  "commit": "51bcd9c",
+  "deploymentId": "dpl_EuvatyVGCMrgC4dJKJqjcjADMHXm",
+  "productionUrl": "https://codeoutfitters.vercel.app"
+}

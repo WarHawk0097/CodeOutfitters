@@ -1,0 +1,63 @@
+{
+  "runDate": "2026-07-15",
+  "commit": "2508a99261005f99b95947501967fab3db2001e2",
+  "shortCommit": "2508a99",
+  "originalCommitBeforeInteractionRepairs": "51bcd9c0dc2131c81cd3910ca3e42b3eb2faed35",
+  "deploymentId": "post-repair deployment (see commitIdentityProof), original dpl_EuvatyVGCMrgC4dJKJqjcjADMHXm superseded",
+  "productionUrl": "https://codeoutfitters.vercel.app",
+  "deployedCommitVerification": "PASSED",
+  "commitIdentityProof": "build-log line: Cloning github.com/WarHawk0097/CodeOutfitters (Branch: main, Commit: 2508a99)",
+  "git": {
+    "branch": "main",
+    "commitsAheadAtAuditTime": 3,
+    "statedPremiseCommitsAhead": 5,
+    "premiseDiscrepancyDisclosed": true,
+    "commitRange": ["c84ff32", "47f39e2", "51bcd9c"],
+    "pushCommand": "git push origin main",
+    "pushExitCode": 0,
+    "pushOutput": "315d67a..51bcd9c main -> main",
+    "forcePush": false,
+    "postPushHeadEqualsOriginMain": true,
+    "untrackedFileExcluded": "repo-research/HANDOFF_AUDIT_RESULT.md"
+  },
+  "staticChecks": {
+    "typecheck": "PASS",
+    "build": "PASS",
+    "lint": "BLOCKED_BY_MISSING_PROJECT_TOOLING",
+    "tests": "NOT_AVAILABLE"
+  },
+  "deployment": {
+    "status": "Ready",
+    "aliasPointsToDeployment": true
+  },
+  "production": {
+    "responsiveMatrix": "24/24 PASS",
+    "homepageAcceptance": "3/3 viewports PASS (15/16 required strings present; 1 spec-naming mismatch disclosed; 7/7 forbidden absent)",
+    "forbiddenContentRendered": false,
+    "motionModes": "3/3 PASS (0 permanently-hidden elements in any mode)",
+    "marquees": "3/3 PASS full shared contract",
+    "process": "PASS (atTop=0.1697/1 marker, atMiddle=0.5247/3 markers, atEnd=0.9934/6 markers, monotonic)",
+    "obsoleteRoutes": "3/3 PASS (404)",
+    "consoleErrors": 0,
+    "hydrationErrors": 0,
+    "failedRequests": 0,
+    "brokenAssets": 0,
+    "horizontalOverflow": false
+  },
+  "productionInteractionsSection12": "EXECUTED - 101 checks initial sweep (94 pass/3 defects found/4 N/A), 3 defects repaired in commit 2508a99, 15/15 production regression post-repair - see CLAUDE-CODE-PRODUCTION-INTERACTION-RESULT.json",
+  "defectsFoundAndRepairedThisRun": [
+    "Hero tabs missing ARIA tab semantics (components/hero.tsx) - FIXED",
+    "FAQ accordions x6 implementations missing aria-controls (components/faq.tsx + 5 inline route implementations) - FIXED",
+    "No mobile/tablet navigation menu below 960px (components/navbar.tsx) - FIXED, functional defect not just a11y"
+  ],
+  "accessibility": "PARTIAL - see CLAUDE-CODE-ACCESSIBILITY-QA.md, runtime interaction spot-check executed this run for tabs/accordions/mobile-menu/forms, still not full WCAG",
+  "remainingRisks": [
+    "Lint disclosed gap, no eslint tooling in repo",
+    "No automated test framework configured",
+    "Reduced-motion mode not separately re-tested for the 3 repaired components (low risk - instant-toggle interactions, no motion dependency)",
+    "Accessibility audit remains partial, not full WCAG (skip-nav, heading order, contrast, screen reader untested)",
+    "Process 'middle' state not screenshotted (only numeric measurement)",
+    "Local regression had 1 test-selector false positive on /services (verified as test issue, not product defect)"
+  ],
+  "finalVerdict": "PASSED"
+}
