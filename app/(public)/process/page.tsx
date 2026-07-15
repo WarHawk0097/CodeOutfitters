@@ -74,9 +74,9 @@ export default function ProcessPage() {
 
     <section className="pro-faq" id="faq" ref={faqRef}><div>
       <Heading>Process questions.</Heading>
-      <div className="pro-faq-list">{faqs.map((faq, index) => { const open = openFaq === index; return <article data-reveal className={open ? 'is-open' : ''} key={faq.q}>
-        <button aria-expanded={open} onClick={() => setOpenFaq(open ? -1 : index)}><span>{faq.q}</span><i><ChevronDown size={17} /></i></button>
-        <div className="pro-answer"><div><p>{faq.a}</p></div></div>
+      <div className="pro-faq-list">{faqs.map((faq, index) => { const open = openFaq === index; const panelId = `pro-faq-panel-${index}`; const btnId = `pro-faq-btn-${index}`; return <article data-reveal className={open ? 'is-open' : ''} key={faq.q}>
+        <button id={btnId} aria-expanded={open} aria-controls={panelId} onClick={() => setOpenFaq(open ? -1 : index)}><span>{faq.q}</span><i><ChevronDown size={17} /></i></button>
+        <div className="pro-answer" id={panelId} role="region" aria-labelledby={btnId}><div><p>{faq.a}</p></div></div>
       </article> })}</div>
     </div></section>
 

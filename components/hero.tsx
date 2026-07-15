@@ -19,7 +19,7 @@ const cont = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { stagger
 const itemV = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] as const } } }
 
 const tabContent = (tab: number, key: string, children: React.ReactNode) => (
-  <motion.div key={key} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
+  <motion.div key={key} id={`hero-tabpanel-${tab}`} role="tabpanel" aria-labelledby={`hero-tab-${tab}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
     {children}
   </motion.div>
 )
@@ -126,9 +126,9 @@ export function Hero() {
                     <span style={{ font: '600 12px ui-monospace,monospace', color: '#8A857B', whiteSpace: 'nowrap', flexShrink: 0 }}>{hoursSaved.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} hrs saved</span>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '6px', padding: '10px 14px 0' }}>
+                  <div role="tablist" aria-label="Live channel preview" style={{ display: 'flex', gap: '6px', padding: '10px 14px 0' }}>
                     {['WhatsApp', 'Email', 'Support'].map((label, i) => (
-                      <button key={label} onClick={() => setTab(i)}
+                      <button key={label} role="tab" id={`hero-tab-${i}`} aria-selected={tab === i} aria-controls={`hero-tabpanel-${i}`} onClick={() => setTab(i)}
                         style={{ display: 'flex', alignItems: 'center', gap: '7px', border: 'none', cursor: 'pointer', font: `600 ${tab === i ? '12.5' : '12'}px "Instrument Sans",sans-serif`, padding: tab === i ? '7px 13px' : '6px 11px', borderRadius: '8px', background: tab === i ? '#0E2A1D' : 'transparent', color: tab === i ? '#F5F0E8' : '#8A857B', transition: 'all .15s ease' }}>
                         {label}
                       </button>

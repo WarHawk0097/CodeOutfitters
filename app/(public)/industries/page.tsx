@@ -113,9 +113,11 @@ export default function IndustriesPage() {
         <SectionHeading title="Industry questions." />
         <div className="ind-faq-list">{faqs.map((faq, index) => {
           const open = openFaq === index
+          const panelId = `ind-faq-panel-${index}`
+          const btnId = `ind-faq-btn-${index}`
           return <article className={open ? 'is-open' : ''} key={faq.q} data-reveal>
-            <button onClick={() => setOpenFaq(open ? -1 : index)} aria-expanded={open}><span>{faq.q}</span><i><ChevronDown size={17} /></i></button>
-            <div className="ind-faq-answer"><div><p>{faq.a}</p></div></div>
+            <button id={btnId} onClick={() => setOpenFaq(open ? -1 : index)} aria-expanded={open} aria-controls={panelId}><span>{faq.q}</span><i><ChevronDown size={17} /></i></button>
+            <div className="ind-faq-answer" id={panelId} role="region" aria-labelledby={btnId}><div><p>{faq.a}</p></div></div>
           </article>
         })}</div>
       </div>
