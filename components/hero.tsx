@@ -57,7 +57,7 @@ export function Hero() {
       </svg>
 
       <div className="hp-hero-inner relative z-10 mx-auto w-full">
-        <motion.div className="hp-hero-grid items-center" variants={cont} initial={false} animate="show">
+        <motion.div className="hp-hero-grid items-center" variants={cont} initial="hidden" animate="show">
           <motion.div variants={itemV} className="flex flex-col items-start gap-6 min-w-0">
             <div className="relative inline-flex items-center gap-2 px-4 py-2 rounded-full overflow-hidden animate-[badgeGlow_4s_ease-in-out_1.2s_infinite]" style={{ background: 'rgba(217,179,106,.10)', border: '1px solid rgba(217,179,106,.4)' }}>
               <span className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'linear-gradient(110deg,transparent 40%,rgba(217,179,106,.35) 50%,transparent 60%)', backgroundSize: '200% 100%', animation: 'shimmerSweep 3.2s ease-in-out 1.5s infinite' }} />
