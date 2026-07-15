@@ -131,6 +131,7 @@ export function Hero() {
         .hp-hero-grid>div{animation:hpHeroEnter .72s cubic-bezier(.16,1,.3,1) both}.hp-hero-grid>div+div{animation-delay:.12s}@keyframes hpHeroEnter{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
         @media(max-width:900px){.hp-hero-grid{grid-template-columns:1fr}.hp-hero-grid>div:last-child{margin-top:36px}}
         @media(max-width:520px){.hp-hero-inner{padding-top:42px}.hp-hero-grid>div:first-child{gap:18px}.hp-hero-grid>div:last-child{margin-top:28px}.hp-hero-grid>div:last-child>div{transform:scale(.94);transform-origin:top center}}html[data-motion='reduced'] .hp-hero-grid>div{animation:none}@media(prefers-reduced-motion:reduce){html:not([data-motion='full']) .hp-hero-grid>div{animation:none}}
+        .hp-task-pulse{animation:hpTaskPulse 1.6s ease-in-out infinite}@keyframes hpTaskPulse{0%,100%{opacity:1}50%{opacity:.55}}@media(prefers-reduced-motion:reduce){.hp-task-pulse{animation:none}}
       `}</style>
     </section>
   )
@@ -143,8 +144,8 @@ const AUTOMATION_TASKS = [
   { label: 'Update CRM contact record', status: 'queued' as const },
 ]
 
-const taskListV = { hidden: {}, show: { transition: { staggerChildren: 0.1, delayChildren: 0.4 } } }
-const taskRowV = { hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const } } }
+const taskListV = { hidden: {}, show: { transition: { staggerChildren: 0.22, delayChildren: 0.5 } } }
+const taskRowV = { hidden: { opacity: 0, y: 26 }, show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1] as const } } }
 
 function AutomationTaskList() {
   const { reduced } = useMotionMode()
@@ -158,7 +159,7 @@ function AutomationTaskList() {
           {task.status === 'done' && <span style={{ font: '600 10.5px "Instrument Sans",sans-serif', color: '#128A54', whiteSpace: 'nowrap' }}>Done ✓</span>}
           {task.status === 'processing' && (
             <span role="progressbar" aria-label="Reconciling daily invoices" aria-valuetext="In progress" style={{ position: 'relative', width: '46px', height: '5px', borderRadius: '3px', background: '#EDE6D8', overflow: 'hidden', flexShrink: 0 }}>
-              <span style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '40%', borderRadius: '3px', background: '#D9B36A' }} />
+              <span className={reduced ? '' : 'hp-task-pulse'} style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '40%', borderRadius: '3px', background: '#D9B36A' }} />
             </span>
           )}
           {task.status === 'queued' && <span style={{ font: '600 10.5px "Instrument Sans",sans-serif', color: '#8A857B', whiteSpace: 'nowrap' }}>Queued</span>}
