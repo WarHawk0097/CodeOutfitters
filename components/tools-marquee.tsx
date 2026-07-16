@@ -6,13 +6,13 @@ export const tools = ['WhatsApp','Anthropic','Notion','Airtable','Google Sheets'
 const slug = (name:string) => name.toLowerCase().replace(/\s+/g,'-')
 
 export function Chip({name}:{name:string}) { return <span className="hp-tool-chip"><b><img src={`/assets/integrations/${slug(name)}.svg`} alt="" width={22} height={22}/></b>{name}</span> }
-export function Row({items,reverse,paused}:{items:string[];reverse?:boolean;paused:boolean}) { return <div className={`hp-tool-row ${reverse?'is-reverse':''}`} style={{animationPlayState:paused?'paused':'running'}}><div data-marquee-sequence="original">{items.map(x=><Chip key={x} name={x}/>)}</div><div data-marquee-sequence="duplicate" aria-hidden="true">{items.map(x=><Chip key={`d-${x}`} name={x}/>)}</div></div> }
+export function Row({items,reverse,paused,dataMarquee}:{items:string[];reverse?:boolean;paused:boolean;dataMarquee?:string}) { return <div className={`hp-tool-row ${reverse?'is-reverse':''}`} data-marquee-track data-marquee={dataMarquee} style={{animationPlayState:paused?'paused':'running'}}><div data-marquee-sequence="original">{items.map(x=><Chip key={x} name={x}/>)}</div><div data-marquee-sequence="duplicate" aria-hidden="true">{items.map(x=><Chip key={`d-${x}`} name={x}/>)}</div></div> }
 
 export function IconMarquee(){
  const [paused,setPaused]=useState(false)
  return <>
-  <div className="hp-tool-viewport" data-marquee="homepage" onPointerEnter={()=>setPaused(true)} onPointerLeave={()=>setPaused(false)}>
-   <Row items={tools} paused={paused}/><Row items={[...tools].reverse()} reverse paused={paused}/>
+  <div className="hp-tool-viewport" data-marquee="home-infrastructure" onPointerEnter={()=>setPaused(true)} onPointerLeave={()=>setPaused(false)}>
+   <Row items={tools} paused={paused} dataMarquee="home-infrastructure-row-1"/><Row items={[...tools].reverse()} reverse paused={paused} dataMarquee="home-infrastructure-row-2"/>
   </div>
   <style>{`
    .hp-tool-viewport{position:relative;display:flex;flex-direction:column;gap:11px;overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent)}
