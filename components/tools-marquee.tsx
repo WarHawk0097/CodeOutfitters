@@ -24,10 +24,10 @@ export function IconMarquee(){
 
 export function ToolsMarquee(){
  return <section className="hp-tools">
-  <h2>Powered by industry-leading AI infrastructure</h2>
+  <h2 style={{fontWeight:700,fontSize:'11.5px',letterSpacing:'.22em',color:'rgba(245,240,232,.5)',fontFamily:'"Instrument Sans",sans-serif',textTransform:'uppercase',margin:'0 0 18px',textAlign:'center'}}>Powered by industry-leading AI infrastructure</h2>
   <IconMarquee/>
   <style>{`
-   .hp-tools{background:#0E241A;padding:24px 0 28px;overflow:hidden}.hp-tools h2{margin:0 0 18px;text-align:center;font:600 12px 'Instrument Sans',sans-serif;letter-spacing:.18em;color:rgba(245,240,232,.52);text-transform:uppercase}
+   .hp-tools{background:#0E241A;padding:24px 0 28px;overflow:hidden}.hp-tools h2{margin:0 0 18px;text-align:center;color:rgba(245,240,232,.5);text-transform:uppercase;font-weight:700;font-size:11.5px;letter-spacing:.22em;font-family:'Instrument Sans',sans-serif}
    @media(max-width:640px){.hp-tools h2{padding:0 22px;line-height:1.45}}
   `}</style>
  </section>

@@ -38,3 +38,4 @@ graphify-out/
 
 # Design-handoff bundle (implementation guidance only, not part of the native production build)
 CODEOUTFITTERS-FINAL-HANDOFF/
+.gstack/

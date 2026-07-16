@@ -6,12 +6,12 @@ import { useScrollReveal } from '@/hooks/useScrollReveal'
 
 function SectionLabel({ text }: { text: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '16px' }}>
-      <span style={{ width: '40px', height: '1px', background: '#D9B36A', flexShrink: 0 }} />
-      <span style={{ font: '700 11.5px "Instrument Sans",sans-serif', letterSpacing: '.18em', color: '#D9B36A', textTransform: 'uppercase' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginBottom: '16px' }}>
+      <span style={{ width: '38px', height: '2px', background: '#D9B36A', flexShrink: 0 }} />
+      <span style={{ font: '700 12px "Instrument Sans",sans-serif', letterSpacing: '.18em', color: '#128A54', textTransform: 'uppercase' }}>
         {text}
       </span>
-      <span style={{ width: '40px', height: '1px', background: '#D9B36A', flexShrink: 0 }} />
+      <span style={{ width: '38px', height: '2px', background: '#D9B36A', flexShrink: 0 }} />
     </div>
   )
 }
@@ -156,8 +156,8 @@ export function CaseStudiesPreview() {
                   href="/contact"
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: '6px', alignSelf: 'flex-start',
-                    font: '600 13px "Instrument Sans",sans-serif', color: '#128A54',
-                    textDecoration: 'none', marginTop: '2px',
+                    font: '600 13px "Instrument Sans",sans-serif', color: '#0E2A1D',
+                    textDecoration: 'none', borderBottom: '2px solid #D9B36A', paddingBottom: '3px',
                   }}
                 >
                   Get a Similar System <ArrowRight size={13} />
@@ -242,9 +242,9 @@ export function CaseStudiesPreview() {
                 <Link
                   href="/contact"
                   style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '6px',
-                    font: '600 13px "Instrument Sans",sans-serif', color: '#D9B36A',
-                    textDecoration: 'none', marginTop: '2px',
+                    display: 'inline-flex', alignItems: 'center', gap: '6px', alignSelf: 'flex-start',
+                    font: '600 13px "Instrument Sans",sans-serif', color: '#0E2A1D',
+                    textDecoration: 'none', borderBottom: '2px solid #D9B36A', paddingBottom: '3px',
                   }}
                 >
                   Get a Similar System <ArrowRight size={13} />
@@ -316,9 +316,9 @@ export function CaseStudiesPreview() {
                 <Link
                   href="/contact"
                   style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '6px',
-                    font: '600 13px "Instrument Sans",sans-serif', color: '#17A063',
-                    textDecoration: 'none', marginTop: '2px',
+                    display: 'inline-flex', alignItems: 'center', gap: '6px', alignSelf: 'flex-start',
+                    font: '600 13px "Instrument Sans",sans-serif', color: '#0E2A1D',
+                    textDecoration: 'none', borderBottom: '2px solid #D9B36A', paddingBottom: '3px',
                   }}
                 >
                   Get a Similar System <ArrowRight size={13} />

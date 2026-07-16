@@ -9,12 +9,12 @@ import { useMotionMode } from '@/components/motion-mode-provider'
 
 function SectionLabel({ text }: { text: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '16px' }}>
-      <span style={{ width: '40px', height: '1px', background: '#D9B36A', flexShrink: 0 }} />
-      <span style={{ font: '700 11.5px "Instrument Sans",sans-serif', letterSpacing: '.18em', color: '#D9B36A', textTransform: 'uppercase' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginBottom: '16px' }}>
+      <span style={{ width: '38px', height: '2px', background: '#D9B36A', flexShrink: 0 }} />
+      <span style={{ font: '700 12px "Instrument Sans",sans-serif', letterSpacing: '.18em', color: '#128A54', textTransform: 'uppercase' }}>
         {text}
       </span>
-      <span style={{ width: '40px', height: '1px', background: '#D9B36A', flexShrink: 0 }} />
+      <span style={{ width: '38px', height: '2px', background: '#D9B36A', flexShrink: 0 }} />
     </div>
   )
 }
@@ -26,17 +26,19 @@ function LivePill() {
         display: 'inline-flex',
         alignItems: 'center',
         gap: '6px',
-        font: '600 10.5px "Instrument Sans",sans-serif',
-        color: '#2BD483',
-        background: 'rgba(43,212,131,.10)',
-        border: '1px solid rgba(43,212,131,.25)',
+        font: '700 10px "Instrument Sans",sans-serif',
+        letterSpacing: '.09em',
+        color: '#128A54',
+        background: '#EAF6EF',
+        border: '1px solid rgba(18,138,84,.22)',
         borderRadius: '999px',
-        padding: '4px 10px',
+        padding: '5px 11px',
         whiteSpace: 'nowrap',
+        textTransform: 'uppercase',
       }}
     >
       <span style={{ width: '6px', height: '6px', borderRadius: '999px', background: '#2BD483' }} />
-      Live in 7 days
+      Live automation
     </span>
   )
 }
@@ -295,30 +297,32 @@ export function ServicesBento() {
             <div className="hp-svc-featured-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,.92fr) minmax(0,1.08fr)', gap: 'clamp(22px,3vw,36px)', padding: 'clamp(24px,2.8vw,34px)' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                  <span style={{ font: '700 10px "Instrument Sans",sans-serif', letterSpacing: '.12em', color: '#68705F', textTransform: 'uppercase' }}>
+                  <span style={{ font: '700 10px "Instrument Sans",sans-serif', letterSpacing: '.12em', color: '#128A54', textTransform: 'uppercase' }}>
                     Service 01 · Lead response
                   </span>
                   <LivePill />
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '13px' }}>
                   <div
                     style={{
-                      width: '44px', height: '44px', borderRadius: '12px',
-                      background: 'linear-gradient(135deg,#2BD483,#17A063)',
+                      width: '50px', height: '50px', borderRadius: '14px',
+                      background: 'linear-gradient(160deg,#EAF6EF,#DCF0E5)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                      boxShadow: '0 10px 24px rgba(18,32,27,.14), inset 0 1px 0 rgba(255,255,255,.7)',
                     }}
                   >
-                    <MessageSquare size={22} color="#0A120E" />
+                    <MessageSquare size={23} color="#0A120E" />
                   </div>
                   <span
                     style={{
                       font: '700 10px "Instrument Sans",sans-serif',
-                      color: '#D9B36A',
-                      background: 'rgba(217,179,106,.12)',
+                      color: '#B08A3E',
+                      background: '#F8EFDD',
+                      border: '1px solid rgba(217,179,106,.35)',
                       borderRadius: '999px',
-                      padding: '4px 10px',
-                      letterSpacing: '.04em',
+                      padding: '5px 11px',
+                      letterSpacing: '.09em',
                       textTransform: 'uppercase',
                     }}
                   >
@@ -338,12 +342,12 @@ export function ServicesBento() {
                     <span
                       key={chip}
                       style={{
-                        font: '500 12px "Instrument Sans",sans-serif',
-                        color: '#0A120E',
-                        background: 'rgba(10,18,14,.05)',
-                        border: '1px solid rgba(13,58,49,.12)',
+                        font: '600 11.5px "Instrument Sans",sans-serif',
+                        color: '#128A54',
+                        background: '#EAF6EF',
+                        border: '1px solid rgba(18,138,84,.18)',
                         borderRadius: '999px',
-                        padding: '5px 13px',
+                        padding: '5px 12px',
                       }}
                     >
                       {chip}
@@ -351,15 +355,15 @@ export function ServicesBento() {
                   ))}
                 </div>
 
-                <div style={{ display: 'flex', gap: '20px', padding: '14px 0', borderTop: '1px solid rgba(13,58,49,.08)', borderBottom: '1px solid rgba(13,58,49,.08)' }}>
+                <div className="svc-metric-strip-v6" style={{ display: 'flex', alignItems: 'stretch', gap: 0, background: 'linear-gradient(165deg,#0E2A1D,#0A1F15)', borderRadius: '14px', padding: '4px 0', marginTop: '2px' }}>
                   {[
                     { value: '26s', label: 'Avg first reply' },
                     { value: '24/7', label: 'Always answering' },
                     { value: '0', label: 'Leads missed' },
-                  ].map((m) => (
-                    <div key={m.label} style={{ textAlign: 'center' }}>
-                      <div style={{ font: '700 20px/1 "Space Grotesk",sans-serif', color: '#2BD483' }}>{m.value}</div>
-                      <div style={{ font: '500 10.5px "Instrument Sans",sans-serif', color: '#8A857B' }}>{m.label}</div>
+                  ].map((m, i) => (
+                    <div key={m.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', textAlign: 'center', padding: '12px 8px', borderLeft: i > 0 ? '1px solid rgba(255,255,255,.09)' : 'none' }}>
+                      <div style={{ font: '700 21px/1 "Space Grotesk",sans-serif', letterSpacing: '-.01em', color: '#2BD483' }}>{m.value}</div>
+                      <div style={{ font: '600 9.5px/1.3 "Instrument Sans",sans-serif', letterSpacing: '.06em', textTransform: 'uppercase', color: 'rgba(245,240,232,.55)' }}>{m.label}</div>
                     </div>
                   ))}
                 </div>
@@ -367,9 +371,9 @@ export function ServicesBento() {
                 <Link
                   href="/contact"
                   style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '8px', alignSelf: 'flex-start',
-                    font: '600 14px "Instrument Sans",sans-serif', color: '#2BD483',
-                    textDecoration: 'none', marginTop: '4px',
+                    display: 'inline-flex', alignItems: 'center', gap: '8px',
+                    font: '600 14px "Instrument Sans",sans-serif', color: '#0E2A1D',
+                    textDecoration: 'none', borderBottom: '2px solid #D9B36A', paddingBottom: '3px', alignSelf: 'flex-start',
                   }}
                 >
                   See a live build <ArrowRight size={14} />
@@ -400,6 +404,7 @@ export function ServicesBento() {
                     <Mail size={18} color="#D9B36A" />
                   </div>
                   <span style={{ font: '700 10px "Instrument Sans",sans-serif', letterSpacing: '.12em', color: '#68705F', textTransform: 'uppercase' }}>Service 02 · Email</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', font: '700 10px "Instrument Sans",sans-serif', letterSpacing: '.09em', color: '#B08A3E', background: '#F8EFDD', border: '1px solid rgba(217,179,106,.35)', borderRadius: '999px', padding: '5px 11px', whiteSpace: 'nowrap', textTransform: 'uppercase' }}><span style={{ width: '6px', height: '6px', borderRadius: '999px', background: '#D9B36A' }} />Live automation</span>
                 </div>
                 <h3 style={{ font: '600 18px/1.2 "Space Grotesk",sans-serif', color: '#0A120E', margin: 0 }}>Email Workflow Automation</h3>
                 <p style={{ font: '400 13.5px/1.6 "Instrument Sans",sans-serif', color: '#68705F', margin: 0 }}>
@@ -410,11 +415,11 @@ export function ServicesBento() {
                   href="/contact"
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: '6px',
-                    font: '600 13px "Instrument Sans",sans-serif', color: '#D9B36A',
-                    textDecoration: 'none', marginTop: '2px',
+                    font: '600 13.5px "Instrument Sans",sans-serif', color: '#0E2A1D',
+                    textDecoration: 'none', borderBottom: '2px solid #D9B36A', paddingBottom: '3px', alignSelf: 'flex-start',
                   }}
                 >
-                  Learn more <ArrowRight size={13} />
+                  Get this system <ArrowRight size={13} />
                 </Link>
               </div>
             </div>
@@ -435,6 +440,7 @@ export function ServicesBento() {
                     <Bot size={18} color="#17A063" />
                   </div>
                   <span style={{ font: '700 10px "Instrument Sans",sans-serif', letterSpacing: '.12em', color: '#68705F', textTransform: 'uppercase' }}>Service 03 · Support</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', font: '700 10px "Instrument Sans",sans-serif', letterSpacing: '.09em', color: '#17A063', background: '#E8EDE9', border: '1px solid rgba(23,160,99,.25)', borderRadius: '999px', padding: '5px 11px', whiteSpace: 'nowrap', textTransform: 'uppercase' }}><span style={{ width: '6px', height: '6px', borderRadius: '999px', background: '#17A063' }} />Live automation</span>
                 </div>
                 <h3 style={{ font: '600 18px/1.2 "Space Grotesk",sans-serif', color: '#0A120E', margin: 0 }}>Support Chat Systems</h3>
                 <p style={{ font: '400 13.5px/1.6 "Instrument Sans",sans-serif', color: '#68705F', margin: 0 }}>
@@ -445,11 +451,11 @@ export function ServicesBento() {
                   href="/contact"
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: '6px',
-                    font: '600 13px "Instrument Sans",sans-serif', color: '#17A063',
-                    textDecoration: 'none', marginTop: '2px',
+                    font: '600 13.5px "Instrument Sans",sans-serif', color: '#0E2A1D',
+                    textDecoration: 'none', borderBottom: '2px solid #D9B36A', paddingBottom: '3px', alignSelf: 'flex-start',
                   }}
                 >
-                  Learn more <ArrowRight size={13} />
+                  Get this system <ArrowRight size={13} />
                 </Link>
               </div>
             </div>
