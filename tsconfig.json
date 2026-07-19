@@ -37,6 +37,7 @@
   ],
   "exclude": [
     "node_modules",
-    "_legacy-dc-backup"
+    "_legacy-dc-backup",
+    "System-Artifacts"
   ]
 }
