@@ -153,7 +153,7 @@ export function CTABanner() {
 
             <Link
               href="/contact"
-              className="cta-sweep"
+              className="cta-action-btn cta-sweep"
               style={{
                 whiteSpace: 'nowrap',
                 position: 'relative',

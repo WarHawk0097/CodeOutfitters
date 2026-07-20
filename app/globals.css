@@ -159,21 +159,36 @@
 }
 .cta-sweep:hover::before { left: 120%; }
 
-@media (prefers-reduced-motion: reduce) {
-  html:not([data-motion='full']) *,
-  html:not([data-motion='full']) *::before,
-  html:not([data-motion='full']) *::after {
-    animation: none !important;
-    animation-duration: .001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: .001ms !important;
-  }
-  html:not([data-motion='full']) .marquee-track { animation: none !important; }
-  html:not([data-motion='full']) .hp-tool-row { animation: none !important; }
-  html:not([data-motion='full']) .hp-tm-row { animation: none !important; }
-  html:not([data-motion='full']) .hero-paths-animated path { animation: none !important; }
-  html:not([data-motion='full']) .timeline-progress { transition: none !important; transform: scaleY(1) !important; }
+/* Shared CTA button hover parity with canonical .cta-button-v7 */
+.cta-action-btn {
+  transition: transform .3s var(--ease-premium), box-shadow .3s var(--ease-premium);
 }
+.cta-action-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 24px 56px rgba(217,179,106,.46), inset 0 1px 0 rgba(255,255,255,.5);
+}
+
+html.motion-reduced *,
+html.motion-reduced *::before,
+html.motion-reduced *::after {
+  animation-duration: .001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: .001ms !important;
+  scroll-behavior: auto !important;
+}
+html.motion-reduced .marquee-track,
+html.motion-reduced .hp-tool-row,
+html.motion-reduced .hp-tm-row { animation: none !important; }
+html.motion-reduced .hero-paths-animated path { animation: none !important; }
+html.motion-reduced .timeline-progress { transition: none !important; transform: scaleY(1) !important; }
+html.motion-reduced .marquee-animated { display: none !important; }
+html.motion-reduced .marquee-static-fallback { display: flex !important; }
+html.motion-reduced .hp-tool-row > [data-marquee-sequence='duplicate'],
+html.motion-reduced .hp-tm-row > [data-marquee-sequence='duplicate'] { display: none !important; }
+html.motion-reduced .card-hover:hover,
+html.motion-reduced .tl-card:hover,
+html.motion-reduced .cta-sweep-btn:hover,
+html.motion-reduced .cta-btn:hover { transform: none !important; }
 
 html[data-motion='reduced'] *,
 html[data-motion='reduced'] *::before,
@@ -190,38 +205,13 @@ html[data-motion='reduced'] .hero-paths-animated path { animation: none !importa
 html[data-motion='reduced'] .timeline-progress { transition: none !important; transform: scaleY(1) !important; }
 html[data-motion='reduced'] .marquee-animated { display: none !important; }
 html[data-motion='reduced'] .marquee-static-fallback { display: flex !important; }
-
-html[data-motion='reduced'] .hp-tool-row,
-html[data-motion='reduced'] .hp-tm-row,
-html[data-motion='reduced'] .hp-hero-grid > div {
-  animation: none !important;
-}
-
 html[data-motion='reduced'] .hp-tool-row > [data-marquee-sequence='duplicate'],
-html[data-motion='reduced'] .hp-tm-row > [data-marquee-sequence='duplicate'] {
-  display: none !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html:not([data-motion='full']) .marquee-animated { display: none !important; }
-  html:not([data-motion='full']) .marquee-static-fallback { display: flex !important; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html:not([data-motion='full']) .card-hover:hover,
-  html:not([data-motion='full']) .tl-card:hover,
-  html:not([data-motion='full']) .cta-sweep-btn:hover,
-  html:not([data-motion='full']) .cta-btn:hover { transform: none !important; }
-}
-
-html[data-motion='reduced'] {
-  scroll-behavior: auto;
-}
-
+html[data-motion='reduced'] .hp-tm-row > [data-marquee-sequence='duplicate'] { display: none !important; }
 html[data-motion='reduced'] .card-hover:hover,
 html[data-motion='reduced'] .tl-card:hover,
 html[data-motion='reduced'] .cta-sweep-btn:hover,
 html[data-motion='reduced'] .cta-btn:hover { transform: none !important; }
+html[data-motion='reduced'] { scroll-behavior: auto; }
 
 @media (prefers-reduced-motion: reduce) {
   /* Baseline styles remain visible before the client-side mode resolver mounts. */

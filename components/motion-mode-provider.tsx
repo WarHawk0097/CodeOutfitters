@@ -3,42 +3,25 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { MotionConfig } from 'framer-motion'
 
-type MotionPreference = 'system' | 'full' | 'reduced'
-
 type MotionMode = {
-  preference: MotionPreference
   reduced: boolean
 }
 
-const MotionModeContext = createContext<MotionMode>({ preference: 'system', reduced: false })
+const MotionModeContext = createContext<MotionMode>({ reduced: false })
 
 export function MotionModeProvider({ children }: { children: React.ReactNode }) {
-  const [preference, setPreference] = useState<MotionPreference>('system')
-  const [systemReduced, setSystemReduced] = useState(false)
+  const [reduced, setReduced] = useState<boolean>(false)
 
   useEffect(() => {
     const query = new URLSearchParams(window.location.search).get('motion')
-    const nextPreference: MotionPreference = query === 'full' || query === 'reduced' ? query : 'system'
-    const media = window.matchMedia('(prefers-reduced-motion: reduce)')
-
-    setPreference(nextPreference)
-    setSystemReduced(media.matches)
-
-    const onChange = (event: MediaQueryListEvent) => setSystemReduced(event.matches)
-    media.addEventListener('change', onChange)
-    return () => media.removeEventListener('change', onChange)
+    const isReduced = query === 'reduced'
+    setReduced(isReduced)
+    document.documentElement.dataset.motion = isReduced ? 'reduced' : 'full'
+    document.documentElement.dataset.motionReduced = String(isReduced)
   }, [])
 
-  const reduced = preference === 'reduced' || (preference === 'system' && systemReduced)
-
-  useEffect(() => {
-    document.documentElement.dataset.motion = reduced ? 'reduced' : 'full'
-    document.documentElement.dataset.motionReduced = String(reduced)
-    document.documentElement.classList.add('motion-ready')
-  }, [preference, reduced])
-
-  const value = useMemo(() => ({ preference, reduced }), [preference, reduced])
-  const reducedMotion = preference === 'full' ? 'never' : preference === 'reduced' ? 'always' : 'user'
+  const value = useMemo(() => ({ reduced }), [reduced])
+  const reducedMotion = reduced ? 'always' : 'never'
 
   return (
     <MotionModeContext.Provider value={value}>

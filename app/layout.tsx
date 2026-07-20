@@ -51,9 +51,31 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const motionResolverScript = `
+(function(){
+  try{
+    var params=new URLSearchParams(window.location.search);
+    var pref=params.get('motion');
+    var reduced=false;
+    if(pref==='reduced'){reduced=true}
+    else if(pref==='full'){reduced=false}
+    else{reduced=false}
+    var osReduced=false;
+    try{osReduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches}catch(e){}
+    document.documentElement.dataset.motion=reduced?'reduced':'full';
+    document.documentElement.dataset.motionReduced=String(reduced);
+    document.documentElement.setAttribute('data-os-reduced',String(osReduced));
+    if(reduced){document.documentElement.classList.add('motion-reduced')}
+    document.documentElement.classList.add('motion-ready');
+  }catch(e){}
+})();`
+
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} ${instrumentSans.variable}`}>
-      <body className="font-body antialiased" style={{ fontFamily: "'Instrument Sans', sans-serif" }}>
+    <html lang="en" className={`${spaceGrotesk.variable} ${instrumentSans.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: motionResolverScript }} />
+      </head>
+      <body className="font-body antialiased" style={{ fontFamily: "'Instrument Sans', sans-serif" }} suppressHydrationWarning>
         {children}
       </body>
     </html>

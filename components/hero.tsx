@@ -1,6 +1,5 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useMotionMode } from '@/components/motion-mode-provider'
 import { ArrowRight } from 'lucide-react'
@@ -19,24 +18,14 @@ const cont = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { stagger
 const itemV = { hidden: { opacity: 0, y: 24 }, show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] as const } } }
 
 export function Hero() {
-  const [hoursSaved, setHoursSaved] = useState(1285.8)
-  const [tasksToday, setTasksToday] = useState(328)
   const { reduced } = useMotionMode()
-  useEffect(() => {
-    if (reduced) return
-    const timer = window.setInterval(() => {
-      setHoursSaved((v) => Math.round((v + 0.1) * 10) / 10)
-      setTasksToday((v) => v + 1)
-    }, 4000)
-    return () => window.clearInterval(timer)
-  }, [reduced])
 
   return (
     <section className="hp-hero relative overflow-hidden" style={{ background: '#0A120E' }}>
       <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(1000px 600px at 78% -15%, rgba(23,160,99,.20), transparent 60%), radial-gradient(700px 460px at 2% 115%, rgba(217,179,106,.09), transparent 60%)' }} aria-hidden="true" />
       <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px)', backgroundSize: '52px 52px', maskImage: 'radial-gradient(880px 560px at 60% 30%, #000 25%, transparent 74%)', WebkitMaskImage: 'radial-gradient(880px 560px at 60% 30%, #000 25%, transparent 74%)' }} aria-hidden="true" />
       <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-40" viewBox="0 0 1440 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        <defs><style>{`@keyframes pf1{to{stroke-dashoffset:-320}}@keyframes pf2{to{stroke-dashoffset:-340}}@keyframes pf3{to{stroke-dashoffset:-360}}.h1{stroke-dasharray:6 16;animation:pf1 18s linear infinite}.h2{stroke-dasharray:6 16;animation:pf2 22s linear infinite;animation-delay:-5s}.h3{stroke-dasharray:6 16;animation:pf3 25s linear infinite;animation-delay:-10s}@media(prefers-reduced-motion:reduce){.h1,.h2,.h3{animation:none}}`}</style></defs>
+        <defs><style>{`.h1{stroke-dasharray:6 16;animation:pf1 18s linear infinite}.h2{stroke-dasharray:6 16;animation:pf2 22s linear infinite;animation-delay:-5s}.h3{stroke-dasharray:6 16;animation:pf3 25s linear infinite;animation-delay:-10s}@keyframes pf1{to{stroke-dashoffset:-320}}@keyframes pf2{to{stroke-dashoffset:-340}}@keyframes pf3{to{stroke-dashoffset:-360}}`}</style></defs>
         <path className="h1" d="M-60 140 C 300 60, 520 280, 860 200 S 1400 80, 1520 220" stroke="#2BD483" strokeWidth="1.3" fill="none" strokeLinecap="round" opacity="0.5" />
         <path className="h2" d="M-60 320 C 320 260, 560 460, 900 380 S 1420 280, 1520 400" stroke="#17A063" strokeWidth="1.1" fill="none" strokeLinecap="round" opacity="0.4" />
         <path className="h3" d="M-60 520 C 300 460, 620 640, 940 560 S 1420 500, 1520 600" stroke="#D9B36A" strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.3" />
@@ -86,7 +75,7 @@ export function Hero() {
 
           <motion.div variants={itemV} className="relative mt-12 lg:mt-0 min-w-0">
             <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 7, ease: 'easeInOut', repeat: Infinity, repeatDelay: 1.4 }}>
-              <div className="absolute -top-[15px] -right-[10px] z-10 flex items-center gap-2 rounded-full px-4 py-2" style={{ background: '#D9B36A', boxShadow: '0 16px 40px rgba(0,0,0,.4)' }}>
+              <div className="co-badge-glow absolute -top-[15px] -right-[10px] z-10 flex items-center gap-2 rounded-full px-4 py-2" style={{ background: '#D9B36A', boxShadow: '0 16px 40px rgba(0,0,0,.4)' }}>
                 <span className="text-[12.5px] font-heading font-bold whitespace-nowrap" style={{ color: '#0A120E', letterSpacing: '.02em' }}>Built in 7 days</span>
               </div>
 
@@ -106,17 +95,17 @@ export function Hero() {
                       <Logo size={22} />
                       <span style={{ font: '600 14.5px "Space Grotesk",sans-serif', color: '#0A120E', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>Automation Engine</span>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '6px', font: '600 11.5px "Instrument Sans",sans-serif', color: '#128A54', background: '#EAF6EF', borderRadius: '999px', padding: '5px 10px', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                        <span style={{ width: '7px', height: '7px', borderRadius: '999px', background: '#2BD483' }} />Running
+                        <span className="co-pulse-dot" style={{ width: '7px', height: '7px', borderRadius: '999px', background: '#2BD483' }} />Running
                       </span>
                     </div>
-                    <span style={{ font: '600 12px ui-monospace,monospace', color: '#8A857B', whiteSpace: 'nowrap', flexShrink: 0 }}>{hoursSaved.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} hrs saved</span>
+                    <span style={{ font: '600 12px ui-monospace,monospace', color: '#8A857B', whiteSpace: 'nowrap', flexShrink: 0 }}>1,285.8 hrs saved</span>
                   </div>
 
                   <AutomationTaskList />
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '18px', flexWrap: 'wrap', padding: '13px 18px', background: '#F4EEE2', borderTop: '1px solid #EDE6D8' }}>
                     <span style={{ font: '500 12px "Instrument Sans",sans-serif', color: '#68705F' }}>Today</span>
-                    <span style={{ font: '600 12px ui-monospace,monospace', color: '#128A54', whiteSpace: 'nowrap' }}>{tasksToday.toLocaleString('en-US')} tasks automated</span>
+                    <span style={{ font: '600 12px ui-monospace,monospace', color: '#128A54', whiteSpace: 'nowrap' }}>328 tasks automated</span>
                     <span style={{ font: '600 12px ui-monospace,monospace', color: '#B08A3E', whiteSpace: 'nowrap' }}>$0 payroll spent</span>
                   </div>
                 </div>
@@ -130,7 +119,13 @@ export function Hero() {
         .hp-hero-grid{display:grid;grid-template-columns:minmax(0,1.02fr) minmax(0,.98fr);gap:clamp(32px,4vw,58px)}
         @media(max-width:900px){.hp-hero-grid{grid-template-columns:1fr}.hp-hero-grid>div:last-child{margin-top:36px}}
         @media(max-width:520px){.hp-hero-inner{padding-top:42px}.hp-hero-grid>div:first-child{gap:18px}.hp-hero-grid>div:last-child{margin-top:28px}.hp-hero-grid>div:last-child>div{transform:scale(.94);transform-origin:top center}}
-        .hp-task-pulse{animation:hpTaskPulse 1.6s ease-in-out infinite}@keyframes hpTaskPulse{0%,100%{opacity:1}50%{opacity:.55}}@media(prefers-reduced-motion:reduce){.hp-task-pulse{animation:none}}
+        .co-engine-bar{animation:coBar 1.3s linear infinite}
+        @keyframes coBar{from{width:8%}to{width:100%}}
+        .co-badge-glow{animation:badgeGlow 3s ease-in-out infinite}
+        .co-pulse-dot{animation:v3Pulse 1.8s ease-out infinite}
+        html.motion-reduced .h1,html.motion-reduced .h2,html.motion-reduced .h3{animation:none!important}
+        html.motion-reduced .co-badge-glow{animation:none!important}
+        html.motion-reduced .co-engine-bar{animation:none!important}
       `}</style>
     </section>
   )
@@ -138,30 +133,34 @@ export function Hero() {
 
 const AUTOMATION_TASKS = [
   { label: 'Route hot lead to sales', status: 'done' as const },
-  { label: 'Reconcile daily invoices', status: 'processing' as const },
+  { label: 'Reconcile daily invoices', status: 'running' as const },
   { label: 'Send onboarding email #2', status: 'queued' as const },
   { label: 'Update CRM contact record', status: 'queued' as const },
 ]
 
-const taskListV = { hidden: {}, show: { transition: { staggerChildren: 0.22, delayChildren: 0.5 } } }
-const taskRowV = { hidden: { opacity: 0, y: 26 }, show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1] as const } } }
+const taskListV = { hidden: {}, show: { transition: { staggerChildren: 0.12, delayChildren: 0.65 } } }
+const taskRowV = { hidden: { opacity: 0, y: 22 }, show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] as const } } }
 
 function AutomationTaskList() {
   const { reduced } = useMotionMode()
-  const dotColor = (status: string) => status === 'done' ? '#2BD483' : status === 'processing' ? '#D9B36A' : '#D5CDBC'
   return (
-    <motion.ul variants={taskListV} initial={reduced ? false : 'hidden'} animate="show" style={{ listStyle: 'none', margin: 0, display: 'flex', flexDirection: 'column', gap: '8px', minHeight: '252px', padding: '14px 14px' }}>
+    <motion.ul variants={taskListV} initial={reduced ? false : 'hidden'} animate="show" style={{ listStyle: 'none', margin: 0, display: 'flex', flexDirection: 'column', minHeight: '252px', padding: '10px 12px' }}>
       {AUTOMATION_TASKS.map((task) => (
-        <motion.li variants={taskRowV} key={task.label} style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#fff', borderRadius: '10px', padding: '10px 12px', boxShadow: '0 1px 3px rgba(0,0,0,.06)' }}>
-          <span style={{ width: '8px', height: '8px', borderRadius: '999px', background: dotColor(task.status), flexShrink: 0 }} />
-          <span style={{ flex: 1, minWidth: 0, font: '500 12.5px "Instrument Sans",sans-serif', color: '#26312A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{task.label}</span>
-          {task.status === 'done' && <span style={{ font: '600 10.5px "Instrument Sans",sans-serif', color: '#128A54', whiteSpace: 'nowrap' }}>Done ✓</span>}
-          {task.status === 'processing' && (
-            <span role="progressbar" aria-label="Reconciling daily invoices" aria-valuetext="In progress" style={{ position: 'relative', width: '46px', height: '5px', borderRadius: '3px', background: '#EDE6D8', overflow: 'hidden', flexShrink: 0 }}>
-              <span className={reduced ? '' : 'hp-task-pulse'} style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '40%', borderRadius: '3px', background: '#D9B36A' }} />
+        <motion.li variants={taskRowV} key={task.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', padding: '13px 10px', borderBottom: '1px solid #F1EBDE' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '999px', background: task.status === 'done' ? '#2BD483' : task.status === 'running' ? '#D9B36A' : '#D5CDBC', flexShrink: 0 }} />
+            <span style={{ flex: 1, minWidth: 0, font: '500 13.5px "Instrument Sans",sans-serif', color: '#26312A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{task.label}</span>
+          </div>
+          {task.status === 'done' && <span style={{ font: '600 11.5px "Instrument Sans",sans-serif', color: '#128A54', background: '#EAF6EF', borderRadius: '999px', padding: '5px 11px', flexShrink: 0 }}>Done ✓</span>}
+          {task.status === 'running' && (
+            <span style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+              <span style={{ width: '64px', height: '5px', borderRadius: '3px', background: '#EDE6D8', overflow: 'hidden', display: 'block' }}>
+                <span className={reduced ? '' : 'co-engine-bar'} style={{ display: 'block', height: '100%', borderRadius: '3px', background: '#17A063' }} />
+              </span>
+              <span style={{ font: '600 11.5px "Instrument Sans",sans-serif', color: '#128A54' }}>Running</span>
             </span>
           )}
-          {task.status === 'queued' && <span style={{ font: '600 10.5px "Instrument Sans",sans-serif', color: '#8A857B', whiteSpace: 'nowrap' }}>Queued</span>}
+          {task.status === 'queued' && <span style={{ font: '600 11.5px "Instrument Sans",sans-serif', color: '#8A857B', background: '#F1EBDE', borderRadius: '999px', padding: '5px 11px', flexShrink: 0 }}>Queued</span>}
         </motion.li>
       ))}
     </motion.ul>

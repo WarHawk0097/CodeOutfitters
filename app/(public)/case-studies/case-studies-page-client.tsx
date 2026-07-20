@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowRight, Star, Home, ShoppingBag, HeartPulse, Scale, Truck, Wrench } from 'lucide-react'
 import Link from 'next/link'
@@ -125,7 +125,7 @@ function CaseStudiesHero() {
     >
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(760px 420px at 50% -15%, rgba(23,160,99,.18), transparent 62%)' }}
+        style={{ background: 'radial-gradient(1000px 600px at 78% -15%, rgba(23,160,99,.20), transparent 60%)' }}
         aria-hidden="true"
       />
       <div className="relative max-w-[820px] mx-auto text-center" style={{padding:'clamp(56px,8vw,88px) clamp(20px,3vw,32px) clamp(36px,5vw,52px)'}}>
@@ -176,9 +176,9 @@ function FilterPills({ selected, onChange }: { selected: string; onChange: (v: s
           onClick={() => onChange(ind)}
           className="text-xs font-semibold px-4 py-2 rounded-full border transition-all duration-200"
           style={{
-            background: selected === ind ? '#0E241A' : '#fff',
-            color: selected === ind ? '#F5F0E8' : '#5B6355',
-            borderColor: selected === ind ? '#0E241A' : 'rgba(13,58,49,.14)',
+            background: selected === ind ? '#0E2A1D' : '#F4EEE2',
+            color: selected === ind ? '#F7F2EA' : '#5B6355',
+            borderColor: selected === ind ? '#0E2A1D' : '#E4DDD0',
           }}
         >
           {ind}
@@ -189,18 +189,30 @@ function FilterPills({ selected, onChange }: { selected: string; onChange: (v: s
 }
 
 function CaseStudyCard({ study, index, expanded, onToggle }: { study: CaseStudy; index: number; expanded: boolean; onToggle: () => void }) {
+  const cardRef = useRef<HTMLDivElement>(null)
+  const handlePointerMove = (e: React.PointerEvent) => {
+    const el = cardRef.current
+    if (!el) return
+    const r = el.getBoundingClientRect()
+    el.style.setProperty('--sx', ((e.clientX - r.left) / r.width * 100) + '%')
+    el.style.setProperty('--sy', ((e.clientY - r.top) / r.height * 100) + '%')
+  }
   return (
     <motion.div
+      ref={cardRef}
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay: index * 0.06 }}
-      className="rounded-[22px] overflow-hidden transition-all duration-300 hover:-translate-y-1"
+      className="case-glow-card rounded-[22px] overflow-hidden transition-all duration-300 hover:-translate-y-1"
       style={{
-        background: 'linear-gradient(180deg,#fff,#FBF7EE 68%,#F6F1E4)',
+        background: 'linear-gradient(178deg,#fff 0%,#FBF7EE 68%,#F6F1E4 100%)',
         border: '1px solid rgba(13,58,49,.14)',
-        boxShadow: '0 2px 20px rgba(0,0,0,.04)',
+        boxShadow: '0 20px 54px rgba(18,32,27,.10), inset 0 1px 0 rgba(255,255,255,.8)',
       }}
+      onPointerEnter={(e) => { handlePointerMove(e); cardRef.current?.style.setProperty('--sglow', '1') }}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={() => cardRef.current?.style.setProperty('--sglow', '0')}
     >
       <div className="p-6 md:p-7 flex flex-col h-full">
         <div className="flex items-center justify-between mb-3"><span className="text-[10px] font-bold uppercase tracking-[.12em]" style={{color:'#A39C8C'}}>Case {String(index+1).padStart(2,'0')}</span><span className="text-[11px] font-semibold px-3 py-1 rounded-full" style={{color:'#8A857B',background:'rgba(255,255,255,.65)',border:'1px solid rgba(13,58,49,.16)'}}>Sample project</span></div>
@@ -208,9 +220,9 @@ function CaseStudyCard({ study, index, expanded, onToggle }: { study: CaseStudy;
             <span
               className="text-[10px] font-semibold px-2.5 py-1 rounded-full uppercase tracking-wide"
               style={{
-                background: 'rgba(23,160,99,.08)',
-                color: '#128A54',
-                border: '1px solid rgba(23,160,99,.16)',
+                background: '#F4EEE2',
+                color: '#68705F',
+                border: '1px solid #E4DDD0',
               }}
             >
               {study.industry}
@@ -218,9 +230,9 @@ function CaseStudyCard({ study, index, expanded, onToggle }: { study: CaseStudy;
             <span
               className="text-[10px] font-semibold px-2.5 py-1 rounded-full uppercase tracking-wide"
               style={{
-                background: 'rgba(217,179,106,.08)',
-                color: '#D9B36A',
-                border: '1px solid rgba(217,179,106,.16)',
+                background: '#EAF6EF',
+                color: '#128A54',
+                border: '1px solid rgba(18,138,84,.16)',
               }}
             >
               {study.system}
@@ -337,7 +349,7 @@ function TestimonialsRotator() {
               transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
               className="absolute inset-0 flex flex-col items-center justify-center"
             >
-              <span style={{font:'700 56px/.6 "Space Grotesk",sans-serif',color:'#D9B36A'}}>&quot;</span>
+              <span className="case-quote-mark" style={{font:'700 56px/.6 "Space Grotesk",sans-serif',color:'#D9B36A'}}>&quot;</span>
               <blockquote
                 className="text-lg md:text-xl leading-relaxed font-medium mb-8 max-w-2xl"
                 style={{ color: 'rgba(245,240,232,.85)' }}
@@ -359,9 +371,9 @@ function TestimonialsRotator() {
               aria-label={`Go to testimonial ${i + 1}`}
               className="rounded-full transition-all duration-300"
               style={{
-                width: i === current ? 24 : 8,
-                height: 8,
-                background: i === current ? '#D9B36A' : 'rgba(217,179,106,.25)',
+                width: i === current ? 26 : 9,
+                height: 9,
+                background: i === current ? '#2BD483' : 'rgba(255,255,255,.22)',
               }}
             />
           ))}
@@ -420,8 +432,11 @@ function CTASection() {
   )
 }
 
-function ApprovedCaseCTA(){return <section className="case-approved-cta"><div><div className="case-cta-panel"><div className="case-cta-copy"><strong>Your business, next</strong><h2>Book a <span>Discovery Call</span></h2><p>Every case study above started with the same 30-minute call. Let&apos;s map your biggest time drain next.</p><nav><Link href="/services">Explore Services</Link><Link href="/process">See Our Process</Link></nav><div>{['Free audit included','No long contracts','30-day support'].map(x=><span key={x}><b>✓</b>{x}</span>)}</div></div><div className="case-cta-action"><strong>What you get in 30 minutes</strong><div>{['A map of your biggest time drains','An honest automation-fit assessment','A fixed quote — before we build anything'].map(x=><span key={x}><b>✓</b>{x}</span>)}</div><Link href="/contact" className="cta-sweep">Book Free Discovery Call <img src="/assets/icon-arrow-right.svg" alt=""/></Link><small><i/>3 build slots left for July</small></div></div></div><style>{`
-.case-approved-cta{background:radial-gradient(760px 420px at 50% -15%,rgba(23,160,99,.18),transparent 62%),#0A120E}.case-approved-cta>div{max-width:1180px;margin:auto;padding:clamp(56px,8vw,96px) clamp(20px,3vw,32px)}.case-cta-panel{max-width:1060px;margin:auto;padding:clamp(26px,4.5vw,54px);display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(28px,4vw,56px);align-items:center;background:linear-gradient(160deg,#10301F,#0A1C12);border:1px solid rgba(255,253,246,.14);border-radius:28px}.case-cta-copy{display:flex;flex-direction:column;align-items:flex-start;gap:18px}.case-cta-copy>strong{font:700 12px 'Instrument Sans';letter-spacing:.18em;color:#D9B36A;text-transform:uppercase}.case-cta-copy h2{margin:0;font:600 clamp(30px,3.8vw,46px)/1.12 'Space Grotesk';color:#F5F0E8}.case-cta-copy h2 span{white-space:nowrap}.case-cta-copy p{max-width:440px;margin:0;font:400 17px/1.65 'Instrument Sans';color:rgba(245,240,232,.62)}.case-cta-copy nav{display:flex;gap:16px}.case-cta-copy nav a{font:600 13.5px 'Instrument Sans';color:#D9B36A;text-decoration:underline}.case-cta-copy>div{display:flex;flex-wrap:wrap;gap:10px}.case-cta-copy>div span{padding:9px 15px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);white-space:nowrap;font:600 13.5px 'Instrument Sans';color:rgba(245,240,232,.78)}.case-cta-copy b,.case-cta-action b{color:#2BD483;margin-right:8px}.case-cta-action{padding:clamp(20px,2.6vw,30px);display:flex;flex-direction:column;gap:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:20px}.case-cta-action>strong{font:700 10.5px 'Instrument Sans';letter-spacing:.14em;color:rgba(245,240,232,.5);text-transform:uppercase}.case-cta-action>div{display:flex;flex-direction:column;gap:11px}.case-cta-action>div span{font:500 14.5px/1.5 'Instrument Sans';color:rgba(245,240,232,.8)}.case-cta-action>a{display:flex;align-items:center;justify-content:center;gap:10px;padding:17px 20px;border-radius:13px;background:linear-gradient(160deg,#E7C57E,#D9B36A);font:600 16px 'Instrument Sans';color:#0A120E;text-decoration:none;white-space:nowrap}.case-cta-action>a img{width:15px;height:15px}.case-cta-action small{display:flex;align-items:center;justify-content:center;gap:8px;font:600 13px 'Instrument Sans';color:#D9B36A}.case-cta-action small i{width:8px;height:8px;border-radius:50%;background:#D9B36A}@media(max-width:860px){.case-cta-panel{grid-template-columns:1fr}}@media(max-width:640px){.case-cta-panel{padding:24px 20px}.case-cta-copy h2{font-size:29px}.case-cta-action>a{font-size:15px;padding:16px 14px}}
+function ApprovedCaseCTA(){return <section className="case-approved-cta"><div><div className="case-cta-panel"><div className="case-cta-copy"><strong>Your business, next</strong><h2>Book a <span>Discovery Call</span></h2><p>Every case study above started with the same 30-minute call. Let&apos;s map your biggest time drain next.</p><nav><Link href="/services">Explore Services</Link><Link href="/process">See Our Process</Link></nav><div>{['Free audit included','No long contracts','30-day support'].map(x=><span key={x}><b>✓</b>{x}</span>)}</div></div><div className="case-cta-action"><strong>What you get in 30 minutes</strong><div>{['A map of your biggest time drains','An honest automation-fit assessment','A fixed quote — before we build anything'].map(x=><span key={x}><b>✓</b>{x}</span>)}</div><Link href="/contact" className="cta-action-btn cta-sweep">Book Free Discovery Call <img src="/assets/icon-arrow-right.svg" alt=""/></Link><small><i/>3 build slots left for July</small></div></div></div><style>{`
+.case-glow-card{--sx:50%;--sy:50%;--sglow:0;position:relative;isolation:isolate}.case-glow-card::before{content:'';position:absolute;inset:0;border-radius:inherit;background:radial-gradient(380px circle at var(--sx) var(--sy),rgba(43,212,131,.16),transparent 70%);opacity:var(--sglow);pointer-events:none;z-index:1;transition:opacity .3s ease}
+.case-quote-mark{animation:coQuotePulse 4s ease-in-out infinite}@keyframes coQuotePulse{0%,100%{opacity:.5}50%{opacity:1}}
+.co-pulse-dot{animation:coV3Pulse 1.8s ease-out infinite}@keyframes coV3Pulse{0%{box-shadow:0 0 0 0 rgba(43,212,131,.55)}70%{box-shadow:0 0 0 9px rgba(43,212,131,0)}100%{box-shadow:0 0 0 0 rgba(43,212,131,0)}}
+.co-chevron{display:inline-block;transition:transform .35s cubic-bezier(.34,1.56,.64,1)}.co-chevron.open{transform:rotate(180deg);animation:coChevronPop .4s cubic-bezier(.34,1.56,.64,1)}@keyframes coChevronPop{0%{transform:scale(1)}40%{transform:scale(.82)}100%{transform:scale(1)}}.case-approved-cta{background:radial-gradient(760px 420px at 50% -15%,rgba(23,160,99,.18),transparent 62%),#0A120E}.case-approved-cta>div{max-width:1180px;margin:auto;padding:clamp(56px,8vw,96px) clamp(20px,3vw,32px)}.case-cta-panel{max-width:1060px;margin:auto;padding:clamp(26px,4.5vw,54px);display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(28px,4vw,56px);align-items:center;background:linear-gradient(160deg,#10301F,#0A1C12);border:1px solid rgba(255,253,246,.14);border-radius:28px;box-shadow:0 44px 100px rgba(0,0,0,.45)}.case-cta-copy{display:flex;flex-direction:column;align-items:flex-start;gap:18px}.case-cta-copy>strong{font:700 12px 'Instrument Sans';letter-spacing:.18em;color:#D9B36A;text-transform:uppercase}.case-cta-copy h2{margin:0;font:600 clamp(30px,3.8vw,46px)/1.12 'Space Grotesk';color:#F5F0E8}.case-cta-copy h2 span{white-space:nowrap}.case-cta-copy p{max-width:440px;margin:0;font:400 17px/1.65 'Instrument Sans';color:rgba(245,240,232,.62)}.case-cta-copy nav{display:flex;gap:16px}.case-cta-copy nav a{font:600 13.5px 'Instrument Sans';color:#D9B36A;text-decoration:underline}.case-cta-copy>div{display:flex;flex-wrap:wrap;gap:10px}.case-cta-copy>div span{padding:9px 15px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);white-space:nowrap;font:600 13.5px 'Instrument Sans';color:rgba(245,240,232,.78)}.case-cta-copy b,.case-cta-action b{color:#2BD483;margin-right:8px}.case-cta-action{padding:clamp(20px,2.6vw,30px);display:flex;flex-direction:column;gap:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:20px}.case-cta-action>strong{font:700 10.5px 'Instrument Sans';letter-spacing:.14em;color:rgba(245,240,232,.5);text-transform:uppercase}.case-cta-action>div{display:flex;flex-direction:column;gap:11px}.case-cta-action>div span{font:500 14.5px/1.5 'Instrument Sans';color:rgba(245,240,232,.8)}.case-cta-action>a{display:flex;align-items:center;justify-content:center;gap:10px;padding:17px 20px;border-radius:13px;background:linear-gradient(160deg,#E7C57E,#D9B36A);font:600 16px 'Instrument Sans';color:#0A120E;text-decoration:none;white-space:nowrap}.case-cta-action>a img{width:15px;height:15px}.case-cta-action small{display:flex;align-items:center;justify-content:center;gap:8px;font:600 13px 'Instrument Sans';color:#D9B36A}.case-cta-action small i{width:8px;height:8px;border-radius:50%;background:#D9B36A}@media(max-width:860px){.case-cta-panel{grid-template-columns:1fr}}@media(max-width:640px){.case-cta-panel{padding:24px 20px}.case-cta-copy h2{font-size:29px}.case-cta-action>a{font-size:15px;padding:16px 14px}}
 `}</style></section>}
 
 export function CaseStudiesPageClient() {

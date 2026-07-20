@@ -82,7 +82,7 @@ export default function ProcessPage() {
 
     <section className="pro-cta" ref={ctaRef}><div className="pro-cta-wrap"><div className="pro-cta-panel" data-reveal>
       <div className="pro-cta-copy"><strong>Ready for step one?</strong><h2>Book Your <span>Discovery Call</span></h2><p>No commitment, no pricing pitch — just an honest look at whether automation is worth it for you right now.</p><div>{['Free audit included', 'No long contracts', '30-day support'].map(item => <span key={item}><b>✓</b>{item}</span>)}</div></div>
-      <div className="pro-cta-action"><strong>What you get in 30 minutes</strong><div>{['A map of your biggest time drains', 'Which workflow to automate first', 'A fixed quote — before we build anything'].map(item => <span key={item}><b>✓</b>{item}</span>)}</div><Link href="/contact" className="cta-sweep">Book Free Discovery Call <img src="/assets/icon-arrow-right.svg" alt="" /></Link></div>
+      <div className="pro-cta-action"><strong>What you get in 30 minutes</strong><div>{['A map of your biggest time drains', 'Which workflow to automate first', 'A fixed quote — before we build anything'].map(item => <span key={item}><b>✓</b>{item}</span>)}</div><Link href="/contact" className="cta-action-btn cta-sweep">Book Free Discovery Call <img src="/assets/icon-arrow-right.svg" alt="" /></Link></div>
     </div></div></section>
 
     <style>{`
