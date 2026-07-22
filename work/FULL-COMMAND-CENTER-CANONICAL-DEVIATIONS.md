@@ -103,3 +103,76 @@ and why the two differ.
   draws none. `Meeting.when` is an authored display string, so the date filter reads the linked
   appointment's real date rather than parsing the label.
 - **Code:** `dateOptions` in `apps/web/app/(shell)/meetings/meetings-view.tsx`.
+
+## F-D01 · Follow-ups fifth tab is Completed, not Unassigned
+
+- **Canonical source:** C-D12 342-353 (the work-queue switch).
+- **Canonical says:** the switch reads "Overdue · Today · Upcoming · Snoozed · Unassigned".
+- **Built:** the fifth tab is Completed. The four canonical tabs are verbatim; the fifth is
+  Completed so every value of `FollowUpState` (OVERDUE, DUE TODAY, UPCOMING, SNOOZED,
+  COMPLETED) maps to exactly one tab and no tab is ever empty of its own state. "Unassigned"
+  is an owner facet, not a state, and is reachable through the Owner filter (Unassigned).
+- **Why:** the complete/reschedule/snooze mutations move a follow-up between states, and the
+  Completed state has to land somewhere the user can see it; a tab that filtered on owner
+  rather than state would leave completed items with no home.
+- **Code:** `VIEWS` / `VIEW_LABEL` in `apps/web/app/(shell)/follow-ups/follow-ups-view.tsx`.
+
+## P-D01 · Proposals toolbar and filters are additive
+
+- **Canonical source:** CANON 1428-1433 draws a proposal directory with a status column and a
+  footer count; no frame draws a search field or a filter row.
+- **Built:** a shared `RouteToolbar` above the directory with search, owner, status and value
+  filters, a Clear filters button and New proposal. The footer count and pipeline-value total
+  are derived from the filtered rows.
+- **Why:** the brief requires Proposals to have "search, filters, status, owner, value"; the
+  design draws none, so they are added in the shared toolbar treatment.
+- **Code:** `apps/web/app/(shell)/proposals/proposals-view.tsx`.
+
+## P-D02 · Proposal preview/download is a local .txt, not a rendered PDF
+
+- **Canonical source:** the brief's "preview, local download where designed".
+- **Built:** Preview opens a dialog rendering a plain-text proposal summary; Download writes
+  that summary to `<id>.txt` via a browser Blob. No server renders a PDF.
+- **Why:** a real branded PDF render is production integration this demo does not perform. The
+  text is generated in the browser and labelled as demo-generated, not delivered.
+- **Code:** `proposalText` / `downloadText` in `apps/web/app/(shell)/proposals/proposals-view.tsx`.
+
+## E-D01 · Email Activity is an additive route with local compose/reply/retry
+
+- **Canonical source:** the email-activity frames draw a delivery log; the brief requires
+  "compose demo, reply demo, local draft, demo sent state, pagination or load-more".
+- **Built:** the log with search, direction/status/read filters, a thread dialog, read/unread,
+  archive, retry, a local compose and reply, and load-more paging (page size 4). Compose,
+  reply and retry write a local record marked as a demo send.
+- **Why:** no provider is connected and no mailbox is read; every send is a local demo record,
+  never a delivered message, as the brief requires.
+- **Code:** `apps/web/app/(shell)/email-activity/email-activity-view.tsx`.
+
+## T-D01 · Team toolbar and filters are additive; invite/remove are local
+
+- **Canonical source:** the Team frames draw a member directory; the brief requires search,
+  role/status filters, invite, edit and remove.
+- **Built:** a shared `RouteToolbar` with search, role and status filters and Invite member;
+  a row menu with Edit and Remove. Invite writes a Pending member marked as a demo invite —
+  no invitation email is sent. Remove reassigns every record the member owned (opportunities,
+  appointments, meetings, proposals, follow-ups) to Unassigned so no route is left pointing at
+  a person no longer in the directory.
+- **Why:** the design draws none of the controls; they are added in the shared toolbar
+  treatment. No provider is connected, so an invite is a local record, never a delivered email.
+- **Code:** `apps/web/app/(shell)/team/team-view.tsx`; `removeTeamMember` in
+  `apps/web/lib/demo/actions.ts`.
+
+## S-D01 · Settings render generically; provider/credential fields are notices, never inputs
+
+- **Canonical source:** the Settings frames draw a sectioned form with a status chip beside
+  provider rows.
+- **Built:** every one of the 13 sections in shared state is rendered generically by field
+  `kind`. A field marked `secret` (calendar/email/meeting/transcription/AI providers, SSO)
+  renders as a `SecretFieldNotice` — an explanation, never an input — and `saveSettingsSection`
+  skips it, so no credential is ever requested, stored or transmitted. Non-secret fields save
+  to the local demo store; toggles keep the seed's `on`/`off` convention.
+- **Why:** the brief forbids storing credentials and forbids production backend integration;
+  provider connection is exactly that. Rendering the secret rows as notices keeps the canonical
+  layout without advertising a control that would store a secret.
+- **Code:** `apps/web/app/(shell)/settings/settings-view.tsx`; `saveSettingsSection` in
+  `apps/web/lib/demo/actions.ts`.

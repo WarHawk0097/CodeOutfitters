@@ -38,6 +38,17 @@ const PAGE_META: Record<string, { title: string; subtitle?: ReactNode }> = {
   // "Meetings". The view switch and subtitle live in the route body (MO-08 draws the strip
   // below the header), so nothing header-side is needed beyond the title.
   "/meetings": { title: "Meeting Intelligence" },
+  // C-D12 342: the view switch lives in the route body, so nothing header-side is needed
+  // beyond the title.
+  "/follow-ups": { title: "Follow-ups" },
+  // CANON 1428: the proposal directory owns its own toolbar, so the header carries the title only.
+  "/proposals": { title: "Proposals" },
+  // The email log owns its own toolbar, so the header carries the title only.
+  "/email-activity": { title: "Email Activity" },
+  // The member table owns its own toolbar, so the header carries the title only.
+  "/team": { title: "Team" },
+  // The settings form owns its own section index, so the header carries the title only.
+  "/settings": { title: "Settings" },
 };
 
 // C-D01 42 (desktop) / T-01 858 (tablet). The desktop header carries a search
@@ -167,6 +178,11 @@ export const IMPLEMENTED_ROUTES: ReadonlySet<string> = new Set([
   "/pipeline",
   "/appointments",
   "/meetings",
+  "/follow-ups",
+  "/proposals",
+  "/email-activity",
+  "/team",
+  "/settings",
 ]);
 
 // The accessible explanation a gated row carries. Announced as the row's
@@ -231,7 +247,7 @@ const DEFAULT_PADDING = "px-4 py-[14px] md:px-5 md:py-[18px] xl:px-6 xl:pt-3 xl:
 
 // Appointments lands on the same three values (MO-07 1142, T-06 970, C-D11 315). Meetings
 // shares them too — MO-08 1158 is 11px 16px, the desktop directory sits in a 24px gutter.
-const RECORD_ROUTES = new Set(["/leads", "/pipeline", "/appointments", "/meetings"]);
+const RECORD_ROUTES = new Set(["/leads", "/pipeline", "/appointments", "/meetings", "/follow-ups", "/proposals", "/email-activity", "/team"]);
 
 export function ShellMain({ children }: { children: ReactNode }) {
   const pathname = usePathname();

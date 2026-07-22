@@ -94,14 +94,20 @@ describe("application shell", () => {
     }
   });
 
-  it("keeps the rail tooltip on a gated icon and adds the reason to it", () => {
-    render(<Sidebar activeHref="/dashboard" linkAs={ShellLink} />);
-    const { rail } = navs();
-    // The rail is icon-only, so the label is the accessible name and the title
-    // is the tooltip; gating must not cost either.
-    const gatedRow = within(rail).getByRole("link", { name: "Proposals" });
+  it("gates a link whose route is not built: no href, keeps its name, adds the reason to the tooltip", () => {
+    // Every real route is now live, so gating is asserted against ShellLink directly rather
+    // than against a nav row: the label stays the accessible name and the title carries the
+    // reason, exactly as an icon-only rail row would need.
+    render(
+      <ShellLink href="/not-a-real-route" title="Somewhere" aria-label="Somewhere">
+        Somewhere
+      </ShellLink>,
+    );
+    const gatedRow = screen.getByRole("link", { name: "Somewhere" });
     expect(gatedRow.getAttribute("aria-disabled")).toBe("true");
-    expect(gatedRow.getAttribute("title")).toMatch(/^Proposals — /);
+    expect(gatedRow.getAttribute("href")).toBeNull();
+    expect(gatedRow.getAttribute("tabindex")).toBe("0");
+    expect(gatedRow.getAttribute("title")).toMatch(/^Somewhere — /);
   });
 
   it("puts the page title in the header and opens the mobile drawer", () => {
