@@ -176,6 +176,48 @@ export function assertMockDataAllowed(): void {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Canonical people who appear on a screen OTHER than Leads.
+//
+// The canonical Pipeline cards (CANON 1377-1387) and the Proposals directory
+// (CANON 1429) name four people the ten canonical Leads rows do not contain. They
+// have to BE leads: an opportunity, a proposal and a follow-up each reference a
+// lead by id, and a card for somebody who is not in the lead dataset would be a
+// relationship that does not exist.
+//
+// Rather than grow the dataset past its canonical 128 — which would change the
+// Leads header total — each name CLAIMS an existing synthetic record: the first
+// unclaimed generated row whose serviceInterest already matches the service the
+// canonical card shows. Only `name` and `company` are replaced. Every field that
+// any aggregate is computed from (status, owner, service, dates) is untouched, so
+// the Leads total, the owner facet counts, the service facet counts, "new this
+// week" and "awaiting first contact" are all unchanged. The replaced values were
+// invented by the pools above and were never canonical.
+const CANONICAL_EXTERNAL_LEADS = [
+  { name: "Nadia Karim", company: "Ferrostar Freight", service: "Integrations" },
+  { name: "Owen Bradley", company: "Cedar Point Legal", service: "Workflow Automation" },
+  { name: "Yusuf Adeyemi", company: "Crestline Dental", service: "AI Automation" },
+  { name: "Marcus Cole", company: "Titan Manufacturing", service: "Custom Software" },
+] as const;
+
+export const CANONICAL_EXTERNAL_LEAD_NAMES: readonly string[] = CANONICAL_EXTERNAL_LEADS.map(
+  (entry) => entry.name,
+);
+
+function applyCanonicalExternalLeads(rows: Lead[], firstGeneratedIndex: number): void {
+  const claimed = new Set<number>();
+  for (const entry of CANONICAL_EXTERNAL_LEADS) {
+    for (let i = firstGeneratedIndex; i < rows.length; i += 1) {
+      if (claimed.has(i)) continue;
+      const row = rows[i]!;
+      if (row.serviceInterest !== entry.service) continue;
+      claimed.add(i);
+      rows[i] = { ...row, name: entry.name, company: entry.company };
+      break;
+    }
+  }
+}
+
 /**
  * Generate the full mock lead dataset: the seed rows followed by deterministically
  * generated synthetic records, `TOTAL_LEAD_COUNT` in total.
@@ -222,6 +264,8 @@ export function generateLeads(seed: number = MOCK_LEAD_SEED): Lead[] {
       appointmentStatus: pick(APPOINTMENT_STATUSES),
     });
   }
+
+  applyCanonicalExternalLeads(rows, seedCount);
 
   return rows;
 }

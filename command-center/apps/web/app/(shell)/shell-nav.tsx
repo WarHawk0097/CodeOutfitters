@@ -8,6 +8,8 @@ import { usePathname } from "next/navigation";
 import { Sidebar, ShellHeader } from "@command-center/ui";
 import { useHeaderStats, useLeadsExport } from "./header-stats";
 import { downloadCsv, exportLeadsCsv } from "../../lib/leads-csv";
+import { PipelineHeaderChip, PipelineMobileCount, PipelineSubtitle } from "./pipeline/pipeline-header";
+import { AppointmentsMobileView, AppointmentsSubtitle, AppointmentsViewTabs } from "./appointments/appointments-header";
 
 // Canonical header copy, C-D01 41 and C-D05 143. The Overview date line is
 // canonical display copy, not a live clock: no data source in this phase
@@ -27,6 +29,15 @@ const PAGE_META: Record<string, { title: string; subtitle?: ReactNode }> = {
     ),
   },
   "/leads": { title: "Leads" },
+  // CANON 213. The count and the pager are live, so both come from components rather than
+  // from literals here.
+  "/pipeline": { title: "Pipeline", subtitle: <PipelineSubtitle /> },
+  // CANON 316. Both counts are derived from the appointments the list renders.
+  "/appointments": { title: "Appointments", subtitle: <AppointmentsSubtitle /> },
+  // M-D01 452 / MO-08 1157: the header reads "Meeting Intelligence", not the nav label
+  // "Meetings". The view switch and subtitle live in the route body (MO-08 draws the strip
+  // below the header), so nothing header-side is needed beyond the title.
+  "/meetings": { title: "Meeting Intelligence" },
 };
 
 // C-D01 42 (desktop) / T-01 858 (tablet). The desktop header carries a search
@@ -150,7 +161,13 @@ function LeadsHeaderRight() {
 // Both are fixed by rendering those rows as gated links (below) instead of
 // <Link>. Delete an entry from this set as its page lands — do NOT stub pages to
 // silence the 404, that would fake later-phase completion.
-const IMPLEMENTED_ROUTES = new Set(["/dashboard", "/leads"]);
+export const IMPLEMENTED_ROUTES: ReadonlySet<string> = new Set([
+  "/dashboard",
+  "/leads",
+  "/pipeline",
+  "/appointments",
+  "/meetings",
+]);
 
 // The accessible explanation a gated row carries. Announced as the row's
 // description (the label stays its name), and surfaced as the native tooltip.
@@ -207,15 +224,21 @@ export function ShellNav() {
 // 11px 16px / 18px 20px / 20px 24px (MO-02 1077, T-02 894, C-D05 143). Reading the
 // pathname here is what lets the shell keep one <main> instead of each page re-declaring
 // the scroll container.
-const LEADS_PADDING = "px-4 py-[11px] md:px-5 md:py-[18px] xl:px-6 xl:py-5";
+// Pipeline lands on the same three values (MO-03 1095, T-03 918, C-D06 206), so it shares
+// the constant rather than declaring a duplicate of it.
+const RECORD_PADDING = "px-4 py-[11px] md:px-5 md:py-[18px] xl:px-6 xl:py-5";
 const DEFAULT_PADDING = "px-4 py-[14px] md:px-5 md:py-[18px] xl:px-6 xl:pt-3 xl:pb-[14px]";
+
+// Appointments lands on the same three values (MO-07 1142, T-06 970, C-D11 315). Meetings
+// shares them too — MO-08 1158 is 11px 16px, the desktop directory sits in a 24px gutter.
+const RECORD_ROUTES = new Set(["/leads", "/pipeline", "/appointments", "/meetings"]);
 
 export function ShellMain({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   return (
     <main
       data-cc-scroll
-      className={`min-h-0 flex-1 overflow-y-auto ${pathname === "/leads" ? LEADS_PADDING : DEFAULT_PADDING}`}
+      className={`min-h-0 flex-1 overflow-y-auto ${RECORD_ROUTES.has(pathname) ? RECORD_PADDING : DEFAULT_PADDING}`}
     >
       {children}
     </main>
@@ -249,7 +272,18 @@ export function ShellHeaderBar() {
       title={meta?.title ?? "Command Center"}
       subtitle={leadsSubtitle ?? meta?.subtitle}
       right={
-        pathname === "/dashboard" ? <OverviewHeaderRight /> : isLeads ? <LeadsHeaderRight /> : undefined
+        pathname === "/dashboard" ? (
+          <OverviewHeaderRight />
+        ) : isLeads ? (
+          <LeadsHeaderRight />
+        ) : pathname === "/pipeline" ? (
+          <PipelineHeaderChip />
+        ) : pathname === "/appointments" ? (
+          // T-06 969 puts the Upcoming/Calendar/Past switch in the header, and C-D11 316
+          // keeps it top-right of the screen. One instance, so the control and the panel it
+          // switches can never disagree.
+          <AppointmentsViewTabs />
+        ) : undefined
       }
       mobileCenter={
         // MO-01 1041 keeps the brand mark in the header and repeats the page
@@ -266,6 +300,12 @@ export function ShellHeaderBar() {
         ) : isLeads && stats ? (
           // MO-02 1070: the record count replaces the avatar at mobile.
           <span className="font-cc-mono text-[10px] text-cc-t3">{stats.total}</span>
+        ) : pathname === "/pipeline" ? (
+          // MO-03 1090 does the same on Pipeline.
+          <PipelineMobileCount />
+        ) : pathname === "/appointments" ? (
+          // MO-07 1141: the view switch collapses to "Calendar ▾" in the header.
+          <AppointmentsMobileView />
         ) : undefined
       }
     />

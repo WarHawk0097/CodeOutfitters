@@ -4,7 +4,7 @@
 import { describe, expect, it } from "vitest";
 import { render, screen, within, fireEvent } from "@testing-library/react";
 import { Sidebar, ShellHeader } from "@command-center/ui";
-import { ShellLink } from "./shell-nav";
+import { IMPLEMENTED_ROUTES, ShellLink } from "./shell-nav";
 
 function navs() {
   const [expanded, rail] = screen.getAllByRole("navigation", { name: "Primary" });
@@ -67,22 +67,23 @@ describe("application shell", () => {
     expect(document.activeElement).toBe(trigger);
   });
 
-  // Eight of the ten canonical destinations have no page in this phase. A row
-  // pointing at one used to navigate to /_not-found — an active-looking control
-  // whose only outcome is an error page. It is gated instead: still listed,
-  // still announced, still keyboard-reachable, but it does not navigate and it
-  // says why.
-  it("gates the nav rows whose routes this phase does not build", () => {
+  // A row pointing at a route with no page used to navigate to /_not-found — an
+  // active-looking control whose only outcome is an error page. Those rows are
+  // gated instead: still listed, still announced, still keyboard-reachable, but
+  // they do not navigate and they say why. Each entry moves from `gated` to
+  // `live` as its page lands; the two lists are asserted against IMPLEMENTED_ROUTES
+  // rather than a literal count so this cannot silently drift.
+  it("gates only the nav rows whose routes are not built yet", () => {
     render(<Sidebar activeHref="/leads" linkAs={ShellLink} />);
     const { expanded } = navs();
     const rows = within(expanded).getAllByRole("link");
     expect(rows).toHaveLength(10);
 
     const live = rows.filter((r) => r.getAttribute("aria-disabled") === null);
-    expect(live.map((r) => r.getAttribute("href"))).toEqual(["/dashboard", "/leads"]);
+    expect(new Set(live.map((r) => r.getAttribute("href")))).toEqual(IMPLEMENTED_ROUTES);
 
     const gated = rows.filter((r) => r.getAttribute("aria-disabled") === "true");
-    expect(gated).toHaveLength(8);
+    expect(gated).toHaveLength(10 - IMPLEMENTED_ROUTES.size);
     for (const row of gated) {
       // No href: nothing to navigate to, so no 404 is reachable from here.
       expect(row.getAttribute("href")).toBeNull();
@@ -98,9 +99,9 @@ describe("application shell", () => {
     const { rail } = navs();
     // The rail is icon-only, so the label is the accessible name and the title
     // is the tooltip; gating must not cost either.
-    const pipeline = within(rail).getByRole("link", { name: "Pipeline" });
-    expect(pipeline.getAttribute("aria-disabled")).toBe("true");
-    expect(pipeline.getAttribute("title")).toMatch(/^Pipeline — /);
+    const gatedRow = within(rail).getByRole("link", { name: "Proposals" });
+    expect(gatedRow.getAttribute("aria-disabled")).toBe("true");
+    expect(gatedRow.getAttribute("title")).toMatch(/^Proposals — /);
   });
 
   it("puts the page title in the header and opens the mobile drawer", () => {

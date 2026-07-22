@@ -2,6 +2,7 @@
 import { http, HttpResponse } from "msw";
 import { LEADS_PAGE_SIZE, LeadsPatchRequestSchema, pageCountOf, type Lead } from "@command-center/contracts";
 import { countAwaitingFirstContact, countNewThisWeek, generateLeads } from "../fixtures/generate-leads";
+import { getDemoState } from "../../lib/demo/store";
 
 // Deterministic synthetic mock data for development and testing. Not canonical customer data.
 //
@@ -11,6 +12,35 @@ import { countAwaitingFirstContact, countNewThisWeek, generateLeads } from "../f
 // for that many. The canonical C-D05 header and "1–10 OF 128" pagination are design-only
 // values for a dataset canonical never defined beyond its first page.
 export const LEAD_DATASET: readonly Lead[] = generateLeads();
+
+// A demo mutation made on another route — moving a pipeline card, accepting a proposal,
+// completing a follow-up — records a lead override in the shared demo store. Applying it
+// here is what makes the Leads table, its facets and the Overview counts agree with the
+// board instead of contradicting it. msw runs handler code in the page context, so the
+// store this reads is the same store the pages write.
+//
+// With no mutations the override map is empty and this returns LEAD_DATASET unchanged.
+export function withLeadOverrides(rows: readonly Lead[]): readonly Lead[] {
+  const overrides = getDemoState().leadOverrides;
+  if (Object.keys(overrides).length === 0) return rows;
+  return rows.map((row) => {
+    const override = overrides[row.id];
+    if (!override) return row;
+    return {
+      ...row,
+      ...(override.status ? { status: override.status } : {}),
+      ...(override.ownerId ? { owner: override.ownerId, ownerName: ownerNameFor(override.ownerId) } : {}),
+      ...(override.nextStepLabel ? { nextStepLabel: override.nextStepLabel } : {}),
+    };
+  });
+}
+
+// Resolved from the team directory, not from the lead rows: a member who owns no lead yet
+// still has a name, and the Owner column must never fall back to showing a raw id.
+function ownerNameFor(ownerId: string): string | undefined {
+  if (ownerId === "unassigned") return "Unassigned";
+  return getDemoState().team.find((member) => member.id === ownerId)?.name;
+}
 
 // Facet counts are DERIVED from the rows, never hard-coded. Each lead has exactly one
 // status, so these sum to the dataset length by construction — an invariant a hand-written
@@ -156,7 +186,8 @@ export const leadsHandlers = [
     const params = new URL(request.url).searchParams;
     const failure = scenarioFailure(params);
     if (failure) return failure;
-    const { page, matched, matchedWithoutOwner, pageNumber, pageSize } = selectLeads(LEAD_DATASET, params);
+    const dataset = withLeadOverrides(LEAD_DATASET);
+    const { page, matched, matchedWithoutOwner, pageNumber, pageSize } = selectLeads(dataset, params);
     // Every number below is computed from the rows that actually matched, so total,
     // facets and pagination cannot drift from the data they describe. `pageCount` is
     // not sent: the client derives it from total and pageSize.
@@ -169,7 +200,7 @@ export const leadsHandlers = [
       serviceFacetCounts: computeServiceFacets(matched),
       // Derived from the whole dataset, so it survives a zero-row result. See
       // OwnerFacetSchema in @command-center/contracts for the count semantics.
-      ownerFacets: computeOwnerFacets(LEAD_DATASET, matchedWithoutOwner),
+      ownerFacets: computeOwnerFacets(dataset, matchedWithoutOwner),
       // Counted over `matched`, not over the page — the header describes the whole
       // result set. Both use the fixed reference instant documented in
       // generate-leads.ts; neither reads the real clock.
@@ -187,7 +218,7 @@ export const leadsHandlers = [
         { status: 422 },
       );
     }
-    const lead = LEAD_DATASET.find((l) => l.id === params.id);
+    const lead = withLeadOverrides(LEAD_DATASET).find((l) => l.id === params.id);
     if (!lead) {
       return HttpResponse.json(
         { error: { code: "not_found", message: "lead not found", status: 404 } },
