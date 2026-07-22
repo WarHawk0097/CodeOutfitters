@@ -1,0 +1,21 @@
+{
+  "name": "command-center",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.33.2",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev:web": "pnpm --filter @command-center/web dev",
+    "dev:api": "pnpm --filter @command-center/api start:dev",
+    "dev:worker": "pnpm --filter @command-center/worker dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test"
+  },
+  "devDependencies": {
+    "typescript": "5.7.3"
+  }
+}

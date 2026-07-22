@@ -1,0 +1,29 @@
+# Local development only. Not started as part of Phase 1 — authored per
+# work/PHASED-IMPLEMENTATION-PLAN.md Phase 1 scope; containers are not run
+# by this task. Run manually with: docker compose -f infrastructure/docker/docker-compose.yml up -d
+name: command-center-local
+
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: command_center
+      POSTGRES_PASSWORD: command_center_dev_only
+      POSTGRES_DB: command_center_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+volumes:
+  postgres-data:
+  redis-data:
