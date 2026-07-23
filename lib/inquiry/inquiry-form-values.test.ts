@@ -109,4 +109,38 @@ describe("FullInquiryValuesSchema", () => {
     });
     expect(result.success).toBe(true);
   });
+
+  // Optional inputs default to "" in the DOM. Per-step "Continue" runs the
+  // resolver over the step's fields, so "" must validate or the user is stuck
+  // on the Business/Workflow step (buildInquiryRequest drops the blanks later).
+  it("accepts blank optional inputs so per-step advance is not blocked", () => {
+    const result = FullInquiryValuesSchema.safeParse({
+      firstName: "Grace",
+      lastName: "",
+      workEmail: "grace@example.com",
+      phone: "",
+      businessName: "Navy",
+      jobTitle: "",
+      websiteUrl: "",
+      companySize: "",
+      workflowDescription: "Bulk report generation.",
+      desiredOutcome: "",
+      timeline: "",
+      budgetRange: "",
+      consent: { privacyAccepted: true, marketingOptIn: false },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("still rejects a malformed website when one is provided", () => {
+    const result = FullInquiryValuesSchema.safeParse({
+      firstName: "Grace",
+      workEmail: "grace@example.com",
+      businessName: "Navy",
+      websiteUrl: "not-a-url",
+      workflowDescription: "Bulk report generation.",
+      consent: { privacyAccepted: true, marketingOptIn: false },
+    });
+    expect(result.success).toBe(false);
+  });
 });

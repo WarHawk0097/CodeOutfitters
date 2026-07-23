@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import Link from 'next/link'
-import { ContactBookingFlow } from '@/components/contact-booking-flow'
+import { ContactInquiryJourney } from '@/components/inquiry/contact-inquiry-journey'
 
 const faqs=[
  {q:'How fast will I hear back?',a:'Within one business day — usually much sooner. We reply personally, no auto-sequence.'},
@@ -15,7 +15,7 @@ export function ContactPageClient(){
 
  return <div className="contact-approved">
  <section className="con-hero"><i className="con-blob"/><div><div className="con-grid"> <div className="con-copy"><div className="con-badge"><i/>Let&apos;s talk</div><h1>Tell us what&apos;s eating your team&apos;s time.</h1><p>Two quick steps: tell us about your workflow, then pick a 30-minute discovery call that suits you. After the call you&apos;ll get a fixed quote and timeline.</p><div className="con-next"><strong>What happens next</strong>{['Tell us about your workflow — takes under a minute.','Pick a 30-minute slot — we map your biggest time drains on the call.','You get a fixed quote and timeline — no pressure to commit.'].map((x,i)=><span key={x}><b>{i+1}</b>{x}</span>)}</div><div className="con-chips">{['Free audit included','No long contracts','30-day support'].map(x=><span key={x}><b>✓</b>{x}</span>)}</div></div>
- <div className="con-form-card"><ContactBookingFlow /></div></div></div></section>
+ <div className="con-form-card"><ContactInquiryJourney /></div></div></div></section>
  {/* D-C2: Portal target for step-2 booking section — rendered outside hero */}
  <div id="contact-booking-portal" />
  <section className="con-reach"><div><strong>Other ways to reach us</strong><div><a href="mailto:hello@codeoutfitters.ai"><i><img src="/assets/icon-edit-square.svg" alt=""/></i><span><b>Email us</b><small>hello@codeoutfitters.ai</small></span></a><a href="https://wa.me/15550123456"><i><img src="/assets/icon-chat-square.svg" alt=""/></i><span><b>WhatsApp</b><small>Chat with our own bot</small></span></a><Link href="/process"><i><img src="/assets/icon-scale.svg" alt=""/></i><span><b>See our process</b><small>How discovery leads to a fixed quote</small></span></Link></div></div></section>

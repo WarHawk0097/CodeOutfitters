@@ -22,13 +22,13 @@ describe("trackInquiryEvent consent gate", () => {
   it("no-ops without consent (fails closed)", () => {
     stubWindow(undefined);
     trackInquiryEvent("inquiry_form_started", { formVariant: "global_popup" });
-    expect((window as { dataLayer?: unknown[] }).dataLayer).toBeUndefined();
+    expect((window as unknown as { dataLayer?: unknown[] }).dataLayer).toBeUndefined();
   });
 
   it("pushes when consent accepted", () => {
     stubWindow("accepted");
     trackInquiryEvent("inquiry_submit_succeeded", { formVariant: "services_compact", sourcePage: "Services" });
-    const layer = (window as { dataLayer?: Record<string, unknown>[] }).dataLayer!;
+    const layer = (window as unknown as { dataLayer?: Record<string, unknown>[] }).dataLayer!;
     expect(layer).toHaveLength(1);
     expect(layer[0]).toEqual({
       event: "inquiry_submit_succeeded",
@@ -48,7 +48,7 @@ describe("payload sanitisation (no PII)", () => {
       phone: "555-0100",
       workflowDescription: "secret free text",
     });
-    const entry = (window as { dataLayer: Record<string, unknown>[] }).dataLayer[0];
+    const entry = (window as unknown as { dataLayer: Record<string, unknown>[] }).dataLayer[0];
     expect(entry).toEqual({ event: "inquiry_submit_failed", formVariant: "contact_full" });
     expect(JSON.stringify(entry)).not.toContain("leak@example.com");
   });

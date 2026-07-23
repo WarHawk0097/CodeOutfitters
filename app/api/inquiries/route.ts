@@ -1,6 +1,6 @@
 import { InquirySubmissionRequestSchema } from "@/lib/inquiry/inquiry-schema";
 import { submitInquiry } from "@/lib/inquiry/server/inquiry-service";
-import { SupabaseInquiryRepository } from "@/lib/inquiry/server/supabase-inquiry-repository";
+import { createInquiryRepository } from "@/lib/inquiry/server/inquiry-repository-factory";
 import { MockEmailProvider } from "@/lib/inquiry/server/inquiry-email-dispatch";
 import { ipRateLimiter, emailRateLimiter } from "@/lib/inquiry/server/inquiry-rate-limit";
 import {
@@ -66,7 +66,7 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   try {
-    const repository = new SupabaseInquiryRepository();
+    const repository = await createInquiryRepository();
     const result = await submitInquiry(parsed.data, ctx, {
       repository,
       emailProvider: new MockEmailProvider(),

@@ -10,7 +10,7 @@ import { useState } from 'react'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import type { Path } from 'react-hook-form'
-import type { FormVariant } from '@/lib/inquiry/inquiry-schema'
+import type { FormVariant, InquirySubmissionResponse } from '@/lib/inquiry/inquiry-schema'
 import {
   FullInquiryValuesSchema,
   type FullInquiryValues,
@@ -55,7 +55,18 @@ const STEP_FIELDS: Path<FullInquiryValues>[][] = [
   ['consent.privacyAccepted'],
 ]
 
-export function FullInquiryForm() {
+export function FullInquiryForm({
+  onInquirySuccess,
+  bookingSlot,
+}: {
+  // Fired once when the inquiry persists (spec: offer optional scheduling
+  // afterward). The inquiry is already committed; this is a UI hand-off only.
+  onInquirySuccess?: (response: InquirySubmissionResponse) => void
+  // Optional scheduling UI rendered BELOW the success state (Contact page mounts
+  // the legacy ContactBookingFlow here). Booking is a separate action — it never
+  // re-submits the inquiry, which stays in its terminal success state.
+  bookingSlot?: React.ReactNode
+} = {}) {
   const [step, setStep] = useState(0)
 
   const { form, status, errorMessage, response, onSubmit, honeypot, markStarted } =
@@ -63,6 +74,7 @@ export function FullInquiryForm() {
       schema: FullInquiryValuesSchema,
       formVariant: FORM_VARIANT,
       sourceInput: { formVariant: FORM_VARIANT, pageName: PAGE_NAME } satisfies BuildSourceContextInput,
+      onSuccess: onInquirySuccess,
       defaultValues: {
         firstName: '',
         lastName: '',
@@ -89,7 +101,10 @@ export function FullInquiryForm() {
 
   if (status === 'success' && response) {
     return (
-      <InquirySuccess response={response} formVariant={FORM_VARIANT} sourcePage={PAGE_NAME} />
+      <div className="flex flex-col gap-6">
+        <InquirySuccess response={response} formVariant={FORM_VARIANT} sourcePage={PAGE_NAME} />
+        {bookingSlot}
+      </div>
     )
   }
 

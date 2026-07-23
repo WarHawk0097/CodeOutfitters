@@ -51,7 +51,19 @@ export const FullInquiryValuesSchema = InquirySubmissionRequestSchema.pick({
   timeline: true,
   budgetRange: true,
 })
-  .extend({ consent: FormConsentSchema })
+  .extend({
+    consent: FormConsentSchema,
+    // These optional inputs default to "" in the DOM. The request schema rejects
+    // "" (optionalText requires min 1; websiteUrl requires a URL), which would
+    // block per-step "Continue" for anyone who leaves them blank. Treat blank as
+    // absent here so the step can advance; a non-blank value is still
+    // format-checked, and buildInquiryRequest drops the blanks before the wire
+    // contract validates.
+    websiteUrl: z.union([z.literal(""), z.string().trim().pipe(z.url())]).optional(),
+    companySize: z.string().trim().optional(),
+    timeline: z.string().trim().optional(),
+    budgetRange: z.string().trim().optional(),
+  })
   .strip();
 export type FullInquiryValues = z.infer<typeof FullInquiryValuesSchema>;
 
