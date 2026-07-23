@@ -24,16 +24,16 @@ export class CommandCenterConfigError extends Error {
   }
 }
 
-// Reads NEXT_PUBLIC_COMMAND_CENTER_MODE. Unset/empty defaults to `live` so a
-// forgotten variable never quietly serves demo data. An explicit unrecognized
-// value is a hard error so a typo can't change behavior unnoticed.
+// Reads the SERVER-ONLY COMMAND_CENTER_MODE (never NEXT_PUBLIC_*, so the mode is
+// never inlined into client bundles). Unset/empty defaults to `demo` — a
+// deliberate, documented default so the dashboard publishes as a Supabase-free
+// demo until the production data tier is provisioned. `demo`/`live` pass through;
+// any other value is a hard error so a typo can't silently change behavior.
 export function getCommandCenterMode(): CommandCenterMode {
-  const raw = process.env.NEXT_PUBLIC_COMMAND_CENTER_MODE?.trim().toLowerCase()
-  if (!raw) return 'live'
+  const raw = process.env.COMMAND_CENTER_MODE?.trim().toLowerCase()
+  if (!raw) return 'demo'
   if (raw === 'demo' || raw === 'live') return raw
-  throw new Error(
-    `Invalid NEXT_PUBLIC_COMMAND_CENTER_MODE: "${raw}" (expected "demo" or "live")`,
-  )
+  throw new Error('Invalid COMMAND_CENTER_MODE: expected "demo" or "live".')
 }
 
 export function isDemoMode(): boolean {

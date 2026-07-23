@@ -40,7 +40,7 @@ import {
 import * as data from './data'
 
 const ENV_KEYS = [
-  'NEXT_PUBLIC_COMMAND_CENTER_MODE',
+  'COMMAND_CENTER_MODE',
   'NEXT_PUBLIC_SUPABASE_URL',
   'NEXT_PUBLIC_SUPABASE_ANON_KEY',
 ]
@@ -62,7 +62,7 @@ afterEach(() => {
 })
 
 function demoEnv() {
-  process.env.NEXT_PUBLIC_COMMAND_CENTER_MODE = 'demo'
+  process.env.COMMAND_CENTER_MODE = 'demo'
   delete process.env.NEXT_PUBLIC_SUPABASE_URL
   delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 }
@@ -134,7 +134,7 @@ it('7: demo download route returns 404 without touching Supabase', async () => {
 
 // 8. Live mode still routes through the untouched WO-F auth guard.
 it('8: live mode delegates to requireDashboardContext', async () => {
-  process.env.NEXT_PUBLIC_COMMAND_CENTER_MODE = 'live'
+  process.env.COMMAND_CENTER_MODE = 'live'
   process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co'
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'anon-key'
   const ctx = await data.resolveDashboardContext('/dashboard')
@@ -144,18 +144,19 @@ it('8: live mode delegates to requireDashboardContext', async () => {
 
 // 9. Live mode with missing config fails as a controlled error (no demo fallback).
 it('9: live mode without Supabase config throws CommandCenterConfigError', () => {
-  process.env.NEXT_PUBLIC_COMMAND_CENTER_MODE = 'live'
+  process.env.COMMAND_CENTER_MODE = 'live'
   delete process.env.NEXT_PUBLIC_SUPABASE_URL
   delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   expect(() => assertLiveConfig()).toThrow(CommandCenterConfigError)
   expect(isDemoMode()).toBe(false)
 })
 
-// 10. Public routes unaffected: no env means LIVE (never a silent demo), and an
-//     invalid value fails loudly rather than defaulting.
-it('10: default mode is live and invalid mode throws (no silent fallback)', () => {
-  delete process.env.NEXT_PUBLIC_COMMAND_CENTER_MODE
-  expect(getCommandCenterMode()).toBe('live')
-  process.env.NEXT_PUBLIC_COMMAND_CENTER_MODE = 'staging'
-  expect(() => getCommandCenterMode()).toThrow(/Invalid NEXT_PUBLIC_COMMAND_CENTER_MODE/)
+// 10. No env deliberately means DEMO (documented default until the production
+//     data tier exists — never a silent live). An invalid value fails loudly
+//     rather than defaulting, so a typo can never silently pick a mode.
+it('10: default mode is demo and invalid mode throws (no silent fallback)', () => {
+  delete process.env.COMMAND_CENTER_MODE
+  expect(getCommandCenterMode()).toBe('demo')
+  process.env.COMMAND_CENTER_MODE = 'staging'
+  expect(() => getCommandCenterMode()).toThrow(/Invalid COMMAND_CENTER_MODE/)
 })
