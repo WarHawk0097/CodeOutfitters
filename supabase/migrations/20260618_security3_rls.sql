@@ -196,7 +196,11 @@ BEGIN
     JOIN pg_namespace n ON p.pronamespace = n.oid
     WHERE n.nspname = 'public' AND p.proname = 'reserve_slot'
   ) THEN
-    GRANT EXECUTE ON FUNCTION public.reserve_slot(date, time, jsonb) TO service_role;
+    -- ponytail: real signature is (date, text, jsonb) — Booking B stores
+    -- preferred_time as TEXT. The original grant used `time`, which never
+    -- matched the created function, so this GRANT raised 42883 on a clean
+    -- reset once the guard found the function present. Corrected to `text`.
+    GRANT EXECUTE ON FUNCTION public.reserve_slot(date, text, jsonb) TO service_role;
   END IF;
 END $$;
 

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Application shell metadata, NOT a brand asset from the marketing site.
+       No authoritative CodeOutfitters favicon exists in this repository, so this
+       reproduces the canonical rail brand mark (CANON 848 / sidebar.tsx RailMark):
+       a rounded ink tile carrying the small mark square. Colours are the shell
+       tokens --cc-sidebar-ink (#14130E), --cc-sidebar-raised (#26231A) and
+       --cc-sidebar-mark (#7FBC8C) from apps/web/app/globals.css.
+       Its only purpose is to give the browser a <link rel="icon"> so it stops
+       falling back to a non-existent /favicon.ico. Replace with the approved
+       asset when one exists. -->
+  <rect width="32" height="32" rx="7" fill="#14130E"/>
+  <rect x="6" y="6" width="20" height="20" rx="5" fill="#26231A"/>
+  <rect x="12.5" y="12.5" width="7" height="7" rx="2" fill="#7FBC8C"/>
+</svg>

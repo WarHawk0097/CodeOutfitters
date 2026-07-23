@@ -4,6 +4,7 @@ import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
 import { MotionModeProvider } from '@/components/motion-mode-provider'
 import { AnnouncementBar } from '@/components/announcement-bar'
+import { WorkflowAuditPopup } from '@/components/inquiry/workflow-audit-popup'
 
 const organizationSchema = {
   '@context': 'https://schema.org',
@@ -29,6 +30,7 @@ export default function PublicLayout({
       <Navbar />
       <main>{children}</main>
       <Footer />
+      <WorkflowAuditPopup />
     </MotionModeProvider>
   )
 }

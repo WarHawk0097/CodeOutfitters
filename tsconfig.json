@@ -38,6 +38,8 @@
   "exclude": [
     "node_modules",
     "_legacy-dc-backup",
-    "System-Artifacts"
+    "System-Artifacts",
+    "command-center",
+    "work"
   ]
 }

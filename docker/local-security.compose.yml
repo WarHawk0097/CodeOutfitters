@@ -1,0 +1,31 @@
+# Work Order E Step 11 — local malware scanner (ClamAV) for inquiry uploads.
+#
+# LOCAL developer/CI infrastructure only. This is separate from the Supabase
+# stack so it can be started/stopped independently. The Next.js app reaches
+# clamd over TCP on 127.0.0.1:3310 (INQUIRY_CLAMAV_HOST / INQUIRY_CLAMAV_PORT).
+#
+# Start:  docker compose -f docker/local-security.compose.yml up -d
+# Health: nc -z 127.0.0.1 3310   (or the app's scanner returns 'unavailable')
+# Stop:   docker compose -f docker/local-security.compose.yml down
+#
+# No real malware is ever stored here. Rejection is verified with the standard
+# EICAR test string only.
+services:
+  inquiry-clamav:
+    image: clamav/clamav:1.4
+    container_name: inquiry_clamav
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3310:3310"
+    healthcheck:
+      # clamd answers PING with PONG once the signature DB has loaded.
+      test: ["CMD", "sh", "-c", "echo PING | nc -w 5 localhost 3310 | grep -q PONG"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 120s
+    volumes:
+      - inquiry_clamav_db:/var/lib/clamav
+
+volumes:
+  inquiry_clamav_db:

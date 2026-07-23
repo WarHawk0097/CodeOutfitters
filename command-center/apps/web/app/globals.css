@@ -1,0 +1,161 @@
+@import "tailwindcss";
+@source "../../../packages/ui/src";
+
+/*
+  Canonical Command Center design tokens.
+  Source: ../../../Dashboard/integration-layer/design-tokens.json ("canonical" block).
+  Do not hand-edit values here without updating that source of truth first.
+*/
+:root {
+  --cc-sidebar-ink: #14130e;
+  --cc-sidebar-raised: #26231a;
+  --cc-sidebar-text: #a19c8b;
+  --cc-sidebar-active: #f4f1e6;
+  --cc-sidebar-rail: #5c9b6c;
+
+  --cc-body-canvas: #edf0f2;
+  --cc-body-surface: #ffffff;
+  --cc-body-secondary: #f4f7f8;
+  --cc-body-lane: #e4e9eb;
+  --cc-body-line: #d9dfe2;
+  --cc-body-soft: #eef1f3;
+  --cc-body-ink: #1b2226;
+  --cc-body-t2: #5a6b74;
+  --cc-body-t3: #7a868d;
+
+  /* canonical.semantic — [base, ink, tint, border] */
+  --cc-green: #2f7d4f;
+  --cc-green-ink: #276b42;
+  --cc-green-tint: #e2f0e7;
+  --cc-green-border: #bfdcca;
+
+  --cc-amber: #b07c24;
+  --cc-amber-ink: #8a5f17;
+  --cc-amber-tint: #f4ebd4;
+  --cc-amber-border: #e5d3a1;
+
+  --cc-red: #a63d2b;
+  --cc-red-ink: #8c3021;
+  --cc-red-tint: #f6e3dd;
+  --cc-red-border: #e3b8ac;
+
+  --cc-blue: #46708e;
+  --cc-blue-ink: #33566e;
+  --cc-blue-tint: #e3edf4;
+  --cc-blue-border: #c6d8e4;
+
+  --cc-neutral: #85826f;
+
+  /* Sidebar literals with no design-tokens.json entry, extracted from
+     Command Center Final.dc.html inline styles (line cited per value). */
+  --cc-sidebar-muted: #6b6754; /* CANON 34: COMMAND CENTER, Collapse, role */
+  --cc-sidebar-label: #57533f; /* CANON 1319: nav group label */
+  --cc-sidebar-name: #e8e4d6; /* CANON 37: account name */
+  --cc-sidebar-mark: #7fbc8c; /* CANON 848: rail brand mark */
+  --cc-avatar: #3d5b45; /* CANON 37/855: account avatar background */
+  --cc-avatar-ink: #dcefe0; /* CANON 37/855: account avatar initials */
+
+  /* Literals used by C-D01/C-D05 chrome that have no design-tokens.json entry.
+     Extracted from Command Center Final.dc.html inline styles. */
+  --cc-ink-strong: #212528; /* bulk bar, active pagination */
+  --cc-t-table: #3e4a52; /* table body text */
+  --cc-t-header: #55636b; /* table header labels */
+  --cc-line-strong: #cdd5d9;
+  --cc-line-inner: #e2e7ea; /* CANON 45/57/68: rule between cells inside a card */
+  --cc-t4: #8b979d; /* CANON 54/74: chart legend figure, activity timestamp */
+  --cc-icon-muted: #b9c2c7; /* row action, unchecked box */
+  --cc-row-line: #f1f4f5;
+  --cc-skeleton: #e7ebed;
+
+  --cc-radius-control: 6px;
+  --cc-radius-card: 8px;
+  --cc-radius-card-lg: 10px;
+  --cc-radius-dialog: 10px;
+
+  /* Dashboard Lead-flow chart series. Reuse existing brand accents rather than
+     introduce new literals: chart-1 (new leads) = canonical blue, chart-2
+     (qualified leads) = canonical green. Consumed by the recharts chartConfig
+     as var(--chart-1) / var(--chart-2). */
+  --chart-1: var(--cc-blue);
+  --chart-2: var(--cc-green);
+}
+
+@theme inline {
+  --color-cc-sidebar-ink: var(--cc-sidebar-ink);
+  --color-cc-sidebar-raised: var(--cc-sidebar-raised);
+  --color-cc-sidebar-text: var(--cc-sidebar-text);
+  --color-cc-sidebar-active: var(--cc-sidebar-active);
+  --color-cc-sidebar-rail: var(--cc-sidebar-rail);
+  --color-cc-sidebar-muted: var(--cc-sidebar-muted);
+  --color-cc-sidebar-label: var(--cc-sidebar-label);
+  --color-cc-sidebar-name: var(--cc-sidebar-name);
+  --color-cc-sidebar-mark: var(--cc-sidebar-mark);
+  --color-cc-avatar: var(--cc-avatar);
+  --color-cc-avatar-ink: var(--cc-avatar-ink);
+
+  --color-cc-canvas: var(--cc-body-canvas);
+  --color-cc-surface: var(--cc-body-surface);
+  --color-cc-secondary: var(--cc-body-secondary);
+  --color-cc-lane: var(--cc-body-lane);
+  --color-cc-line: var(--cc-body-line);
+  --color-cc-soft: var(--cc-body-soft);
+  --color-cc-ink: var(--cc-body-ink);
+  --color-cc-t2: var(--cc-body-t2);
+  --color-cc-t3: var(--cc-body-t3);
+
+  --color-cc-green: var(--cc-green);
+  --color-cc-green-ink: var(--cc-green-ink);
+  --color-cc-green-tint: var(--cc-green-tint);
+  --color-cc-green-border: var(--cc-green-border);
+
+  --color-cc-amber: var(--cc-amber);
+  --color-cc-amber-ink: var(--cc-amber-ink);
+  --color-cc-amber-tint: var(--cc-amber-tint);
+  --color-cc-amber-border: var(--cc-amber-border);
+
+  --color-cc-red: var(--cc-red);
+  --color-cc-red-ink: var(--cc-red-ink);
+  --color-cc-red-tint: var(--cc-red-tint);
+  --color-cc-red-border: var(--cc-red-border);
+
+  --color-cc-blue: var(--cc-blue);
+  --color-cc-blue-ink: var(--cc-blue-ink);
+  --color-cc-blue-tint: var(--cc-blue-tint);
+  --color-cc-blue-border: var(--cc-blue-border);
+
+  --color-cc-neutral: var(--cc-neutral);
+
+  --color-cc-ink-strong: var(--cc-ink-strong);
+  --color-cc-t-table: var(--cc-t-table);
+  --color-cc-t-header: var(--cc-t-header);
+  --color-cc-line-strong: var(--cc-line-strong);
+  --color-cc-line-inner: var(--cc-line-inner);
+  --color-cc-t4: var(--cc-t4);
+  --color-cc-icon-muted: var(--cc-icon-muted);
+  --color-cc-row-line: var(--cc-row-line);
+  --color-cc-skeleton: var(--cc-skeleton);
+
+  --radius-cc-control: var(--cc-radius-control);
+  --radius-cc-card: var(--cc-radius-card);
+  --radius-cc-card-lg: var(--cc-radius-card-lg);
+  --radius-cc-dialog: var(--cc-radius-dialog);
+
+  --font-cc-sidebar: var(--font-geist-sans);
+  /* CANON 1321: sidebar badges are Geist Mono, not IBM Plex Mono. */
+  --font-cc-sidebar-mono: var(--font-geist-mono);
+  --font-cc-body: var(--font-ibm-plex-sans);
+  --font-cc-mono: var(--font-ibm-plex-mono);
+}
+
+body {
+  background: var(--cc-body-canvas);
+  color: var(--cc-body-ink);
+  /* The design authority sets no line-height (Command Center Final.dc.html 16-17),
+     so every text node there uses the browser default `normal` — roughly 1.2-1.35
+     of font size. Tailwind's preflight instead sets `html { line-height: 1.5 }`,
+     which made every multi-line region taller than its canonical frame and pushed
+     the whole right rail down by ~57px at C-D01. Matching the authority here, so
+     unstyled text lands where canonical puts it; explicit leading utilities still
+     apply where canonical declares one (e.g. CANON 74 line-height:1.45). */
+  line-height: normal;
+}
