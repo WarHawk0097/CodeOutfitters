@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { useMotionMode } from '@/components/motion-mode-provider'
 import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import { InquiryPopupTrigger } from '@/components/inquiry/inquiry-cta'
 
 function Logo({ size = 12 }: { size?: number }) {
   return (
@@ -59,6 +60,10 @@ export function Hero() {
               <Link href="/contact" className="cta-sweep inline-flex items-center gap-2.5 text-[15.5px] font-semibold rounded-[11px] px-7 py-3.5 whitespace-nowrap no-underline" style={{ color: '#0A120E', background: '#2BD483', boxShadow: '0 14px 34px rgba(43,212,131,.28)' }}>
                 Get a Custom Quote <ArrowRight className="w-3.5 h-3.5" />
               </Link>
+              <InquiryPopupTrigger
+                label="Free Workflow Audit"
+                className="inline-flex items-center gap-2 text-[15.5px] font-semibold rounded-[11px] px-6 py-3 whitespace-nowrap no-underline text-[#F5F0E8] border border-[rgba(245,240,232,.25)] bg-transparent transition-colors hover:bg-white/5"
+              />
               <Link href="/contact" className="inline-flex items-center text-[15.5px] font-semibold rounded-[11px] px-6 py-3 whitespace-nowrap no-underline" style={{ color: '#F5F0E8', border: '1px solid rgba(245,240,232,.25)', background: 'transparent' }}>
                 Book a Free Call
               </Link>

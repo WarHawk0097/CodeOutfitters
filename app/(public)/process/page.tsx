@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { motion, useMotionValueEvent, useScroll, useSpring } from 'framer-motion'
 import { useMotionMode } from '@/components/motion-mode-provider'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
+import { InquiryPopupTrigger } from '@/components/inquiry/inquiry-cta'
 
 const steps = [
   { badge: 'Step 1', title: 'Discovery Call', text: 'A free 30-minute call where we map how the work happens today and find your biggest time drains.' },
@@ -81,7 +82,7 @@ export default function ProcessPage() {
     </div></section>
 
     <section className="pro-cta" ref={ctaRef}><div className="pro-cta-wrap"><div className="pro-cta-panel" data-reveal>
-      <div className="pro-cta-copy"><strong>Ready for step one?</strong><h2>Book Your <span>Discovery Call</span></h2><p>No commitment, no pricing pitch — just an honest look at whether automation is worth it for you right now.</p><div>{['Free audit included', 'No long contracts', '30-day support'].map(item => <span key={item}><b>✓</b>{item}</span>)}</div></div>
+      <div className="pro-cta-copy"><strong>Ready for step one?</strong><h2>Book Your <span>Discovery Call</span></h2><p>No commitment, no pricing pitch — just an honest look at whether automation is worth it for you right now.</p><div>{['Free audit included', 'No long contracts', '30-day support'].map(item => <span key={item}><b>✓</b>{item}</span>)}</div><InquiryPopupTrigger label="Or get a free workflow audit" className="inline-flex items-center gap-2 rounded-[11px] border border-[rgba(245,240,232,.25)] px-5 py-3 text-[14px] font-semibold text-[#F5F0E8] no-underline transition-colors hover:bg-white/5" /></div>
       <div className="pro-cta-action"><strong>What you get in 30 minutes</strong><div>{['A map of your biggest time drains', 'Which workflow to automate first', 'A fixed quote — before we build anything'].map(item => <span key={item}><b>✓</b>{item}</span>)}</div><Link href="/contact" className="cta-action-btn cta-sweep">Book Free Discovery Call <img src="/assets/icon-arrow-right.svg" alt="" /></Link></div>
     </div></div></section>
 

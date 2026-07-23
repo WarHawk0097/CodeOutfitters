@@ -6,6 +6,7 @@ import { ArrowRight, Star, Home, ShoppingBag, HeartPulse, Scale, Truck, Wrench }
 import Link from 'next/link'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
 import { useMotionMode } from '@/components/motion-mode-provider'
+import { ContextualInquiryCta } from '@/components/inquiry/inquiry-cta'
 
 interface CaseStudy {
   icon: typeof Home
@@ -445,6 +446,18 @@ export function CaseStudiesPageClient() {
       <CaseStudiesHero />
       <CaseStudiesGrid />
       <TestimonialsRotator />
+      <section className="px-5 md:px-8 py-16 md:py-24" style={{ background: '#F7F2EA' }}>
+        <ContextualInquiryCta
+          formVariant="case_study_contextual"
+          pageName="Case Studies"
+          sourceSection="case-studies-inline"
+          heading="Want results like these for your business?"
+          description="Every case study above started as one manual workflow. Tell us yours and we will show you what is worth automating first."
+          descriptionLabel="What would you like to automate?"
+          descriptionPlaceholder="e.g. we spend hours a week chasing invoices and rebooking no-shows."
+          submitLabel="Get my free workflow audit"
+        />
+      </section>
       <ApprovedCaseCTA />
     </>
   )
