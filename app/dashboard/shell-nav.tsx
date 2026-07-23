@@ -7,6 +7,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Sidebar, ShellHeader } from "@command-center/ui";
 import { useHeaderStats, useLeadsExport } from "./header-stats";
+import { useCommandCenterConfig } from "@/components/command-center/mode-provider";
 import { downloadCsv, exportLeadsCsv } from "../../lib/leads-csv";
 import { PipelineHeaderChip, PipelineMobileCount, PipelineSubtitle } from "./pipeline/pipeline-header";
 import { AppointmentsMobileView, AppointmentsSubtitle, AppointmentsViewTabs } from "./appointments/appointments-header";
@@ -100,6 +101,7 @@ function OverviewHeaderRight() {
 // no column-visibility state and no export endpoint exists yet, and rendering them as
 // buttons would advertise behaviour that is not there. T-02 shortens "Export CSV".
 function LeadsHeaderRight() {
+  const { downloadsEnabled } = useCommandCenterConfig();
   const { exportQuery } = useLeadsExport();
   const [exporting, setExporting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -110,7 +112,10 @@ function LeadsHeaderRight() {
   const exportingRef = useRef(false);
 
   const onExport = async () => {
-    if (exportingRef.current || !exportQuery) return;
+    // Demo is a real download: exportLeadsCsv reads client fixture state and downloadCsv
+    // writes a file. The mode config (server-decided) gates it off so demo never emits a
+    // real download; live (Work Order F) is the only mode that exports.
+    if (!downloadsEnabled || exportingRef.current || !exportQuery) return;
     exportingRef.current = true;
     setExporting(true);
     setMessage(null);
@@ -142,17 +147,33 @@ function LeadsHeaderRight() {
       >
         Columns ▾
       </span>
-      <button
-        type="button"
-        onClick={onExport}
-        aria-disabled={exporting || !exportQuery}
-        aria-label="Export CSV"
-        // appearance-none plus an explicit border: a <button> inherits user-agent chrome that
-        // the <span> this replaces did not have, and the frame it sits in is pixel-accepted.
-        className="appearance-none rounded-cc-control border-0 bg-cc-green px-[11px] py-[7px] text-[12px] font-semibold text-white xl:px-[13px] xl:py-2 xl:text-[12.5px]"
-      >
-        Export<span className="hidden xl:inline"> CSV</span>
-      </button>
+      {downloadsEnabled ? (
+        <button
+          type="button"
+          onClick={onExport}
+          aria-disabled={exporting || !exportQuery}
+          aria-label="Export CSV"
+          // appearance-none plus an explicit border: a <button> inherits user-agent chrome that
+          // the <span> this replaces did not have, and the frame it sits in is pixel-accepted.
+          className="appearance-none rounded-cc-control border-0 bg-cc-green px-[11px] py-[7px] text-[12px] font-semibold text-white xl:px-[13px] xl:py-2 xl:text-[12.5px]"
+        >
+          Export<span className="hidden xl:inline"> CSV</span>
+        </button>
+      ) : (
+        // Demo: no real download. Same frame, inert — role=button, aria-disabled, out of the
+        // tab order, guarded handler. Mirrors the Columns control so the accepted frame is
+        // unchanged; honest title states downloads arrive with the production data service.
+        <span
+          role="button"
+          aria-disabled="true"
+          tabIndex={-1}
+          title="Available when the production data service is connected."
+          onClick={(event) => event.preventDefault()}
+          className="cursor-default appearance-none rounded-cc-control border-0 bg-cc-green px-[11px] py-[7px] text-[12px] font-semibold text-white xl:px-[13px] xl:py-2 xl:text-[12.5px]"
+        >
+          Export<span className="hidden xl:inline"> CSV</span>
+        </span>
+      )}
       {/* Announced, not shown: the canonical header has no room for a status line, and a
           visible one would repaint an accepted frame. */}
       <span role="status" aria-live="polite" className="sr-only">
