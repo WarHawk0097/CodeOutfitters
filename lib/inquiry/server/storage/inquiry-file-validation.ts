@@ -15,7 +15,7 @@ import { ALLOWED_EXTENSIONS } from "../../inquiry-upload-validation";
 export type FileCategory = "pdf" | "doc" | "docx" | "xlsx" | "csv" | "png" | "jpeg";
 
 // Canonical MIME per allowed extension. Legacy .jpg maps to image/jpeg.
-const EXT_TO_MIME: Record<string, string> = {
+export const EXT_TO_MIME: Record<string, string> = {
   pdf: "application/pdf",
   doc: "application/msword",
   docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

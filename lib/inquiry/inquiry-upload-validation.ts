@@ -30,13 +30,28 @@ export const ALLOWED_MIME_TYPES = new Set([
 export const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10 MB client hint
 export const MAX_FILES = 10; // matches attachmentTokens max in the contract
 
+// Per-form caps (Work Order E). Client mirror of the server FORM_UPLOAD_LIMITS
+// in lib/inquiry/server/storage/inquiry-file-validation.ts — the server stays
+// authoritative; these only drive fast UX feedback. Only these three variants
+// accept uploads; popups/contextual placements never mount the uploader.
+export const FORM_UPLOAD_LIMITS_CLIENT = {
+  contact_full: { maxFiles: 5, maxFileBytes: MAX_FILE_BYTES, maxTotalBytes: 25 * 1024 * 1024 },
+  services_compact: { maxFiles: 2, maxFileBytes: MAX_FILE_BYTES, maxTotalBytes: 15 * 1024 * 1024 },
+  industries_compact: { maxFiles: 2, maxFileBytes: MAX_FILE_BYTES, maxTotalBytes: 15 * 1024 * 1024 },
+} as const;
+
+export type UploadFormVariantClient = keyof typeof FORM_UPLOAD_LIMITS_CLIENT;
+
+// The `accept` attribute for the file picker — extensions the allow-list permits.
+export const UPLOAD_ACCEPT_ATTRIBUTE = ALLOWED_EXTENSIONS.map((e) => `.${e}`).join(",");
+
 export type RejectedFile = { name: string; reason: string };
 export type FileValidationResult = {
   accepted: File[];
   rejected: RejectedFile[];
 };
 
-function extensionOf(name: string): string {
+export function extensionOf(name: string): string {
   const dot = name.lastIndexOf(".");
   return dot >= 0 ? name.slice(dot + 1).toLowerCase() : "";
 }

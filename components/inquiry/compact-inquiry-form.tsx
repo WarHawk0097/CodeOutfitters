@@ -4,7 +4,7 @@
 // body). Four fields + consent, driven by the shared engine. Same component
 // powers the global popup, the Services placement, and the Industries
 // placement; copy and formVariant differ per placement, mechanics do not.
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import type { FormVariant, InquirySubmissionResponse } from '@/lib/inquiry/inquiry-schema'
@@ -19,6 +19,7 @@ import {
   InquiryHoneypot,
 } from './inquiry-fields'
 import { InquirySuccess } from './inquiry-success'
+import { InquiryFileUpload } from './inquiry-file-upload'
 
 // The contextual entity a placement prefills. It lives in source attribution
 // (not the form schema), so the form owns it as controlled state and merges it
@@ -41,6 +42,10 @@ export type CompactInquiryFormProps = {
   contextKey?: ContextFieldKey
   contextLabel?: string
   contextPlaceholder?: string
+  // Opt-in supporting-file uploads (Work Order E). Honored only for the two
+  // compact variants the server accepts uploads from; ignored elsewhere so
+  // popups/contextual placements stay upload-free.
+  enableUploads?: boolean
 }
 
 export function CompactInquiryForm({
@@ -54,7 +59,15 @@ export function CompactInquiryForm({
   contextKey,
   contextLabel,
   contextPlaceholder,
+  enableUploads,
 }: CompactInquiryFormProps) {
+  // Uploads are wired only for the two compact variants the API authorizes.
+  const uploadVariant =
+    enableUploads && (formVariant === 'services_compact' || formVariant === 'industries_compact')
+      ? formVariant
+      : null
+  const attachmentTokensRef = useRef<string[]>([])
+  const getAttachmentTokens = useCallback(() => attachmentTokensRef.current, [])
   // Prefill value the placement supplied for the contextual entity.
   const prefill = contextKey ? sourceInput[contextKey] ?? '' : ''
   const [contextValue, setContextValue] = useState(prefill)
@@ -69,7 +82,7 @@ export function CompactInquiryForm({
     ? { ...sourceInput, [contextKey]: contextValue.trim() || undefined }
     : sourceInput
 
-  const { form, status, errorMessage, response, onSubmit, honeypot, markStarted } =
+  const { form, status, errorMessage, response, submissionId, onSubmit, honeypot, markStarted } =
     useInquiryForm({
       schema: CompactInquiryValuesSchema,
       formVariant,
@@ -82,6 +95,7 @@ export function CompactInquiryForm({
         consent: { privacyAccepted: false, marketingOptIn: false },
       },
       onSuccess,
+      ...(uploadVariant ? { getAttachmentTokens } : {}),
     })
 
   const {
@@ -163,6 +177,17 @@ export function CompactInquiryForm({
         registration={register('workflowDescription')}
         error={errors.workflowDescription?.message}
       />
+
+      {uploadVariant && (
+        <InquiryFileUpload
+          formVariant={uploadVariant}
+          sourcePage={sourceInput.pageName}
+          submissionId={submissionId}
+          onTokensChange={(tokens) => {
+            attachmentTokensRef.current = tokens
+          }}
+        />
+      )}
 
       {beforeConsent}
 

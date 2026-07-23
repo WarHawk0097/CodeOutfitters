@@ -38,6 +38,11 @@ export type UseInquiryFormOptions<TValues extends FieldValues> = {
   // `window` at submit time by buildSourceContext.
   sourceInput: BuildSourceContextInput
   onSuccess?: (response: InquirySubmissionResponse) => void
+  // Returns the current CLEAN attachment tokens at submit time. Uploads live in
+  // a presentation component (InquiryFileUpload) that owns their lifecycle; this
+  // getter lets the headless hook fold them into the wire payload without
+  // knowing anything about upload state.
+  getAttachmentTokens?: () => string[]
 }
 
 export type UseInquiryFormResult<TValues extends FieldValues> = {
@@ -106,11 +111,13 @@ export function useInquiryForm<TValues extends FieldValues>(
     setErrorMessage(null)
     trackInquiryEvent('inquiry_submit_attempted', { formVariant, sourcePage })
 
+    const attachmentTokens = options.getAttachmentTokens?.()
     const request = buildInquiryRequest({
       submissionId: submissionIdRef.current,
       formVariant,
       values: values as unknown as InquiryFormValues,
       source: buildSourceContext(sourceInput),
+      ...(attachmentTokens && attachmentTokens.length > 0 ? { attachmentTokens } : {}),
     })
 
     const result = await submitInquiry(request)

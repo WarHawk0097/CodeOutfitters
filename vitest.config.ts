@@ -15,6 +15,13 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["lib/**/*.test.ts", "app/**/*.test.ts"],
-    exclude: ["node_modules/**", "command-center/**", "**/*.selfcheck.ts"],
+    // Integration tests (real Docker Supabase + ClamAV) run only via
+    // vitest.integration.config.ts — never in the fast unit sweep.
+    exclude: [
+      "node_modules/**",
+      "command-center/**",
+      "**/*.selfcheck.ts",
+      "**/*.integration.test.ts",
+    ],
   },
 });

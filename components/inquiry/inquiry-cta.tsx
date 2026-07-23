@@ -99,6 +99,7 @@ export function ContextualInquiryCta({
         contextKey={contextKey}
         contextLabel={contextLabel}
         contextPlaceholder={contextPlaceholder}
+        enableUploads
       />
     </section>
   )

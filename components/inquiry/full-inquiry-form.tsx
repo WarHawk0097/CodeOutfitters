@@ -6,7 +6,7 @@
 // advancing and emits inquiry_step_completed. No passwords/usernames/address
 // (spec §6). Multi-step forms are out of the marketing-taste scope, so this uses
 // standard wizard patterns with the CodeOutfitters token styling.
-import { useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import type { Path } from 'react-hook-form'
@@ -28,7 +28,7 @@ import {
 import { InquiryFileUpload } from './inquiry-file-upload'
 import { InquirySuccess } from './inquiry-success'
 
-const FORM_VARIANT: FormVariant = 'contact_full'
+const FORM_VARIANT = 'contact_full' as const
 const PAGE_NAME = 'Contact'
 
 const COMPANY_SIZES = ['1-10', '11-50', '51-200', '201+'].map((v) => ({ value: v, label: v }))
@@ -69,12 +69,18 @@ export function FullInquiryForm({
 } = {}) {
   const [step, setStep] = useState(0)
 
-  const { form, status, errorMessage, response, onSubmit, honeypot, markStarted } =
+  // Clean attachment tokens, owned by the uploader and read at submit time. A
+  // ref (not state) keeps the getter stable and avoids re-running the hook.
+  const attachmentTokensRef = useRef<string[]>([])
+  const getAttachmentTokens = useCallback(() => attachmentTokensRef.current, [])
+
+  const { form, status, errorMessage, response, submissionId, onSubmit, honeypot, markStarted } =
     useInquiryForm({
       schema: FullInquiryValuesSchema,
       formVariant: FORM_VARIANT,
       sourceInput: { formVariant: FORM_VARIANT, pageName: PAGE_NAME } satisfies BuildSourceContextInput,
       onSuccess: onInquirySuccess,
+      getAttachmentTokens,
       defaultValues: {
         firstName: '',
         lastName: '',
@@ -184,7 +190,14 @@ export function FullInquiryForm({
       )}
 
       {step === 3 && (
-        <InquiryFileUpload formVariant={FORM_VARIANT} sourcePage={PAGE_NAME} />
+        <InquiryFileUpload
+          formVariant={FORM_VARIANT}
+          sourcePage={PAGE_NAME}
+          submissionId={submissionId}
+          onTokensChange={(tokens) => {
+            attachmentTokensRef.current = tokens
+          }}
+        />
       )}
 
       {isReview && (

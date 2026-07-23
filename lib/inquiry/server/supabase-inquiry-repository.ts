@@ -7,6 +7,7 @@ import type {
   EmailEventStatus,
 } from "./inquiry-repository";
 import { idempotencyConflict, isIdempotencyConflict, serverError } from "./inquiry-errors";
+import { toSubmitPayload } from "./inquiry-submit-payload";
 
 // Server-only Supabase client using the SERVICE-ROLE (secret) key. This key
 // bypasses RLS and is the sole write path. It MUST NOT use a NEXT_PUBLIC_
@@ -33,7 +34,7 @@ export class SupabaseInquiryRepository implements InquiryRepository {
     fingerprint: string,
   ): Promise<PersistResult> {
     const { data, error } = await this.client.rpc("submit_inquiry", {
-      p_payload: payload,
+      p_payload: toSubmitPayload(payload),
       p_fingerprint: fingerprint,
     });
 

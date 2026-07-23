@@ -7,7 +7,14 @@
     "build": "next build",
     "start": "next start --port 3005",
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:status": "supabase status",
+    "supabase:reset": "supabase db reset",
+    "supabase:seed": "supabase db reset",
+    "supabase:test": "npm run test:integration"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

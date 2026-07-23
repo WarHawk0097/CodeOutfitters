@@ -10,6 +10,7 @@ import type {
   EmailEventStatus,
 } from "./inquiry-repository";
 import { idempotencyConflict, isIdempotencyConflict, serverError } from "./inquiry-errors";
+import { toSubmitPayload } from "./inquiry-submit-payload";
 
 // LOCAL / TEST ONLY repository (owner directive: "use the safe local
 // repository/test mode"). Runs the REAL migration inside an embedded Postgres
@@ -48,7 +49,7 @@ export class PgliteInquiryRepository implements InquiryRepository {
       const res = await db.query<{
         result: { lead_id: string; submission_id: string; status: "received"; replay: boolean };
       }>("select public.submit_inquiry($1::jsonb, $2) as result", [
-        JSON.stringify(payload),
+        JSON.stringify(toSubmitPayload(payload)),
         fingerprint,
       ]);
       const row = res.rows[0]!.result;

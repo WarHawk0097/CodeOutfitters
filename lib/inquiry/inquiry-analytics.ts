@@ -19,6 +19,12 @@ export type InquiryAnalyticsEvent =
   | "inquiry_form_started"
   | "inquiry_step_completed"
   | "inquiry_file_selected"
+  | "inquiry_file_rejected"
+  | "inquiry_upload_authorized"
+  | "inquiry_upload_started"
+  | "inquiry_upload_completed"
+  | "inquiry_upload_failed"
+  | "inquiry_file_removed"
   | "inquiry_submit_attempted"
   | "inquiry_submit_succeeded"
   | "inquiry_submit_failed"
@@ -30,11 +36,27 @@ export type InquiryAnalyticsEvent =
 export type InquiryAnalyticsPayload = {
   formVariant?: FormVariant;
   sourcePage?: string;
+  // Route the event fired from (e.g. "/contact") — structural, never PII.
+  route?: string;
   step?: number;
   errorCode?: InquiryErrorCode;
   fileCount?: number;
   // Aggregate size in bytes — a number, never a filename.
   totalFileBytes?: number;
+  // Allow-listed structural upload dimensions (Work Order E Step 22). NONE of
+  // these carry a filename, email, business name, storage key, token, or any
+  // free-text — only bounded, non-identifying categories/buckets.
+  fileCategory?: "pdf" | "doc" | "docx" | "xlsx" | "csv" | "png" | "jpg" | "jpeg";
+  sizeBucket?: "under_1mb" | "1_5mb" | "5_10mb" | "over_10mb";
+  failureCategory?:
+    | "too_large"
+    | "too_many"
+    | "unsupported_type"
+    | "signature_mismatch"
+    | "scan_rejected"
+    | "scan_unavailable"
+    | "upload_error"
+    | "authorize_error";
 };
 
 const CONSENT_KEY = "co_cookie_consent";
@@ -53,10 +75,14 @@ function hasAnalyticsConsent(): boolean {
 const ALLOWED_KEYS: readonly (keyof InquiryAnalyticsPayload)[] = [
   "formVariant",
   "sourcePage",
+  "route",
   "step",
   "errorCode",
   "fileCount",
   "totalFileBytes",
+  "fileCategory",
+  "sizeBucket",
+  "failureCategory",
 ];
 
 function sanitize(payload: InquiryAnalyticsPayload): InquiryAnalyticsPayload {
