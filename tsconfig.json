@@ -25,6 +25,12 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@command-center/contracts": [
+        "./lib/command-center/contracts/index.ts"
+      ],
+      "@command-center/ui": [
+        "./lib/command-center/ui/index.ts"
       ]
     }
   },

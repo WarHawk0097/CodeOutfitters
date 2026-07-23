@@ -1,5 +1,5 @@
 ﻿import type { Metadata, Viewport } from 'next'
-import { Space_Grotesk, Instrument_Sans } from 'next/font/google'
+import { Space_Grotesk, Instrument_Sans, Geist, Geist_Mono, IBM_Plex_Sans, IBM_Plex_Mono } from 'next/font/google'
 import './globals.css'
 
 const spaceGrotesk = Space_Grotesk({
@@ -15,6 +15,15 @@ const instrumentSans = Instrument_Sans({
   variable: '--font-instrument-sans',
   display: 'swap',
 })
+
+// Canonical Command Center typography (Dashboard/Command Center Final.dc.html):
+// Geist for the sidebar, IBM Plex Sans/Mono for the body. Exposed as CSS vars on
+// <html> so the dashboard subtree's font-cc-* utilities resolve; the public site
+// keeps its own Instrument Sans / Space Grotesk (body font is unchanged below).
+const geistSans = Geist({ subsets: ['latin'], variable: '--font-geist-sans', display: 'swap' })
+const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono', display: 'swap' })
+const ibmPlexSans = IBM_Plex_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700'], variable: '--font-ibm-plex-sans', display: 'swap' })
+const ibmPlexMono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-ibm-plex-mono', display: 'swap' })
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://codeoutfitters.com'),
@@ -71,7 +80,7 @@ export default function RootLayout({
 })();`
 
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} ${instrumentSans.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${spaceGrotesk.variable} ${instrumentSans.variable} ${geistSans.variable} ${geistMono.variable} ${ibmPlexSans.variable} ${ibmPlexMono.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: motionResolverScript }} />
       </head>
