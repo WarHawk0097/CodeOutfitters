@@ -73,6 +73,8 @@ export function FullInquiryForm({
   // ref (not state) keeps the getter stable and avoids re-running the hook.
   const attachmentTokensRef = useRef<string[]>([])
   const getAttachmentTokens = useCallback(() => attachmentTokensRef.current, [])
+  // Completed attachment names, surfaced in the Review step (names only).
+  const [completedFiles, setCompletedFiles] = useState<string[]>([])
 
   const { form, status, errorMessage, response, submissionId, onSubmit, honeypot, markStarted } =
     useInquiryForm({
@@ -197,12 +199,13 @@ export function FullInquiryForm({
           onTokensChange={(tokens) => {
             attachmentTokensRef.current = tokens
           }}
+          onCompletedFilesChange={setCompletedFiles}
         />
       )}
 
       {isReview && (
         <div className="flex flex-col gap-4">
-          <ReviewSummary values={getValues()} />
+          <ReviewSummary values={getValues()} attachments={completedFiles} />
           <InquiryCheckbox id="contact-privacy" registration={register('consent.privacyAccepted')} error={errors.consent?.privacyAccepted?.message}>
             I agree to the{' '}
             <Link href="/privacy" className="text-[var(--brand-green)] underline">
@@ -248,7 +251,7 @@ export function FullInquiryForm({
   )
 }
 
-function ReviewSummary({ values }: { values: FullInquiryValues }) {
+function ReviewSummary({ values, attachments }: { values: FullInquiryValues; attachments?: string[] }) {
   const rows: [string, string | undefined][] = [
     ['Name', [values.firstName, values.lastName].filter(Boolean).join(' ')],
     ['Work email', values.workEmail],
@@ -272,6 +275,18 @@ function ReviewSummary({ values }: { values: FullInquiryValues }) {
             <dd className="text-[var(--brand-text)]">{value}</dd>
           </div>
         ))}
+      {attachments && attachments.length > 0 && (
+        <div className="flex gap-3 border-b border-[var(--brand-border)] py-2 last:border-b-0">
+          <dt className="w-32 shrink-0 font-semibold text-[var(--brand-muted)]">Attachments</dt>
+          <dd className="text-[var(--brand-text)]">
+            <ul className="list-disc pl-4">
+              {attachments.map((name) => (
+                <li key={name}>{name}</li>
+              ))}
+            </ul>
+          </dd>
+        </div>
+      )}
     </dl>
   )
 }

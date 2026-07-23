@@ -5,7 +5,7 @@
 // powers the global popup, the Services placement, and the Industries
 // placement; copy and formVariant differ per placement, mechanics do not.
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Paperclip } from 'lucide-react'
 import Link from 'next/link'
 import type { FormVariant, InquirySubmissionResponse } from '@/lib/inquiry/inquiry-schema'
 import { CompactInquiryValuesSchema } from '@/lib/inquiry/inquiry-form-values'
@@ -179,14 +179,25 @@ export function CompactInquiryForm({
       />
 
       {uploadVariant && (
-        <InquiryFileUpload
-          formVariant={uploadVariant}
-          sourcePage={sourceInput.pageName}
-          submissionId={submissionId}
-          onTokensChange={(tokens) => {
-            attachmentTokensRef.current = tokens
-          }}
-        />
+        // Restrained by default: a native <details> keeps the compact layout
+        // tight and stays keyboard- and reduced-motion-friendly with no JS.
+        <details className="group rounded-xl border border-[var(--brand-border)] bg-black/[0.02] px-4 py-3">
+          <summary className="flex cursor-pointer list-none items-center gap-2 text-[13px] font-semibold text-[var(--brand-text)] [&::-webkit-details-marker]:hidden">
+            <Paperclip className="h-4 w-4 text-[var(--brand-muted)]" />
+            Add supporting files
+            <span className="font-normal text-[var(--brand-muted)]">(optional)</span>
+          </summary>
+          <div className="mt-3">
+            <InquiryFileUpload
+              formVariant={uploadVariant}
+              sourcePage={sourceInput.pageName}
+              submissionId={submissionId}
+              onTokensChange={(tokens) => {
+                attachmentTokensRef.current = tokens
+              }}
+            />
+          </div>
+        </details>
       )}
 
       {beforeConsent}

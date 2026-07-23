@@ -85,3 +85,13 @@ npm run supabase:stop
 
 Never run `docker system/volume/network/container prune`, `git clean`, or
 `git reset --hard` in this workspace.
+
+## 7. Browser QA against this stack
+
+`node scripts/start-local-inquiry-platform.mjs` reads this stack's endpoints and
+dev keys from `supabase status -o env` in memory and launches Next on :3005;
+`node scripts/edge-qa.mjs` then drives the upload workflows through Microsoft
+Edge (35/35 pass). The launcher never writes `.env.local`, never prints full
+secrets, and refuses any non-`127.0.0.1` Supabase URL. Back-end assertions read
+through `docker exec supabase_db_CodeOutfitters psql` because `service_role` has
+least-privilege grants. See `WORK-ORDER-E-BROWSER-QA.md`.

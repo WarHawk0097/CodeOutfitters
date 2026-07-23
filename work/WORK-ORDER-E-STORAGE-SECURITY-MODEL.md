@@ -76,3 +76,12 @@ one Supabase-based storage path, no separate filesystem implementation.
   expired/associated-preserving.
 - **Not applicable here**: production Storage, production Auth, production secrets —
   all forbidden by the work order and untouched.
+
+## Browser-verified (Work Order E QA)
+
+The Edge QA sweep (`WORK-ORDER-E-BROWSER-QA.md`, 35/35) exercised the full path
+through the real local stack from the browser: signed authorize → PUT → ClamAV
+scan → opaque token → atomic association, EICAR/`.exe` rejection, and confirmed
+the public popups expose no upload control. `service_role`'s least-privilege
+grants are preserved — QA reads verification tables via privileged local psql
+rather than the anon/service client.

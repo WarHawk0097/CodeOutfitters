@@ -9,7 +9,7 @@
 //      reports upward. A rejected/failed file yields NO token and cannot be
 //      submitted. Removing an uploaded file calls DELETE so no orphan lingers.
 // The server re-validates everything; the client checks are UX only.
-import { useCallback, useId, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { Paperclip, X, CheckCircle2, AlertCircle, Loader2, ShieldCheck } from 'lucide-react'
 import {
   ALLOWED_MIME_TYPES,
@@ -80,12 +80,15 @@ export function InquiryFileUpload({
   sourcePage,
   submissionId,
   onTokensChange,
+  onCompletedFilesChange,
 }: {
   formVariant: UploadFormVariantClient
   sourcePage: string
   submissionId: string
   // Reports the current set of CLEAN, submittable tokens whenever it changes.
   onTokensChange?: (tokens: string[]) => void
+  // Reports the CLEAN, completed file names (for a Review summary). Names only.
+  onCompletedFilesChange?: (files: string[]) => void
 }) {
   const limits = FORM_UPLOAD_LIMITS_CLIENT[formVariant]
   const [items, setItems] = useState<Item[]>([])
@@ -95,24 +98,25 @@ export function InquiryFileUpload({
   const inputId = useId()
   const routeLabel = `${sourcePage}:${formVariant}`
 
-  // Keep the parent's token list in sync from the latest items.
-  const emitTokens = useCallback(
-    (next: Item[]) => {
-      onTokensChange?.(next.filter((i) => i.phase === 'complete' && i.token).map((i) => i.token!))
-    },
-    [onTokensChange],
-  )
+  // Report CLEAN tokens/filenames to the parent AFTER commit, never inside a
+  // state updater: an updater must stay pure, and updating a parent from a
+  // child's render throws "Cannot update a component while rendering a different
+  // component". Callbacks live in refs so this effect keys on items alone and
+  // inline parent callbacks don't retrigger it.
+  const onTokensChangeRef = useRef(onTokensChange)
+  const onCompletedFilesChangeRef = useRef(onCompletedFilesChange)
+  onTokensChangeRef.current = onTokensChange
+  onCompletedFilesChangeRef.current = onCompletedFilesChange
+  useEffect(() => {
+    const done = items.filter((i) => i.phase === 'complete' && i.token)
+    onTokensChangeRef.current?.(done.map((i) => i.token!))
+    onCompletedFilesChangeRef.current?.(done.map((i) => i.name))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items])
 
-  const patch = useCallback(
-    (localId: string, updater: (i: Item) => Item) => {
-      setItems((prev) => {
-        const next = prev.map((i) => (i.localId === localId ? updater(i) : i))
-        emitTokens(next)
-        return next
-      })
-    },
-    [emitTokens],
-  )
+  const patch = useCallback((localId: string, updater: (i: Item) => Item) => {
+    setItems((prev) => prev.map((i) => (i.localId === localId ? updater(i) : i)))
+  }, [])
 
   const isAllowed = (file: File) =>
     (file.type && ALLOWED_MIME_TYPES.has(file.type)) ||
@@ -252,11 +256,7 @@ export function InquiryFileUpload({
 
   const remove = useCallback(
     async (item: Item) => {
-      setItems((prev) => {
-        const next = prev.filter((i) => i.localId !== item.localId)
-        emitTokens(next)
-        return next
-      })
+      setItems((prev) => prev.filter((i) => i.localId !== item.localId))
       trackInquiryEvent('inquiry_file_removed', {
         formVariant,
         sourcePage,
@@ -271,7 +271,7 @@ export function InquiryFileUpload({
         ).catch(() => {})
       }
     },
-    [emitTokens, formVariant, sourcePage, routeLabel, submissionId],
+    [formVariant, sourcePage, routeLabel, submissionId],
   )
 
   const liveCount = items.filter((i) => i.phase !== 'rejected' && i.phase !== 'failed').length
@@ -346,11 +346,20 @@ export function InquiryFileUpload({
               <StatusIcon phase={item.phase} />
               <div className="min-w-0 flex-1">
                 <div className="truncate text-[var(--brand-text)]">{item.name}</div>
-                <div className="text-xs text-[var(--brand-muted)]">
+                {/* Announce each file's phase transitions (uploading -> verifying
+                    -> scanning -> uploaded) to assistive tech. */}
+                <div className="text-xs text-[var(--brand-muted)]" role="status" aria-live="polite">
                   <StatusLabel item={item} />
                 </div>
                 {item.phase === 'uploading' && (
-                  <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-black/[0.06]">
+                  <div
+                    className="mt-1 h-1 w-full overflow-hidden rounded-full bg-black/[0.06]"
+                    role="progressbar"
+                    aria-label={`Uploading ${item.name}`}
+                    aria-valuenow={Math.round(item.progress)}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                  >
                     <div
                       className="h-full rounded-full bg-[var(--brand-accent)] transition-[width]"
                       style={{ width: `${item.progress}%` }}

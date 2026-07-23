@@ -59,9 +59,12 @@ rejects wrong-submission tokens and rolls back.
 
 ## Remaining / owner-gated
 
-- **Browser QA matrix (Step 24)**: the 4-viewport × 24-workflow Microsoft Edge
-  sweep was **not executed** here — see `WORK-ORDER-E-BROWSER-QA.md` for the exact
-  procedure and why it is owner-gated. Not fabricated as passing.
+- **Browser QA matrix (Step 24)**: **executed** against the local Docker
+  Supabase + ClamAV stack in Microsoft Edge — 35/35 checks pass across the four
+  viewports and all three upload surfaces, popups carry no upload control, and
+  the deep flows report zero console/page/hydration errors and zero production
+  requests. Full results, defects fixed, and static gates in
+  `WORK-ORDER-E-BROWSER-QA.md`.
 - **Dashboard secure-download endpoint (Steps 19–21)**: **blocked, no substrate.**
   Independent verification of the tracked Command Center app shows the dashboard is
   entirely mock-backed (MSW auth returning `{userId,role,token}`, mock `fetchLeads`),
@@ -69,5 +72,6 @@ rejects wrong-submission tokens and rolls back.
   detail route, and no attachments UI**. Building the authenticated download route
   as specified would require inventing that entire auth/membership subsystem, which
   is outside Work Order E. Reported as a blocker rather than fabricated.
-- **Lint**: not runnable — no `eslint.config.js` (ESLint v10 flat config absent) and
-  `next lint` removed in Next 16. Retained blocker; not fabricated as a pass.
+- **Lint**: not runnable — the `lint` script is `eslint .` but the `eslint`
+  binary is not installed and there is no `eslint.config.*`/`.eslintrc*`.
+  Retained as a pre-existing tooling blocker; not fabricated as a pass.
