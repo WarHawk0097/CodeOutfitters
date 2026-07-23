@@ -30,18 +30,18 @@ export type NavGroup = { label: string; items: NavItem[]; adminOnly?: boolean };
 
 export const OPERATIONS_NAV: NavItem[] = [
   { label: "Overview", href: "/dashboard", icon: "overview" },
-  { label: "Leads", href: "/leads", icon: "leads", badge: "12" },
-  { label: "Pipeline", href: "/pipeline", icon: "pipeline" },
-  { label: "Appointments", href: "/appointments", icon: "appointments", badge: "3" },
-  { label: "Meeting Intelligence", href: "/meetings", icon: "meetings", badge: "2" },
-  { label: "Proposals", href: "/proposals", icon: "proposals", badge: "3" },
-  { label: "Follow-ups", href: "/follow-ups", badge: "4" },
-  { label: "Email Activity", href: "/email-activity", badge: "2" },
+  { label: "Leads", href: "/dashboard/leads", icon: "leads", badge: "12" },
+  { label: "Pipeline", href: "/dashboard/pipeline", icon: "pipeline" },
+  { label: "Appointments", href: "/dashboard/appointments", icon: "appointments", badge: "3" },
+  { label: "Meeting Intelligence", href: "/dashboard/meetings", icon: "meetings", badge: "2" },
+  { label: "Proposals", href: "/dashboard/proposals", icon: "proposals", badge: "3" },
+  { label: "Follow-ups", href: "/dashboard/follow-ups", badge: "4" },
+  { label: "Email Activity", href: "/dashboard/email-activity", badge: "2" },
 ];
 
 export const ADMINISTRATION_NAV: NavItem[] = [
-  { label: "Team", href: "/team" },
-  { label: "Settings", href: "/settings" },
+  { label: "Team", href: "/dashboard/team" },
+  { label: "Settings", href: "/dashboard/settings" },
 ];
 
 export const NAV_GROUPS: NavGroup[] = [
