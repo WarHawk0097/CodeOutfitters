@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight, Inbox, Paperclip } from 'lucide-react'
-import { requireDashboardContext, listLeads } from '@/lib/dashboard/server'
+import { resolveDashboardContext, resolveLeads } from '@/lib/command-center/data'
 import { clampPage, clampPageSize } from '@/lib/dashboard/validation'
 
 export const metadata = { title: 'Leads — Command Center' }
@@ -12,12 +12,12 @@ export default async function LeadsPage({
 }: {
   searchParams: Promise<{ page?: string }>
 }) {
-  const ctx = await requireDashboardContext('/dashboard/leads')
+  const ctx = await resolveDashboardContext('/dashboard/leads')
   const sp = await searchParams
   const page = clampPage(sp.page)
   const pageSize = clampPageSize(PAGE_SIZE)
 
-  const { items, total } = await listLeads(ctx.workspaceId, page, pageSize)
+  const { items, total } = await resolveLeads(ctx, page, pageSize)
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
   const from = total === 0 ? 0 : (page - 1) * pageSize + 1
   const to = Math.min(page * pageSize, total)

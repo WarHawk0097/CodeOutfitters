@@ -1,12 +1,12 @@
 import Link from 'next/link'
 import { ArrowRight, Inbox, Paperclip } from 'lucide-react'
-import { requireDashboardContext, listLeads } from '@/lib/dashboard/server'
+import { resolveDashboardContext, resolveLeads } from '@/lib/command-center/data'
 
 export const metadata = { title: 'Overview — Command Center' }
 
 export default async function DashboardOverview() {
-  const ctx = await requireDashboardContext('/dashboard')
-  const { items, total } = await listLeads(ctx.workspaceId, 1, 5)
+  const ctx = await resolveDashboardContext('/dashboard')
+  const { items, total } = await resolveLeads(ctx, 1, 5)
   const attachmentTotal = items.reduce((n, l) => n + l.attachmentCount, 0)
 
   return (

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { isUuid, isDownloadable } from '@/lib/dashboard/validation'
+import { isDemoMode } from '@/lib/command-center/mode'
 import { SupabaseInquiryStorageProvider } from '@/lib/inquiry/server/storage/supabase-inquiry-storage-provider'
 
 // Short-lived signed URL for the private inquiry-attachments bucket. Minted
@@ -24,6 +25,11 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ attachmentId: string }> },
 ) {
+  // Demo mode serves metadata-only fixtures with no Storage backing; downloads
+  // are disabled and must never reach the Supabase client (which needs env that
+  // demo does not require). Same generic 404 as any other denial.
+  if (isDemoMode()) return notFound()
+
   const { attachmentId } = await params
   if (!isUuid(attachmentId)) return notFound()
 

@@ -1,12 +1,13 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, Download, FileWarning, Paperclip } from 'lucide-react'
+import { type LeadAttachment } from '@/lib/dashboard/server'
 import {
-  requireDashboardContext,
-  getLead,
-  listLeadAttachments,
-  type LeadAttachment,
-} from '@/lib/dashboard/server'
+  resolveDashboardContext,
+  resolveLead,
+  resolveLeadAttachments,
+} from '@/lib/command-center/data'
+import { isDemoMode } from '@/lib/command-center/mode'
 import { isDownloadable } from '@/lib/dashboard/validation'
 
 export const metadata = { title: 'Lead — Command Center' }
@@ -20,12 +21,13 @@ export default async function LeadDetailPage({
   params: Promise<{ leadId: string }>
 }) {
   const { leadId } = await params
-  await requireDashboardContext(`/dashboard/leads/${leadId}`)
+  await resolveDashboardContext(`/dashboard/leads/${leadId}`)
+  const demo = isDemoMode()
 
-  const lead = await getLead(leadId)
+  const lead = await resolveLead(leadId)
   if (!lead) notFound()
 
-  const attachments = await listLeadAttachments(leadId)
+  const attachments = await resolveLeadAttachments(leadId)
 
   const name = [lead.first_name, lead.last_name].filter(Boolean).join(' ') || 'Unknown'
   const fields: Array<[string, unknown]> = [
@@ -99,7 +101,7 @@ export default async function LeadDetailPage({
         ) : (
           <ul className="space-y-3">
             {attachments.map((a) => (
-              <AttachmentRow key={a.id} attachment={a} />
+              <AttachmentRow key={a.id} attachment={a} demo={demo} />
             ))}
           </ul>
         )}
@@ -108,7 +110,13 @@ export default async function LeadDetailPage({
   )
 }
 
-function AttachmentRow({ attachment: a }: { attachment: LeadAttachment }) {
+function AttachmentRow({
+  attachment: a,
+  demo,
+}: {
+  attachment: LeadAttachment
+  demo: boolean
+}) {
   const downloadable = isDownloadable({
     leadId: 'present', // detail scope already scoped to this lead; leadId is set
     uploadStatus: a.uploadStatus,
@@ -128,7 +136,15 @@ function AttachmentRow({ attachment: a }: { attachment: LeadAttachment }) {
           <ScanBadge scan={a.scanStatus} upload={a.uploadStatus} />
         </p>
       </div>
-      {downloadable ? (
+      {demo ? (
+        <span
+          className="inline-flex max-w-[14rem] flex-shrink-0 items-center gap-1.5 rounded-lg border border-white/10 px-3 py-2 text-right text-xs font-medium text-white/40"
+          title="Available when the production data service is connected."
+        >
+          <FileWarning className="h-3.5 w-3.5 flex-shrink-0" />
+          Available when the production data service is connected
+        </span>
+      ) : downloadable ? (
         <a
           href={`/api/dashboard/attachments/${a.id}/download`}
           className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg bg-[#2A6B5A] px-3 py-2 text-xs font-semibold text-white transition-transform active:scale-[0.98]"
