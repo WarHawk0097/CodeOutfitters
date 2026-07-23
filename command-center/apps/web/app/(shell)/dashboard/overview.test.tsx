@@ -9,7 +9,7 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import DashboardPage from "./page";
-import { LEAD_FLOW, OVERVIEW_KPIS } from "../../../mocks/fixtures/overview-canonical";
+import { OVERVIEW_KPIS } from "../../../mocks/fixtures/overview-canonical";
 
 describe("C-D01 Overview", () => {
   it("shows the canonical KPI figures, not dataset-derived counts", () => {
@@ -32,26 +32,24 @@ describe("C-D01 Overview", () => {
     expect(screen.queryByText("Total Leads")).toBeNull();
   });
 
-  it("draws the three-series lead-flow chart at desktop and tablet only", () => {
+  it("replaces the static plot with the interactive store-derived Lead-flow chart", () => {
     const { container } = render(<DashboardPage />);
 
-    // CANON 52 / 872: one plot per frame, and mobile has none (CANON 1056).
-    const plots = container.querySelectorAll('svg[viewBox="0 0 1090 212"]');
-    expect(plots).toHaveLength(2);
+    // The former canonical 1090x212 plot and its mobile summary line are gone.
+    expect(container.querySelectorAll('svg[viewBox="0 0 1090 212"]')).toHaveLength(0);
+    expect(screen.queryByText(/35% recv→won/)).toBeNull();
 
-    // Area + received + contacted + won on both, plus six won-series marker dots
-    // on desktop only (CANON 52).
-    expect(container.querySelectorAll('svg[viewBox="0 0 1090 212"] path')).toHaveLength(8);
-    expect(container.querySelectorAll('svg[viewBox="0 0 1090 212"] circle')).toHaveLength(6);
+    // The new chart card renders in all three breakpoint slots (desktop, tablet, mobile),
+    // each with the adapted CodeOutfitters terminology — not the demo's visitor labels.
+    expect(screen.getAllByText("Lead flow")).toHaveLength(3);
+    expect(
+      screen.getAllByText("New and qualified leads over the selected period"),
+    ).toHaveLength(3);
+    expect(screen.queryByText(/[Vv]isitor/)).toBeNull();
 
-    // Geometry comes from CANON 1341-1349, not from lead createdAt timestamps:
-    // first point at x=46, y=200-30*3.9, closed along the y=200 baseline.
-    expect(LEAD_FLOW.area.startsWith("M46 83")).toBe(true);
-    expect(LEAD_FLOW.area.endsWith("L1056 200 L46 200 Z")).toBe(true);
-    expect(LEAD_FLOW.wonPoints).toHaveLength(6);
-
-    // Mobile replaces the plot with a summary line (CANON 1058).
-    expect(screen.getByText(/35% recv→won ▲4.2pp/)).toBeTruthy();
+    // Accessible range selector with the required label, not the supplied "Select a value".
+    expect(screen.getAllByLabelText("Select lead-flow period")).toHaveLength(3);
+    expect(screen.queryByLabelText("Select a value")).toBeNull();
   });
 
   it("composes each frame with the regions canonical puts in it", () => {

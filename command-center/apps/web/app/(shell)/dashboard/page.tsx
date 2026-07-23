@@ -11,29 +11,28 @@
 //            place of the chart and the phase list.
 // Each is rendered in its own breakpoint block. Exactly one is ever visible.
 //
-// Fully server-rendered. The previous OverviewData client island existed to
-// fetch /api/leads for derived KPI/chart values; the canonical Overview shows
-// the design authority's own figures (34/9/7/4 and the 1090x212 flow series),
-// which no request can produce, so the island — and its loading state — are gone.
-// See mocks/fixtures/overview-canonical.ts for the provenance of every value.
+// Server-rendered, with one client island: the Lead-flow chart. The KPI strip stays
+// canonical (the design authority's own 34/9/7/4 figures, which no request can produce),
+// but the former static Lead Flow plot is replaced by <LeadFlowChart/> — an interactive,
+// store-derived recharts area chart. It intentionally reads the shared lead store, so its
+// series are dataset-derived and will NOT match the canonical KPI figures beside it; that
+// mismatch is documented in work/FULL-COMMAND-CENTER-CANONICAL-DEVIATIONS.md (D-Q01).
 import {
   KpiGridMobile,
   KpiGridTablet,
   KpiStrip,
-  LeadFlowCard,
-  LeadFlowSummaryMobile,
   MeetingsProposalsCard,
   NextUpCardMobile,
   PipelineJourney,
   RecentActivityCard,
   TodaysWorkCard,
 } from "@command-center/ui";
+import { LeadFlowChart } from "../../../components/dashboard/lead-flow-chart";
 import {
   PIPELINE_JOURNEY_ACTIVE_COUNT,
   PIPELINE_PHASE_FIXTURES,
 } from "../../../mocks/fixtures/pipeline-phases";
 import {
-  LEAD_FLOW,
   OVERVIEW_KPIS,
   OVERVIEW_KPIS_MOBILE,
   RECENT_ACTIVITY,
@@ -50,7 +49,7 @@ export default function DashboardPage() {
         {/* CANON 48: fixed 372px rail, rows pinned to the frame height. */}
         <div className="mt-3.5 grid min-h-0 flex-1 grid-cols-[1fr_372px] grid-rows-[minmax(0,1fr)] gap-3.5">
           <div className="flex min-w-0 flex-col gap-[18px]">
-            <LeadFlowCard flow={LEAD_FLOW} variant="desktop" />
+            <LeadFlowChart />
             <TodaysWorkCard
               items={TODAYS_WORK}
               openCount={TODAYS_WORK_OPEN_COUNT}
@@ -73,7 +72,7 @@ export default function DashboardPage() {
       <div className="hidden flex-col gap-4 md:flex xl:hidden">
         <KpiGridTablet kpis={OVERVIEW_KPIS} />
         <TodaysWorkCard items={TODAYS_WORK} openCount={TODAYS_WORK_OPEN_COUNT} variant="tablet" />
-        <LeadFlowCard flow={LEAD_FLOW} variant="tablet" />
+        <LeadFlowChart />
         <PipelineJourney
           activeCount={PIPELINE_JOURNEY_ACTIVE_COUNT}
           phases={PIPELINE_PHASE_FIXTURES}
@@ -102,7 +101,7 @@ export default function DashboardPage() {
           <MeetingsProposalsCard variant="mobile" />
         </div>
         <div className="mt-[9px]">
-          <LeadFlowSummaryMobile />
+          <LeadFlowChart />
         </div>
         <div className="mt-[9px]">
           <PipelineJourney

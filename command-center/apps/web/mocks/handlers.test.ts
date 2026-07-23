@@ -64,7 +64,10 @@ describe("msw handlers (Phase 2 mock layer)", () => {
   it("GET /api/leads page 1 is the canonical C-D05 rows", async () => {
     const res = await fetch("/api/leads");
     const body = await res.json();
-    expect(body.rows).toEqual(LEAD_FIXTURES);
+    // qualifiedAt is a derived milestone timestamp; the canonical fields are unchanged.
+    expect(body.rows.map(({ qualifiedAt, ...rest }: Record<string, unknown>) => rest)).toEqual(
+      LEAD_FIXTURES,
+    );
   });
 
   it("GET /api/leads facet keys are all real statuses present in the dataset", async () => {

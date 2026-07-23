@@ -13,10 +13,12 @@
   "dependencies": {
     "@command-center/contracts": "workspace:*",
     "@command-center/ui": "workspace:*",
+    "@radix-ui/react-select": "^2.1.6",
     "@tanstack/react-table": "^8.21.3",
     "next": "16.2.6",
     "react": "^19",
-    "react-dom": "^19"
+    "react-dom": "^19",
+    "recharts": "^2.15.4"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.0",

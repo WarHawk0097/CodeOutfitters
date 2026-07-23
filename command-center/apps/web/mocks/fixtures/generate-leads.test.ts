@@ -104,7 +104,10 @@ describe("deterministic synthetic lead generator", () => {
   // Page 1 of the default view must remain the canonical frame, or the visual comparison
   // against C-D05 silently regresses.
   it("keeps the 10 canonical seed records on page 1 in canonical order", () => {
-    expect(generateLeads().slice(0, 10)).toEqual(LEAD_FIXTURES);
+    // qualifiedAt is a derived milestone timestamp added on top of the canonical fields
+    // (see withQualifiedAt); every OTHER field on the ten seed rows is unchanged.
+    const page1 = generateLeads().slice(0, 10);
+    expect(page1.map(({ qualifiedAt, ...rest }) => rest)).toEqual(LEAD_FIXTURES);
   });
 
   // Six synthetic records now sit INSIDE the reference week so "12 new this week" is a real

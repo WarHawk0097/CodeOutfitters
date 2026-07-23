@@ -71,6 +71,13 @@
   --cc-radius-card: 8px;
   --cc-radius-card-lg: 10px;
   --cc-radius-dialog: 10px;
+
+  /* Dashboard Lead-flow chart series. Reuse existing brand accents rather than
+     introduce new literals: chart-1 (new leads) = canonical blue, chart-2
+     (qualified leads) = canonical green. Consumed by the recharts chartConfig
+     as var(--chart-1) / var(--chart-2). */
+  --chart-1: var(--cc-blue);
+  --chart-2: var(--cc-green);
 }
 
 @theme inline {

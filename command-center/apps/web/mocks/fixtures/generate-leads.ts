@@ -19,7 +19,7 @@
 // aggregate a real count over the dataset rather than a hard-coded string. They are dated
 // older than all six in-window seed rows, so a descending createdAt sort still leads with
 // the six the canonical frame shows. See REFERENCE_NOW below for the full definition.
-import { LeadStatusSchema, type Lead, type LeadStatus } from "@command-center/contracts";
+import { isQualifiedStatus, LeadStatusSchema, type Lead, type LeadStatus } from "@command-center/contracts";
 import { LEAD_FIXTURES } from "./leads";
 
 export const TOTAL_LEAD_COUNT = 128;
@@ -267,5 +267,21 @@ export function generateLeads(seed: number = MOCK_LEAD_SEED): Lead[] {
 
   applyCanonicalExternalLeads(rows, seedCount);
 
-  return rows;
+  return rows.map(withQualifiedAt);
+}
+
+// Deterministic qualification timestamp for the Dashboard Lead-flow chart's
+// qualifiedLeads series. Set on exactly the leads whose status is at or beyond
+// QUALIFIED_STATUS_FLOOR (isQualifiedStatus), and on no others — so the count of rows
+// carrying qualifiedAt equals the status-derived qualified count by construction.
+//
+// The instant reuses the already-computed updatedAt (the lead's last state change),
+// clamped to REFERENCE_NOW so a qualification can never post-date "now". updatedAt is
+// always >= createdAt, so createdAt <= qualifiedAt <= REFERENCE_NOW holds. This draws
+// NO new random values, so every other generated field stays byte-for-byte identical.
+// It is explicitly NOT createdAt: intake time is not qualification time.
+function withQualifiedAt(lead: Lead): Lead {
+  if (!isQualifiedStatus(lead.status)) return lead;
+  const qualifiedMs = Math.min(REFERENCE_NOW_MS, Date.parse(lead.updatedAt));
+  return { ...lead, qualifiedAt: new Date(qualifiedMs).toISOString() };
 }

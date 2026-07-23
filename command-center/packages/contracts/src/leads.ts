@@ -38,6 +38,22 @@ export const CANONICAL_LEAD_STATUS_ORDER: readonly LeadStatus[] = LeadStatusSche
 // Statuses that require a human-entered reason per api-contracts.json validation rule.
 export const REASON_REQUIRED_STATUSES: readonly LeadStatus[] = ["Won", "Lost", "FUL"];
 
+// Qualification milestone for the Dashboard Lead-flow chart. A lead is "qualified"
+// once its status reaches "Discovery Done" — the point in the funnel where discovery
+// has actually happened and the lead is a real opportunity rather than raw intake.
+// This is a presentation grouping for the chart's qualifiedLeads series, NOT a status:
+// the LeadStatus enum is authoritative and unchanged. "Won" and "Lost" both sit at or
+// beyond this floor, so qualification is monotonic — a lead never becomes un-qualified.
+// See work/FULL-COMMAND-CENTER-CANONICAL-DEVIATIONS.md (D-Q01).
+export const QUALIFIED_STATUS_FLOOR: LeadStatus = "Discovery Done";
+
+const QUALIFIED_FLOOR_INDEX = CANONICAL_LEAD_STATUS_ORDER.indexOf(QUALIFIED_STATUS_FLOOR);
+
+/** True when `status` is at or beyond QUALIFIED_STATUS_FLOOR in canonical order. */
+export function isQualifiedStatus(status: LeadStatus): boolean {
+  return CANONICAL_LEAD_STATUS_ORDER.indexOf(status) >= QUALIFIED_FLOOR_INDEX;
+}
+
 // Dashboard/integration-layer/appointment-states.json — canonical statuses.
 export const AppointmentStatusSchema = z.enum([
   "not_started",
@@ -58,6 +74,13 @@ export const LeadSchema = z.object({
   owner: IdSchema,
   createdAt: IsoDateTimeSchema,
   updatedAt: IsoDateTimeSchema,
+  // Instant a lead reached the qualified milestone (status at or beyond
+  // QUALIFIED_STATUS_FLOOR in CANONICAL_LEAD_STATUS_ORDER). Optional and additive:
+  // "Qualified" is a chart METRIC, not a status — the LeadStatus enum is unchanged
+  // (see the removal note above / PHASE-3-PROVENANCE-AUDIT CLAIM-QUAL-001). Only the
+  // deterministic mock generator sets it; absent leads are simply not-yet-qualified.
+  // Consumed by the Dashboard Lead-flow chart's qualifiedLeads series.
+  qualifiedAt: IsoDateTimeSchema.optional(),
   // Phase 3 additions — Dashboard/integration-layer/entities.json Lead fields,
   // required by C-D05 Leads table columns (SERVICE / APPOINTMENT / NEXT STEP).
   // Optional: preserves backward compatibility with Phase 1/2 consumers.
