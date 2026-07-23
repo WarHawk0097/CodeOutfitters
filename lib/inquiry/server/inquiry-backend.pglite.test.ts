@@ -140,4 +140,57 @@ describe("submit_inquiry — atomic persistence", () => {
     expect(await count("lead_timeline_events")).toBe(0);
     expect(await count("email_events")).toBe(0);
   });
+
+  // Work Order D §5: exact contextual attribution must survive to real rows.
+  it("persists contextual prefills: service_interest, industry, case study + source section", async () => {
+    // Services placement: selectedService lands on leads.service_interest.
+    await submit(
+      payload(randomUUID(), {
+        formVariant: "services_compact",
+        inquirySource: "services_compact",
+        sourcePage: "Services",
+        sourcePath: "/services",
+        sourceSection: "services-card-whatsapp",
+        selectedService: "WhatsApp Lead Automation",
+        workEmail: "svc@example.com",
+      }),
+      "fp-svc",
+    );
+    const svc = await db.query<{ service_interest: string; source_page: string }>(
+      "select service_interest, source_page from public.leads where work_email = 'svc@example.com'",
+    );
+    expect(svc.rows[0]!.service_interest).toBe("WhatsApp Lead Automation");
+    expect(svc.rows[0]!.source_page).toBe("Services");
+
+    // Case-study placement: selectedCaseStudy is retained in raw_answers, the
+    // mapped selectedService lands on service_interest, section on attribution.
+    await submit(
+      payload(randomUUID(), {
+        formVariant: "case_study_contextual",
+        inquirySource: "case_study_contextual",
+        sourcePage: "Case Studies",
+        sourcePath: "/case-studies",
+        sourceSection: "case-studies-card-real-estate-whatsapp",
+        selectedCaseStudy: "How a Real Estate Agency Doubled Lead Response Rate",
+        selectedService: "WhatsApp Lead Automation",
+        workEmail: "case@example.com",
+      }),
+      "fp-case",
+    );
+    const cs = await db.query<{
+      raw_answers: { selectedCaseStudy: string };
+      source_attribution: { sourceSection: string };
+    }>(
+      `select s.raw_answers, s.source_attribution
+         from public.lead_form_submissions s
+         join public.leads l on l.id = s.lead_id
+        where l.work_email = 'case@example.com'`,
+    );
+    expect(cs.rows[0]!.raw_answers.selectedCaseStudy).toBe(
+      "How a Real Estate Agency Doubled Lead Response Rate",
+    );
+    expect(cs.rows[0]!.source_attribution.sourceSection).toBe(
+      "case-studies-card-real-estate-whatsapp",
+    );
+  });
 });

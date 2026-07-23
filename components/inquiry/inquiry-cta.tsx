@@ -10,20 +10,24 @@
 import { ArrowRight } from 'lucide-react'
 import type { FormVariant } from '@/lib/inquiry/inquiry-schema'
 import type { BuildSourceContextInput } from '@/lib/inquiry/inquiry-source-context'
-import { CompactInquiryForm } from './compact-inquiry-form'
-import { OPEN_WORKFLOW_AUDIT_EVENT } from './workflow-audit-popup'
+import { CompactInquiryForm, type ContextFieldKey } from './compact-inquiry-form'
+import { openInquiryPopup, type InquiryPopupContext } from './workflow-audit-popup'
 
 export function InquiryPopupTrigger({
   label = 'Get a free workflow audit',
   className,
+  context,
 }: {
   label?: string
   className?: string
+  // When provided, the popup opens with this contextual placement (e.g. a
+  // case study) instead of the default global popup.
+  context?: InquiryPopupContext
 }) {
   return (
     <button
       type="button"
-      onClick={() => window.dispatchEvent(new CustomEvent(OPEN_WORKFLOW_AUDIT_EVENT))}
+      onClick={() => openInquiryPopup(context)}
       className={
         className ??
         'inline-flex items-center gap-2 rounded-xl bg-[var(--brand-green)] px-6 py-3.5 text-sm font-semibold text-white transition-transform duration-150 hover:-translate-y-px'
@@ -47,6 +51,9 @@ export function ContextualInquiryCta({
   descriptionLabel = 'What would you like to automate?',
   descriptionPlaceholder = 'Tell us where the manual work is.',
   submitLabel = 'Get my free workflow audit',
+  contextKey,
+  contextLabel,
+  contextPlaceholder,
 }: {
   formVariant: FormVariant
   pageName: string
@@ -59,6 +66,11 @@ export function ContextualInquiryCta({
   descriptionLabel?: string
   descriptionPlaceholder?: string
   submitLabel?: string
+  // Renders an editable, prefilled contextual entity field (Services /
+  // Industries). The prefilled value is the matching selected* prop above.
+  contextKey?: ContextFieldKey
+  contextLabel?: string
+  contextPlaceholder?: string
 }) {
   const sourceInput: BuildSourceContextInput = {
     formVariant,
@@ -84,6 +96,9 @@ export function ContextualInquiryCta({
         descriptionLabel={descriptionLabel}
         descriptionPlaceholder={descriptionPlaceholder}
         submitLabel={submitLabel}
+        contextKey={contextKey}
+        contextLabel={contextLabel}
+        contextPlaceholder={contextPlaceholder}
       />
     </section>
   )

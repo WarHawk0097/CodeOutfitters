@@ -145,3 +145,53 @@ PRODUCTION_EMAIL_SENT: NO. DEPLOYED: NO. No production Supabase credentials
 used; no real Resend request; no fake upload tokens; no PII in analytics or
 logs; no raw IP persisted. File upload stays PREPARED_NOT_ACTIVATED (Work
 Order E activates it).
+
+---
+
+## Contextual Repair (WORK_ORDER_D_CONTEXTUAL_REPAIR)
+
+Focused corrections re-verified in Microsoft Edge (Playwright `channel:'msedge'`)
+against a dev server in `INQUIRY_REPOSITORY_MODE=pglite` with raised rate limits
+(`INQUIRY_RATE_LIMIT_IP=1000`, `INQUIRY_RATE_LIMIT_EMAIL=1000`).
+
+Harness: `scratchpad/edge-repair-qa.mjs` → **113/113 passed**.
+
+### Per-entity contextual prefills (proven on the wire, POST /api/inquiries)
+- SERVICES: `#whatsapp footer button` opens Services compact form with
+  `#services_compact-selectedService` = "WhatsApp Lead Automation"; field is
+  editable — edited value "WhatsApp Lead Automation (edited)" reaches the POST
+  body (`formVariant=services_compact`, `sourcePage=Services`, single POST).
+- INDUSTRIES: button "Talk about Healthcare Clinics / Med-Spas automation"
+  prefills `#industries_compact-selectedIndustry` = "Healthcare Clinics /
+  Med-Spas"; POST body carries the exact `selectedIndustry`
+  (`formVariant=industries_compact`, `sourcePage=Industries`).
+- CASE STUDIES: **no inline form** on the page (`#case_study_contextual-firstName`
+  count 0 and zero `[role=dialog]` before CTA). "Get a similar system" opens the
+  SHARED popup rendering the `case_study_contextual` variant; prefilled
+  `selectedCaseStudy` = "How a Real Estate Agency Doubled Lead Response Rate";
+  POST body carries `selectedCaseStudy`, mapped `selectedService` =
+  "WhatsApp Lead Automation", and `sourceSection=case-studies-card-real-estate-whatsapp`.
+- SECURITY: `security_contextual` POST carries stable topic
+  `selectedService` = "Security & Compliance Review" (not path-derived),
+  `sourcePage=Security`.
+
+### Files step (Option A — honest inert)
+Contact step "Files": zero `input[type=file]`, an `aria-disabled="true"` control,
+honest label "…enabled when secure storage is connected", zero "uploaded" text.
+
+### Independent auto triggers (three separate mechanisms)
+- 25s engagement timer opens the popup (verified with a real 25s wait).
+- 50% document scroll opens the popup (distinct from exit intent).
+- Desktop exit-intent (`mouseout clientY<=0`, viewport ≥1024) opens the popup.
+- First-trigger-wins: after scroll opens it, a subsequent exit-intent does NOT
+  open a second dialog (dialog count stays 1).
+
+### Viewport sweep (4 viewports × 5 routes = 20 pages)
+1440×900, 768×1024, 375×812, 390×844 across /services /industries /case-studies
+/security /contact: zero horizontal overflow, zero console errors, zero page
+errors, zero unexpected failed requests on every page.
+
+### Gates
+`npx tsc --noEmit` → exit 0. `npm test` → 68 passed (57 original + 11 new:
+6 contextual-prefill mapping, 4 placement-payload, 1 persisted-contextual-fields).
+`npm run build` → exit 0. ESLint state left deferred/unchanged per owner.

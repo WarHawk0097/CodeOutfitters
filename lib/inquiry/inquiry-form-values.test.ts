@@ -4,7 +4,16 @@ import {
   FullInquiryValuesSchema,
   buildInquiryRequest,
 } from "./inquiry-form-values";
-import type { InquirySourceContext } from "./inquiry-source-context";
+import {
+  buildSourceContext,
+  type InquirySourceContext,
+} from "./inquiry-source-context";
+import {
+  servicePrefill,
+  industryPrefill,
+  caseStudyPrefill,
+  securityPrefill,
+} from "./inquiry-contextual-prefill";
 
 const source: InquirySourceContext = {
   inquirySource: "services_compact",
@@ -142,5 +151,78 @@ describe("FullInquiryValuesSchema", () => {
       consent: { privacyAccepted: true, marketingOptIn: false },
     });
     expect(result.success).toBe(false);
+  });
+});
+
+
+// Exact wire payload proof per contextual placement (Work Order D §5). Each
+// placement maps a clicked entity through the typed prefill layer, folds it into
+// the SSR-safe source context, and assembles the body buildInquiryRequest sends
+// to POST /api/inquiries. Asserts formVariant, the exact selected* value, and
+// the source attribution — the same values the browser QA verifies on the wire.
+const compactAnswers = {
+  firstName: "Ada",
+  workEmail: "ada@example.com",
+  businessName: "Looms",
+  workflowDescription: "Automate invoicing.",
+  consent: { privacyAccepted: true as const, marketingOptIn: false },
+};
+
+function placementRequest(
+  formVariant: Parameters<typeof buildSourceContext>[0]["formVariant"],
+  pageName: string,
+  prefill: {
+    selectedService?: string;
+    selectedIndustry?: string;
+    selectedCaseStudy?: string;
+    sourceSection?: string;
+  },
+) {
+  const source = buildSourceContext({ formVariant, pageName, ...prefill });
+  return buildInquiryRequest({
+    submissionId: "sub-ctx",
+    formVariant,
+    source,
+    values: compactAnswers,
+  });
+}
+
+describe("contextual placement payloads", () => {
+  it("SERVICES: services_compact carries the exact clicked service + attribution", () => {
+    const request = placementRequest("services_compact", "Services", servicePrefill("whatsapp"));
+    expect(request.formVariant).toBe("services_compact");
+    expect(request.selectedService).toBe("WhatsApp Lead Automation");
+    expect(request.selectedIndustry).toBeUndefined();
+    expect(request.sourcePage).toBe("Services");
+    expect(request.sourceSection).toBe("services-card-whatsapp");
+  });
+
+  it("INDUSTRIES: industries_compact carries the exact clicked industry + attribution", () => {
+    const request = placementRequest("industries_compact", "Industries", industryPrefill("healthcare"));
+    expect(request.formVariant).toBe("industries_compact");
+    expect(request.selectedIndustry).toBe("Healthcare Clinics / Med-Spas");
+    expect(request.selectedService).toBeUndefined();
+    expect(request.sourcePage).toBe("Industries");
+    expect(request.sourceSection).toBe("industries-card-healthcare");
+  });
+
+  it("CASE STUDIES: case_study_contextual carries the case study + mapped service", () => {
+    const request = placementRequest(
+      "case_study_contextual",
+      "Case Studies",
+      caseStudyPrefill("real-estate-whatsapp"),
+    );
+    expect(request.formVariant).toBe("case_study_contextual");
+    expect(request.selectedCaseStudy).toBe("How a Real Estate Agency Doubled Lead Response Rate");
+    expect(request.selectedService).toBe("WhatsApp Lead Automation");
+    expect(request.sourcePage).toBe("Case Studies");
+    expect(request.sourceSection).toBe("case-studies-card-real-estate-whatsapp");
+  });
+
+  it("SECURITY: security_contextual carries the stable security topic", () => {
+    const request = placementRequest("security_contextual", "Security", securityPrefill());
+    expect(request.formVariant).toBe("security_contextual");
+    expect(request.selectedService).toBe("Security & Compliance Review");
+    expect(request.sourceSection).toBe("security-inline");
   });
 });

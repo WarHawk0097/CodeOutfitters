@@ -103,6 +103,42 @@ export function InquiryText({
   )
 }
 
+// Controlled variant for values the shared FORM schema does not own — the
+// contextual entity (selectedService / selectedIndustry / selectedCaseStudy)
+// lives in source attribution, not form state, so it is fed by value/onChange
+// rather than a react-hook-form registration. Prefilled from a CTA, editable,
+// and cleared when a new CTA supplies a different entity.
+type ControlledTextProps = FieldShell & {
+  value: string
+  onChange: (value: string) => void
+  placeholder?: string
+}
+
+export function InquiryControlledText({
+  id,
+  label,
+  helper,
+  value,
+  onChange,
+  placeholder,
+}: ControlledTextProps) {
+  return (
+    <div>
+      <Label id={id} label={label} />
+      <input
+        id={id}
+        type="text"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        aria-describedby={describedBy(id, undefined, helper)}
+        className={`${inputClass} ${borderClass(false)}`}
+      />
+      <Helper id={id} helper={helper} />
+    </div>
+  )
+}
+
 type TextareaProps = FieldShell & {
   registration: UseFormRegisterReturn
   rows?: number

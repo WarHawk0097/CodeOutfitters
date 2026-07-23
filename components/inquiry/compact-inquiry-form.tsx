@@ -4,6 +4,7 @@
 // body). Four fields + consent, driven by the shared engine. Same component
 // powers the global popup, the Services placement, and the Industries
 // placement; copy and formVariant differ per placement, mechanics do not.
+import { useEffect, useState } from 'react'
 import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import type { FormVariant, InquirySubmissionResponse } from '@/lib/inquiry/inquiry-schema'
@@ -12,11 +13,17 @@ import type { BuildSourceContextInput } from '@/lib/inquiry/inquiry-source-conte
 import { useInquiryForm } from './use-inquiry-form'
 import {
   InquiryText,
+  InquiryControlledText,
   InquiryTextarea,
   InquiryCheckbox,
   InquiryHoneypot,
 } from './inquiry-fields'
 import { InquirySuccess } from './inquiry-success'
+
+// The contextual entity a placement prefills. It lives in source attribution
+// (not the form schema), so the form owns it as controlled state and merges it
+// into the source at submit — that is what makes it both prefilled and editable.
+export type ContextFieldKey = 'selectedService' | 'selectedIndustry' | 'selectedCaseStudy'
 
 export type CompactInquiryFormProps = {
   formVariant: FormVariant
@@ -28,6 +35,12 @@ export type CompactInquiryFormProps = {
   // Industries) rendered above the consent block.
   beforeConsent?: React.ReactNode
   onSuccess?: (response: InquirySubmissionResponse) => void
+  // Editable contextual entity field (Services/Industries/Case Studies). When
+  // set, an input prefilled from sourceInput[contextKey] renders above the
+  // workflow description; its live value overrides the static attribution.
+  contextKey?: ContextFieldKey
+  contextLabel?: string
+  contextPlaceholder?: string
 }
 
 export function CompactInquiryForm({
@@ -38,12 +51,29 @@ export function CompactInquiryForm({
   submitLabel,
   beforeConsent,
   onSuccess,
+  contextKey,
+  contextLabel,
+  contextPlaceholder,
 }: CompactInquiryFormProps) {
+  // Prefill value the placement supplied for the contextual entity.
+  const prefill = contextKey ? sourceInput[contextKey] ?? '' : ''
+  const [contextValue, setContextValue] = useState(prefill)
+  // A new CTA (different prefill) replaces the field so one placement's entity
+  // never lingers into another; user edits within the same prefill are kept.
+  useEffect(() => {
+    setContextValue(prefill)
+  }, [prefill])
+
+  // Live source: the edited contextual entity wins over the static attribution.
+  const liveSource: BuildSourceContextInput = contextKey
+    ? { ...sourceInput, [contextKey]: contextValue.trim() || undefined }
+    : sourceInput
+
   const { form, status, errorMessage, response, onSubmit, honeypot, markStarted } =
     useInquiryForm({
       schema: CompactInquiryValuesSchema,
       formVariant,
-      sourceInput,
+      sourceInput: liveSource,
       defaultValues: {
         firstName: '',
         workEmail: '',
@@ -113,6 +143,16 @@ export function CompactInquiryForm({
         registration={register('businessName')}
         error={errors.businessName?.message}
       />
+
+      {contextKey && (
+        <InquiryControlledText
+          id={`${formVariant}-${contextKey}`}
+          label={contextLabel ?? 'Which system?'}
+          value={contextValue}
+          onChange={setContextValue}
+          placeholder={contextPlaceholder}
+        />
+      )}
 
       <InquiryTextarea
         id={`${formVariant}-workflowDescription`}

@@ -13,6 +13,7 @@ import { usePathname } from 'next/navigation'
 import { X } from 'lucide-react'
 import { gsap } from 'gsap'
 import type { BuildSourceContextInput } from '@/lib/inquiry/inquiry-source-context'
+import type { FormVariant } from '@/lib/inquiry/inquiry-schema'
 import {
   canAutoShowPopup,
   markAutoDisplayed,
@@ -20,10 +21,32 @@ import {
   markSubmitted,
 } from '@/lib/inquiry/inquiry-popup-suppression'
 import { trackInquiryEvent } from '@/lib/inquiry/inquiry-analytics'
-import { CompactInquiryForm } from './compact-inquiry-form'
+import { CompactInquiryForm, type ContextFieldKey } from './compact-inquiry-form'
 
 // Any CTA can open the popup by dispatching this event on window.
 export const OPEN_WORKFLOW_AUDIT_EVENT = 'open-workflow-audit'
+
+// A contextual manual open (e.g. a case-study CTA) carries its own placement,
+// source attribution and copy so the shared popup renders as that placement
+// instead of the default global popup.
+export type InquiryPopupContext = {
+  formVariant: FormVariant
+  sourceInput: BuildSourceContextInput
+  heading?: string
+  description?: string
+  descriptionLabel?: string
+  descriptionPlaceholder?: string
+  submitLabel?: string
+  contextKey?: ContextFieldKey
+  contextLabel?: string
+  contextPlaceholder?: string
+}
+
+// Open the shared popup from anywhere. With no argument it opens the default
+// global popup; with a context it opens as that contextual placement.
+export function openInquiryPopup(context?: InquiryPopupContext): void {
+  window.dispatchEvent(new CustomEvent(OPEN_WORKFLOW_AUDIT_EVENT, { detail: context ?? null }))
+}
 
 const ENGAGEMENT_DELAY_MS = 25_000
 const SCROLL_TRIGGER_RATIO = 0.5
@@ -41,23 +64,33 @@ const FOCUSABLE =
 export function WorkflowAuditPopup() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
+  // Non-null when opened by a contextual CTA; null = default global popup.
+  const [context, setContext] = useState<InquiryPopupContext | null>(null)
   const panelRef = useRef<HTMLDivElement>(null)
   const restoreFocusRef = useRef<HTMLElement | null>(null)
   const openedOnceRef = useRef(false)
 
-  const sourceInput: BuildSourceContextInput = {
+  const activeFormVariant = context?.formVariant ?? 'global_popup'
+  const activeSourceInput: BuildSourceContextInput = context?.sourceInput ?? {
     formVariant: 'global_popup',
     pageName: SOURCE_PAGE,
   }
 
-  const openPopup = useCallback((auto: boolean) => {
-    if (openedOnceRef.current && auto) return
-    openedOnceRef.current = true
-    if (auto) markAutoDisplayed(Date.now())
-    restoreFocusRef.current = (document.activeElement as HTMLElement) ?? null
-    setOpen(true)
-    trackInquiryEvent('inquiry_popup_opened', { formVariant: 'global_popup', sourcePage: SOURCE_PAGE })
-  }, [])
+  const openPopup = useCallback(
+    (auto: boolean, nextContext: InquiryPopupContext | null = null) => {
+      if (openedOnceRef.current && auto) return
+      openedOnceRef.current = true
+      if (auto) markAutoDisplayed(Date.now())
+      setContext(nextContext)
+      restoreFocusRef.current = (document.activeElement as HTMLElement) ?? null
+      setOpen(true)
+      trackInquiryEvent('inquiry_popup_opened', {
+        formVariant: nextContext?.formVariant ?? 'global_popup',
+        sourcePage: nextContext?.sourceInput.pageName ?? SOURCE_PAGE,
+      })
+    },
+    [],
+  )
 
   const closePopup = useCallback(
     (dismissed: boolean) => {
@@ -92,7 +125,10 @@ export function WorkflowAuditPopup() {
   // Manual-open listener: CTAs dispatch OPEN_WORKFLOW_AUDIT_EVENT. Manual opens
   // bypass suppression (spec §7 "manual CTAs stay available").
   useEffect(() => {
-    const handler = () => openPopup(false)
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<InquiryPopupContext | null>).detail ?? null
+      openPopup(false, detail)
+    }
     window.addEventListener(OPEN_WORKFLOW_AUDIT_EVENT, handler)
     return () => window.removeEventListener(OPEN_WORKFLOW_AUDIT_EVENT, handler)
   }, [openPopup])
@@ -257,21 +293,28 @@ export function WorkflowAuditPopup() {
             id="workflow-audit-heading"
             className="font-display text-2xl font-semibold leading-tight text-[var(--brand-text)]"
           >
-            What is eating your team&apos;s time?
+            {context?.heading ?? "What is eating your team's time?"}
           </h2>
           <p id="workflow-audit-desc" className="mt-2 text-sm leading-relaxed text-[var(--brand-muted)]">
-            Tell us where the manual work happens. We&apos;ll show you what can be
-            automated and what is not worth automating.
+            {context?.description ??
+              "Tell us where the manual work happens. We'll show you what can be automated and what is not worth automating."}
           </p>
         </div>
 
         <div data-stagger>
           <CompactInquiryForm
-            formVariant="global_popup"
-            sourceInput={sourceInput}
-            descriptionLabel="What would you like to automate?"
-            descriptionPlaceholder="e.g. Every new lead from our site has to be copied into the CRM by hand."
-            submitLabel="Get my free workflow audit"
+            key={activeFormVariant}
+            formVariant={activeFormVariant}
+            sourceInput={activeSourceInput}
+            descriptionLabel={context?.descriptionLabel ?? 'What would you like to automate?'}
+            descriptionPlaceholder={
+              context?.descriptionPlaceholder ??
+              'e.g. Every new lead from our site has to be copied into the CRM by hand.'
+            }
+            submitLabel={context?.submitLabel ?? 'Get my free workflow audit'}
+            contextKey={context?.contextKey}
+            contextLabel={context?.contextLabel}
+            contextPlaceholder={context?.contextPlaceholder}
             onSuccess={onSuccess}
           />
         </div>

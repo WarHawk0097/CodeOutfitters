@@ -6,9 +6,11 @@ import { ArrowRight, Star, Home, ShoppingBag, HeartPulse, Scale, Truck, Wrench }
 import Link from 'next/link'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
 import { useMotionMode } from '@/components/motion-mode-provider'
-import { ContextualInquiryCta } from '@/components/inquiry/inquiry-cta'
+import { openInquiryPopup } from '@/components/inquiry/workflow-audit-popup'
+import { caseStudyPrefill, type CaseStudyId } from '@/lib/inquiry/inquiry-contextual-prefill'
 
 interface CaseStudy {
+  id: CaseStudyId
   icon: typeof Home
   industry: string
   system: string
@@ -22,6 +24,7 @@ interface CaseStudy {
 
 const caseStudies: CaseStudy[] = [
   {
+    id: 'real-estate-whatsapp',
     icon: Home, industry: 'Real Estate', system: 'WhatsApp Automation',
     title: 'How a Real Estate Agency Doubled Lead Response Rate',
     summary: 'A 3-agent office was losing leads to faster competitors. We built a WhatsApp bot that qualifies, responds, and books viewings 24/7.',
@@ -34,6 +37,7 @@ const caseStudies: CaseStudy[] = [
     ],
   },
   {
+    id: 'ecommerce-invoice',
     icon: ShoppingBag, industry: 'E-commerce', system: 'Invoice Automation',
     title: 'Invoice Processing Reduced from 4 Hours to 8 Minutes Daily',
     summary: 'An online retailer was manually creating invoices and reconciling orders. Our pipeline now handles 200+ invoices per day, error-free.',
@@ -46,6 +50,7 @@ const caseStudies: CaseStudy[] = [
     ],
   },
   {
+    id: 'healthcare-booking',
     icon: HeartPulse, industry: 'Healthcare', system: 'Booking Bot',
     title: 'Medical Clinic Eliminates 90% of Phone-Based Scheduling',
     summary: 'A busy clinic was overwhelmed by appointment calls. We deployed an AI booking bot that syncs with their calendar and sends reminders automatically.',
@@ -58,6 +63,7 @@ const caseStudies: CaseStudy[] = [
     ],
   },
   {
+    id: 'legal-intake',
     icon: Scale, industry: 'Legal', system: 'Intake Automation',
     title: 'Law Firm Cuts Client Intake From Half a Week to Minutes',
     summary: 'A busy practice had a paralegal manually processing every new client intake form by hand, delaying case starts.',
@@ -71,6 +77,7 @@ const caseStudies: CaseStudy[] = [
     sample: true,
   },
   {
+    id: 'logistics-dispatch',
     icon: Truck, industry: 'Logistics', system: 'Dispatch Automation',
     title: 'Logistics Company Automates Dispatch in Six Days',
     summary: 'A regional carrier was coordinating drivers and jobs through phone calls and spreadsheets, with no reliable record of what was assigned.',
@@ -84,6 +91,7 @@ const caseStudies: CaseStudy[] = [
     sample: true,
   },
   {
+    id: 'hvac-whatsapp',
     icon: Wrench, industry: 'Home Services', system: 'WhatsApp Automation',
     title: 'HVAC Company Triples Review Volume With an Automated Follow-Up',
     summary: 'An HVAC business was quoting and booking jobs by phone, and rarely remembered to ask happy customers for a review.',
@@ -97,6 +105,30 @@ const caseStudies: CaseStudy[] = [
     sample: true,
   },
 ]
+
+// Every "Get a similar system" CTA opens the single shared inquiry popup as the
+// case_study_contextual placement, carrying the case study + its mapped service.
+function openCaseStudyInquiry(study: CaseStudy) {
+  const prefill = caseStudyPrefill(study.id)
+  openInquiryPopup({
+    formVariant: 'case_study_contextual',
+    sourceInput: {
+      formVariant: 'case_study_contextual',
+      pageName: 'Case Studies',
+      sourceSection: prefill.sourceSection,
+      selectedCaseStudy: prefill.selectedCaseStudy,
+      selectedService: prefill.selectedService,
+    },
+    heading: 'Want results like this for your business?',
+    description: `This ${study.industry.toLowerCase()} build started as one manual workflow. Tell us yours and we will show you what is worth automating first.`,
+    descriptionLabel: 'What would you like to automate?',
+    descriptionPlaceholder: 'e.g. we spend hours a week chasing invoices and rebooking no-shows.',
+    submitLabel: 'Get my free workflow audit',
+    contextKey: 'selectedCaseStudy',
+    contextLabel: 'Which result caught your eye?',
+    contextPlaceholder: 'e.g. faster lead response',
+  })
+}
 
 const industries = ['All', 'Real Estate', 'E-commerce', 'Healthcare', 'Legal', 'Logistics', 'Home Services']
 
@@ -271,7 +303,7 @@ function CaseStudyCard({ study, index, expanded, onToggle }: { study: CaseStudy;
           )}
         </AnimatePresence>
         <div className="grid grid-cols-3 overflow-hidden mb-3" style={{background:'linear-gradient(165deg,#0E2A1D,#08160F)',borderRadius:14}}>{study.metrics.map((m)=><div key={m.label} className="text-center flex flex-col py-[14px] px-2"><div className="text-[21px] font-bold" style={{fontFamily:"'Space Grotesk',sans-serif",color:'#2BD483'}}>{m.value}</div><span className="text-[9.5px] font-semibold uppercase leading-tight" style={{color:'rgba(245,240,232,.55)'}}>{m.label}</span></div>)}</div>
-        <div className="flex items-center justify-between gap-3 mt-auto"><button onClick={onToggle} className="inline-flex items-center gap-1.5 text-xs font-semibold" style={{color:'#0E2A1D'}}>{expanded?'Hide full story':'Read the full story'}<ArrowRight className={`w-3.5 h-3.5 transition-transform ${expanded?'rotate-90':''}`}/></button><Link href="/contact" className="inline-flex items-center gap-1.5 text-xs font-semibold underline underline-offset-4" style={{color:'#0E2A1D'}}>Get a similar system<ArrowRight className="w-3.5 h-3.5"/></Link></div>
+        <div className="flex items-center justify-between gap-3 mt-auto"><button onClick={onToggle} className="inline-flex items-center gap-1.5 text-xs font-semibold" style={{color:'#0E2A1D'}}>{expanded?'Hide full story':'Read the full story'}<ArrowRight className={`w-3.5 h-3.5 transition-transform ${expanded?'rotate-90':''}`}/></button><button type="button" onClick={() => openCaseStudyInquiry(study)} className="inline-flex items-center gap-1.5 text-xs font-semibold underline underline-offset-4" style={{color:'#0E2A1D'}}>Get a similar system<ArrowRight className="w-3.5 h-3.5"/></button></div>
       </div>
     </motion.div>
   )
@@ -446,18 +478,6 @@ export function CaseStudiesPageClient() {
       <CaseStudiesHero />
       <CaseStudiesGrid />
       <TestimonialsRotator />
-      <section className="px-5 md:px-8 py-16 md:py-24" style={{ background: '#F7F2EA' }}>
-        <ContextualInquiryCta
-          formVariant="case_study_contextual"
-          pageName="Case Studies"
-          sourceSection="case-studies-inline"
-          heading="Want results like these for your business?"
-          description="Every case study above started as one manual workflow. Tell us yours and we will show you what is worth automating first."
-          descriptionLabel="What would you like to automate?"
-          descriptionPlaceholder="e.g. we spend hours a week chasing invoices and rebooking no-shows."
-          submitLabel="Get my free workflow audit"
-        />
-      </section>
       <ApprovedCaseCTA />
     </>
   )
