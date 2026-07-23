@@ -13,7 +13,7 @@ import {
   getDay,
   isSameDay,
 } from 'date-fns'
-import { ChevronLeft, ChevronRight, Loader2, CheckCircle } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Loader2, CalendarClock } from 'lucide-react'
 import { detectTimezone } from './timezone-selector'
 
 /* ─── Approved constants ─────────────────────────────────────────────── */
@@ -940,13 +940,13 @@ export function ContactBookingFlow(_props: ContactBookingFlowProps) {
                           boxShadow: '0 14px 34px rgba(43,212,131,.28)',
                           transition: 'transform .15s ease, box-shadow .15s ease',
                         }}>
-                          Request this time
+                          Review this time
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                         </button>
                       </div>
 
                       <p style={{ margin: 0, font: "400 11.5px/1.5 'Instrument Sans',sans-serif", color: '#9A927F', textAlign: 'center' }}>
-                        No time is reserved until our scheduler confirms by email. Live booking (<code style={{ fontSize: '11px' }}>POST /api/bookings</code>) is <strong>PROPOSED — NOT YET IMPLEMENTED</strong>.
+                        No time is held until we confirm your call by email.
                       </p>
                     </div>
                   )}
@@ -962,11 +962,10 @@ export function ContactBookingFlow(_props: ContactBookingFlowProps) {
                       borderRadius: '18px', padding: '32px 24px',
                     }}>
                       <span style={{
-                        width: '54px', height: '54px', borderRadius: '999px', background: '#128A54', color: '#fff',
+                        width: '54px', height: '54px', borderRadius: '999px', background: '#E8EDEA', color: '#0E2A1D',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        animation: 'checkPop .5s cubic-bezier(.34,1.56,.64,1)',
                       }}>
-                        <CheckCircle size={24} />
+                        <CalendarClock size={24} />
                       </span>
                       <span style={{
                         font: "700 10px 'Instrument Sans',sans-serif", letterSpacing: '.09em',
@@ -974,19 +973,19 @@ export function ContactBookingFlow(_props: ContactBookingFlowProps) {
                         border: '1px solid rgba(217,179,106,.5)', borderRadius: '999px',
                         padding: '5px 12px', textTransform: 'uppercase' as const,
                       }}>
-                        Booking request prepared — live scheduling is not yet connected
+                        Online booking not connected
                       </span>
-                      <h3 style={{ margin: 0, font: "600 21px 'Space Grotesk',sans-serif", color: '#0A120E' }}>Your request is ready</h3>
+                      <h3 style={{ margin: 0, font: "600 21px 'Space Grotesk',sans-serif", color: '#0A120E' }}>Time selected</h3>
                       <div style={{ font: "600 15px 'Instrument Sans',sans-serif", color: '#0A452B' }}>
                         {selDateLabel}<br />{selSlotTime} · 30 min · {tzLabelFull}
                       </div>
                       <p style={{ margin: 0, font: "400 13.5px/1.6 'Instrument Sans',sans-serif", color: '#5B6355', maxWidth: '340px' }}>
-                        This is a design-preview summary. No calendar slot is held — live booking requires the scheduling backend (<strong>PROPOSED — NOT YET IMPLEMENTED</strong>). In production you'd get an email confirmation once the provider reserves the slot.
+                        Online booking is not connected yet. Contact us to confirm this time.
                       </p>
                       <button type="button" onClick={bkReset} style={{
                         marginTop: '2px', font: "600 14px 'Instrument Sans',sans-serif", color: '#0E2A1D',
                         background: '#F4EEE2', border: 'none', borderRadius: '11px', padding: '12px 20px', cursor: 'pointer',
-                      }}>Choose a different time</button>
+                      }}>Choose another time</button>
                     </div>
                   )}
                 </div>
@@ -1012,7 +1011,6 @@ export function ContactBookingFlow(_props: ContactBookingFlowProps) {
         @keyframes bkValIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
         @keyframes bkPanelIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
         @keyframes tzPop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
-        @keyframes checkPop{0%{transform:scale(.5);opacity:0}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
 
         .cta-sweep{position:relative;overflow:hidden}
         .cta-sweep::before{content:'';position:absolute;top:0;bottom:0;left:-60%;width:40%;background:linear-gradient(110deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-18deg);transition:left .65s cubic-bezier(.16,1,.3,1)}
