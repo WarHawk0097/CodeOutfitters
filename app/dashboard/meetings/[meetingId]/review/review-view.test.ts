@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { createSeedState } from "../../../../../lib/demo/seed";
-import { findMeeting, ReviewContent } from "./review-view";
+import { findMeeting, ReviewContent, TranscriptPanel } from "./review-view";
 
 const state = createSeedState();
 // mtg-002 (Priyanka Rao) is the NEEDS REVIEW record with real review counts; mtg-001 is a
@@ -104,10 +104,17 @@ describe("meeting review route (M-D12/M-D13)", () => {
   });
 
   // 11
-  it("does not navigate to the not-yet-built transcript route", () => {
-    // The Transcript tab exists as a local switch, but nothing links to the separate
-    // (unbuilt) /transcript route — it must never dead-link there.
-    expect(markup()).not.toContain('href="/dashboard/meetings/mtg-002/transcript"');
+  it("opens the full transcript route only for a record with a ready transcript", () => {
+    // mtg-002 has "Ready · 48 min" — the Transcript tab links to the detail route.
+    const ready = findMeeting(state, REVIEW_ID)!;
+    const readyHtml = renderToStaticMarkup(createElement(TranscriptPanel, { meeting: ready }));
+    expect(readyHtml).toContain('href="/dashboard/meetings/mtg-002/transcript"');
+    // mtg-001 has "—" — nothing to open, so the control is disabled and never dead-links.
+    const none = findMeeting(state, EMPTY_ID)!;
+    const noneHtml = renderToStaticMarkup(createElement(TranscriptPanel, { meeting: none }));
+    expect(noneHtml).not.toContain('href="/dashboard/meetings/mtg-001/transcript"');
+    expect(noneHtml).toContain("disabled");
+    // The tab itself is present in the shell.
     expect(markup()).toContain("review-tab-Transcript");
   });
 

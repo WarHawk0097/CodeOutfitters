@@ -16,9 +16,9 @@
 //     Updates") is DISABLED with a canonical unavailable reason. The verbatim M-D13
 //     guard ("Nothing is applied to the CRM until you Review and Apply Updates") is
 //     honoured: nothing is applied because nothing can be, and the screen says so.
-//   - The full transcript lives at a SEPARATE route (/transcript, M-D14/M-D15) that is
-//     not built yet, so the Transcript tab links to nothing and its open control stays
-//     disabled — it never fabricates a transcript feed here.
+//   - The full transcript lives at a SEPARATE route (/transcript, M-D14/M-D15). The
+//     Transcript tab links there when the record has a ready transcript and keeps the
+//     open control disabled when it has none — it never fabricates a transcript feed here.
 import { useId, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -246,9 +246,9 @@ function SummaryPanel({ meeting, noteId }: { meeting: Meeting; noteId: string })
 }
 
 // The Transcript TAB is a pointer, not the transcript. The full transcript is a separate
-// canonical route (M-D14/M-D15) that is not built yet, so this never fabricates a feed —
-// it links to nothing and keeps the open control disabled.
-function TranscriptPanel({ meeting }: { meeting: Meeting }) {
+// canonical route (M-D14/M-D15). The full transcript opens there when the record has a
+// ready transcript; a record with none keeps the open control disabled and never dead-links.
+export function TranscriptPanel({ meeting }: { meeting: Meeting }) {
   const hasTranscript = meeting.transcript.trim() !== "" && meeting.transcript.trim() !== "—";
   return (
     <div>
@@ -259,16 +259,26 @@ function TranscriptPanel({ meeting }: { meeting: Meeting }) {
         {hasTranscript ? meeting.transcript : "No transcript — nothing was recorded in demo mode."}
       </p>
       <p className="mt-2 text-[11.5px] leading-[1.5] text-cc-t3">
-        The full transcript opens in its own review route, which is not available yet. No
-        provider is connected in demo mode, so there is no captured audio or transcript to open.
+        The full transcript opens in its own detail route. No provider is connected in demo
+        mode, so a record with a ready transcript shows a clearly-marked sample; a record with
+        none has nothing to open.
       </p>
-      <button
-        type="button"
-        disabled
-        className="mt-3 cursor-not-allowed rounded-cc-control border border-cc-line px-3 py-1.5 text-[12px] font-semibold text-cc-t3"
-      >
-        Open full transcript
-      </button>
+      {hasTranscript ? (
+        <Link
+          href={`/dashboard/meetings/${meeting.id}/transcript`}
+          className="mt-3 inline-block rounded-cc-control border border-cc-line px-3 py-1.5 text-[12px] font-semibold text-cc-green-ink outline-none hover:bg-cc-soft focus-visible:ring-2 focus-visible:ring-cc-green-border"
+        >
+          Open full transcript
+        </Link>
+      ) : (
+        <button
+          type="button"
+          disabled
+          className="mt-3 cursor-not-allowed rounded-cc-control border border-cc-line px-3 py-1.5 text-[12px] font-semibold text-cc-t3"
+        >
+          Open full transcript
+        </button>
+      )}
     </div>
   );
 }
