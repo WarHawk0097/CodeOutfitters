@@ -21,169 +21,39 @@ import { useDemoQuery } from "../../../../../components/demo/use-demo-query";
 import { RouteError, RouteLoading } from "../../../../../components/demo/route-states";
 import { TextAreaField, TextField } from "../../../../../components/demo/field";
 
-// ─── Money (integer cents; exact sums, validated parsing) ────────────────────────────────────────
+// Money, canonical fixtures, and validation invariants live in the shared proposal domain
+// (lib/command-center/proposals) so the builder and the preview share one formatter, one canonical
+// total, and one milestone/validation source. Re-exported here so this module keeps a single import
+// surface for its tests.
+import {
+  dollarsToCents,
+  formatUsd,
+  parseAmountToCents,
+  sumCents,
+} from "../../../../../lib/command-center/proposals/money";
+import { isScheduleBalanced, scheduleTotalPct } from "../../../../../lib/command-center/proposals/validation";
+import { buildProposalDetail, CANONICAL_DEMO_PROPOSAL_ID } from "../../../../../lib/command-center/proposals/fixtures";
+import type {
+  BuilderSection,
+  Milestone,
+  PricingLine,
+  ProposalBuilderDetail,
+  ValidationItem,
+  ValidationStatus,
+} from "../../../../../lib/command-center/proposals/model";
+
+export { dollarsToCents, formatUsd, parseAmountToCents, sumCents, isScheduleBalanced, scheduleTotalPct, buildProposalDetail, CANONICAL_DEMO_PROPOSAL_ID };
+export type { BuilderSection, Milestone, PricingLine, ProposalBuilderDetail, ValidationItem, ValidationStatus };
+
 const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 
-/** Seed proposal values are whole dollars (lib/demo/seed `value: 86400`). */
-export function dollarsToCents(dollars: number): number {
-  return Math.round(dollars * 100);
-}
-
-/** Format integer cents as USD. Whole-dollar amounts render without cents, matching the frames. */
-export function formatUsd(cents: number): string {
-  const whole = cents % 100 === 0;
-  return whole
-    ? usd.format(cents / 100)
-    : new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(cents / 100);
-}
-
-/**
- * Parse a user-entered amount into integer cents. Rejects everything that would corrupt a total:
- * empty, non-numeric, NaN, Infinity, negative, and more than two decimal places. Accepts an optional
- * thousands separator and a leading `$`.
- */
-export function parseAmountToCents(input: string): { ok: true; cents: number } | { ok: false } {
-  const cleaned = input.trim().replace(/^\$/, "").replace(/,/g, "");
-  if (cleaned === "") return { ok: false };
-  if (!/^\d+(\.\d{1,2})?$/.test(cleaned)) return { ok: false };
-  const value = Number(cleaned);
-  if (!Number.isFinite(value) || value < 0) return { ok: false };
-  return { ok: true, cents: Math.round(value * 100) };
-}
-
-/** Sum of the parseable line amounts, in cents. Invalid lines are excluded, never coerced to 0-total. */
-export function sumCents(amounts: readonly string[]): number {
-  return amounts.reduce((total, raw) => {
-    const parsed = parseAmountToCents(raw);
-    return parsed.ok ? total + parsed.cents : total;
-  }, 0);
-}
-
-/** Total of the milestone payment percentages. A valid schedule sums to exactly 100. */
-export function scheduleTotalPct(milestones: readonly { paymentPct: number }[]): number {
-  return milestones.reduce((total, m) => total + m.paymentPct, 0);
-}
-
-export function isScheduleBalanced(milestones: readonly { paymentPct: number }[]): boolean {
-  return scheduleTotalPct(milestones) === 100;
-}
-
-/** Immutable move-up / move-down. Out-of-range moves return the list unchanged (used for a11y reorder). */
+/** Immutable move-up / move-down; out-of-range moves return the list unchanged (used for a11y reorder). */
 export function moveItem<T>(list: readonly T[], index: number, direction: -1 | 1): T[] {
   const target = index + direction;
   if (index < 0 || index >= list.length || target < 0 || target >= list.length) return [...list];
   const next = [...list];
   [next[index], next[target]] = [next[target], next[index]];
   return next;
-}
-
-// ─── Canonical builder detail ─────────────────────────────────────────────────────────────────────
-export const CANONICAL_DEMO_PROPOSAL_ID = "PRO-2034";
-
-export type BuilderSection = {
-  id: string;
-  name: string;
-  required: boolean;
-  kind: "content" | "pricing" | "milestones";
-  body: string;
-};
-
-export type PricingLine = { id: string; name: string; detail: string; cents: number };
-export type Milestone = { id: string; name: string; timing: string; paymentPct: number };
-export type ValidationStatus = "valid" | "review" | "blocked";
-export type ValidationItem = { id: string; label: string; status: ValidationStatus };
-
-export type ProposalBuilderDetail = {
-  title: string;
-  version: string;
-  sections: BuilderSection[];
-  pricing: PricingLine[];
-  netTerms: string;
-  milestones: Milestone[];
-  validation: ValidationItem[];
-  blockedReason: string | null;
-};
-
-// The canonical section spine. Order is template-defined (proposal-templates.json "Section order")
-// and REQ flags follow "Required information" — no per-proposal pricing or timeline is baked in here.
-function canonicalSections(proposal: Proposal): BuilderSection[] {
-  return [
-    { id: "cover", name: "Cover", required: false, kind: "content", body: `${proposal.client} — proposal cover.` },
-    { id: "executive-summary", name: "Executive summary", required: true, kind: "content", body: "Executive summary of the engagement, outcomes, and value. Review before sending." },
-    { id: "context", name: "Understanding & context", required: false, kind: "content", body: `Current state and goals for ${proposal.client}.` },
-    { id: "proposed-solution", name: "Proposed solution", required: true, kind: "content", body: "Orders sync from SAP ERP with an approval gate before any write-back; today's manual re-keying is removed." },
-    { id: "scope", name: "Scope & deliverables", required: true, kind: "content", body: `Scope and deliverables for the ${proposal.service} engagement.` },
-    { id: "approach", name: "Approach & timeline", required: false, kind: "content", body: "Phased delivery approach, from discovery through acceptance." },
-    { id: "pricing", name: "Pricing", required: true, kind: "pricing", body: "" },
-    { id: "milestones", name: "Milestones & payment schedule", required: true, kind: "milestones", body: "" },
-    { id: "terms", name: "Terms & validity", required: true, kind: "content", body: "Payment terms Net 21. Applicable tax is set per client locale. Proposal valid for 30 days." },
-    { id: "case-studies", name: "Case studies", required: false, kind: "content", body: "Relevant, approved case studies only." },
-    { id: "team", name: "Team", required: false, kind: "content", body: "Delivery team and roles." },
-    { id: "assumptions", name: "Assumptions", required: false, kind: "content", body: "Assumptions the estimate depends on." },
-    { id: "next-steps", name: "Next steps", required: false, kind: "content", body: "Acceptance and kickoff next steps." },
-    { id: "appendix", name: "Appendix", required: false, kind: "content", body: "Supporting detail." },
-  ];
-}
-
-// Verbatim from the P-D07 frame: four lines summing to the seed total ($86,400), Net 21.
-const PRO_2034_PRICING: PricingLine[] = [
-  { id: "discovery", name: "Discovery & solution design", detail: "Requirements, solution canvas, delivery plan", cents: dollarsToCents(12000) },
-  { id: "build", name: "Core build — Custom Software", detail: "Approval-gated order sync and workflow", cents: dollarsToCents(48000) },
-  { id: "integrations", name: "Integrations — SAP ERP", detail: "Bi-directional sync with write-back gate", cents: dollarsToCents(16400) },
-  { id: "handover", name: "QA, deployment & handover", detail: "Testing, cutover, and enablement", cents: dollarsToCents(10000) },
-];
-
-// P-D08 frame: schedule sums to 100%.
-const PRO_2034_MILESTONES: Milestone[] = [
-  { id: "kickoff", name: "Kickoff & discovery", timing: "On signature", paymentPct: 20 },
-  { id: "design", name: "Design sign-off", timing: "Week 3", paymentPct: 20 },
-  { id: "build", name: "Build complete", timing: "Week 8", paymentPct: 40 },
-  { id: "acceptance", name: "Acceptance & handover", timing: "Week 11", paymentPct: 20 },
-];
-
-// P-D06 frame: "2 TO RESOLVE" with a BLOCKED banner on the unsupported uptime claim.
-const PRO_2034_VALIDATION: ValidationItem[] = [
-  { id: "pricing-sum", label: "Pricing lines sum to the proposal total", status: "valid" },
-  { id: "schedule", label: "Milestone schedule totals 100%", status: "valid" },
-  { id: "client", label: "Client and recipient details present", status: "valid" },
-  { id: "exec-review", label: "Executive summary reviewed", status: "review" },
-  { id: "uptime", label: "Uptime claim needs a source", status: "blocked" },
-];
-
-/**
- * Build the canonical builder detail for a demo proposal. PRO-2034 is modelled verbatim from the
- * frames. Any other real demo proposal renders honestly from the one canonical money fact we have —
- * its total value as a single line — with no invented breakdown, milestones, or validation findings.
- */
-export function buildProposalDetail(proposal: Proposal): ProposalBuilderDetail {
-  const sections = canonicalSections(proposal);
-  if (proposal.id === CANONICAL_DEMO_PROPOSAL_ID) {
-    return {
-      title: "Executive Solution Proposal",
-      version: proposal.version,
-      sections,
-      pricing: PRO_2034_PRICING,
-      netTerms: "Net 21",
-      milestones: PRO_2034_MILESTONES,
-      validation: PRO_2034_VALIDATION,
-      blockedReason: "Cannot send until the unsupported uptime claim is removed or sourced.",
-    };
-  }
-  return {
-    title: `${proposal.service} proposal`,
-    version: proposal.version,
-    sections: sections.filter((s) => s.kind !== "milestones"),
-    pricing: [
-      { id: "total", name: `${proposal.service} engagement`, detail: "Total set per proposal", cents: dollarsToCents(proposal.value) },
-    ],
-    netTerms: "Net 21",
-    milestones: [],
-    validation: [
-      { id: "client", label: "Client and recipient details present", status: "valid" },
-      { id: "review", label: "Proposal reviewed before sending", status: "review" },
-    ],
-    blockedReason: null,
-  };
 }
 
 // ─── Route shell: store lookup + loading / error / not-found ──────────────────────────────────────
@@ -300,8 +170,8 @@ export function BuilderWorkspace({
           </div>
           <p className="mt-1 text-[11px] text-cc-t3" aria-live="polite">
             {dirty
-              ? "Unsaved — changes in this demo workspace aren't saved."
-              : "Changes in this demo workspace aren't saved."}
+              ? "Unsaved — changes in this demo workspace aren't saved, and the preview shows the saved proposal."
+              : "Changes in this demo workspace aren't saved. The preview shows the saved proposal."}
           </p>
         </div>
         <div className="ml-auto flex flex-wrap items-center gap-2">
@@ -314,7 +184,12 @@ export function BuilderWorkspace({
               Discard edits
             </button>
           ) : null}
-          <GatedAction label="Preview" />
+          <Link
+            href={`/dashboard/proposals/${proposal.id}/preview`}
+            className="rounded-cc-control border border-cc-line px-3 py-1.5 text-[11.5px] font-semibold text-cc-ink transition-colors hover:border-cc-green-border"
+          >
+            Preview
+          </Link>
           <GatedAction label="Request review" />
           <GatedAction label="Save" primary />
         </div>

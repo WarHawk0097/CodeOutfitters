@@ -199,13 +199,15 @@ describe("proposal builder route (P-D03..P-D09 · SCREEN_PROPOSAL_BUILDER)", () 
     expect(html.toLowerCase()).toContain("uptime claim");
   });
 
-  // 20 — Save / Request review / Preview are disabled with accessible, honest reasons.
-  it("keeps Save, Request review, and Preview disabled with accessible reasons", () => {
+  // 20 — Save / Request review are backend-gated (disabled, accessible reason); Preview is a real link.
+  it("keeps Save and Request review disabled with accessible reasons and links Preview", () => {
     const html = workspace();
     for (const label of ["Save", "Request review", "Preview"]) expect(html).toContain(label);
-    expect((html.match(/disabled/g) || []).length).toBeGreaterThanOrEqual(3);
+    expect((html.match(/disabled/g) || []).length).toBeGreaterThanOrEqual(2);
     expect(html.toLowerCase()).toContain("available in the live workspace");
     expect(html).toContain("aria-describedby");
+    // Preview navigates to the now-built preview route.
+    expect(html).toContain('href="/dashboard/proposals/PRO-2034/preview"');
   });
 
   // 21 — honest unsaved posture, never a fake autosave or save confirmation.
@@ -232,10 +234,10 @@ describe("proposal builder route (P-D03..P-D09 · SCREEN_PROPOSAL_BUILDER)", () 
     expect(html).toContain("AI assistance may not invent pricing, timelines, case studies, or integrations.");
   });
 
-  // 24 — no dead links to the unbuilt preview / activity routes.
-  it("does not dead-link to the unbuilt preview or activity routes", () => {
+  // 24 — Preview links to the built preview route; the still-unbuilt activity route is never linked.
+  it("links the built preview route and does not dead-link the unbuilt activity route", () => {
     const html = workspace();
-    expect(html).not.toContain("/preview");
+    expect(html).toContain('href="/dashboard/proposals/PRO-2034/preview"');
     expect(html).not.toContain("/activity");
   });
 
