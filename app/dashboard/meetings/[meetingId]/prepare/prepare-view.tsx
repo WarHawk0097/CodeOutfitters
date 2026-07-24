@@ -177,12 +177,21 @@ export function PrepareContent({
                 className="mt-1 block w-full rounded-cc-control border border-cc-line px-2 py-1 text-[12px] text-cc-ink outline-none focus:border-cc-green-border"
               />
             </label>
+            {/* Disabled while the field is empty, with the reason announced:
+                previously it stayed enabled and silently did nothing. */}
             <button
               type="submit"
-              className="mb-1 rounded-cc-control border border-cc-green-border bg-cc-green-tint px-3 py-1.5 text-[12px] font-semibold text-cc-green-ink"
+              disabled={draft.trim() === ""}
+              aria-describedby="prepare-add-question-reason"
+              className="mb-1 rounded-cc-control border border-cc-green-border bg-cc-green-tint px-3 py-1.5 text-[12px] font-semibold text-cc-green-ink disabled:cursor-not-allowed disabled:border-cc-line disabled:bg-cc-secondary disabled:text-cc-t3"
             >
               Add
             </button>
+            {draft.trim() === "" ? (
+              <span id="prepare-add-question-reason" className="sr-only">
+                Type a question to add it.
+              </span>
+            ) : null}
           </form>
         </section>
 

@@ -163,18 +163,22 @@ function AccountFooter({
   );
 }
 
-// CANON 36. Presentational only: the canonical design shows a Collapse affordance
-// but defines no collapsed desktop frame, so there is nothing to reconstruct
-// behind it. Rendered non-interactive rather than as a button that does nothing.
-function CollapseRow() {
+// CANON 36. The collapsed desktop frame is the 72px icon rail the design already
+// defines for tablet, so Collapse now really collapses: it swaps the 248px nav
+// for that rail, and the rail carries the matching Expand control.
+function CollapseRow({ onCollapse }: { onCollapse: () => void }) {
   return (
-    <div className="flex h-9 items-center gap-[11px] px-[26px] text-[12.5px] text-cc-sidebar-muted">
+    <button
+      type="button"
+      onClick={onCollapse}
+      className={`flex h-9 w-full items-center gap-[11px] px-[26px] text-left text-[12.5px] text-cc-sidebar-muted hover:text-cc-sidebar-text ${ROW_FOCUS}`}
+    >
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} aria-hidden="true">
         <rect x="3" y="3" width="18" height="18" rx="2" />
         <path d="M9 3v18" />
       </svg>
       Collapse
-    </div>
+    </button>
   );
 }
 
@@ -354,7 +358,15 @@ export function NavDrawer({
 // C-D01 33-38: expanded 248px aside, xl (1280px) and above. Below xl the tablet
 // rail takes over — Tailwind's md (768px) would wrongly expand at 820px, which
 // is the canonical tablet width (Dashboard/docs/RESPONSIVE-SPEC.md).
-function ExpandedSidebar({ activeHref, linkAs }: { activeHref: string; linkAs?: LinkComponent }) {
+function ExpandedSidebar({
+  activeHref,
+  linkAs,
+  onCollapse,
+}: {
+  activeHref: string;
+  linkAs?: LinkComponent;
+  onCollapse: () => void;
+}) {
   return (
     <nav
       aria-label="Primary"
@@ -382,7 +394,7 @@ function ExpandedSidebar({ activeHref, linkAs }: { activeHref: string; linkAs?: 
           View website
           <span className="sr-only"> (opens in new tab)</span>
         </a>
-        <CollapseRow />
+        <CollapseRow onCollapse={onCollapse} />
         <div className="mt-[10px]">
           <AccountFooter logout />
         </div>
@@ -398,17 +410,24 @@ function IconRail({
   onOpen,
   open,
   triggerRef,
+  collapsed,
+  onExpand,
 }: {
   activeHref: string;
   linkAs?: LinkComponent;
   onOpen: () => void;
   open: boolean;
   triggerRef: RefObject<HTMLButtonElement | null>;
+  /** True when the rail is standing in for the collapsed 248px desktop nav. */
+  collapsed: boolean;
+  onExpand: () => void;
 }) {
   return (
     <nav
       aria-label="Primary"
-      className="hidden w-[72px] shrink-0 flex-col items-center self-stretch overflow-hidden bg-cc-sidebar-ink pt-[22px] pb-4 font-cc-sidebar md:flex xl:hidden"
+      className={`hidden w-[72px] shrink-0 flex-col items-center self-stretch overflow-hidden bg-cc-sidebar-ink pt-[22px] pb-4 font-cc-sidebar md:flex ${
+        collapsed ? "" : "xl:hidden"
+      }`}
     >
       <RailMark onOpen={onOpen} expanded={open} buttonRef={triggerRef} />
       {OPERATIONS_NAV.map((item) =>
@@ -429,8 +448,26 @@ function IconRail({
           </Link>
         ) : null,
       )}
-      <div className="mt-auto flex h-[30px] w-[30px] items-center justify-center rounded-[7px] bg-cc-avatar text-[11px] font-semibold text-cc-avatar-ink">
-        MR
+      <div className="mt-auto flex flex-col items-center gap-3">
+        {/* Only shown once Collapse has actually collapsed the desktop nav, and
+            only at the width where that nav exists. */}
+        {collapsed ? (
+          <button
+            type="button"
+            onClick={onExpand}
+            aria-label="Expand navigation"
+            title="Expand navigation"
+            className={`hidden h-10 w-11 items-center justify-center text-cc-sidebar-text hover:text-cc-sidebar-active xl:flex ${ROW_FOCUS}`}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} aria-hidden="true">
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M15 3v18" />
+            </svg>
+          </button>
+        ) : null}
+        <div className="flex h-[30px] w-[30px] items-center justify-center rounded-[7px] bg-cc-avatar text-[11px] font-semibold text-cc-avatar-ink">
+          MR
+        </div>
       </div>
     </nav>
   );
@@ -440,21 +477,34 @@ function IconRail({
 // MO-05 drawer (see ShellHeader).
 export function Sidebar({ activeHref, linkAs }: { activeHref: string; linkAs?: LinkComponent }) {
   const [open, setOpen] = useState(false);
+  // Session-scoped on purpose: collapsing is a momentary "give me more room"
+  // action, not an account preference like the theme.
+  const [collapsed, setCollapsed] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   return (
     <>
-      <ExpandedSidebar activeHref={activeHref} linkAs={linkAs} />
+      {collapsed ? null : (
+        <ExpandedSidebar
+          activeHref={activeHref}
+          linkAs={linkAs}
+          onCollapse={() => setCollapsed(true)}
+        />
+      )}
       <IconRail
         activeHref={activeHref}
         linkAs={linkAs}
         open={open}
         onOpen={() => setOpen(true)}
         triggerRef={triggerRef}
+        collapsed={collapsed}
+        onExpand={() => setCollapsed(false)}
       />
       {open ? (
         <NavDrawer
           variant="tablet"
-          className="xl:hidden"
+          // While collapsed the rail — and therefore its menu — is the only nav
+          // at desktop width too, so the drawer must not be hidden from xl.
+          className={collapsed ? "" : "xl:hidden"}
           activeHref={activeHref}
           linkAs={linkAs}
           onClose={() => setOpen(false)}

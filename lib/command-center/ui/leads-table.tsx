@@ -1030,6 +1030,7 @@ export function LeadsTable({
           <button
             type="button"
             aria-label="Previous page"
+            aria-describedby={query.page <= 1 ? "leads-pager-prev-reason" : undefined}
             onClick={() => goToPage(query.page - 1)}
             disabled={query.page <= 1}
             /* T-02 908 renders the pager as a plain mono string; C-D05 195 boxes it. */
@@ -1070,6 +1071,7 @@ export function LeadsTable({
           <button
             type="button"
             aria-label={isTabletUp ? "Next page" : undefined}
+            aria-describedby={query.page >= pageCount ? "leads-pager-next-reason" : undefined}
             onClick={() => goToPage(query.page + 1)}
             disabled={query.page >= pageCount}
             className="w-full rounded-[6px] border border-cc-line-strong bg-cc-surface py-2 text-center text-[11.5px] font-semibold text-cc-t-table disabled:opacity-40 md:w-auto md:rounded-none md:border-0 md:bg-transparent md:px-[3px] md:py-0 md:font-cc-mono md:text-[10.5px] md:font-normal xl:rounded-[5px] xl:border xl:border-cc-line-strong xl:bg-cc-surface xl:px-[10px] xl:py-[5px] xl:font-cc-body xl:text-[12px] xl:font-semibold"
@@ -1087,6 +1089,18 @@ export function LeadsTable({
             </span>
             <span className="hidden xl:inline">Next</span>
           </button>
+          {/* Both pager ends are honestly disabled at the edges of the result set,
+              with the reason announced rather than left to the dimmed styling. */}
+          {query.page <= 1 ? (
+            <span id="leads-pager-prev-reason" className="sr-only">
+              You are on the first page.
+            </span>
+          ) : null}
+          {query.page >= pageCount ? (
+            <span id="leads-pager-next-reason" className="sr-only">
+              You are on the last page. There are no more results.
+            </span>
+          ) : null}
         </div>
       </div>
     </div>

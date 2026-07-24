@@ -77,11 +77,15 @@ export function ShellHeader({
           )}
         </div>
 
-        {/* Persistent escape hatch back to the public site. Always present on
-            desktop, ahead of the per-route right slot. Relative href so it
-            follows whatever origin the dashboard is served from. */}
+        {/* Escape hatch back to the public site, ahead of the per-route right
+            slot. Only shown at the icon-rail widths (md–xl): below md the mobile
+            drawer carries it, and from xl the expanded sidebar footer does, so
+            the header copy would be a second identical desktop button. Relative
+            href so it follows whatever origin the dashboard is served from. */}
         <div className="ml-auto hidden items-center gap-3 md:flex">
-          <ViewWebsiteLink />
+          <span className="xl:hidden">
+            <ViewWebsiteLink />
+          </span>
           {right}
         </div>
         <div className="flex shrink-0 items-center md:hidden">{mobileRight}</div>

@@ -1,7 +1,7 @@
 "use client";
 // Narrow client wrapper around Sidebar/ShellHeader — only usePathname needs the
 // client boundary; the rest of the shell layout stays server-rendered.
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -68,15 +68,26 @@ function OverviewHeaderRight() {
   const { range, setRange } = useDashboardRange();
   return (
     <>
+      {/* C-D01 42 draws a search field here. No search index exists yet, so it is a
+          real but natively disabled input with the reason attached — not a div that
+          merely looks like a field, and no keyboard-shortcut hint for a shortcut
+          that is not bound. */}
       <div className="hidden h-9 w-[300px] items-center gap-[9px] rounded-cc-control border border-cc-line bg-cc-secondary px-3 xl:flex">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7A868D" strokeWidth={2} aria-hidden="true">
           <circle cx="11" cy="11" r="7" />
           <path d="m21 21-4.3-4.3" />
         </svg>
-        <span className="flex-1 text-[13px] text-cc-t3">Search…</span>
-        <kbd className="rounded-[4px] border border-cc-line-strong bg-cc-surface px-[5px] py-px font-cc-mono text-[10px] text-cc-t3">
-          ⌘K
-        </kbd>
+        <input
+          type="search"
+          disabled
+          aria-label="Search the Command Center"
+          aria-describedby="overview-search-reason"
+          placeholder="Search…"
+          className="min-w-0 flex-1 cursor-not-allowed bg-transparent text-[13px] text-cc-t3 outline-none placeholder:text-cc-t3"
+        />
+        <span id="overview-search-reason" className="sr-only">
+          Search is available when a live workspace is connected.
+        </span>
       </div>
 
       {/* Live 7D/30D/90D switch. Shares its range with the Lead-flow card's in-card
@@ -160,10 +171,16 @@ function LeadsHeaderRight() {
         aria-disabled="true"
         tabIndex={-1}
         title={DEFERRED_REASON}
+        aria-describedby="leads-columns-reason"
         onClick={(event) => event.preventDefault()}
         className="cursor-default rounded-cc-control border border-cc-green-border bg-cc-green-tint px-[11px] py-[7px] text-[12px] font-semibold text-cc-green-ink xl:px-[13px] xl:py-2 xl:text-[12.5px]"
       >
         Columns ▾
+      </span>
+      {/* The title alone is not an accessible reason — it is not announced on a
+          non-focusable element and never appears on touch. */}
+      <span id="leads-columns-reason" className="sr-only">
+        {DEFERRED_REASON}
       </span>
       {downloadsEnabled ? (
         <button
@@ -186,10 +203,16 @@ function LeadsHeaderRight() {
           aria-disabled="true"
           tabIndex={-1}
           title="Available when the production data service is connected."
+          aria-describedby="leads-export-reason"
           onClick={(event) => event.preventDefault()}
           className="cursor-default appearance-none rounded-cc-control border-0 bg-cc-green px-[11px] py-[7px] text-[12px] font-semibold text-white xl:px-[13px] xl:py-2 xl:text-[12.5px]"
         >
           Export<span className="hidden xl:inline"> CSV</span>
+        </span>
+      )}
+      {downloadsEnabled ? null : (
+        <span id="leads-export-reason" className="sr-only">
+          Available when the production data service is connected.
         </span>
       )}
       {/* Announced, not shown: the canonical header has no room for a status line, and a
@@ -245,21 +268,35 @@ export function ShellLink({
   "aria-label"?: string;
   "aria-current"?: "page";
 }) {
+  // The sidebar, the icon rail and the drawer all render the same rows, so the
+  // reason id has to be per-instance rather than derived from the href.
+  const uid = useId();
   if (!IMPLEMENTED_ROUTES.has(href)) {
     // An <a> with no href does not navigate and is not in the tab order, so
     // tabIndex puts it back: the row stays reachable and announced, it just
     // reports itself as unavailable instead of loading a 404. Every class and
     // inline style is the one the live rows use, so the frames are unchanged.
+    // The reason lives outside the anchor so it describes the row without
+    // becoming part of its accessible name, and it is wired with
+    // aria-describedby rather than title alone (a tooltip never appears on
+    // touch). sr-only is absolutely positioned, so the nav layout is unchanged.
+    const reasonId = `${uid}-deferred-reason`;
     return (
-      <a
-        role="link"
-        aria-disabled="true"
-        tabIndex={0}
-        title={title ? `${title} — ${DEFERRED_REASON}` : DEFERRED_REASON}
-        {...rest}
-      >
-        {children}
-      </a>
+      <>
+        <a
+          role="link"
+          aria-disabled="true"
+          tabIndex={0}
+          title={title ? `${title} — ${DEFERRED_REASON}` : DEFERRED_REASON}
+          aria-describedby={reasonId}
+          {...rest}
+        >
+          {children}
+        </a>
+        <span id={reasonId} className="sr-only">
+          {DEFERRED_REASON}
+        </span>
+      </>
     );
   }
   return (

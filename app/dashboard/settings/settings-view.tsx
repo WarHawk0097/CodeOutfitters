@@ -15,6 +15,8 @@ import { RouteError, RouteLoading } from "../../../components/demo/route-states"
 import {
   APPEARANCES,
   APPEARANCE_LABELS,
+  SIDEBAR_STYLES,
+  SIDEBAR_STYLE_LABELS,
   THEMES,
   THEME_LABELS,
   useDashboardTheme,
@@ -88,7 +90,8 @@ export function SettingsScreen() {
 // theme context's localStorage writes); there is no Save button because there is
 // nothing to reconcile against a store — the preference IS the state.
 function ThemeSettingsCard() {
-  const { theme, appearance, setTheme, setAppearance } = useDashboardTheme();
+  const { theme, appearance, sidebarStyle, setTheme, setAppearance, setSidebarStyle } =
+    useDashboardTheme();
   return (
     <section
       id="settings-appearance"
@@ -164,6 +167,30 @@ function ThemeSettingsCard() {
           })}
         </div>
       </fieldset>
+
+      <fieldset className="mt-4">
+        <legend className="mb-1.5 text-[12px] font-medium text-cc-t2">Sidebar style</legend>
+        <div className="inline-flex rounded-cc-control border border-cc-line p-0.5">
+          {SIDEBAR_STYLES.map((style) => {
+            const selected = sidebarStyle === style;
+            return (
+              <button
+                key={style}
+                type="button"
+                aria-pressed={selected}
+                onClick={() => setSidebarStyle(style)}
+                className={
+                  selected
+                    ? "rounded-[7px] bg-cc-green px-3 py-1.5 text-[12px] font-semibold text-white"
+                    : "rounded-[7px] px-3 py-1.5 text-[12px] font-medium text-cc-t2 hover:text-cc-ink"
+                }
+              >
+                {SIDEBAR_STYLE_LABELS[style]}
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
     </section>
   );
 }
@@ -202,7 +229,7 @@ function SettingsSectionCard({ section }: { section: SettingsSection }) {
         onSubmit={(event) => {
           event.preventDefault();
           saveSettingsSection(section.id, draft);
-          setSavedAt("Saved to the local demo store.");
+          setSavedAt("Saved in this browser.");
         }}
       >
         {section.fields.map((field) => (
@@ -210,9 +237,12 @@ function SettingsSectionCard({ section }: { section: SettingsSection }) {
         ))}
 
         <div className="mt-3 flex items-center gap-3">
+          {/* Nothing edited yet, so there is nothing to save: disabled with the
+              reason announced rather than enabled-and-inert. */}
           <button
             type="submit"
             disabled={!dirty}
+            aria-describedby={dirty ? undefined : `${section.id}-save-reason`}
             className={
               dirty
                 ? "rounded-cc-control bg-cc-green px-3 py-1.5 text-[12.5px] font-semibold text-white"
@@ -221,6 +251,11 @@ function SettingsSectionCard({ section }: { section: SettingsSection }) {
           >
             Save changes
           </button>
+          {dirty ? null : (
+            <span id={`${section.id}-save-reason`} className="sr-only">
+              Change a field to save this section.
+            </span>
+          )}
           <span role="status" aria-live="polite" className="text-[11.5px] text-cc-t3">
             {savedAt ?? (dirty ? "Unsaved changes" : "")}
           </span>

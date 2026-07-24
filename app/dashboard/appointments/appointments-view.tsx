@@ -13,6 +13,7 @@
 // Nothing here contacts a meeting provider. Every appointment's linked meeting carries an
 // empty joinUrl (see seed.ts), so "Join meeting" says so instead of pretending.
 import { useCallback, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   cancelAppointment,
   createAppointment,
@@ -97,7 +98,7 @@ const DANGER_ACTION =
 export function AppointmentsScreen() {
   const { state, status, error, retry } = useDemoQuery();
   const breakpoint = useBreakpoint();
-  const { view, date, setDate, setView, today } = useAppointmentsView();
+  const { view, date, setDate, today } = useAppointmentsView();
 
   const [q, setQ] = useState("");
   const [ownerFilter, setOwnerFilter] = useState<string | null>(null);
@@ -236,7 +237,13 @@ export function AppointmentsScreen() {
 
   const actionsFor = (appointment: Appointment, form: "desktop" | "tablet" | "mobile") => {
     const label = (full: string, short: string) => (form === "desktop" ? full : short);
-    const actions: Array<{ key: string; label: string; className: string; onClick: () => void }> = [];
+    const actions: Array<{
+      key: string;
+      label: string;
+      className: string;
+      onClick?: () => void;
+      href?: string;
+    }> = [];
 
     if (appointment.state === "ready" || appointment.state === "rescheduled") {
       actions.push({
@@ -245,12 +252,20 @@ export function AppointmentsScreen() {
         className: PRIMARY_ACTION,
         onClick: () => setJoinId(appointment.id),
       });
-      actions.push({
-        key: "workspace",
-        label: label("Open live workspace", "Live workspace"),
-        className: SECONDARY_ACTION,
-        onClick: () => setView("upcoming"),
-      });
+      // The live workspace is the linked meeting's own route. It used to call
+      // setView("upcoming"), which on the (default) Upcoming view changed
+      // nothing at all — an enabled button that did nothing. When an
+      // appointment has no linked meeting there is no workspace to open, so the
+      // action is not offered rather than offered and inert.
+      const workspace = meetingFor(appointment.id);
+      if (workspace) {
+        actions.push({
+          key: "workspace",
+          label: label("Open live workspace", "Live workspace"),
+          className: SECONDARY_ACTION,
+          href: `/dashboard/meetings/${workspace.id}/live`,
+        });
+      }
     }
     if (appointment.state === "preparation_needed") {
       actions.push({
@@ -340,16 +355,19 @@ export function AppointmentsScreen() {
 
     const actionRow = (
       <div className={form === "mobile" ? "mt-[9px] flex gap-1.5" : "mt-[9px] flex flex-wrap gap-1.5"}>
-        {actions.map((action) => (
-          <button
-            key={action.key}
-            type="button"
-            onClick={action.onClick}
-            className={form === "mobile" ? `flex-1 py-[9px] text-center ${action.className}` : action.className}
-          >
-            {action.label}
-          </button>
-        ))}
+        {actions.map((action) => {
+          const className =
+            form === "mobile" ? `flex-1 py-[9px] text-center ${action.className}` : action.className;
+          return action.href ? (
+            <Link key={action.key} href={action.href} className={`${className} inline-block`}>
+              {action.label}
+            </Link>
+          ) : (
+            <button key={action.key} type="button" onClick={action.onClick} className={className}>
+              {action.label}
+            </button>
+          );
+        })}
       </div>
     );
 
@@ -524,7 +542,10 @@ export function AppointmentsScreen() {
           options={STATE_ORDER.map((candidate) => ({ id: candidate, label: STATE_META[candidate].short }))}
           onChange={setStateFilter}
         />
-        {showsDayControls ? (
+        {/* Jump back to today — offered only when the day strip is somewhere else,
+            the same way Clear filters only appears when a filter is applied. On
+            today it would be an enabled button that changes nothing. */}
+        {showsDayControls && date !== DEMO_TODAY ? (
           <ToolbarButton label="Today" onClick={() => setDate(DEMO_TODAY)} />
         ) : null}
         {filtersApplied ? (

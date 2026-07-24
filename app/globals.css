@@ -458,3 +458,33 @@ html[data-motion='reduced'] { scroll-behavior: auto; }
   --cc-blue-tint: color-mix(in srgb, var(--cc-blue) 20%, #12181c);
   --cc-blue-border: color-mix(in srgb, var(--cc-blue) 42%, #12181c);
 }
+
+/* ============================================================================
+   Sidebar style — an independent choice from the accent preset, applied to the
+   same dashboard root via data-cc-sidebar. 'ink' is the canonical rail and is
+   the :root/preset default, so it needs no block. Placed last so it overrides
+   the per-preset sidebar remap above, and derived from var(--cc-green) so the
+   active preset's hue still comes through. Attribute-scoped: the public site
+   never sees these.
+   ============================================================================ */
+[data-cc-sidebar='tinted'] {
+  --cc-sidebar-ink: color-mix(in srgb, var(--cc-green) 62%, #14130e);
+  --cc-sidebar-raised: color-mix(in srgb, var(--cc-green) 78%, #14130e);
+  --cc-sidebar-text: color-mix(in srgb, #ffffff 72%, var(--cc-green));
+  --cc-sidebar-muted: color-mix(in srgb, #ffffff 52%, var(--cc-green));
+  --cc-sidebar-name: #ffffff;
+  --cc-sidebar-active: #ffffff;
+  --cc-sidebar-rail: #ffffff;
+  --cc-sidebar-mark: color-mix(in srgb, #ffffff 82%, var(--cc-green));
+}
+
+[data-cc-sidebar='light'] {
+  --cc-sidebar-ink: var(--cc-body-surface);
+  --cc-sidebar-raised: var(--cc-body-secondary);
+  --cc-sidebar-text: var(--cc-body-t2);
+  --cc-sidebar-muted: var(--cc-body-t3);
+  --cc-sidebar-name: var(--cc-body-ink);
+  --cc-sidebar-active: var(--cc-body-ink);
+  --cc-sidebar-rail: var(--cc-green);
+  --cc-sidebar-mark: var(--cc-green);
+}
