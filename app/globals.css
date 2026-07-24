@@ -410,6 +410,23 @@ html[data-motion='reduced'] { scroll-behavior: auto; }
   --chart-2: #b83c6a;
 }
 
+/* Sidebar surface follows the active preset. The base command theme keeps its
+   warm near-black (:root above); every other preset tints the sidebar ink,
+   raised and name/active toward that preset's accent, so switching themes
+   visibly recolours the sidebar instead of leaving it stuck on #14130e.
+   Placed after the preset blocks so var(--cc-green) resolves to each preset's
+   own accent. Attribute-scoped only — the public site is untouched. */
+[data-cc-theme='graphite'],
+[data-cc-theme='indigo'],
+[data-cc-theme='ocean'],
+[data-cc-theme='amber'],
+[data-cc-theme='rose'] {
+  --cc-sidebar-ink: color-mix(in srgb, var(--cc-green) 15%, #14130e);
+  --cc-sidebar-raised: color-mix(in srgb, var(--cc-green) 17%, #26231a);
+  --cc-sidebar-name: color-mix(in srgb, var(--cc-green) 28%, #e8e4d6);
+  --cc-sidebar-active: color-mix(in srgb, var(--cc-green) 12%, #f4f1e6);
+}
+
 [data-cc-appearance='dark'] {
   --cc-body-canvas: #0f1417;
   --cc-body-surface: #171d21;

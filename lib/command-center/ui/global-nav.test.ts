@@ -16,6 +16,7 @@ const shellHeaderSrc = readFileSync(`${here}shell-header.tsx`, "utf8");
 const sidebarSrc = readFileSync(`${here}sidebar.tsx`, "utf8");
 const navbarSrc = readFileSync(`${here}../../../components/navbar.tsx`, "utf8");
 const loginSrc = readFileSync(`${here}../../../app/login/page.tsx`, "utf8");
+const demoLoginSrc = readFileSync(`${here}../../../app/login/demo-login-form.tsx`, "utf8");
 
 const viewWebsiteHtml = renderToStaticMarkup(createElement(ViewWebsiteLink));
 
@@ -79,9 +80,21 @@ describe("cross-navigation (tests 1-12)", () => {
   });
 
   // 10
-  it("the login screen offers a demo entry into the dashboard", () => {
-    expect(loginSrc).toContain('href="/dashboard"');
-    expect(loginSrc).toContain("demo dashboard");
+  it("the demo login screen offers a working credential form and a direct demo entry", () => {
+    // Complete sign-in screen, not a bare "no login" placeholder.
+    expect(demoLoginSrc).toContain('type="password"');
+    expect(demoLoginSrc).toContain('type="submit"');
+    // Honest direct entry into the demo Command Center.
+    expect(demoLoginSrc).toContain('href="/dashboard"');
+    expect(demoLoginSrc).toContain("demo dashboard");
+    // Social sign-in is offered but never faked: disabled, no OAuth call.
+    expect(demoLoginSrc).toContain("Continue with");
+    expect(demoLoginSrc).toContain('label="Google"');
+    expect(demoLoginSrc).toContain('label="Apple"');
+    expect(demoLoginSrc).toContain("disabled");
+    expect(demoLoginSrc).not.toMatch(/signInWith(OAuth|Idp)/);
+    // page.tsx still routes demo mode into this screen.
+    expect(loginSrc).toContain("<DemoLoginForm");
   });
 
   // 11

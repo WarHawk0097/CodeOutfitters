@@ -6,7 +6,7 @@ import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Sidebar, ShellHeader } from "@command-center/ui";
-import { useHeaderStats, useLeadsExport } from "./header-stats";
+import { useHeaderStats, useLeadsExport, useDashboardRange } from "./header-stats";
 import { useCommandCenterConfig } from "@/components/command-center/mode-provider";
 import { downloadCsv, exportLeadsCsv } from "../../lib/leads-csv";
 import { PipelineHeaderChip, PipelineMobileCount, PipelineSubtitle } from "./pipeline/pipeline-header";
@@ -57,7 +57,15 @@ const PAGE_META: Record<string, { title: string; subtitle?: ReactNode }> = {
 // tablet header keeps only the range switch. Presentation only in this phase:
 // search and range are not wired to any query, so they are rendered as inert
 // chrome rather than as controls that look interactive and do nothing.
+// Range switch labels paired with the shared LeadFlowRangeValue they set.
+const RANGE_PILLS = [
+  { label: "7D", value: "7d" },
+  { label: "30D", value: "30d" },
+  { label: "90D", value: "90d" },
+] as const;
+
 function OverviewHeaderRight() {
+  const { range, setRange } = useDashboardRange();
   return (
     <>
       <div className="hidden h-9 w-[300px] items-center gap-[9px] rounded-cc-control border border-cc-line bg-cc-secondary px-3 xl:flex">
@@ -71,19 +79,29 @@ function OverviewHeaderRight() {
         </kbd>
       </div>
 
+      {/* Live 7D/30D/90D switch. Shares its range with the Lead-flow card's in-card
+          selector via useDashboardRange, so the two never disagree. aria-pressed
+          announces the active range to assistive tech (not colour-only). */}
       <div className="flex overflow-hidden rounded-cc-control border border-cc-line bg-cc-surface">
-        {["7D", "30D", "90D"].map((r) => (
-          <span
-            key={r}
-            className={
-              r === "30D"
-                ? "bg-cc-ink-strong px-[11px] py-[7px] font-cc-mono text-[10.5px] font-semibold text-white xl:px-3 xl:py-2 xl:text-[11px]"
-                : "px-[11px] py-[7px] font-cc-mono text-[10.5px] text-cc-t2 xl:px-3 xl:py-2 xl:text-[11px]"
-            }
-          >
-            {r}
-          </span>
-        ))}
+        {RANGE_PILLS.map(({ label, value }) => {
+          const active = value === range;
+          return (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={active}
+              aria-label={`Show the last ${value.replace("d", "")} days`}
+              onClick={() => setRange(value)}
+              className={
+                active
+                  ? "bg-cc-ink-strong px-[11px] py-[7px] font-cc-mono text-[10.5px] font-semibold text-white xl:px-3 xl:py-2 xl:text-[11px]"
+                  : "px-[11px] py-[7px] font-cc-mono text-[10.5px] text-cc-t2 transition-colors hover:text-cc-ink xl:px-3 xl:py-2 xl:text-[11px]"
+              }
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
 
       <svg className="hidden xl:block" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3E4A52" strokeWidth={1.75} aria-hidden="true">

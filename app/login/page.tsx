@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { safeReturnTo } from '@/lib/auth/return-url'
 import { isDemoMode } from '@/lib/command-center/mode'
 import { signIn } from './actions'
+import { DemoLoginForm } from './demo-login-form'
 
 export const metadata: Metadata = { title: 'Sign in — CodeOutfitters Command Center' }
 
@@ -18,25 +19,13 @@ export default async function LoginPage({
   const hasError = Boolean(sp.error)
 
   // Demo mode has no real auth plane: never touch Supabase here (that would be a demo
-  // Supabase call), never show a credential form that cannot authenticate. Offer honest
-  // direct entry to the demo Command Center instead.
+  // Supabase call). It renders a complete, usable sign-in screen that validates the
+  // published demo credential client-side (see DemoLoginForm) and opens the demo
+  // dashboard. Google/Apple are shown but honestly disabled — never faked.
   if (isDemoMode()) {
     return (
       <main className="flex min-h-[100dvh] items-center justify-center bg-[var(--brand-bg,#0A120E)] px-4">
-        <div className="w-full max-w-sm rounded-2xl border border-black/10 bg-white p-8 shadow-sm">
-          <h1 className="text-xl font-semibold text-[var(--brand-text,#111)]">
-            Command Center
-          </h1>
-          <p className="mt-1 text-sm text-[var(--brand-muted,#666)]">
-            This is a demo. No account is required — sign-in is disabled in demo mode.
-          </p>
-          <Link
-            href="/dashboard"
-            className="mt-6 block w-full rounded-md bg-[var(--brand-green,#0A7C4A)] px-4 py-2 text-center text-sm font-semibold text-white transition-transform active:scale-[0.98]"
-          >
-            Open the demo dashboard
-          </Link>
-        </div>
+        <DemoLoginForm />
       </main>
     )
   }

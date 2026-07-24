@@ -17,7 +17,6 @@ import { useDemoState } from "../../lib/demo/store";
 import { fetchLeads } from "../../lib/data/leads";
 import {
   aggregateLeadFlow,
-  DEFAULT_LEAD_FLOW_RANGE,
   formatBucketDate,
   leadFlowRange,
   leadFlowTotals,
@@ -25,6 +24,7 @@ import {
   LEAD_FLOW_SERIES,
   type LeadFlowRangeValue,
 } from "../../lib/dashboard/lead-flow";
+import { useDashboardRange } from "@/app/dashboard/header-stats";
 import {
   Card,
   CardAction,
@@ -66,7 +66,9 @@ export function LeadFlowChart({ className }: { className?: string }) {
   // Subscribing re-runs the fetch effect whenever the shared store mutates, so the
   // chart reflects lead status/owner overrides made anywhere in the session.
   const demoState = useDemoState();
-  const [range, setRange] = React.useState<LeadFlowRangeValue>(DEFAULT_LEAD_FLOW_RANGE);
+  // Range is shared with the Overview header pills (see header-stats.tsx), so the
+  // in-card selector and the header switch always agree.
+  const { range, setRange } = useDashboardRange();
   const [state, setState] = React.useState<LoadState>({ status: "loading" });
   const [isRangePending, startRangeTransition] = React.useTransition();
   const [reloadKey, setReloadKey] = React.useState(0);
