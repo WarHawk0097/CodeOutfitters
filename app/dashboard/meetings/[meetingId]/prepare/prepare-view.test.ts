@@ -57,8 +57,9 @@ describe("meeting prepare route (M-D02)", () => {
     expect(html).not.toContain("TRANSCRIBING");
     expect(html).not.toContain("CONSENT RECORDED");
     expect(html).not.toContain("REC ●");
-    // The transition into the live workspace is disabled — consent is required first.
-    expect(markup()).toContain("disabled");
+    // The transition into the live workspace is a plain navigation — it opens the
+    // provider- and consent-gated M-D03 screen, it does not start a session here.
+    expect(markup()).toContain('href="/dashboard/meetings/mtg-001/live"');
   });
 
   it("keeps rejected chart patterns off the screen", () => {

@@ -223,18 +223,17 @@ export function PrepareContent({
             </Link>
           </div>
 
-          {/* M-D02 472: "Open live workspace". No provider is connected in demo, so there
-              is genuinely no live workspace to open — the button says so via the note it
-              is described by rather than routing to a screen that cannot record.
-              ponytail: swap for a Link to /dashboard/meetings/[id]/live once that route lands. */}
-          <button
-            type="button"
-            disabled
+          {/* M-D02 472: "Open live workspace" — the canonical prepare → live transition
+              (M-D03). Opening the workspace never starts recording or transcription on its
+              own; the live screen stays provider- and consent-gated, so this is a safe,
+              non-destructive navigation. */}
+          <Link
+            href={`/dashboard/meetings/${meeting.id}/live`}
             aria-describedby="prepare-provider-note"
-            className="mt-3 w-full cursor-not-allowed rounded-cc-control bg-cc-green px-3 py-1.5 text-[12.5px] font-semibold text-white opacity-60"
+            className="mt-3 block w-full rounded-cc-control bg-cc-green px-3 py-1.5 text-center text-[12.5px] font-semibold text-white outline-none transition-transform focus-visible:ring-2 focus-visible:ring-cc-green-border active:scale-[.99]"
           >
             Open live workspace
-          </button>
+          </Link>
           <p
             id="prepare-provider-note"
             className="mt-2 border-t border-cc-line pt-2 text-[11.5px] leading-[1.5] text-cc-t3"
