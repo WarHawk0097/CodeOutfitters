@@ -99,6 +99,13 @@ export default async function LoginPage({
             Sign in
           </button>
         </form>
+
+        <Link
+          href="/forgot-password"
+          className="mt-4 block text-center text-sm text-[var(--brand-muted,#666)] underline-offset-2 hover:underline"
+        >
+          Forgot password?
+        </Link>
       </div>
     </main>
   )
