@@ -13,6 +13,7 @@ import { ShellNav, ShellHeaderBar, ShellMain } from "./shell-nav";
 import { HeaderStatsProvider } from "./header-stats";
 import { CommandCenterConfigProvider } from "@/components/command-center/mode-provider";
 import { commandCenterClientConfig } from "@/lib/command-center/mode";
+import { MockBrowserInit } from "@/mocks/browser-init";
 
 export default function ShellLayout({ children }: { children: ReactNode }) {
   // Mode is resolved here, in a server component, from the server-only
@@ -24,6 +25,10 @@ export default function ShellLayout({ children }: { children: ReactNode }) {
     // The provider spans header and content because the C-D05 header subtitle is derived
     // from the leads response the content fetches (see header-stats.tsx).
     <CommandCenterConfigProvider config={config}>
+    {/* Demo serves the client islands' /api/leads plane through msw (see
+        mocks/browser-init). Gated on the server-resolved mode: demo starts the
+        worker, live never does. */}
+    <MockBrowserInit enabled={!config.live}>
     <HeaderStatsProvider>
     <div className="flex h-screen overflow-hidden bg-cc-canvas">
       <ShellNav />
@@ -36,6 +41,7 @@ export default function ShellLayout({ children }: { children: ReactNode }) {
       </div>
     </div>
     </HeaderStatsProvider>
+    </MockBrowserInit>
     </CommandCenterConfigProvider>
   );
 }
