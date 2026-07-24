@@ -12,15 +12,14 @@ import type { ReactNode } from "react";
 import { ShellNav, ShellHeaderBar, ShellMain } from "./shell-nav";
 import { HeaderStatsProvider } from "./header-stats";
 import { CommandCenterConfigProvider } from "@/components/command-center/mode-provider";
-import { getCommandCenterMode } from "@/lib/command-center/mode";
+import { commandCenterClientConfig } from "@/lib/command-center/mode";
 
 export default function ShellLayout({ children }: { children: ReactNode }) {
   // Mode is resolved here, in a server component, from the server-only
   // COMMAND_CENTER_MODE. The client tree receives only booleans (never the mode
   // env), so demo/live behaviour is server-decided and never inlined client-side.
   // Demo disables real downloads; live (Work Order F) permits them.
-  const live = getCommandCenterMode() === "live";
-  const config = { live, downloadsEnabled: live };
+  const config = commandCenterClientConfig();
   return (
     // The provider spans header and content because the C-D05 header subtitle is derived
     // from the leads response the content fetches (see header-stats.tsx).

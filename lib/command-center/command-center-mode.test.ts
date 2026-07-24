@@ -29,6 +29,7 @@ import {
   getCommandCenterMode,
   isDemoMode,
   assertLiveConfig,
+  commandCenterClientConfig,
   CommandCenterConfigError,
 } from './mode'
 import {
@@ -159,4 +160,23 @@ it('10: default mode is demo and invalid mode throws (no silent fallback)', () =
   expect(getCommandCenterMode()).toBe('demo')
   process.env.COMMAND_CENTER_MODE = 'staging'
   expect(() => getCommandCenterMode()).toThrow(/Invalid COMMAND_CENTER_MODE/)
+})
+
+// 11-13. The client config seam: booleans handed to the dashboard tree gate real
+// downloads. Demo must disable downloads (no real file emission); live enables them.
+describe('commandCenterClientConfig', () => {
+  it('11: demo (default, no mode env) disables downloads', () => {
+    delete process.env.COMMAND_CENTER_MODE
+    expect(commandCenterClientConfig()).toEqual({ live: false, downloadsEnabled: false })
+  })
+
+  it('12: explicit demo disables downloads', () => {
+    demoEnv()
+    expect(commandCenterClientConfig()).toEqual({ live: false, downloadsEnabled: false })
+  })
+
+  it('13: live enables downloads', () => {
+    process.env.COMMAND_CENTER_MODE = 'live'
+    expect(commandCenterClientConfig()).toEqual({ live: true, downloadsEnabled: true })
+  })
 })
