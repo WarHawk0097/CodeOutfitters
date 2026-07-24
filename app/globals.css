@@ -223,3 +223,221 @@ html[data-motion='reduced'] { scroll-behavior: auto; }
     transition-duration: .001ms !important;
   }
 }
+
+/* ============================================================================
+   Canonical Command Center design tokens (vendored from the approved
+   command-center app, Dashboard/Command Center Final.dc.html authority).
+   Definitions only — they change nothing on the public site. The dashboard
+   subtree opts in via .cc-scope and the cc-* Tailwind utilities.
+   ============================================================================ */
+:root {
+  --cc-sidebar-ink: #14130e;
+  --cc-sidebar-raised: #26231a;
+  --cc-sidebar-text: #a19c8b;
+  --cc-sidebar-active: #f4f1e6;
+  --cc-sidebar-rail: #5c9b6c;
+
+  --cc-body-canvas: #edf0f2;
+  --cc-body-surface: #ffffff;
+  --cc-body-secondary: #f4f7f8;
+  --cc-body-lane: #e4e9eb;
+  --cc-body-line: #d9dfe2;
+  --cc-body-soft: #eef1f3;
+  --cc-body-ink: #1b2226;
+  --cc-body-t2: #5a6b74;
+  --cc-body-t3: #7a868d;
+
+  --cc-green: #2f7d4f;
+  --cc-green-ink: #276b42;
+  --cc-green-tint: #e2f0e7;
+  --cc-green-border: #bfdcca;
+
+  --cc-amber: #b07c24;
+  --cc-amber-ink: #8a5f17;
+  --cc-amber-tint: #f4ebd4;
+  --cc-amber-border: #e5d3a1;
+
+  --cc-red: #a63d2b;
+  --cc-red-ink: #8c3021;
+  --cc-red-tint: #f6e3dd;
+  --cc-red-border: #e3b8ac;
+
+  --cc-blue: #46708e;
+  --cc-blue-ink: #33566e;
+  --cc-blue-tint: #e3edf4;
+  --cc-blue-border: #c6d8e4;
+
+  --cc-neutral: #85826f;
+
+  --cc-sidebar-muted: #6b6754;
+  --cc-sidebar-label: #57533f;
+  --cc-sidebar-name: #e8e4d6;
+  --cc-sidebar-mark: #7fbc8c;
+  --cc-avatar: #3d5b45;
+  --cc-avatar-ink: #dcefe0;
+
+  --cc-ink-strong: #212528;
+  --cc-t-table: #3e4a52;
+  --cc-t-header: #55636b;
+  --cc-line-strong: #cdd5d9;
+  --cc-line-inner: #e2e7ea;
+  --cc-t4: #8b979d;
+  --cc-icon-muted: #b9c2c7;
+  --cc-row-line: #f1f4f5;
+  --cc-skeleton: #e7ebed;
+
+  --cc-radius-control: 6px;
+  --cc-radius-card: 8px;
+  --cc-radius-card-lg: 10px;
+  --cc-radius-dialog: 10px;
+
+  --chart-1: var(--cc-blue);
+  --chart-2: var(--cc-green);
+}
+
+@theme inline {
+  --color-cc-sidebar-ink: var(--cc-sidebar-ink);
+  --color-cc-sidebar-raised: var(--cc-sidebar-raised);
+  --color-cc-sidebar-text: var(--cc-sidebar-text);
+  --color-cc-sidebar-active: var(--cc-sidebar-active);
+  --color-cc-sidebar-rail: var(--cc-sidebar-rail);
+  --color-cc-sidebar-muted: var(--cc-sidebar-muted);
+  --color-cc-sidebar-label: var(--cc-sidebar-label);
+  --color-cc-sidebar-name: var(--cc-sidebar-name);
+  --color-cc-sidebar-mark: var(--cc-sidebar-mark);
+  --color-cc-avatar: var(--cc-avatar);
+  --color-cc-avatar-ink: var(--cc-avatar-ink);
+
+  --color-cc-canvas: var(--cc-body-canvas);
+  --color-cc-surface: var(--cc-body-surface);
+  --color-cc-secondary: var(--cc-body-secondary);
+  --color-cc-lane: var(--cc-body-lane);
+  --color-cc-line: var(--cc-body-line);
+  --color-cc-soft: var(--cc-body-soft);
+  --color-cc-ink: var(--cc-body-ink);
+  --color-cc-t2: var(--cc-body-t2);
+  --color-cc-t3: var(--cc-body-t3);
+
+  --color-cc-green: var(--cc-green);
+  --color-cc-green-ink: var(--cc-green-ink);
+  --color-cc-green-tint: var(--cc-green-tint);
+  --color-cc-green-border: var(--cc-green-border);
+
+  --color-cc-amber: var(--cc-amber);
+  --color-cc-amber-ink: var(--cc-amber-ink);
+  --color-cc-amber-tint: var(--cc-amber-tint);
+  --color-cc-amber-border: var(--cc-amber-border);
+
+  --color-cc-red: var(--cc-red);
+  --color-cc-red-ink: var(--cc-red-ink);
+  --color-cc-red-tint: var(--cc-red-tint);
+  --color-cc-red-border: var(--cc-red-border);
+
+  --color-cc-blue: var(--cc-blue);
+  --color-cc-blue-ink: var(--cc-blue-ink);
+  --color-cc-blue-tint: var(--cc-blue-tint);
+  --color-cc-blue-border: var(--cc-blue-border);
+
+  --color-cc-neutral: var(--cc-neutral);
+
+  --color-cc-ink-strong: var(--cc-ink-strong);
+  --color-cc-t-table: var(--cc-t-table);
+  --color-cc-t-header: var(--cc-t-header);
+  --color-cc-line-strong: var(--cc-line-strong);
+  --color-cc-line-inner: var(--cc-line-inner);
+  --color-cc-t4: var(--cc-t4);
+  --color-cc-icon-muted: var(--cc-icon-muted);
+  --color-cc-row-line: var(--cc-row-line);
+  --color-cc-skeleton: var(--cc-skeleton);
+
+  --radius-cc-control: var(--cc-radius-control);
+  --radius-cc-card: var(--cc-radius-card);
+  --radius-cc-card-lg: var(--cc-radius-card-lg);
+  --radius-cc-dialog: var(--cc-radius-dialog);
+
+  --font-cc-sidebar: var(--font-geist-sans);
+  --font-cc-sidebar-mono: var(--font-geist-mono);
+  --font-cc-body: var(--font-ibm-plex-sans);
+  --font-cc-mono: var(--font-ibm-plex-mono);
+}
+
+/* Dashboard subtree opts into the canonical canvas + the authority's default
+   line-height (Command Center Final.dc.html sets none, so text uses `normal`;
+   Tailwind preflight's html{line-height:1.5} otherwise inflates every frame). */
+.cc-scope {
+  line-height: normal;
+  background: var(--cc-body-canvas);
+  color: var(--cc-body-ink);
+}
+
+/* ============================================================================
+   Dashboard-scoped theming. Every override below is keyed on data attributes
+   set only on the /dashboard frame root (see app/dashboard/theme.tsx), so the
+   public site is untouched. Accent presets remap only the accent hue family +
+   sidebar/avatar marks; the neutral body surfaces are shared. Appearance='dark'
+   remaps the neutral surfaces and derives every tint from the *active* accent
+   via color-mix, so a preset's hue survives in dark mode without each theme
+   needing its own dark palette.
+   ============================================================================ */
+[data-cc-theme='graphite'] {
+  --cc-green: #4a5560; --cc-green-ink: #3a444d;
+  --cc-green-tint: #e7eaed; --cc-green-border: #ccd3d8;
+  --cc-sidebar-rail: #6b7580; --cc-sidebar-mark: #9aa4ad; --cc-avatar: #454d54;
+  --chart-2: #4a5560;
+}
+[data-cc-theme='indigo'] {
+  --cc-green: #4f56c4; --cc-green-ink: #3f45a8;
+  --cc-green-tint: #e7e8f7; --cc-green-border: #c6c9ee;
+  --cc-sidebar-rail: #6d73d1; --cc-sidebar-mark: #9498e0; --cc-avatar: #454a99;
+  --chart-2: #4f56c4;
+}
+[data-cc-theme='ocean'] {
+  --cc-green: #1f7a8c; --cc-green-ink: #196576;
+  --cc-green-tint: #ddeef1; --cc-green-border: #b3dbe1;
+  --cc-sidebar-rail: #4f9aa8; --cc-sidebar-mark: #7fbfc9; --cc-avatar: #1f5f6b;
+  --chart-2: #1f7a8c;
+}
+[data-cc-theme='amber'] {
+  --cc-green: #b07c24; --cc-green-ink: #8a5f17;
+  --cc-green-tint: #f4ebd4; --cc-green-border: #e5d3a1;
+  --cc-sidebar-rail: #c39a3f; --cc-sidebar-mark: #d8b96a; --cc-avatar: #7a5a1f;
+  --chart-2: #b07c24;
+}
+[data-cc-theme='rose'] {
+  --cc-green: #b83c6a; --cc-green-ink: #9c2f58;
+  --cc-green-tint: #f7e2ea; --cc-green-border: #eec0d1;
+  --cc-sidebar-rail: #cf5f86; --cc-sidebar-mark: #e08fa9; --cc-avatar: #8f3050;
+  --chart-2: #b83c6a;
+}
+
+[data-cc-appearance='dark'] {
+  --cc-body-canvas: #0f1417;
+  --cc-body-surface: #171d21;
+  --cc-body-secondary: #1c2429;
+  --cc-body-lane: #232c31;
+  --cc-body-line: #2b353b;
+  --cc-body-soft: #1a2226;
+  --cc-body-ink: #e6ecef;
+  --cc-body-t2: #9fb0b8;
+  --cc-body-t3: #7d8d95;
+
+  --cc-ink-strong: #f2f6f8;
+  --cc-t-table: #c3ced4;
+  --cc-t-header: #9fb0b8;
+  --cc-line-strong: #38444b;
+  --cc-line-inner: #232c31;
+  --cc-t4: #6b7a81;
+  --cc-icon-muted: #5c6b72;
+  --cc-row-line: #1c2429;
+  --cc-skeleton: #232c31;
+
+  /* Tints derived from the live accent, so each preset keeps its hue in dark. */
+  --cc-green-tint: color-mix(in srgb, var(--cc-green) 22%, #12181c);
+  --cc-green-border: color-mix(in srgb, var(--cc-green) 46%, #12181c);
+  --cc-amber-tint: color-mix(in srgb, var(--cc-amber) 20%, #12181c);
+  --cc-amber-border: color-mix(in srgb, var(--cc-amber) 42%, #12181c);
+  --cc-red-tint: color-mix(in srgb, var(--cc-red) 20%, #12181c);
+  --cc-red-border: color-mix(in srgb, var(--cc-red) 42%, #12181c);
+  --cc-blue-tint: color-mix(in srgb, var(--cc-blue) 20%, #12181c);
+  --cc-blue-border: color-mix(in srgb, var(--cc-blue) 42%, #12181c);
+}

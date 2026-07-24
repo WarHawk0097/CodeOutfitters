@@ -40,6 +40,22 @@ export function isDemoMode(): boolean {
   return getCommandCenterMode() === 'demo'
 }
 
+export type CommandCenterClientConfig = {
+  /** Live mode — the Work Order F data plane. Demo resolves to false. */
+  live: boolean
+  /** Real file downloads (CSV export, attachments) permitted. Demo => false. */
+  downloadsEnabled: boolean
+}
+
+// The client-facing config handed to the dashboard tree (see mode-provider). Only
+// booleans cross the server/client boundary — never the mode env — so demo/live is
+// server-decided and never inlined into client bundles. Demo disables real
+// downloads; live permits them.
+export function commandCenterClientConfig(): CommandCenterClientConfig {
+  const live = getCommandCenterMode() === 'live'
+  return { live, downloadsEnabled: live }
+}
+
 // Live mode guard: throw a controlled error listing what is missing. Never falls
 // back to demo.
 export function assertLiveConfig(): void {

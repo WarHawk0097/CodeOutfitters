@@ -13,7 +13,7 @@ import {
   getDay,
   isSameDay,
 } from 'date-fns'
-import { ChevronLeft, ChevronRight, Loader2, CheckCircle } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Loader2, CalendarClock } from 'lucide-react'
 import { detectTimezone } from './timezone-selector'
 
 /* ─── Approved constants ─────────────────────────────────────────────── */
@@ -430,6 +430,19 @@ export function ContactBookingFlow(_props: ContactBookingFlowProps) {
     setStep('request_prepared')
   }, [step1Errors, bConsent, scrollFocus])
 
+  /* If Step 1 is edited back into an invalid state after Step 2 was revealed,
+     collapse Step 2 again and discard any tentative slot selection so the user
+     can't confirm against stale/invalid details. request_prepared is terminal
+     and left untouched. */
+  useEffect(() => {
+    if (step === 'project_details' || step === 'request_prepared') return
+    const er = step1Errors()
+    if (er.eN || er.eE || er.eB || er.eI || er.eM) {
+      setStep('project_details')
+      setSelDate(null); setSelSlot(null); setFullyBookedSel(false)
+    }
+  }, [step, step1Errors])
+
   const bkPrevMonth = useCallback(() => {
     if (monthOffset <= 0) return
     setMonthOffset(monthOffset - 1)
@@ -503,7 +516,6 @@ export function ContactBookingFlow(_props: ContactBookingFlowProps) {
   /* ─── Derived state ─────────────────────────────────────────────────── */
 
   const step2Active = step !== 'project_details'
-  const step2Inactive = !step2Active
   const bkNoDate = !selDate && step !== 'request_prepared'
   const bkLoading = slotsLoading
   const bkFullyBooked = fullyBookedSel && step !== 'request_prepared'
@@ -625,25 +637,9 @@ export function ContactBookingFlow(_props: ContactBookingFlowProps) {
     <div id="contact-booking" ref={step2Ref} data-screen-label="Booking" style={{ background: '#F7F2EA' }}>
       <div style={{ maxWidth: '1100px', margin: '0 auto', padding: 'clamp(20px,3vw,40px) clamp(20px,3vw,32px) clamp(48px,7vw,80px)' }}>
 
-        {/* INACTIVE STATE */}
-        {step2Inactive && (
-          <div aria-hidden="true" style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px',
-            padding: '22px 20px', border: '1px dashed #DCD3C0', borderRadius: '16px', opacity: '.55',
-          }}>
-            <span style={{
-              flexShrink: 0, width: '30px', height: '30px', borderRadius: '999px',
-              border: '1.5px solid #B9AF98', color: '#9A937F',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              font: "700 13px 'Space Grotesk',sans-serif",
-            }}>2</span>
-            <span style={{ font: "600 14px 'Instrument Sans',sans-serif", color: '#8A857B', letterSpacing: '.02em' }}>
-              Step 2 · Choose a 30-minute time — unlocks after Step 1
-            </span>
-          </div>
-        )}
-
-        {/* ACTIVE STATE */}
+        {/* Step 2 is progressively disclosed: nothing of it — not even a
+            reserved band — is rendered until Step 1 is complete. The portal
+            below only mounts step2Content when step2Active. */}
         {step2Active && (
           <>
             {/* Step 2 heading block */}
@@ -681,7 +677,7 @@ export function ContactBookingFlow(_props: ContactBookingFlowProps) {
 
             {/* Booking card */}
             <div style={{
-              animation: 'bkCalRise .64s cubic-bezier(.16,1,.3,1) both',
+              animation: isReduced() ? undefined : 'bkCalRise .64s cubic-bezier(.16,1,.3,1) both',
               background: '#fff', border: '1px solid rgba(13,58,49,.14)',
               borderRadius: '22px', padding: 'clamp(20px,2.6vw,30px)',
               boxShadow: '0 30px 72px rgba(0,0,0,.10)',
@@ -940,13 +936,13 @@ export function ContactBookingFlow(_props: ContactBookingFlowProps) {
                           boxShadow: '0 14px 34px rgba(43,212,131,.28)',
                           transition: 'transform .15s ease, box-shadow .15s ease',
                         }}>
-                          Request this time
+                          Review this time
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                         </button>
                       </div>
 
                       <p style={{ margin: 0, font: "400 11.5px/1.5 'Instrument Sans',sans-serif", color: '#9A927F', textAlign: 'center' }}>
-                        No time is reserved until our scheduler confirms by email. Live booking (<code style={{ fontSize: '11px' }}>POST /api/bookings</code>) is <strong>PROPOSED — NOT YET IMPLEMENTED</strong>.
+                        No time is held until we confirm your call by email.
                       </p>
                     </div>
                   )}
@@ -962,11 +958,10 @@ export function ContactBookingFlow(_props: ContactBookingFlowProps) {
                       borderRadius: '18px', padding: '32px 24px',
                     }}>
                       <span style={{
-                        width: '54px', height: '54px', borderRadius: '999px', background: '#128A54', color: '#fff',
+                        width: '54px', height: '54px', borderRadius: '999px', background: '#E8EDEA', color: '#0E2A1D',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        animation: 'checkPop .5s cubic-bezier(.34,1.56,.64,1)',
                       }}>
-                        <CheckCircle size={24} />
+                        <CalendarClock size={24} />
                       </span>
                       <span style={{
                         font: "700 10px 'Instrument Sans',sans-serif", letterSpacing: '.09em',
@@ -974,19 +969,19 @@ export function ContactBookingFlow(_props: ContactBookingFlowProps) {
                         border: '1px solid rgba(217,179,106,.5)', borderRadius: '999px',
                         padding: '5px 12px', textTransform: 'uppercase' as const,
                       }}>
-                        Booking request prepared — live scheduling is not yet connected
+                        Online booking not connected
                       </span>
-                      <h3 style={{ margin: 0, font: "600 21px 'Space Grotesk',sans-serif", color: '#0A120E' }}>Your request is ready</h3>
+                      <h3 style={{ margin: 0, font: "600 21px 'Space Grotesk',sans-serif", color: '#0A120E' }}>Time selected</h3>
                       <div style={{ font: "600 15px 'Instrument Sans',sans-serif", color: '#0A452B' }}>
                         {selDateLabel}<br />{selSlotTime} · 30 min · {tzLabelFull}
                       </div>
                       <p style={{ margin: 0, font: "400 13.5px/1.6 'Instrument Sans',sans-serif", color: '#5B6355', maxWidth: '340px' }}>
-                        This is a design-preview summary. No calendar slot is held — live booking requires the scheduling backend (<strong>PROPOSED — NOT YET IMPLEMENTED</strong>). In production you'd get an email confirmation once the provider reserves the slot.
+                        Online booking is not connected yet. Contact us to confirm this time.
                       </p>
                       <button type="button" onClick={bkReset} style={{
                         marginTop: '2px', font: "600 14px 'Instrument Sans',sans-serif", color: '#0E2A1D',
                         background: '#F4EEE2', border: 'none', borderRadius: '11px', padding: '12px 20px', cursor: 'pointer',
-                      }}>Choose a different time</button>
+                      }}>Choose another time</button>
                     </div>
                   )}
                 </div>
@@ -1001,7 +996,11 @@ export function ContactBookingFlow(_props: ContactBookingFlowProps) {
   return (
     <>
       {step1Content}
-      {portalTarget && createPortal(step2Content, portalTarget)}
+      <p role="status" aria-live="polite" style={{
+        position: 'absolute', width: '1px', height: '1px', padding: 0, margin: '-1px',
+        overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap', border: 0,
+      }}>{step2Active ? 'Scheduling options are now available.' : ''}</p>
+      {portalTarget && step2Active && createPortal(step2Content, portalTarget)}
 
       <style>{`
         @keyframes bkCalRise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
@@ -1012,7 +1011,6 @@ export function ContactBookingFlow(_props: ContactBookingFlowProps) {
         @keyframes bkValIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
         @keyframes bkPanelIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
         @keyframes tzPop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
-        @keyframes checkPop{0%{transform:scale(.5);opacity:0}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
 
         .cta-sweep{position:relative;overflow:hidden}
         .cta-sweep::before{content:'';position:absolute;top:0;bottom:0;left:-60%;width:40%;background:linear-gradient(110deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-18deg);transition:left .65s cubic-bezier(.16,1,.3,1)}
