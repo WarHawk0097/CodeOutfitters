@@ -329,6 +329,21 @@ export function NavDrawer({
         </div>
         <NavList activeHref={activeHref} linkAs={linkAs} />
         <div className="mt-auto pt-[14px]">
+          <a
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={onClose}
+            className="mb-3 inline-flex items-center gap-2 rounded-md border border-cc-sidebar-rail px-3 py-2 text-[13px] font-medium text-cc-sidebar-text transition-colors hover:bg-cc-sidebar-raised focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-cc-sidebar-text"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+              <path d="M15 3h6v6" />
+              <path d="M10 14 21 3" />
+            </svg>
+            View website
+            <span className="sr-only"> (opens in new tab)</span>
+          </a>
           <AccountFooter avatar={v.avatar} role={v.role} />
         </div>
       </div>

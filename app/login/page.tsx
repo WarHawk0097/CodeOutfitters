@@ -34,7 +34,7 @@ export default async function LoginPage({
             href="/dashboard"
             className="mt-6 block w-full rounded-md bg-[var(--brand-green,#0A7C4A)] px-4 py-2 text-center text-sm font-semibold text-white transition-transform active:scale-[0.98]"
           >
-            Open the demo Command Center
+            Open the demo dashboard
           </Link>
         </div>
       </main>

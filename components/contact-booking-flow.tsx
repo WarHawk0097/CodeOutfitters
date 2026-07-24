@@ -430,6 +430,19 @@ export function ContactBookingFlow(_props: ContactBookingFlowProps) {
     setStep('request_prepared')
   }, [step1Errors, bConsent, scrollFocus])
 
+  /* If Step 1 is edited back into an invalid state after Step 2 was revealed,
+     collapse Step 2 again and discard any tentative slot selection so the user
+     can't confirm against stale/invalid details. request_prepared is terminal
+     and left untouched. */
+  useEffect(() => {
+    if (step === 'project_details' || step === 'request_prepared') return
+    const er = step1Errors()
+    if (er.eN || er.eE || er.eB || er.eI || er.eM) {
+      setStep('project_details')
+      setSelDate(null); setSelSlot(null); setFullyBookedSel(false)
+    }
+  }, [step, step1Errors])
+
   const bkPrevMonth = useCallback(() => {
     if (monthOffset <= 0) return
     setMonthOffset(monthOffset - 1)
@@ -503,7 +516,6 @@ export function ContactBookingFlow(_props: ContactBookingFlowProps) {
   /* ─── Derived state ─────────────────────────────────────────────────── */
 
   const step2Active = step !== 'project_details'
-  const step2Inactive = !step2Active
   const bkNoDate = !selDate && step !== 'request_prepared'
   const bkLoading = slotsLoading
   const bkFullyBooked = fullyBookedSel && step !== 'request_prepared'
@@ -625,25 +637,9 @@ export function ContactBookingFlow(_props: ContactBookingFlowProps) {
     <div id="contact-booking" ref={step2Ref} data-screen-label="Booking" style={{ background: '#F7F2EA' }}>
       <div style={{ maxWidth: '1100px', margin: '0 auto', padding: 'clamp(20px,3vw,40px) clamp(20px,3vw,32px) clamp(48px,7vw,80px)' }}>
 
-        {/* INACTIVE STATE */}
-        {step2Inactive && (
-          <div aria-hidden="true" style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px',
-            padding: '22px 20px', border: '1px dashed #DCD3C0', borderRadius: '16px', opacity: '.55',
-          }}>
-            <span style={{
-              flexShrink: 0, width: '30px', height: '30px', borderRadius: '999px',
-              border: '1.5px solid #B9AF98', color: '#9A937F',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              font: "700 13px 'Space Grotesk',sans-serif",
-            }}>2</span>
-            <span style={{ font: "600 14px 'Instrument Sans',sans-serif", color: '#8A857B', letterSpacing: '.02em' }}>
-              Step 2 · Choose a 30-minute time — unlocks after Step 1
-            </span>
-          </div>
-        )}
-
-        {/* ACTIVE STATE */}
+        {/* Step 2 is progressively disclosed: nothing of it — not even a
+            reserved band — is rendered until Step 1 is complete. The portal
+            below only mounts step2Content when step2Active. */}
         {step2Active && (
           <>
             {/* Step 2 heading block */}
@@ -681,7 +677,7 @@ export function ContactBookingFlow(_props: ContactBookingFlowProps) {
 
             {/* Booking card */}
             <div style={{
-              animation: 'bkCalRise .64s cubic-bezier(.16,1,.3,1) both',
+              animation: isReduced() ? undefined : 'bkCalRise .64s cubic-bezier(.16,1,.3,1) both',
               background: '#fff', border: '1px solid rgba(13,58,49,.14)',
               borderRadius: '22px', padding: 'clamp(20px,2.6vw,30px)',
               boxShadow: '0 30px 72px rgba(0,0,0,.10)',
@@ -1000,7 +996,11 @@ export function ContactBookingFlow(_props: ContactBookingFlowProps) {
   return (
     <>
       {step1Content}
-      {portalTarget && createPortal(step2Content, portalTarget)}
+      <p role="status" aria-live="polite" style={{
+        position: 'absolute', width: '1px', height: '1px', padding: 0, margin: '-1px',
+        overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap', border: 0,
+      }}>{step2Active ? 'Scheduling options are now available.' : ''}</p>
+      {portalTarget && step2Active && createPortal(step2Content, portalTarget)}
 
       <style>{`
         @keyframes bkCalRise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}

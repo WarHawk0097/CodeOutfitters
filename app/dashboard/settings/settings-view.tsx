@@ -12,6 +12,24 @@ import { useDemoQuery } from "../../../components/demo/use-demo-query";
 import { TONE_INK } from "../../../components/demo/tone";
 import { SecretFieldNotice, SelectField, TextAreaField, TextField, ToggleField } from "../../../components/demo/field";
 import { RouteError, RouteLoading } from "../../../components/demo/route-states";
+import {
+  APPEARANCES,
+  APPEARANCE_LABELS,
+  THEMES,
+  THEME_LABELS,
+  useDashboardTheme,
+  type Theme,
+} from "../theme";
+
+// Preview swatch per preset — the accent hue applied when selected.
+const THEME_SWATCH: Record<Theme, string> = {
+  command: "#2f7d4f",
+  graphite: "#4a5560",
+  indigo: "#4f56c4",
+  ocean: "#1f7a8c",
+  amber: "#b07c24",
+  rose: "#b83c6a",
+};
 
 export function SettingsScreen() {
   const { state, status, error, retry } = useDemoQuery();
@@ -25,6 +43,19 @@ export function SettingsScreen() {
       {/* Section index — a real in-page anchor list, not a no-op. */}
       <nav aria-label="Settings sections" className="xl:sticky xl:top-0 xl:w-56 xl:flex-shrink-0">
         <ul className="flex flex-wrap gap-1.5 xl:flex-col">
+          <li>
+            <a
+              href="#settings-appearance"
+              onClick={() => setActive("appearance")}
+              className={
+                active === "appearance"
+                  ? "block rounded-cc-control bg-cc-green-tint px-3 py-1.5 text-[12px] font-semibold text-cc-green-ink"
+                  : "block rounded-cc-control px-3 py-1.5 text-[12px] font-medium text-cc-t2 hover:bg-cc-secondary"
+              }
+            >
+              Appearance
+            </a>
+          </li>
           {state.settings.map((section) => (
             <li key={section.id}>
               <a
@@ -44,11 +75,96 @@ export function SettingsScreen() {
       </nav>
 
       <div className="min-w-0 flex-1 space-y-4">
+        <ThemeSettingsCard />
         {state.settings.map((section) => (
           <SettingsSectionCard key={section.id} section={section} />
         ))}
       </div>
     </div>
+  );
+}
+
+// Live theme controls. Selection applies immediately (and persists via the
+// theme context's localStorage writes); there is no Save button because there is
+// nothing to reconcile against a store — the preference IS the state.
+function ThemeSettingsCard() {
+  const { theme, appearance, setTheme, setAppearance } = useDashboardTheme();
+  return (
+    <section
+      id="settings-appearance"
+      aria-labelledby="settings-appearance-title"
+      className="scroll-mt-4 rounded-cc-card border border-cc-line bg-cc-surface p-4 xl:p-5"
+    >
+      <div className="mb-3">
+        <h2 id="settings-appearance-title" className="text-[14px] font-semibold text-cc-ink">
+          Appearance
+        </h2>
+        <p className="mt-0.5 text-[12px] text-cc-t3">
+          Personalize the Command Center. Saved to this browser; it doesn&apos;t affect the public site.
+        </p>
+      </div>
+
+      <fieldset className="mb-4">
+        <legend className="mb-1.5 text-[12px] font-medium text-cc-t2">Mode</legend>
+        <div className="inline-flex rounded-cc-control border border-cc-line p-0.5">
+          {APPEARANCES.map((mode) => {
+            const selected = appearance === mode;
+            return (
+              <button
+                key={mode}
+                type="button"
+                aria-pressed={selected}
+                onClick={() => setAppearance(mode)}
+                className={
+                  selected
+                    ? "rounded-[7px] bg-cc-green px-3 py-1.5 text-[12px] font-semibold text-white"
+                    : "rounded-[7px] px-3 py-1.5 text-[12px] font-medium text-cc-t2 hover:text-cc-ink"
+                }
+              >
+                {APPEARANCE_LABELS[mode]}
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend className="mb-1.5 text-[12px] font-medium text-cc-t2">Theme</legend>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {THEMES.map((preset) => {
+            const selected = theme === preset;
+            return (
+              <button
+                key={preset}
+                type="button"
+                aria-pressed={selected}
+                onClick={() => setTheme(preset)}
+                className={
+                  "flex items-center gap-2 rounded-cc-control border px-3 py-2 text-left transition-colors " +
+                  (selected
+                    ? "border-cc-green bg-cc-green-tint"
+                    : "border-cc-line hover:border-cc-t3")
+                }
+              >
+                <span
+                  aria-hidden="true"
+                  className="h-5 w-5 flex-shrink-0 rounded-full ring-1 ring-black/10"
+                  style={{ background: THEME_SWATCH[preset] }}
+                />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[12.5px] font-medium text-cc-ink">
+                    {THEME_LABELS[preset]}
+                  </span>
+                  <span className={selected ? "block text-[11px] font-medium text-cc-green-ink" : "sr-only"}>
+                    Selected
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
+    </section>
   );
 }
 

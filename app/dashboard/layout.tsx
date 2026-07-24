@@ -14,6 +14,7 @@ import { HeaderStatsProvider } from "./header-stats";
 import { CommandCenterConfigProvider } from "@/components/command-center/mode-provider";
 import { commandCenterClientConfig } from "@/lib/command-center/mode";
 import { MockBrowserInit } from "@/mocks/browser-init";
+import { DashboardThemeRoot } from "./theme";
 
 export default function ShellLayout({ children }: { children: ReactNode }) {
   // Mode is resolved here, in a server component, from the server-only
@@ -30,7 +31,7 @@ export default function ShellLayout({ children }: { children: ReactNode }) {
         worker, live never does. */}
     <MockBrowserInit enabled={!config.live}>
     <HeaderStatsProvider>
-    <div className="flex h-screen overflow-hidden bg-cc-canvas">
+    <DashboardThemeRoot className="flex h-screen overflow-hidden bg-cc-canvas">
       <ShellNav />
       <div className="flex min-w-0 flex-1 flex-col">
         <ShellHeaderBar />
@@ -39,7 +40,7 @@ export default function ShellLayout({ children }: { children: ReactNode }) {
             MO-02 1077 / T-02 894 / C-D05 143. */}
         <ShellMain>{children}</ShellMain>
       </div>
-    </div>
+    </DashboardThemeRoot>
     </HeaderStatsProvider>
     </MockBrowserInit>
     </CommandCenterConfigProvider>

@@ -77,7 +77,13 @@ export function ShellHeader({
           )}
         </div>
 
-        {right ? <div className="ml-auto hidden items-center gap-3 md:flex">{right}</div> : null}
+        {/* Persistent escape hatch back to the public site. Always present on
+            desktop, ahead of the per-route right slot. Relative href so it
+            follows whatever origin the dashboard is served from. */}
+        <div className="ml-auto hidden items-center gap-3 md:flex">
+          <ViewWebsiteLink />
+          {right}
+        </div>
         <div className="flex shrink-0 items-center md:hidden">{mobileRight}</div>
       </header>
 
@@ -92,5 +98,35 @@ export function ShellHeader({
         />
       ) : null}
     </>
+  );
+}
+
+// A 16x16 external-link glyph, matching the header's stroke idiom. Shared by the
+// desktop "View website" action and the mobile drawer variant in sidebar.tsx.
+export function ExternalLinkIcon({ size = 13 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+      <path d="M15 3h6v6" />
+      <path d="M10 14 21 3" />
+    </svg>
+  );
+}
+
+// Desktop escape hatch back to the public marketing site. Outline/secondary
+// treatment so it reads below the per-route primary actions. Opens in a new tab;
+// the sr-only clause announces that per the project's a11y convention.
+export function ViewWebsiteLink() {
+  return (
+    <a
+      href="/"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex h-8 items-center gap-1.5 rounded-md border border-cc-line px-2.5 text-[12.5px] font-medium text-cc-t2 transition-colors hover:border-cc-t3 hover:text-cc-ink focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-cc-green"
+    >
+      <ExternalLinkIcon />
+      View website
+      <span className="sr-only"> (opens in new tab)</span>
+    </a>
   );
 }
