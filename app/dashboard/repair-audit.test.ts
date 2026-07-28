@@ -24,7 +24,8 @@ import {
 } from "../login/credentials";
 import { LoginForm } from "../login/login-form";
 import { LoginFrame } from "../login/login-frame";
-import { SIDEBAR_STYLES, THEMES } from "./theme";
+import { providerAvailability } from "../../lib/auth/providers";
+import { DEFAULT_SIDEBAR_STYLE, DEFAULT_THEME, SIDEBAR_STYLES, THEMES } from "./theme";
 import { aggregateLeadFlow, leadFlowTotals } from "../../lib/dashboard/lead-flow";
 import { LEAD_DIRECTORY } from "../../lib/demo/seed";
 
@@ -247,15 +248,15 @@ describe("command center repair — shell, theme and range facts (15-20)", () =>
   it("every theme preset and sidebar style has sidebar tokens defined, scoped away from the public site", () => {
     const css = readFileSync(`${repo}app/globals.css`, "utf8");
     for (const t of THEMES) {
-      if (t === "command") continue; // :root default
+      if (t === DEFAULT_THEME) continue; // :root default
       expect(css).toContain(`[data-cc-theme='${t}']`);
     }
     for (const s of SIDEBAR_STYLES) {
-      if (s === "ink") continue; // :root default
+      if (s === DEFAULT_SIDEBAR_STYLE) continue; // no override: follows the palette
       expect(css).toContain(`[data-cc-sidebar='${s}']`);
       const block = css.slice(css.indexOf(`[data-cc-sidebar='${s}']`));
-      expect(block).toContain("--cc-sidebar-ink:");
-      expect(block).toContain("--cc-sidebar-active:");
+      expect(block).toContain("--cc-sidebar-bg:");
+      expect(block).toContain("--cc-sidebar-active-text:");
     }
     // Dashboard-scoped only: no bare :root override of the sidebar scale outside
     // the token block, and no public selector touched.
@@ -265,10 +266,13 @@ describe("command center repair — shell, theme and range facts (15-20)", () =>
   // 19
   it("theme, appearance and sidebar style each persist under their own key", () => {
     const theme = readFileSync(`${here}theme.tsx`, "utf8");
-    expect(theme).toContain('"codeoutfitters.command-center.theme"');
+    expect(theme).toContain('"codeoutfitters.command-center.palette"');
     expect(theme).toContain('"codeoutfitters.command-center.appearance"');
+    expect(theme).toContain('"codeoutfitters.command-center.sidebar"');
+    expect(theme).toContain("write(SIDEBAR_KEY, next)");
+    // The pre-refresh keys are still read once, for migration.
+    expect(theme).toContain('"codeoutfitters.command-center.theme"');
     expect(theme).toContain('"codeoutfitters.command-center.sidebar-style"');
-    expect(theme).toContain("localStorage.setItem(SIDEBAR_KEY, s)");
   });
 
   // 20
@@ -360,7 +364,12 @@ describe("sign-in repair — credential facts (21-26)", () => {
 describe("sign-in repair — rendered screen facts (27-30)", () => {
   const demoHtml = renderToStaticMarkup(
     createElement(LoginFrame, {
-      children: createElement(LoginForm, { live: false, initialError: false, returnTo: "/dashboard" }),
+      children: createElement(LoginForm, {
+        live: false,
+        initialError: false,
+        returnTo: "/dashboard",
+        providers: providerAvailability(false),
+      }),
     }),
   );
 
@@ -401,7 +410,7 @@ describe("sign-in repair — rendered screen facts (27-30)", () => {
     expect(providers).toHaveLength(2);
     for (const button of providers) {
       expect(button).toContain("disabled");
-      expect(button).toMatch(/aria-describedby="[^"]+-provider-reason"/);
+      expect(button).toMatch(/aria-describedby="[^"]+-(google|apple)-reason"/);
     }
     expect(demoHtml).toContain("Continue with Google");
     expect(demoHtml).toContain("Continue with Apple");

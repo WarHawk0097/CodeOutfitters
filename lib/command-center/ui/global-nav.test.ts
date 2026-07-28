@@ -84,9 +84,14 @@ describe("cross-navigation (tests 1-12)", () => {
     // Complete sign-in screen, not a bare "no login" placeholder.
     expect(loginFormSrc).toContain('type={showPassword ? "text" : "password"}');
     expect(loginFormSrc).toContain('type="submit"');
-    // Providers are offered by name but never faked: natively disabled, no OAuth call.
-    expect(loginFormSrc).toContain("Continue with Google");
-    expect(loginFormSrc).toContain("Continue with Apple");
+    // Providers are offered by name but never faked: the client component holds
+    // no OAuth call at all — it renders server-resolved labels and either submits
+    // a server action or stays disabled with a reason.
+    const providersSrc = readFileSync(`${here}../../auth/providers.ts`, "utf8");
+    expect(providersSrc).toContain("google: 'Continue with Google'");
+    expect(providersSrc).toContain("apple: 'Continue with Apple'");
+    expect(loginFormSrc).toContain("provider.label");
+    expect(loginFormSrc).toContain('aria-describedby={reasonId}');
     expect(loginFormSrc).not.toContain("Gmail");
     expect(loginFormSrc).not.toMatch(/signInWith(OAuth|Idp)/);
     // page.tsx routes both modes into this one screen.

@@ -8,5 +8,5 @@ export async function middleware(request: NextRequest) {
 // Run on dashboard + auth routes only; skip static assets and the public site so
 // the marketing pages keep their static behavior.
 export const config = {
-  matcher: ['/dashboard/:path*', '/login', '/auth/:path*'],
+  matcher: ['/dashboard/:path*', '/login', '/access-pending', '/auth/:path*'],
 }

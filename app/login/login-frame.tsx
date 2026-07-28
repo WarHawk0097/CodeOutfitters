@@ -43,7 +43,11 @@ export function LoginFrame({ children }: { children: ReactNode }) {
 
       <style>{`
 .login-page{min-height:100dvh;display:grid;grid-template-columns:1fr;background:#F7F2EA;color:#0A120E}
-.login-brand{background:#0A120E;color:#F7F2EA;display:flex;flex-direction:column;gap:18px;padding:24px clamp(16px,5vw,32px);border-bottom:1px solid #16241C}
+.login-brand{position:relative;isolation:isolate;overflow:hidden;background:#0E241A;color:#F7F2EA;display:flex;flex-direction:column;gap:18px;padding:24px clamp(16px,5vw,32px);border-bottom:1px solid #1D4232}
+/* Branded graphic treatment: two soft emerald/sage washes over a faint
+   engineering grid. Pure CSS — no stock imagery, no invented logos. */
+.login-brand::before{content:'';position:absolute;inset:0;z-index:-1;background:radial-gradient(58% 44% at 12% 6%,rgba(43,212,131,.20),transparent 68%),radial-gradient(46% 38% at 92% 96%,rgba(217,179,106,.14),transparent 70%)}
+.login-brand::after{content:'';position:absolute;inset:0;z-index:-1;opacity:.5;background-image:linear-gradient(rgba(134,162,146,.10) 1px,transparent 1px),linear-gradient(90deg,rgba(134,162,146,.10) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(80% 70% at 20% 20%,#000,transparent 78%);-webkit-mask-image:radial-gradient(80% 70% at 20% 20%,#000,transparent 78%)}
 .login-brand-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .login-logo{display:inline-flex;align-items:center;gap:10px;text-decoration:none;white-space:nowrap}
 .login-logo img{width:28px;height:28px}
@@ -83,7 +87,8 @@ export function LoginFrame({ children }: { children: ReactNode }) {
 .login-divider{display:flex;align-items:center;gap:12px;margin:22px 0}
 .login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:#E5DCCB}
 .login-divider span{font:500 13px 'Instrument Sans',sans-serif;color:#6B7369}
-.login-providers{display:flex;flex-direction:column;gap:10px}
+.login-providers{display:flex;flex-direction:column;gap:10px;margin-top:22px}
+.login-provider-slot{display:flex;flex-direction:column;gap:4px;margin:0}
 .login-provider{display:flex;width:100%;align-items:center;justify-content:center;gap:10px;font:600 14.5px 'Instrument Sans',sans-serif;color:#0A120E;background:#FFFDF8;border:1px solid #C9BEA8;border-radius:10px;padding:12px 18px}
 .login-provider:disabled{color:#8A8F86;background:#F1EADC;border-color:#DCD2BF;opacity:.75;cursor:not-allowed}
 .login-provider:disabled svg{opacity:.55}

@@ -16,6 +16,7 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { safeReturnTo } from "@/lib/auth/return-url";
+import { destinationForAuthState } from "@/lib/auth/auth-state";
 
 const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
 
@@ -112,7 +113,13 @@ describe("/login -> /dashboard", () => {
 
   it("live sign-in defaults to /dashboard through the validated returnTo", () => {
     expect(loginActionsSrc).toContain("safeReturnTo(");
-    expect(loginActionsSrc).toContain("redirect(returnTo)");
+    // The destination is now membership-gated: a member goes to the validated
+    // returnTo, everyone else to /access-pending. Both stay same-origin.
+    expect(loginActionsSrc).toContain("redirect(await postAuthDestination(returnTo))");
+    expect(destinationForAuthState("authenticated_member", "/dashboard")).toBe("/dashboard");
+    expect(destinationForAuthState("authenticated_without_membership", "/dashboard")).toBe(
+      "/access-pending",
+    );
     expect(safeReturnTo(undefined)).toBe("/dashboard");
   });
 
