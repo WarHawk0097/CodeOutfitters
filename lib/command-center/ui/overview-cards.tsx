@@ -234,9 +234,9 @@ export function LeadFlowCard({
         </div>
         <div className="flex gap-[18px] text-right">
           <FlowStat value="34" caption="received" />
-          <FlowStat value="26" caption="contacted" color="#8A5F17" />
-          <FlowStat value="12" caption="won" color="#276B42" />
-          <FlowStat value="35%" caption="recv→won · ▲4.2pp" color="#276B42" />
+          <FlowStat value="26" caption="contacted" color="var(--cc-amber-ink)" />
+          <FlowStat value="12" caption="won" color="var(--cc-green-ink)" />
+          <FlowStat value="35%" caption="recv→won · ▲4.2pp" color="var(--cc-green-ink)" />
         </div>
       </div>
       {chart}

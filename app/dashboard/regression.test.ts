@@ -14,8 +14,11 @@ const sidebarSrc = readFileSync(`${here}../../lib/command-center/ui/sidebar.tsx`
 
 describe("regression guards (tests 45-50)", () => {
   // 45
-  it("keeps the canonical default Command Center green on :root", () => {
-    expect(css).toContain("--cc-green: #2f7d4f;");
+  it("keeps the default Command Center green tied to the public brand primary", () => {
+    // The literal now lives on --cc-accent (= --brand-primary); --cc-green is
+    // the legacy alias every cc-* utility still resolves through.
+    expect(css).toContain("--cc-green: var(--cc-accent);");
+    expect(css).toMatch(/--cc-accent: #17a063;/);
   });
 
   // 46

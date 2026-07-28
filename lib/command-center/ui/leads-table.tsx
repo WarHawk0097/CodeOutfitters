@@ -81,17 +81,17 @@ const STATUS_OPTIONS: readonly LeadStatus[] = CANONICAL_LEAD_STATUS_ORDER;
 // Status dot colours, CANON 1362 (`ST`) resolved through the `G` palette at CANON 1311.
 // Negotiation is the one status with a literal of its own there rather than a palette entry.
 const STATUS_DOT: Record<LeadStatus, string> = {
-  New: "#46708E",
-  Contacted: "#85826F",
-  "Appt Pending": "#B07C24",
-  "Appt Scheduled": "#2F7D4F",
-  "Discovery Done": "#46708E",
-  "Proposal Req.": "#B07C24",
-  "Proposal Sent": "#46708E",
-  Negotiation: "#96731F",
-  Won: "#2F7D4F",
-  Lost: "#A63D2B",
-  FUL: "#85826F",
+  New: "var(--cc-blue)",
+  Contacted: "var(--cc-neutral)",
+  "Appt Pending": "var(--cc-amber)",
+  "Appt Scheduled": "var(--cc-green-ink)",
+  "Discovery Done": "var(--cc-blue)",
+  "Proposal Req.": "var(--cc-amber)",
+  "Proposal Sent": "var(--cc-blue)",
+  Negotiation: "var(--cc-amber-ink)",
+  Won: "var(--cc-green-ink)",
+  Lost: "var(--cc-red)",
+  FUL: "var(--cc-neutral)",
 };
 
 // CANON 1374 colours the NEXT STEP cell by an authored per-row urgency code that no contract
@@ -527,10 +527,10 @@ export function LeadsTable({
             height="13"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="#7A868D"
+            stroke="currentColor"
             strokeWidth={2}
             aria-hidden="true"
-            className="hidden md:block"
+            className="hidden text-cc-t3 md:block"
           >
             <circle cx="11" cy="11" r="7" />
             <path d="m21 21-4.3-4.3" />
@@ -752,12 +752,12 @@ export function LeadsTable({
       {/* MO-02 1076. No contract field carries duplicate detection, so this is staged
           presentation only and never renders outside the mock/test visual state. */}
       {canonicalState ? (
-        <div className="mb-2 flex items-center gap-2 rounded-[6px] border border-[#E5D3A1] bg-cc-surface px-[11px] py-2 md:hidden">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8A5F17" strokeWidth={2} aria-hidden="true">
+        <div className="mb-2 flex items-center gap-2 rounded-[6px] border border-cc-amber-border bg-cc-surface px-[11px] py-2 md:hidden">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true" className="text-cc-amber-ink">
             <path d="M12 9v4M12 17h.01" />
             <circle cx="12" cy="12" r="9" />
           </svg>
-          <span className="text-[10.5px] text-[#6E5A1E]">Possible duplicate — matching phone on LD-4820</span>
+          <span className="text-[10.5px] text-cc-amber-ink">Possible duplicate — matching phone on LD-4820</span>
         </div>
       ) : null}
 
@@ -809,19 +809,19 @@ export function LeadsTable({
           Only "Clear" has a list operation behind it in this phase; every action label is
           inert chrome. */}
       {activeSelected.length > 0 ? (
-        <div className="hidden items-center gap-3 bg-cc-ink-strong px-[14px] py-2 text-[#F2F5F6] md:flex xl:gap-[14px] xl:px-4 xl:py-[9px]">
+        <div className="hidden items-center gap-3 bg-cc-sidebar-bg px-[14px] py-2 text-cc-sidebar-active-text md:flex xl:gap-[14px] xl:px-4 xl:py-[9px]">
           <span className="font-cc-mono text-[11px] font-semibold uppercase xl:text-[11.5px]">
             {activeSelected.length} selected
           </span>
           {/* C-D05 170 only; T-02 896 has no separator element. */}
-          <span aria-hidden="true" className="hidden h-[14px] w-px bg-[#3B4248] xl:block" />
+          <span aria-hidden="true" className="hidden h-[14px] w-px bg-cc-sidebar-border xl:block" />
           {TABLET_BULK_ACTIONS.map((action) => (
-            <span key={action} aria-hidden="true" className="text-[11.5px] text-[#D5DBDE] xl:hidden">
+            <span key={action} aria-hidden="true" className="text-[11.5px] text-cc-sidebar-text xl:hidden">
               {action}
             </span>
           ))}
           {DESKTOP_BULK_ACTIONS.map((action) => (
-            <span key={action} aria-hidden="true" className="hidden text-[12px] text-[#D5DBDE] xl:inline">
+            <span key={action} aria-hidden="true" className="hidden text-[12px] text-cc-sidebar-text xl:inline">
               {action}
             </span>
           ))}
@@ -861,7 +861,7 @@ export function LeadsTable({
               role="row"
               style={{ gridTemplateColumns: DESKTOP_GRID }}
               className={`grid h-[42px] items-center gap-3 border-b border-cc-soft px-4 ${
-                activeSelected.includes(lead.id) ? "bg-[#EAF2ED]" : "bg-cc-surface"
+                activeSelected.includes(lead.id) ? "bg-cc-green-tint" : "bg-cc-surface"
               }`}
             >
               {checkbox(activeSelected.includes(lead.id), `Select row ${lead.name}`, () => toggleRow(lead.id), "h-[14px] w-[14px]")}
@@ -879,7 +879,7 @@ export function LeadsTable({
               <span role="cell" className="flex min-w-0 items-center gap-[7px]">
                 <span
                   aria-hidden="true"
-                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-[5px] bg-[#EEF2F0] text-[8.5px] font-bold text-cc-green-ink"
+                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-[5px] bg-cc-green-tint text-[8.5px] font-bold text-cc-green-ink"
                 >
                   {ownerInitials(ownerLabelOf(lead))}
                 </span>
@@ -911,7 +911,7 @@ export function LeadsTable({
               <span />
               {SKELETON_BARS.map((width, i) => (
                 <div key={i}>
-                  <div className="h-[9px] rounded-[3px] bg-[#E7EBED]" style={{ width }} />
+                  <div className="h-[9px] rounded-[3px] bg-cc-skeleton" style={{ width }} />
                 </div>
               ))}
               <span />
@@ -942,7 +942,7 @@ export function LeadsTable({
               role="row"
               style={{ gridTemplateColumns: TABLET_GRID }}
               className={`grid h-12 items-center gap-[10px] border-b border-cc-soft px-[14px] ${
-                activeSelected.includes(lead.id) ? "bg-[#EAF2ED]" : "bg-cc-surface"
+                activeSelected.includes(lead.id) ? "bg-cc-green-tint" : "bg-cc-surface"
               }`}
             >
               {checkbox(activeSelected.includes(lead.id), `Select row ${lead.name}`, () => toggleRow(lead.id), "h-[15px] w-[15px]")}

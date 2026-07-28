@@ -225,77 +225,179 @@ html[data-motion='reduced'] { scroll-behavior: auto; }
 }
 
 /* ============================================================================
-   Canonical Command Center design tokens (vendored from the approved
-   command-center app, Dashboard/Command Center Final.dc.html authority).
-   Definitions only — they change nothing on the public site. The dashboard
-   subtree opts in via .cc-scope and the cc-* Tailwind utilities.
+   Command Center design tokens — the CodeOutfitters brand system.
+
+   Two layers, one source of truth:
+
+   Layer 1 (semantic) is what every dashboard surface is meant to consume:
+   --cc-page-*, --cc-surface*, --cc-text*, --cc-accent*, --cc-sidebar-*,
+   --cc-chart-*. Its values are lifted from the public site's --brand-* block
+   at the top of this file, so the Command Center and the marketing site are
+   now literally the same palette rather than two unrelated colour systems.
+
+   Layer 2 re-points the canonical Final.dc.html token names at layer 1. Those
+   names are referenced by ~50 cc-* Tailwind utilities across the dashboard, so
+   aliasing (rather than a find-and-replace) is what keeps the refresh
+   coherent: no component carries a disconnected hard-coded colour, and each
+   palette below only has to restate layer 1.
+
+   Definitions only — they change nothing on the public site, which never uses
+   a cc-* utility. Theming is attribute-scoped (see the blocks further down).
    ============================================================================ */
 :root {
-  --cc-sidebar-ink: #14130e;
-  --cc-sidebar-raised: #26231a;
-  --cc-sidebar-text: #a19c8b;
-  --cc-sidebar-active: #f4f1e6;
-  --cc-sidebar-rail: #5c9b6c;
+  /* --- layer 1: semantic ------------------------------------------------ */
+  --cc-page-bg: #f7f2ea;           /* = --brand-bg, warm ivory */
+  --cc-page-text: #0a120e;         /* = --brand-text, ink */
+  --cc-surface: #ffffff;
+  --cc-surface-muted: #fbf7ee;     /* = --brand-surface-2 */
+  --cc-surface-raised: #fffdf8;
+  --cc-lane: #f2ece0;
+  --cc-border: #e3d9c6;            /* warm neutral, not cool grey */
+  --cc-border-strong: #cfc3ab;
+  --cc-text: #0a120e;
+  --cc-text-muted: #5b6355;        /* = --brand-muted */
+  --cc-heading: #0a120e;
+  --cc-accent: #17a063;            /* = --brand-primary, emerald */
+  --cc-accent-hover: #0e7a4e;      /* = --brand-primary-hover */
+  --cc-accent-soft: #eaf6ef;       /* = --brand-primary-light, sage wash */
+  --cc-accent-border: #bfe0cd;
+  --cc-focus: #17a063;             /* = --ring */
+  --cc-success: #17a063;
+  --cc-warning: #b07c24;
+  --cc-danger: #8a2318;
+  --cc-gold: #d9b36a;              /* = --brand-accent; selective emphasis only */
 
-  --cc-body-canvas: #edf0f2;
-  --cc-body-surface: #ffffff;
-  --cc-body-secondary: #f4f7f8;
-  --cc-body-lane: #e4e9eb;
-  --cc-body-line: #d9dfe2;
-  --cc-body-soft: #eef1f3;
-  --cc-body-ink: #1b2226;
-  --cc-body-t2: #5a6b74;
-  --cc-body-t3: #7a868d;
+  --cc-sidebar-bg: #0e241a;        /* deep forest, not near-black */
+  --cc-sidebar-surface: #143025;
+  --cc-sidebar-border: #1d4232;
+  --cc-sidebar-text: #b7cdbf;
+  --cc-sidebar-muted: #86a292;
+  --cc-sidebar-heading: #7fa892;
+  --cc-sidebar-hover: #17392a;
+  --cc-sidebar-active-bg: #1d4a34; /* sage surface behind the active row */
+  --cc-sidebar-active-text: #f4faf6;
+  --cc-sidebar-badge-bg: #245c40;
+  --cc-sidebar-badge-text: #e8f5ec;
+  --cc-sidebar-logo: #2bd483;      /* = --brand-bright, the public wordmark green */
+  --cc-sidebar-focus: #2bd483;
 
-  --cc-green: #2f7d4f;
-  --cc-green-ink: #276b42;
-  --cc-green-tint: #e2f0e7;
-  --cc-green-border: #bfdcca;
+  --cc-card-shadow: 0 1px 2px rgba(13, 58, 49, .05), 0 8px 24px -16px rgba(13, 58, 49, .26);
+  --cc-dialog-shadow: 0 24px 60px -20px rgba(13, 58, 49, .42);
 
-  --cc-amber: #b07c24;
-  --cc-amber-ink: #8a5f17;
-  --cc-amber-tint: #f4ebd4;
+  --cc-chart-grid: #e7ded0;
+  --cc-chart-primary: #17a063;
+  --cc-chart-secondary: #0e2a1d;
+  --cc-chart-tertiary: #8fbfa4;
+  --cc-chart-highlight: #d9b36a;
+
+  /* --- layer 2: canonical Final.dc.html names, aliased ------------------- */
+  --cc-sidebar-ink: var(--cc-sidebar-bg);
+  --cc-sidebar-raised: var(--cc-sidebar-surface);
+  --cc-sidebar-active: var(--cc-sidebar-active-text);
+  --cc-sidebar-rail: var(--cc-sidebar-logo);
+  --cc-sidebar-label: var(--cc-sidebar-heading);
+  --cc-sidebar-name: #eaf3ec;
+  --cc-sidebar-mark: var(--cc-sidebar-logo);
+  --cc-avatar: var(--cc-sidebar-badge-bg);
+  --cc-avatar-ink: var(--cc-sidebar-badge-text);
+
+  --cc-body-canvas: var(--cc-page-bg);
+  --cc-body-surface: var(--cc-surface);
+  --cc-body-secondary: var(--cc-surface-muted);
+  --cc-body-lane: var(--cc-lane);
+  --cc-body-line: var(--cc-border);
+  --cc-body-soft: var(--cc-surface-muted);
+  --cc-body-ink: var(--cc-text);
+  --cc-body-t2: var(--cc-text-muted);
+  --cc-body-t3: #7d8375;
+
+  --cc-green: var(--cc-accent);
+  --cc-green-ink: var(--cc-accent-hover);
+  --cc-green-tint: var(--cc-accent-soft);
+  --cc-green-border: var(--cc-accent-border);
+
+  --cc-amber: var(--cc-warning);
+  --cc-amber-ink: #7d5514;
+  --cc-amber-tint: #f8f0dc;
   --cc-amber-border: #e5d3a1;
 
-  --cc-red: #a63d2b;
-  --cc-red-ink: #8c3021;
-  --cc-red-tint: #f6e3dd;
-  --cc-red-border: #e3b8ac;
+  --cc-red: var(--cc-danger);
+  --cc-red-ink: #74190f;
+  --cc-red-tint: #fbece9;
+  --cc-red-border: #e6c4bd;
 
-  --cc-blue: #46708e;
-  --cc-blue-ink: #33566e;
-  --cc-blue-tint: #e3edf4;
-  --cc-blue-border: #c6d8e4;
+  /* Retuned off the old #46708e enterprise blue to a muted forest teal, so the
+     informational tone belongs to the same family as everything else. */
+  --cc-blue: #3f6f7c;
+  --cc-blue-ink: #2f5a66;
+  --cc-blue-tint: #e6f0f1;
+  --cc-blue-border: #c1dade;
 
-  --cc-neutral: #85826f;
+  --cc-neutral: #8a8578;
 
-  --cc-sidebar-muted: #6b6754;
-  --cc-sidebar-label: #57533f;
-  --cc-sidebar-name: #e8e4d6;
-  --cc-sidebar-mark: #7fbc8c;
-  --cc-avatar: #3d5b45;
-  --cc-avatar-ink: #dcefe0;
-
-  --cc-ink-strong: #212528;
-  --cc-t-table: #3e4a52;
-  --cc-t-header: #55636b;
-  --cc-line-strong: #cdd5d9;
-  --cc-line-inner: #e2e7ea;
-  --cc-t4: #8b979d;
-  --cc-icon-muted: #b9c2c7;
-  --cc-row-line: #f1f4f5;
-  --cc-skeleton: #e7ebed;
+  --cc-ink-strong: var(--cc-heading);
+  --cc-t-table: #39413a;
+  --cc-t-header: #5b6355;
+  --cc-line-strong: var(--cc-border-strong);
+  --cc-line-inner: #eee7d9;
+  --cc-t4: #8a8f83;
+  --cc-icon-muted: #b3ac9b;
+  --cc-row-line: #f2ece0;
+  --cc-skeleton: #ece5d7;
 
   --cc-radius-control: 6px;
   --cc-radius-card: 8px;
   --cc-radius-card-lg: 10px;
   --cc-radius-dialog: 10px;
 
-  --chart-1: var(--cc-blue);
-  --chart-2: var(--cc-green);
+  --chart-1: var(--cc-chart-secondary);
+  --chart-2: var(--cc-chart-primary);
 }
 
 @theme inline {
+  /* Layer 1 — the semantic names. New surfaces should reach for these. */
+  --color-cc-page-bg: var(--cc-page-bg);
+  --color-cc-page-text: var(--cc-page-text);
+  --color-cc-surface-plain: var(--cc-surface);
+  --color-cc-surface-muted: var(--cc-surface-muted);
+  --color-cc-surface-raised: var(--cc-surface-raised);
+  --color-cc-border: var(--cc-border);
+  --color-cc-border-strong: var(--cc-border-strong);
+  --color-cc-text: var(--cc-text);
+  --color-cc-text-muted: var(--cc-text-muted);
+  --color-cc-heading: var(--cc-heading);
+  --color-cc-accent: var(--cc-accent);
+  --color-cc-accent-hover: var(--cc-accent-hover);
+  --color-cc-accent-soft: var(--cc-accent-soft);
+  --color-cc-accent-border: var(--cc-accent-border);
+  --color-cc-focus: var(--cc-focus);
+  --color-cc-success: var(--cc-success);
+  --color-cc-warning: var(--cc-warning);
+  --color-cc-danger: var(--cc-danger);
+  --color-cc-gold: var(--cc-gold);
+
+  --color-cc-sidebar-bg: var(--cc-sidebar-bg);
+  --color-cc-sidebar-surface: var(--cc-sidebar-surface);
+  --color-cc-sidebar-border: var(--cc-sidebar-border);
+  --color-cc-sidebar-heading: var(--cc-sidebar-heading);
+  --color-cc-sidebar-hover: var(--cc-sidebar-hover);
+  --color-cc-sidebar-active-bg: var(--cc-sidebar-active-bg);
+  --color-cc-sidebar-active-text: var(--cc-sidebar-active-text);
+  --color-cc-sidebar-badge-bg: var(--cc-sidebar-badge-bg);
+  --color-cc-sidebar-badge-text: var(--cc-sidebar-badge-text);
+  --color-cc-sidebar-logo: var(--cc-sidebar-logo);
+  --color-cc-sidebar-focus: var(--cc-sidebar-focus);
+
+  --color-cc-chart-grid: var(--cc-chart-grid);
+  --color-cc-chart-primary: var(--cc-chart-primary);
+  --color-cc-chart-secondary: var(--cc-chart-secondary);
+  --color-cc-chart-tertiary: var(--cc-chart-tertiary);
+  --color-cc-chart-highlight: var(--cc-chart-highlight);
+
+  --shadow-cc-card: var(--cc-card-shadow);
+  --shadow-cc-dialog: var(--cc-dialog-shadow);
+
+  /* Layer 2 — canonical Final.dc.html names, still the ones in use today. */
   --color-cc-sidebar-ink: var(--cc-sidebar-ink);
   --color-cc-sidebar-raised: var(--cc-sidebar-raised);
   --color-cc-sidebar-text: var(--cc-sidebar-text);
@@ -371,120 +473,377 @@ html[data-motion='reduced'] { scroll-behavior: auto; }
 }
 
 /* ============================================================================
-   Dashboard-scoped theming. Every override below is keyed on data attributes
-   set only on the /dashboard frame root (see app/dashboard/theme.tsx), so the
-   public site is untouched. Accent presets remap only the accent hue family +
-   sidebar/avatar marks; the neutral body surfaces are shared. Appearance='dark'
-   remaps the neutral surfaces and derives every tint from the *active* accent
-   via color-mix, so a preset's hue survives in dark mode without each theme
-   needing its own dark palette.
+   Dashboard palettes — attribute-scoped, never on :root, so the public
+   marketing site is untouched by every one of them.
+
+   Each palette restates layer 1 only; layer 2 re-derives automatically. The
+   default palette (`codeoutfitters`) is the :root block above, so it needs no
+   override — selecting it simply removes the others.
+
+   Source order matters and is deliberate: palettes, then the dark appearance,
+   then the sidebar-style overrides. All three selectors have the same
+   specificity, so a sidebar override always wins over the palette's own
+   sidebar colours, which is what "Sidebar style" is supposed to mean.
    ============================================================================ */
-[data-cc-theme='graphite'] {
-  --cc-green: #4a5560; --cc-green-ink: #3a444d;
-  --cc-green-tint: #e7eaed; --cc-green-border: #ccd3d8;
-  --cc-sidebar-rail: #6b7580; --cc-sidebar-mark: #9aa4ad; --cc-avatar: #454d54;
-  --chart-2: #4a5560;
-}
-[data-cc-theme='indigo'] {
-  --cc-green: #4f56c4; --cc-green-ink: #3f45a8;
-  --cc-green-tint: #e7e8f7; --cc-green-border: #c6c9ee;
-  --cc-sidebar-rail: #6d73d1; --cc-sidebar-mark: #9498e0; --cc-avatar: #454a99;
-  --chart-2: #4f56c4;
-}
-[data-cc-theme='ocean'] {
-  --cc-green: #1f7a8c; --cc-green-ink: #196576;
-  --cc-green-tint: #ddeef1; --cc-green-border: #b3dbe1;
-  --cc-sidebar-rail: #4f9aa8; --cc-sidebar-mark: #7fbfc9; --cc-avatar: #1f5f6b;
-  --chart-2: #1f7a8c;
-}
-[data-cc-theme='amber'] {
-  --cc-green: #b07c24; --cc-green-ink: #8a5f17;
-  --cc-green-tint: #f4ebd4; --cc-green-border: #e5d3a1;
-  --cc-sidebar-rail: #c39a3f; --cc-sidebar-mark: #d8b96a; --cc-avatar: #7a5a1f;
-  --chart-2: #b07c24;
-}
-[data-cc-theme='rose'] {
-  --cc-green: #b83c6a; --cc-green-ink: #9c2f58;
-  --cc-green-tint: #f7e2ea; --cc-green-border: #eec0d1;
-  --cc-sidebar-rail: #cf5f86; --cc-sidebar-mark: #e08fa9; --cc-avatar: #8f3050;
-  --chart-2: #b83c6a;
+
+/* Forest Mist — the default palette pushed greener: a sage-washed canvas over
+   a near-black forest rail. Calm, low-contrast surfaces. */
+[data-cc-theme='forest-mist'] {
+  --cc-page-bg: #eef3ec;
+  --cc-surface: #ffffff;
+  --cc-surface-muted: #f6faf4;
+  --cc-surface-raised: #fbfdfa;
+  --cc-lane: #e6eee3;
+  --cc-border: #d5e2d3;
+  --cc-border-strong: #b8ccb6;
+  --cc-text: #0c1a13;
+  --cc-text-muted: #4f6154;
+  --cc-heading: #0c1a13;
+  --cc-accent: #0f8a55;
+  --cc-accent-hover: #0a6a41;
+  --cc-accent-soft: #e2f2e8;
+  --cc-accent-border: #b4dcc5;
+  --cc-focus: #0f8a55;
+  --cc-success: #0f8a55;
+  --cc-gold: #c9a765;
+
+  --cc-sidebar-bg: #0a1c14;
+  --cc-sidebar-surface: #10281d;
+  --cc-sidebar-border: #17392a;
+  --cc-sidebar-text: #a9c4b4;
+  --cc-sidebar-muted: #7b998a;
+  --cc-sidebar-heading: #74a08c;
+  --cc-sidebar-hover: #133023;
+  --cc-sidebar-active-bg: #1a422f;
+  --cc-sidebar-active-text: #eef7f1;
+  --cc-sidebar-badge-bg: #205238;
+  --cc-sidebar-badge-text: #e2f2e8;
+  --cc-sidebar-logo: #35c98a;
+  --cc-sidebar-focus: #35c98a;
+
+  --cc-chart-grid: #dbe7d8;
+  --cc-chart-primary: #0f8a55;
+  --cc-chart-secondary: #0a1c14;
+  --cc-chart-tertiary: #82b79a;
+  --cc-chart-highlight: #c9a765;
 }
 
-/* Sidebar surface follows the active preset. The base command theme keeps its
-   warm near-black (:root above); every other preset tints the sidebar ink,
-   raised and name/active toward that preset's accent, so switching themes
-   visibly recolours the sidebar instead of leaving it stuck on #14130e.
-   Placed after the preset blocks so var(--cc-green) resolves to each preset's
-   own accent. Attribute-scoped only — the public site is untouched. */
-[data-cc-theme='graphite'],
-[data-cc-theme='indigo'],
-[data-cc-theme='ocean'],
-[data-cc-theme='amber'],
-[data-cc-theme='rose'] {
-  --cc-sidebar-ink: color-mix(in srgb, var(--cc-green) 15%, #14130e);
-  --cc-sidebar-raised: color-mix(in srgb, var(--cc-green) 17%, #26231a);
-  --cc-sidebar-name: color-mix(in srgb, var(--cc-green) 28%, #e8e4d6);
-  --cc-sidebar-active: color-mix(in srgb, var(--cc-green) 12%, #f4f1e6);
+/* Graphite Sage — warm graphite structure, sage accent. For long analytical
+   sessions where a fully green canvas is too much. */
+[data-cc-theme='graphite-sage'] {
+  --cc-page-bg: #f2f1ee;
+  --cc-surface: #ffffff;
+  --cc-surface-muted: #f8f7f4;
+  --cc-surface-raised: #fdfcfa;
+  --cc-lane: #eceae5;
+  --cc-border: #ddd9d1;
+  --cc-border-strong: #c2bdb2;
+  --cc-text: #16181a;
+  --cc-text-muted: #5a5d5c;
+  --cc-heading: #16181a;
+  --cc-accent: #3f7d5c;
+  --cc-accent-hover: #2f6247;
+  --cc-accent-soft: #e9f0eb;
+  --cc-accent-border: #c3d8cb;
+  --cc-focus: #3f7d5c;
+  --cc-success: #3f7d5c;
+  --cc-gold: #b99857;
+
+  --cc-sidebar-bg: #24262a;
+  --cc-sidebar-surface: #2e3136;
+  --cc-sidebar-border: #3a3e44;
+  --cc-sidebar-text: #b9bdc0;
+  --cc-sidebar-muted: #8b9094;
+  --cc-sidebar-heading: #8fae9c;
+  --cc-sidebar-hover: #33373d;
+  --cc-sidebar-active-bg: #33493d;
+  --cc-sidebar-active-text: #f2f5f3;
+  --cc-sidebar-badge-bg: #3d5a49;
+  --cc-sidebar-badge-text: #e9f0eb;
+  --cc-sidebar-logo: #6fc79a;
+  --cc-sidebar-focus: #6fc79a;
+
+  --cc-chart-grid: #e2dfd8;
+  --cc-chart-primary: #3f7d5c;
+  --cc-chart-secondary: #24262a;
+  --cc-chart-tertiary: #94b8a4;
+  --cc-chart-highlight: #b99857;
 }
 
+/* Midnight Emerald — the darkest of the light-mode palettes: near-black
+   emerald rail, cool-neutral ivory canvas, bright emerald actions. */
+[data-cc-theme='midnight-emerald'] {
+  --cc-page-bg: #f4f4f1;
+  --cc-surface: #ffffff;
+  --cc-surface-muted: #fafaf7;
+  --cc-surface-raised: #ffffff;
+  --cc-lane: #eeeeea;
+  --cc-border: #dededa;
+  --cc-border-strong: #c3c3bd;
+  --cc-text: #0b1210;
+  --cc-text-muted: #555c58;
+  --cc-heading: #0b1210;
+  --cc-accent: #0f9d63;
+  --cc-accent-hover: #0b7a4d;
+  --cc-accent-soft: #e6f5ee;
+  --cc-accent-border: #b3dfc9;
+  --cc-focus: #0f9d63;
+  --cc-success: #0f9d63;
+  --cc-gold: #cfae6c;
+
+  --cc-sidebar-bg: #05100b;
+  --cc-sidebar-surface: #0b1d14;
+  --cc-sidebar-border: #133021;
+  --cc-sidebar-text: #a8c2b3;
+  --cc-sidebar-muted: #7a9686;
+  --cc-sidebar-heading: #6fae8d;
+  --cc-sidebar-hover: #0f2719;
+  --cc-sidebar-active-bg: #14402b;
+  --cc-sidebar-active-text: #f0faf4;
+  --cc-sidebar-badge-bg: #1b543a;
+  --cc-sidebar-badge-text: #e6f5ee;
+  --cc-sidebar-logo: #2ee68f;
+  --cc-sidebar-focus: #2ee68f;
+
+  --cc-chart-grid: #e4e4de;
+  --cc-chart-primary: #0f9d63;
+  --cc-chart-secondary: #05100b;
+  --cc-chart-tertiary: #79bd9b;
+  --cc-chart-highlight: #cfae6c;
+}
+
+/* Ocean Slate — the slate-blue / teal-green option. The only palette that
+   leaves the green family for its structural colour; the accent stays teal so
+   the primary action never becomes a generic enterprise blue. */
+[data-cc-theme='ocean-slate'] {
+  --cc-page-bg: #f1f4f5;
+  --cc-surface: #ffffff;
+  --cc-surface-muted: #f7fafb;
+  --cc-surface-raised: #fcfefe;
+  --cc-lane: #e8eef0;
+  --cc-border: #d6e0e3;
+  --cc-border-strong: #b6c5ca;
+  --cc-text: #101a1d;
+  --cc-text-muted: #4f5d62;
+  --cc-heading: #101a1d;
+  --cc-accent: #10826f;
+  --cc-accent-hover: #0b6558;
+  --cc-accent-soft: #e2f1ee;
+  --cc-accent-border: #b1d9d1;
+  --cc-focus: #10826f;
+  --cc-success: #10826f;
+  --cc-gold: #bb9a5f;
+
+  --cc-sidebar-bg: #16262c;
+  --cc-sidebar-surface: #1e343b;
+  --cc-sidebar-border: #2a444d;
+  --cc-sidebar-text: #adc2c8;
+  --cc-sidebar-muted: #7f979f;
+  --cc-sidebar-heading: #77a8a2;
+  --cc-sidebar-hover: #223c44;
+  --cc-sidebar-active-bg: #234c48;
+  --cc-sidebar-active-text: #eff7f6;
+  --cc-sidebar-badge-bg: #285c55;
+  --cc-sidebar-badge-text: #e2f1ee;
+  --cc-sidebar-logo: #3fd0b4;
+  --cc-sidebar-focus: #3fd0b4;
+
+  --cc-chart-grid: #dde5e8;
+  --cc-chart-primary: #10826f;
+  --cc-chart-secondary: #16262c;
+  --cc-chart-tertiary: #7fb8ad;
+  --cc-chart-highlight: #bb9a5f;
+}
+
+/* Warm Sand — the CodeOutfitters olive/ink option: sand canvas, olive rail,
+   deep olive-green actions. The warmest palette in the set. */
+[data-cc-theme='warm-sand'] {
+  --cc-page-bg: #f6f0e3;
+  --cc-surface: #fffdf7;
+  --cc-surface-muted: #faf5e9;
+  --cc-surface-raised: #fffefa;
+  --cc-lane: #efe8d7;
+  --cc-border: #e0d5bd;
+  --cc-border-strong: #c8bb9e;
+  --cc-text: #16150f;
+  --cc-text-muted: #5d5947;
+  --cc-heading: #16150f;
+  --cc-accent: #5b7a37;
+  --cc-accent-hover: #465e2a;
+  --cc-accent-soft: #eef2e1;
+  --cc-accent-border: #cbd9ae;
+  --cc-focus: #5b7a37;
+  --cc-success: #5b7a37;
+  --cc-gold: #b5893c;
+
+  --cc-sidebar-bg: #1e2015;
+  --cc-sidebar-surface: #292c1e;
+  --cc-sidebar-border: #383c29;
+  --cc-sidebar-text: #c0bda6;
+  --cc-sidebar-muted: #92907c;
+  --cc-sidebar-heading: #9aa678;
+  --cc-sidebar-hover: #2f331f;
+  --cc-sidebar-active-bg: #3b4526;
+  --cc-sidebar-active-text: #f6f3e6;
+  --cc-sidebar-badge-bg: #47522d;
+  --cc-sidebar-badge-text: #eef2e1;
+  --cc-sidebar-logo: #a8cc63;
+  --cc-sidebar-focus: #a8cc63;
+
+  --cc-chart-grid: #e6dcc5;
+  --cc-chart-primary: #5b7a37;
+  --cc-chart-secondary: #1e2015;
+  --cc-chart-tertiary: #a3b57c;
+  --cc-chart-highlight: #b5893c;
+}
+
+/* ----------------------------------------------------------------------------
+   Dark appearance. Warm forest-dark rather than a neutral grey, so dark mode
+   still reads as CodeOutfitters. Accent tints are derived from the LIVE accent
+   with color-mix, so every palette keeps its own hue in the dark.
+   ---------------------------------------------------------------------------- */
 [data-cc-appearance='dark'] {
-  --cc-body-canvas: #0f1417;
-  --cc-body-surface: #171d21;
-  --cc-body-secondary: #1c2429;
-  --cc-body-lane: #232c31;
-  --cc-body-line: #2b353b;
-  --cc-body-soft: #1a2226;
-  --cc-body-ink: #e6ecef;
-  --cc-body-t2: #9fb0b8;
-  --cc-body-t3: #7d8d95;
+  --cc-page-bg: #0d1512;
+  --cc-page-text: #e8efe9;
+  --cc-surface: #141d19;
+  --cc-surface-muted: #18221d;
+  --cc-surface-raised: #1c2721;
+  --cc-lane: #18221d;
+  --cc-border: #26332c;
+  --cc-border-strong: #33443a;
+  --cc-text: #e8efe9;
+  --cc-text-muted: #9db0a4;
+  --cc-heading: #f2f7f3;
+  --cc-accent-soft: color-mix(in srgb, var(--cc-green) 20%, #0d1512);
+  --cc-accent-border: color-mix(in srgb, var(--cc-green) 38%, #0d1512);
+  --cc-warning: #d7a44a;
+  --cc-danger: #e0796a;
 
-  --cc-ink-strong: #f2f6f8;
-  --cc-t-table: #c3ced4;
-  --cc-t-header: #9fb0b8;
-  --cc-line-strong: #38444b;
-  --cc-line-inner: #232c31;
-  --cc-t4: #6b7a81;
-  --cc-icon-muted: #5c6b72;
-  --cc-row-line: #1c2429;
-  --cc-skeleton: #232c31;
+  --cc-card-shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 28px -18px rgba(0, 0, 0, .7);
+  --cc-dialog-shadow: 0 28px 70px -22px rgba(0, 0, 0, .8);
 
-  /* Tints derived from the live accent, so each preset keeps its hue in dark. */
-  --cc-green-tint: color-mix(in srgb, var(--cc-green) 22%, #12181c);
-  --cc-green-border: color-mix(in srgb, var(--cc-green) 46%, #12181c);
-  --cc-amber-tint: color-mix(in srgb, var(--cc-amber) 20%, #12181c);
-  --cc-amber-border: color-mix(in srgb, var(--cc-amber) 42%, #12181c);
-  --cc-red-tint: color-mix(in srgb, var(--cc-red) 20%, #12181c);
-  --cc-red-border: color-mix(in srgb, var(--cc-red) 42%, #12181c);
-  --cc-blue-tint: color-mix(in srgb, var(--cc-blue) 20%, #12181c);
-  --cc-blue-border: color-mix(in srgb, var(--cc-blue) 42%, #12181c);
+  --cc-chart-grid: #26332c;
+  --cc-chart-secondary: #9db0a4;
+
+  /* Layer-2 names that carry their own literal values in :root and therefore
+     need restating here. */
+  --cc-body-t3: #7d9285;
+  --cc-t-table: #d3e0d7;
+  --cc-t-header: #9db0a4;
+  --cc-line-inner: #223029;
+  --cc-t4: #7d9285;
+  --cc-icon-muted: #6b8073;
+  --cc-row-line: #1b2620;
+  --cc-skeleton: #1f2b25;
+  --cc-neutral: #93a89a;
+
+  --cc-amber-ink: #e8bd6d;
+  --cc-amber-tint: color-mix(in srgb, var(--cc-amber) 20%, #0d1512);
+  --cc-amber-border: color-mix(in srgb, var(--cc-amber) 38%, #0d1512);
+  --cc-red-ink: #f0a396;
+  --cc-red-tint: color-mix(in srgb, var(--cc-red) 20%, #0d1512);
+  --cc-red-border: color-mix(in srgb, var(--cc-red) 38%, #0d1512);
+  --cc-blue: #5f9aa5;
+  --cc-blue-ink: #9fcfd6;
+  --cc-blue-tint: color-mix(in srgb, #5f9aa5 20%, #0d1512);
+  --cc-blue-border: color-mix(in srgb, #5f9aa5 38%, #0d1512);
+
+  /* The rail is already dark; nudge it away from the canvas so the two
+     surfaces stay distinguishable in dark mode. */
+  --cc-sidebar-bg: #080f0c;
+  --cc-sidebar-surface: #101a15;
+  --cc-sidebar-border: #1c2a22;
+  --cc-sidebar-hover: #14231b;
+  --cc-sidebar-name: #e8efe9;
 }
 
-/* ============================================================================
-   Sidebar style — an independent choice from the accent preset, applied to the
-   same dashboard root via data-cc-sidebar. 'ink' is the canonical rail and is
-   the :root/preset default, so it needs no block. Placed last so it overrides
-   the per-preset sidebar remap above, and derived from var(--cc-green) so the
-   active preset's hue still comes through. Attribute-scoped: the public site
-   never sees these.
-   ============================================================================ */
-[data-cc-sidebar='tinted'] {
-  --cc-sidebar-ink: color-mix(in srgb, var(--cc-green) 62%, #14130e);
-  --cc-sidebar-raised: color-mix(in srgb, var(--cc-green) 78%, #14130e);
-  --cc-sidebar-text: color-mix(in srgb, #ffffff 72%, var(--cc-green));
-  --cc-sidebar-muted: color-mix(in srgb, #ffffff 52%, var(--cc-green));
-  --cc-sidebar-name: #ffffff;
-  --cc-sidebar-active: #ffffff;
-  --cc-sidebar-rail: #ffffff;
-  --cc-sidebar-mark: color-mix(in srgb, #ffffff 82%, var(--cc-green));
+/* ----------------------------------------------------------------------------
+   Sidebar styles. `match` is the absence of an override — the rail simply uses
+   whatever the active palette (and appearance) says. The rest are explicit
+   choices that survive a palette change.
+   ---------------------------------------------------------------------------- */
+[data-cc-sidebar='forest'] {
+  --cc-sidebar-bg: #0e241a;
+  --cc-sidebar-surface: #143025;
+  --cc-sidebar-border: #1d4232;
+  --cc-sidebar-text: #b7cdbf;
+  --cc-sidebar-muted: #86a292;
+  --cc-sidebar-heading: #7fa892;
+  --cc-sidebar-hover: #17392a;
+  --cc-sidebar-active-bg: #1d4a34;
+  --cc-sidebar-active-text: #f4faf6;
+  --cc-sidebar-badge-bg: #245c40;
+  --cc-sidebar-badge-text: #e8f5ec;
+  --cc-sidebar-logo: #2bd483;
+  --cc-sidebar-focus: #2bd483;
+  --cc-sidebar-name: #eaf3ec;
 }
 
-[data-cc-sidebar='light'] {
-  --cc-sidebar-ink: var(--cc-body-surface);
-  --cc-sidebar-raised: var(--cc-body-secondary);
-  --cc-sidebar-text: var(--cc-body-t2);
-  --cc-sidebar-muted: var(--cc-body-t3);
-  --cc-sidebar-name: var(--cc-body-ink);
-  --cc-sidebar-active: var(--cc-body-ink);
-  --cc-sidebar-rail: var(--cc-green);
-  --cc-sidebar-mark: var(--cc-green);
+[data-cc-sidebar='warm-ink'] {
+  --cc-sidebar-bg: #1a1712;
+  --cc-sidebar-surface: #24201a;
+  --cc-sidebar-border: #332d24;
+  --cc-sidebar-text: #c2bba9;
+  --cc-sidebar-muted: #928c7c;
+  --cc-sidebar-heading: #9c9a7c;
+  --cc-sidebar-hover: #2b261e;
+  --cc-sidebar-active-bg: #3a3427;
+  --cc-sidebar-active-text: #f7f3e9;
+  --cc-sidebar-badge-bg: #46402f;
+  --cc-sidebar-badge-text: #f2ecdd;
+  --cc-sidebar-logo: #cbb26a;
+  --cc-sidebar-focus: #cbb26a;
+  --cc-sidebar-name: #f0ebdd;
+}
+
+[data-cc-sidebar='graphite'] {
+  --cc-sidebar-bg: #212429;
+  --cc-sidebar-surface: #2b2f35;
+  --cc-sidebar-border: #383d44;
+  --cc-sidebar-text: #b6babf;
+  --cc-sidebar-muted: #888d93;
+  --cc-sidebar-heading: #8dab9a;
+  --cc-sidebar-hover: #30353c;
+  --cc-sidebar-active-bg: #31473b;
+  --cc-sidebar-active-text: #f1f4f2;
+  --cc-sidebar-badge-bg: #3b5748;
+  --cc-sidebar-badge-text: #e8f0ea;
+  --cc-sidebar-logo: #6fc79a;
+  --cc-sidebar-focus: #6fc79a;
+  --cc-sidebar-name: #eef0f1;
+}
+
+[data-cc-sidebar='midnight-emerald'] {
+  --cc-sidebar-bg: #05100b;
+  --cc-sidebar-surface: #0b1d14;
+  --cc-sidebar-border: #133021;
+  --cc-sidebar-text: #a8c2b3;
+  --cc-sidebar-muted: #7a9686;
+  --cc-sidebar-heading: #6fae8d;
+  --cc-sidebar-hover: #0f2719;
+  --cc-sidebar-active-bg: #14402b;
+  --cc-sidebar-active-text: #f0faf4;
+  --cc-sidebar-badge-bg: #1b543a;
+  --cc-sidebar-badge-text: #e6f5ee;
+  --cc-sidebar-logo: #2ee68f;
+  --cc-sidebar-focus: #2ee68f;
+  --cc-sidebar-name: #eaf6f0;
+}
+
+/* The one light rail. Text tokens flip to ink so contrast stays legible. */
+[data-cc-sidebar='light-ivory'] {
+  --cc-sidebar-bg: #fbf7ee;
+  --cc-sidebar-surface: #f2ece0;
+  --cc-sidebar-border: #e3d9c6;
+  --cc-sidebar-text: #4a5248;
+  --cc-sidebar-muted: #7d8375;
+  --cc-sidebar-heading: #6b7c6f;
+  --cc-sidebar-hover: #eee7d9;
+  --cc-sidebar-active-bg: #e2f0e7;
+  --cc-sidebar-active-text: #0a120e;
+  --cc-sidebar-badge-bg: #d5e8dc;
+  --cc-sidebar-badge-text: #14432c;
+  --cc-sidebar-logo: #17a063;
+  --cc-sidebar-focus: #0e7a4e;
+  --cc-sidebar-name: #0a120e;
 }

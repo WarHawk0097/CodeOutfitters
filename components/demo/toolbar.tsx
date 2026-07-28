@@ -28,7 +28,7 @@ export function SearchInput({
 }) {
   return (
     <span className="flex h-9 min-w-[180px] flex-1 items-center gap-[9px] rounded-cc-control border border-cc-line bg-cc-secondary px-3">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7A868D" strokeWidth={2} aria-hidden="true">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true" className="text-cc-t3">
         <circle cx="11" cy="11" r="7" />
         <path d="m21 21-4.3-4.3" />
       </svg>

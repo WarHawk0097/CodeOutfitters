@@ -26,8 +26,15 @@ const rootHtml = renderToStaticMarkup(
 
 describe("dashboard theme system (tests 33-44)", () => {
   // 33
-  it("exposes the six presets with Command Center as the default", () => {
-    expect(THEMES).toEqual(["command", "graphite", "indigo", "ocean", "amber", "rose"]);
+  it("exposes the six curated palettes with CodeOutfitters as the default", () => {
+    expect(THEMES).toEqual([
+      "codeoutfitters",
+      "forest-mist",
+      "graphite-sage",
+      "midnight-emerald",
+      "ocean-slate",
+      "warm-sand",
+    ]);
   });
 
   // 34
@@ -43,7 +50,7 @@ describe("dashboard theme system (tests 33-44)", () => {
 
   // 36
   it("defines a scoped token override for every non-default preset", () => {
-    for (const preset of ["graphite", "indigo", "ocean", "amber", "rose"]) {
+    for (const preset of ["forest-mist", "graphite-sage", "midnight-emerald", "ocean-slate", "warm-sand"]) {
       expect(css).toContain(`[data-cc-theme='${preset}']`);
     }
   });
@@ -51,7 +58,7 @@ describe("dashboard theme system (tests 33-44)", () => {
   // 37
   it("defines a scoped dark-appearance token override", () => {
     expect(css).toContain("[data-cc-appearance='dark']");
-    expect(css).toContain("--cc-body-canvas: #0f1417");
+    expect(css).toContain("--cc-page-bg: #0d1512");
   });
 
   // 38
@@ -74,7 +81,7 @@ describe("dashboard theme system (tests 33-44)", () => {
 
   // 41
   it("first render is the deterministic default (command / light) for hydration safety", () => {
-    expect(rootHtml).toContain('data-cc-theme="command"');
+    expect(rootHtml).toContain('data-cc-theme="codeoutfitters"');
     expect(rootHtml).toContain('data-cc-appearance="light"');
   });
 

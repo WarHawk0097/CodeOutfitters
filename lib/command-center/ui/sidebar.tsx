@@ -49,15 +49,22 @@ export const NAV_GROUPS: NavGroup[] = [
   { label: "ADMINISTRATION", items: ADMINISTRATION_NAV, adminOnly: true },
 ];
 
-// CANON 1313: const BC={'12':'#8FBF9B','3':'#6B6754','2':'#D98C7B','4':'#D9A94E'}
-const BADGE_COLOR: Record<string, string> = { "12": "#8FBF9B", "3": "#6B6754", "2": "#D98C7B", "4": "#D9A94E" };
+// Canonical CANON 1313 used four fixed hues (#8FBF9B / #6B6754 / #D98C7B /
+// #D9A94E) keyed on the *count string*, which meant the colour carried no
+// meaning and the #6B6754 badges failed contrast against the rail. The brand
+// refresh keeps the two states that actually mean something — "needs attention"
+// and "informational" — and renders both as token-driven pills, so contrast
+// follows the sidebar palette instead of a hard-coded hex.
+const ATTENTION_ITEMS = new Set(["Follow-ups", "Email Activity"]);
 
-// CANON 1321 resolves the badge colour with one per-item exception: the
-// Meeting Intelligence "2" is green, not the red-ish "2" Email Activity uses.
-function badgeColor(item: NavItem): string {
-  if (item.badge === "2" && item.label === "Meeting Intelligence") return "#8FBF9B";
-  return (item.badge && BADGE_COLOR[item.badge]) || "#6B6754";
+export function badgeTone(item: NavItem): "attention" | "info" {
+  return ATTENTION_ITEMS.has(item.label) ? "attention" : "info";
 }
+
+const BADGE_CLASS: Record<"attention" | "info", string> = {
+  attention: "bg-cc-gold/25 text-cc-sidebar-badge-text ring-1 ring-cc-gold/60",
+  info: "bg-cc-sidebar-badge-bg text-cc-sidebar-badge-text",
+};
 
 type LinkComponent = (props: {
   href: string;
@@ -84,8 +91,10 @@ export function NavList({
   return (
     <div className="min-h-0 overflow-y-auto">
       {NAV_GROUPS.map((group) => (
-        <div key={group.label}>
-          <div className="px-[26px] pt-[14px] pb-2 text-[10px] font-semibold tracking-[.16em] text-cc-sidebar-label">
+        // A hairline above every group but the first: section headings alone
+        // were not enough separation once the rows gained a hover surface.
+        <div key={group.label} className="border-t border-cc-sidebar-border first:border-t-0">
+          <div className="px-[26px] pt-[16px] pb-2 text-[10px] font-semibold tracking-[.16em] text-cc-sidebar-heading">
             {group.label}
           </div>
           <ul>
@@ -96,16 +105,20 @@ export function NavList({
                   <Link
                     href={item.href}
                     aria-current={active ? "page" : undefined}
-                    className={`flex h-[37px] items-center justify-between gap-2 px-[26px] text-[13.5px] ${ROW_FOCUS} ${
+                    className={`flex h-[37px] items-center justify-between gap-2 px-[26px] text-[13.5px] transition-colors ${ROW_FOCUS} ${
                       active
-                        ? "font-medium text-cc-sidebar-active shadow-[inset_2px_0_0_var(--cc-sidebar-rail)]"
-                        : "text-cc-sidebar-text hover:text-cc-sidebar-active"
+                        ? "bg-cc-sidebar-active-bg font-medium text-cc-sidebar-active-text shadow-[inset_2px_0_0_var(--cc-sidebar-rail)]"
+                        : "text-cc-sidebar-text hover:bg-cc-sidebar-hover hover:text-cc-sidebar-active-text"
                     }`}
                   >
                     <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">{item.label}</span>
                     {item.badge ? (
-                      <span className="shrink-0 font-cc-sidebar-mono text-[11px]" style={{ color: badgeColor(item) }}>
+                      <span
+                        className={`shrink-0 rounded-full px-[7px] py-[1px] font-cc-sidebar-mono text-[10.5px] leading-[15px] ${BADGE_CLASS[badgeTone(item)]}`}
+                      >
                         {item.badge}
+                        {/* Never count-only: screen readers get the unit. */}
+                        <span className="sr-only"> {badgeTone(item) === "attention" ? "needing attention" : "new"}</span>
                       </span>
                     ) : null}
                   </Link>
@@ -123,10 +136,12 @@ export function NavList({
 function BrandBlock() {
   return (
     <div>
-      <div className="text-[16px] text-cc-sidebar-active">
-        Code<b>Outfitters</b>
+      {/* The bold half is the public wordmark green, so the rail reads as the
+          same brand as the marketing site instead of a grey monogram. */}
+      <div className="text-[16px] text-cc-sidebar-active-text">
+        Code<b className="text-cc-sidebar-logo">Outfitters</b>
       </div>
-      <div className="mt-1 text-[9.5px] tracking-[.22em] text-cc-sidebar-muted">COMMAND CENTER</div>
+      <div className="mt-1 text-[9.5px] tracking-[.22em] text-cc-sidebar-heading">COMMAND CENTER</div>
     </div>
   );
 }
@@ -155,7 +170,7 @@ function AccountFooter({
         <div className="text-[10.5px] text-cc-sidebar-muted">{role}</div>
       </div>
       {logout ? (
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6B6754" strokeWidth={1.75} aria-hidden="true">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} aria-hidden="true" className="text-cc-sidebar-muted">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
         </svg>
       ) : null}
@@ -438,10 +453,10 @@ function IconRail({
             title={item.label}
             aria-label={item.label}
             aria-current={item.href === activeHref ? "page" : undefined}
-            className={`flex h-10 w-11 items-center justify-center ${ROW_FOCUS} ${
+            className={`flex h-10 w-11 items-center justify-center transition-colors ${ROW_FOCUS} ${
               item.href === activeHref
-                ? "text-cc-sidebar-active shadow-[inset_2px_0_0_var(--cc-sidebar-rail)]"
-                : "text-cc-sidebar-text"
+                ? "bg-cc-sidebar-active-bg text-cc-sidebar-active-text shadow-[inset_2px_0_0_var(--cc-sidebar-rail)]"
+                : "text-cc-sidebar-text hover:bg-cc-sidebar-hover hover:text-cc-sidebar-active-text"
             }`}
           >
             <NavIcon icon={item.icon} />

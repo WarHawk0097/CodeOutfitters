@@ -274,7 +274,7 @@ export function PreviewWorkspace({
 function PdfStatusBadge({ status }: { status: PdfStatus }) {
   const tone: Record<PdfStatus, string> = {
     ready: "bg-cc-green-tint text-cc-green-ink",
-    outdated: "bg-[#F4EBD4] text-[#6E5A1E]",
+    outdated: "bg-cc-amber-tint text-cc-amber-ink",
     generating: "bg-cc-soft text-cc-t2",
     failed: "bg-cc-red-ink/10 text-cc-red-ink",
   };
@@ -380,7 +380,7 @@ function DocPageView({ page, printLayout }: { page: ProposalDocPage; printLayout
     <article
       aria-label={`Proposal page — ${page.navLabel}`}
       className={`flex min-h-[520px] flex-col rounded-cc-card p-8 shadow-[0_18px_50px_rgba(19,23,26,.14)] sm:p-10 ${
-        isCover ? "bg-[#17190F] text-[#F4F1E6]" : "bg-white text-cc-t-table"
+        isCover ? "bg-cc-sidebar-bg text-cc-sidebar-active-text" : "bg-white text-cc-t-table"
       } ${printLayout ? "rounded-none" : ""}`}
     >
       <div className="flex-1">
@@ -401,14 +401,14 @@ function BlockView({ block, onCover }: { block: DocBlock; onCover: boolean }) {
     case "heading":
       return (
         <div className="mt-6 first:mt-0">
-          <div className={`font-cc-mono text-[10px] tracking-[.18em] ${onCover ? "text-[#8F937F]" : "text-cc-t3"}`}>{block.eyebrow}</div>
+          <div className={`font-cc-mono text-[10px] tracking-[.18em] ${onCover ? "text-cc-sidebar-heading" : "text-cc-t3"}`}>{block.eyebrow}</div>
           {block.title ? (
             <h2 className={`mt-2 font-semibold tracking-[-.02em] ${onCover ? "text-[30px] leading-[1.15]" : "text-[22px] text-cc-ink-strong"}`}>{block.title}</h2>
           ) : null}
         </div>
       );
     case "paragraph":
-      return <p className={`mt-3 text-[12.5px] leading-[1.7] ${onCover ? "text-[#A9AC9F]" : "text-cc-t-table"}`}>{block.text}</p>;
+      return <p className={`mt-3 text-[12.5px] leading-[1.7] ${onCover ? "text-cc-sidebar-text" : "text-cc-t-table"}`}>{block.text}</p>;
     case "stat":
       return (
         <div className={`mt-4 inline-block w-full border-t-2 pt-2 ${block.accent ? "border-cc-green" : "border-cc-ink-strong"}`}>
