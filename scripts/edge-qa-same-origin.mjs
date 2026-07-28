@@ -155,7 +155,9 @@ async function runViewport(browser, vp) {
   record(vp.name, 'View website resolves back to the SAME origin', resolved === ORIGIN, resolved)
 
   if (vp.mobileNav) {
-    await page.getByRole('button', { name: 'Close navigation menu' }).first().click()
+    // Two controls share this label: the scrim (first in DOM, sits *under* the
+    // panel) and the in-panel close button. Click the latter.
+    await page.getByRole('button', { name: 'Close navigation menu' }).last().click()
   }
 
   // 6. Settings, the second dashboard route the owner named.
