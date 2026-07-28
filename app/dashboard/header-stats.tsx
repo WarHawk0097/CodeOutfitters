@@ -9,6 +9,7 @@
 import { createContext, useContext, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import type { LeadsListParams } from "@command-center/contracts";
+import type { LeadFlowRangeValue } from "../../lib/dashboard/lead-flow";
 
 export type HeaderStats = {
   /** Records matching the current filters — the same number the footer counts. */
@@ -52,16 +53,42 @@ const LeadsExportContext = createContext<LeadsExportValue>({
   setExportQuery: () => {},
 });
 
+// Dashboard date-range (7D/30D/90D). The Overview header pills and the Lead-flow
+// card's in-card selector are two controls for ONE concept, so they share a single
+// source of truth here rather than each holding private state that can disagree.
+// Default is 30d (the header/card land on "Last 30 days" on first paint).
+const DASHBOARD_RANGE_DEFAULT: LeadFlowRangeValue = "30d";
+
+type DashboardRangeValue = {
+  range: LeadFlowRangeValue;
+  setRange: (range: LeadFlowRangeValue) => void;
+};
+
+const DashboardRangeContext = createContext<DashboardRangeValue>({
+  range: DASHBOARD_RANGE_DEFAULT,
+  setRange: () => {},
+});
+
 export function HeaderStatsProvider({ children }: { children: ReactNode }) {
   const [stats, setStats] = useState<HeaderStats | null>(null);
   const [exportQuery, setExportQuery] = useState<LeadsExportQuery | null>(null);
+  const [range, setRange] = useState<LeadFlowRangeValue>(DASHBOARD_RANGE_DEFAULT);
   const value = useMemo(() => ({ stats, setStats }), [stats]);
   const exportValue = useMemo(() => ({ exportQuery, setExportQuery }), [exportQuery]);
+  const rangeValue = useMemo(() => ({ range, setRange }), [range]);
   return (
     <HeaderStatsContext.Provider value={value}>
-      <LeadsExportContext.Provider value={exportValue}>{children}</LeadsExportContext.Provider>
+      <LeadsExportContext.Provider value={exportValue}>
+        <DashboardRangeContext.Provider value={rangeValue}>
+          {children}
+        </DashboardRangeContext.Provider>
+      </LeadsExportContext.Provider>
     </HeaderStatsContext.Provider>
   );
+}
+
+export function useDashboardRange(): DashboardRangeValue {
+  return useContext(DashboardRangeContext);
 }
 
 export function useHeaderStats(): HeaderStatsValue {

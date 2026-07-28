@@ -16,6 +16,7 @@ const shellHeaderSrc = readFileSync(`${here}shell-header.tsx`, "utf8");
 const sidebarSrc = readFileSync(`${here}sidebar.tsx`, "utf8");
 const navbarSrc = readFileSync(`${here}../../../components/navbar.tsx`, "utf8");
 const loginSrc = readFileSync(`${here}../../../app/login/page.tsx`, "utf8");
+const loginFormSrc = readFileSync(`${here}../../../app/login/login-form.tsx`, "utf8");
 
 const viewWebsiteHtml = renderToStaticMarkup(createElement(ViewWebsiteLink));
 
@@ -79,9 +80,18 @@ describe("cross-navigation (tests 1-12)", () => {
   });
 
   // 10
-  it("the login screen offers a demo entry into the dashboard", () => {
-    expect(loginSrc).toContain('href="/dashboard"');
-    expect(loginSrc).toContain("demo dashboard");
+  it("the sign-in screen offers a real credential form and never fakes a provider", () => {
+    // Complete sign-in screen, not a bare "no login" placeholder.
+    expect(loginFormSrc).toContain('type={showPassword ? "text" : "password"}');
+    expect(loginFormSrc).toContain('type="submit"');
+    // Providers are offered by name but never faked: natively disabled, no OAuth call.
+    expect(loginFormSrc).toContain("Continue with Google");
+    expect(loginFormSrc).toContain("Continue with Apple");
+    expect(loginFormSrc).not.toContain("Gmail");
+    expect(loginFormSrc).not.toMatch(/signInWith(OAuth|Idp)/);
+    // page.tsx routes both modes into this one screen.
+    expect(loginSrc).toContain("<LoginForm");
+    expect(loginSrc).toContain("isDemoMode()");
   });
 
   // 11

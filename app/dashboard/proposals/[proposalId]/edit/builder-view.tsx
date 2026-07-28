@@ -318,12 +318,24 @@ function StructureNav({
                 <span className="font-cc-mono text-[8px] font-semibold text-cc-t3">REQ</span>
               ) : null}
               <span className="flex shrink-0 items-center opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
-                <button type="button" onClick={() => onMove(index, -1)} disabled={index === 0} aria-label={`Move ${section.name} up`} className="rounded p-0.5 text-cc-icon-muted disabled:opacity-30 hover:text-cc-ink">
+                {/* First / last section: the move button is honestly disabled and says
+                    why, instead of relying on the dimmed icon alone. */}
+                <button type="button" onClick={() => onMove(index, -1)} disabled={index === 0} aria-label={`Move ${section.name} up`} aria-describedby={index === 0 ? `move-up-reason-${section.id}` : undefined} className="rounded p-0.5 text-cc-icon-muted disabled:opacity-30 hover:text-cc-ink">
                   <ChevronUp className="h-3 w-3" />
                 </button>
-                <button type="button" onClick={() => onMove(index, 1)} disabled={index === sections.length - 1} aria-label={`Move ${section.name} down`} className="rounded p-0.5 text-cc-icon-muted disabled:opacity-30 hover:text-cc-ink">
+                {index === 0 ? (
+                  <span id={`move-up-reason-${section.id}`} className="sr-only">
+                    This section is already first.
+                  </span>
+                ) : null}
+                <button type="button" onClick={() => onMove(index, 1)} disabled={index === sections.length - 1} aria-label={`Move ${section.name} down`} aria-describedby={index === sections.length - 1 ? `move-down-reason-${section.id}` : undefined} className="rounded p-0.5 text-cc-icon-muted disabled:opacity-30 hover:text-cc-ink">
                   <ChevronDown className="h-3 w-3" />
                 </button>
+                {index === sections.length - 1 ? (
+                  <span id={`move-down-reason-${section.id}`} className="sr-only">
+                    This section is already last.
+                  </span>
+                ) : null}
                 {!section.required ? (
                   <button type="button" onClick={() => onRemove(section.id)} aria-label={`Remove ${section.name}`} className="rounded p-0.5 text-cc-icon-muted hover:text-cc-red-ink">
                     <Trash2 className="h-3 w-3" />

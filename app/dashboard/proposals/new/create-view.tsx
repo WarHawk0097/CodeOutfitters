@@ -105,10 +105,15 @@ export function CreateContent() {
               >
                 <span className="flex items-center justify-between gap-2">
                   <span className="text-[12.5px] font-semibold text-cc-ink-strong">{option.title}</span>
+                  {/* The wrapping label also names this input, but that name is the
+                      whole card including the description. An explicit aria-label keeps
+                      the accessible name short and stable (the generated group name is
+                      not a name at all). */}
                   <input
                     type="radio"
                     name={groupId}
                     value={option.id}
+                    aria-label={option.title}
                     checked={selected}
                     onChange={() => setSource(option.id)}
                     className="h-3.5 w-3.5 accent-cc-green"

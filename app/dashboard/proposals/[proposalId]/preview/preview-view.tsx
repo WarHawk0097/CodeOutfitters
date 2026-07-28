@@ -181,6 +181,7 @@ export function PreviewWorkspace({
             onClick={() => go(-1)}
             disabled={pageIndex === 0}
             aria-label="Previous page"
+            aria-describedby={pageIndex === 0 ? "preview-prev-page-reason" : undefined}
             className="rounded-cc-control border border-cc-line p-1.5 text-cc-ink disabled:opacity-40 hover:border-cc-green-border"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -193,10 +194,24 @@ export function PreviewWorkspace({
             onClick={() => go(1)}
             disabled={pageIndex === document.pages.length - 1}
             aria-label="Next page"
+            aria-describedby={
+              pageIndex === document.pages.length - 1 ? "preview-next-page-reason" : undefined
+            }
             className="rounded-cc-control border border-cc-line p-1.5 text-cc-ink disabled:opacity-40 hover:border-cc-green-border"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
+          {/* Ends of the document: disabled with the reason announced. */}
+          {pageIndex === 0 ? (
+            <span id="preview-prev-page-reason" className="sr-only">
+              This is the first page.
+            </span>
+          ) : null}
+          {pageIndex === document.pages.length - 1 ? (
+            <span id="preview-next-page-reason" className="sr-only">
+              This is the last page.
+            </span>
+          ) : null}
         </nav>
 
         <div className="flex items-center gap-1" role="group" aria-label="Zoom">

@@ -28,16 +28,31 @@ export const APPEARANCE_LABELS: Record<Appearance, string> = {
   dark: "Dark",
 };
 
+// The sidebar is the one surface with its own colour scale, so its treatment is
+// a separate choice from the accent theme: "ink" is the canonical dark rail,
+// "tinted" carries the active theme's accent, "light" matches the app canvas.
+export const SIDEBAR_STYLES = ["ink", "tinted", "light"] as const;
+export type SidebarStyle = (typeof SIDEBAR_STYLES)[number];
+
+export const SIDEBAR_STYLE_LABELS: Record<SidebarStyle, string> = {
+  ink: "Ink",
+  tinted: "Tinted",
+  light: "Light",
+};
+
 const THEME_KEY = "codeoutfitters.command-center.theme";
 const APPEARANCE_KEY = "codeoutfitters.command-center.appearance";
+const SIDEBAR_KEY = "codeoutfitters.command-center.sidebar-style";
 
 type ThemeContextValue = {
   theme: Theme;
   appearance: Appearance;
+  sidebarStyle: SidebarStyle;
   /** appearance with "system" resolved to the current OS preference. */
   resolvedAppearance: "light" | "dark";
   setTheme: (t: Theme) => void;
   setAppearance: (a: Appearance) => void;
+  setSidebarStyle: (s: SidebarStyle) => void;
 };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -53,6 +68,9 @@ function isTheme(v: string | null): v is Theme {
 }
 function isAppearance(v: string | null): v is Appearance {
   return !!v && (APPEARANCES as readonly string[]).includes(v);
+}
+function isSidebarStyle(v: string | null): v is SidebarStyle {
+  return !!v && (SIDEBAR_STYLES as readonly string[]).includes(v);
 }
 
 // ponytail: matchMedia only, no ResizeObserver/theme lib. Adds a listener so a
@@ -77,13 +95,16 @@ export function DashboardThemeRoot({
   // are applied in the effect below (post-hydration attr change is not a mismatch).
   const [theme, setThemeState] = useState<Theme>("command");
   const [appearance, setAppearanceState] = useState<Appearance>("system");
+  const [sidebarStyle, setSidebarStyleState] = useState<SidebarStyle>("ink");
   const [osDark, setOsDark] = useState(false);
 
   useEffect(() => {
     const storedTheme = localStorage.getItem(THEME_KEY);
     const storedAppearance = localStorage.getItem(APPEARANCE_KEY);
+    const storedSidebar = localStorage.getItem(SIDEBAR_KEY);
     if (isTheme(storedTheme)) setThemeState(storedTheme);
     if (isAppearance(storedAppearance)) setAppearanceState(storedAppearance);
+    if (isSidebarStyle(storedSidebar)) setSidebarStyleState(storedSidebar);
     setOsDark(systemDark());
   }, []);
 
@@ -111,17 +132,39 @@ export function DashboardThemeRoot({
     }
   };
 
+  const setSidebarStyle = (s: SidebarStyle) => {
+    setSidebarStyleState(s);
+    try {
+      localStorage.setItem(SIDEBAR_KEY, s);
+    } catch {
+      /* ignore */
+    }
+  };
+
   const resolvedAppearance: "light" | "dark" =
     appearance === "system" ? (osDark ? "dark" : "light") : appearance;
 
   const value = useMemo<ThemeContextValue>(
-    () => ({ theme, appearance, resolvedAppearance, setTheme, setAppearance }),
-    [theme, appearance, resolvedAppearance],
+    () => ({
+      theme,
+      appearance,
+      sidebarStyle,
+      resolvedAppearance,
+      setTheme,
+      setAppearance,
+      setSidebarStyle,
+    }),
+    [theme, appearance, sidebarStyle, resolvedAppearance],
   );
 
   return (
     <ThemeContext.Provider value={value}>
-      <div className={className} data-cc-theme={theme} data-cc-appearance={resolvedAppearance}>
+      <div
+        className={className}
+        data-cc-theme={theme}
+        data-cc-appearance={resolvedAppearance}
+        data-cc-sidebar={sidebarStyle}
+      >
         {children}
       </div>
     </ThemeContext.Provider>

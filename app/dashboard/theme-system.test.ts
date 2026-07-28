@@ -15,8 +15,13 @@ const themeSrc = readFileSync(`${here}theme.tsx`, "utf8");
 const layoutSrc = readFileSync(`${here}layout.tsx`, "utf8");
 const settingsSrc = readFileSync(`${here}settings/settings-view.tsx`, "utf8");
 
+// children is a required prop, so it is passed in the props object rather than
+// as a variadic argument — the variadic overload does not satisfy it.
 const rootHtml = renderToStaticMarkup(
-  createElement(DashboardThemeRoot, { className: "frame" }, createElement("span", null, "child")),
+  createElement(DashboardThemeRoot, {
+    className: "frame",
+    children: createElement("span", null, "child"),
+  }),
 );
 
 describe("dashboard theme system (tests 33-44)", () => {
