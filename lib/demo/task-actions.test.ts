@@ -52,8 +52,9 @@ describe("demo task store (tests 35-57)", () => {
     // A session written before tasks existed has no `tasks` array at all, and one written
     // before the activity log became a shared ActivityEvent still holds the old
     // {subjectId, message} entries. Reading either back would hand a screen a shape it
-    // cannot render, so the version moves with every change to DemoState.
-    expect(DEMO_STATE_VERSION).toBe(3);
+    // cannot render, so the version moves with every change to DemoState — version 4 adds
+    // the `access` branch (publications, access links, client responses).
+    expect(DEMO_STATE_VERSION).toBe(4);
     expect(createSeedState().version).toBe(DEMO_STATE_VERSION);
   });
 

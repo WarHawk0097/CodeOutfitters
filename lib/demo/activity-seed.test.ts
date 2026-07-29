@@ -16,8 +16,19 @@ import {
   validateActivityConsistency,
   type ActivityEvent,
   type ActivityRecordIndex,
+  type ActivityEventType,
   type ActivityRecordKind,
 } from "@/lib/activity/model";
+
+const CREATION_TYPES: ReadonlySet<ActivityEventType> = new Set([
+  "lead_created",
+  "task_created",
+  "meeting_scheduled",
+  "proposal_created",
+  "follow_up_created",
+  "appointment_booked",
+  "opportunity_created",
+]);
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 const state = createSeedState();
@@ -167,7 +178,11 @@ describe("seeded activity history (tests 58-77)", () => {
   it("no event about a record predates the event that created that record", () => {
     const creation = new Map<string, string>();
     for (const event of events) {
-      if (event.type.endsWith("_created") || event.type === "meeting_scheduled" || event.type === "appointment_booked") {
+      // The types that create the record they point at — mirroring CREATION_TYPES in
+      // lib/activity/model.ts. Matching on a "_created" suffix instead reads
+      // proposal_access_link_created as the birth of the proposal, which it is not: the
+      // link is created, the proposal existed long before it.
+      if (CREATION_TYPES.has(event.type)) {
         creation.set(`${event.related.kind}:${event.related.id}`, event.occurredAt);
       }
     }

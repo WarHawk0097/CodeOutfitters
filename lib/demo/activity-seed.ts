@@ -13,9 +13,11 @@
 //   2. nothing happens to a record before the record exists — a lead's history opens with
 //      its creation, and a proposal is never reviewed on a day before it was written.
 //
-// Nothing here represents a client action. A client viewing, accepting, declining or
-// commenting on a proposal is not something this system can observe yet, so no fixture
-// claims it (see UNSUPPORTED_CLIENT_EVENT_TYPES in lib/activity/model.ts).
+// Client actions ARE represented, but never authored: every client event below is derived
+// from the access fixtures (a link's openCount, a response's respondedAt), so the timeline
+// cannot claim a client did something the access record does not hold. What still does not
+// appear is a certified electronic signature — see UNSUPPORTED_CLIENT_EVENT_TYPES in
+// lib/activity/model.ts.
 import {
   categoryOf,
   defaultImportance,
@@ -35,6 +37,11 @@ import type {
   TeamMember,
 } from "./types";
 import type { Lead } from "@command-center/contracts";
+import type {
+  ProposalAccessLink,
+  ProposalClientResponse,
+  ProposalPublication,
+} from "@/lib/proposals/access/model";
 
 const DAY_MS = 86_400_000;
 
@@ -65,6 +72,11 @@ type Draft = {
   parent?: ActivityRef | null;
   metadata?: ActivityMetadata;
   actorId: string;
+  /** Set only for events a CLIENT produced. A client has no team-member id, so the label
+   *  cannot be resolved from the directory — and attributing their action to whichever
+   *  colleague happens to be in `actorId` would put a name on a decision that was not theirs.
+   *  When this is present the event carries a null actorId and this label. */
+  actorLabel?: string;
 };
 
 export type ActivitySeedInput = {
@@ -78,6 +90,9 @@ export type ActivitySeedInput = {
   followUps: readonly FollowUp[];
   tasks: readonly Task[];
   emails: readonly EmailActivity[];
+  publications: readonly ProposalPublication[];
+  accessLinks: readonly ProposalAccessLink[];
+  clientResponses: readonly ProposalClientResponse[];
 };
 
 /** How many leads open with a full history. The demo does not need all 128 narrated — a
@@ -412,6 +427,159 @@ export function buildActivityEvents(input: ActivitySeedInput): ActivityEvent[] {
     });
   }
 
+  // ── Secure client access ────────────────────────────────────────────────────────────────
+  //
+  // Derived entirely from the access fixtures rather than authored a second time. A timeline
+  // that said a client opened a proposal on a day the link says they did not is the exact
+  // contradiction this whole file is written to avoid, so every instant below is read off the
+  // record it describes.
+  const proposalById = new Map(input.proposals.map((proposal) => [proposal.id, proposal]));
+  const publicationById = new Map(input.publications.map((p) => [p.id, p]));
+
+  const proposalRefFor = (internalProposalId: string): ActivityRef | null => {
+    const proposal = proposalById.get(internalProposalId);
+    return proposal
+      ? { kind: "proposal", id: proposal.id, label: `${proposal.id} · ${proposal.client}` }
+      : null;
+  };
+  const proposalParent = (internalProposalId: string): ActivityRef | null => {
+    const proposal = proposalById.get(internalProposalId);
+    return proposal ? leadRef(proposal.leadId) : null;
+  };
+
+  for (const publication of input.publications) {
+    const related = proposalRefFor(publication.internalProposalId);
+    if (!related) continue;
+    drafts.push({
+      type: "proposal_published",
+      occurredAt: publication.publishedAt,
+      summary: `${publication.internalProposalId} ${publication.versionLabel} published for client access`,
+      related,
+      parent: proposalParent(publication.internalProposalId),
+      actorId: publication.publishedByUserId,
+      metadata: [{ label: "Version", value: publication.versionLabel }],
+    });
+
+    // The supersede event is dated by the version that replaced it, not by the one replaced:
+    // a version is superseded at the moment its successor is published.
+    const successor = publication.supersededByPublicationId
+      ? publicationById.get(publication.supersededByPublicationId)
+      : undefined;
+    if (successor) {
+      drafts.push({
+        type: "proposal_superseded",
+        occurredAt: successor.publishedAt,
+        summary: `${publication.internalProposalId} ${publication.versionLabel} superseded by ${successor.versionLabel}`,
+        related,
+        parent: proposalParent(publication.internalProposalId),
+        actorId: successor.publishedByUserId,
+        metadata: [
+          { label: "Superseded", value: publication.versionLabel },
+          { label: "Current", value: successor.versionLabel },
+        ],
+      });
+    }
+  }
+
+  for (const link of input.accessLinks) {
+    const publication = publicationById.get(link.publicationId);
+    if (!publication) continue;
+    const related = proposalRefFor(publication.internalProposalId);
+    if (!related) continue;
+    const parent = proposalParent(publication.internalProposalId);
+    // The token is not on any of these events, here or anywhere else. An activity log is read
+    // by more people than a proposal is, and a link recorded in one is a link that leaked.
+    const recipient = [{ label: "Recipient", value: link.recipientName }];
+
+    drafts.push({
+      type: link.replacesAccessLinkId ? "proposal_access_link_replaced" : "proposal_access_link_created",
+      occurredAt: link.createdAt,
+      summary: link.replacesAccessLinkId
+        ? `Client access for ${link.recipientName} reissued on ${publication.internalProposalId}`
+        : `Client access granted to ${link.recipientName} on ${publication.internalProposalId}`,
+      related,
+      parent,
+      actorId: link.createdByUserId,
+      metadata: recipient,
+    });
+
+    if (link.revokedAt && link.revokedByUserId) {
+      drafts.push({
+        type: "proposal_access_link_revoked",
+        occurredAt: link.revokedAt,
+        summary: `Client access revoked for ${link.recipientName} on ${publication.internalProposalId}`,
+        related,
+        parent,
+        actorId: link.revokedByUserId,
+        metadata: recipient,
+      });
+    }
+
+    if (link.firstOpenedAt) {
+      drafts.push({
+        type: "proposal_first_opened_by_client",
+        occurredAt: link.firstOpenedAt,
+        summary: `${link.recipientName} opened ${publication.internalProposalId} for the first time`,
+        related,
+        parent,
+        actorId: "",
+        actorLabel: link.recipientName,
+        metadata: [{ label: "Version", value: publication.versionLabel }],
+      });
+    }
+
+    // Only the most recent reopen is narrated, because the most recent is the only other
+    // instant the record holds. The timeline does not claim to list every open — the total
+    // is stated on the event, and the link is where the count lives.
+    if (link.lastOpenedAt && link.lastOpenedAt !== link.firstOpenedAt) {
+      drafts.push({
+        type: "proposal_opened_by_client",
+        occurredAt: link.lastOpenedAt,
+        summary: `${link.recipientName} reopened ${publication.internalProposalId}`,
+        detail: `Most recent of ${link.openCount} opens recorded on this link.`,
+        related,
+        parent,
+        actorId: "",
+        actorLabel: link.recipientName,
+        metadata: [{ label: "Opens", value: String(link.openCount) }],
+      });
+    }
+  }
+
+  const linkById = new Map(input.accessLinks.map((link) => [link.id, link]));
+  const CLIENT_RESPONSE_EVENT = {
+    question: "client_question_submitted",
+    comment: "client_comment_submitted",
+    acceptance: "proposal_accepted_by_client",
+    decline: "proposal_declined_by_client",
+  } as const;
+
+  for (const response of input.clientResponses) {
+    const link = linkById.get(response.accessLinkId);
+    const publication = publicationById.get(response.publicationId);
+    if (!link || !publication) continue;
+    const related = proposalRefFor(publication.internalProposalId);
+    if (!related) continue;
+    const verb =
+      response.responseType === "question" ? "asked a question on"
+      : response.responseType === "comment" ? "commented on"
+      : response.responseType === "acceptance" ? "accepted"
+      : "declined";
+    drafts.push({
+      type: CLIENT_RESPONSE_EVENT[response.responseType],
+      occurredAt: response.respondedAt,
+      summary: `${link.recipientName} ${verb} ${publication.internalProposalId}`,
+      // The client's own words. A question the workspace cannot read is a notification, not
+      // activity.
+      detail: response.message,
+      related,
+      parent: proposalParent(publication.internalProposalId),
+      actorId: "",
+      actorLabel: link.recipientName,
+      metadata: [{ label: "Version", value: publication.versionLabel }],
+    });
+  }
+
   // Ids are minted last, in chronological order, so act-0001 is the oldest thing that
   // happened. A fixture inserted in the middle later renumbers the ones after it — which is
   // correct for a fixture and is exactly why nothing outside the tests hard-codes an id.
@@ -419,16 +587,18 @@ export function buildActivityEvents(input: ActivitySeedInput): ActivityEvent[] {
     .slice()
     .sort((a, b) => (a.occurredAt === b.occurredAt ? 0 : a.occurredAt < b.occurredAt ? -1 : 1))
     .map((draft, index) => {
-      const actor = team.find((member) => member.id === draft.actorId) ?? null;
+      const client = draft.actorLabel !== undefined;
+      const actor = client ? null : team.find((member) => member.id === draft.actorId) ?? null;
       const event: ActivityEvent = {
         id: `act-${String(index + 1).padStart(4, "0")}`,
         type: draft.type,
         category: categoryOf(draft.type),
         source: "demo_fixture",
-        visibility: "internal",
+        // A client wrote it, so a client may be shown it. Everything else here is internal.
+        visibility: client ? "client_safe" : "internal",
         importance: defaultImportance(draft.type),
         actorId: actor?.id ?? null,
-        actorLabel: actor?.name ?? "Unassigned",
+        actorLabel: draft.actorLabel ?? actor?.name ?? "Unassigned",
         occurredAt: draft.occurredAt,
         summary: draft.summary,
         detail: draft.detail ?? "",

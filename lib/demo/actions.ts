@@ -5,8 +5,29 @@
 // email is delivered and no real account is created.
 "use client";
 
-import { createSeedState, DEMO_TODAY, LEAD_DIRECTORY, stageToLeadStatus } from "./seed";
-import { getDemoState, mintId, updateDemoState, withActivity } from "./store";
+import { createSeedState, DEMO_CURRENT_USER_ID, DEMO_NOW, DEMO_TODAY, LEAD_DIRECTORY, stageToLeadStatus } from "./seed";
+import { getDemoState, mintId, updateDemoState, withActivity, withClientActivity } from "./store";
+import { buildProposalDetail } from "@/lib/command-center/proposals/fixtures";
+import {
+  acceptsResponses,
+  buildClientSnapshot,
+  decisionConflict,
+  DEMO_TOKEN_PREFIX,
+  grantsContentAccess,
+  resolveAccessState,
+  responseMessageOf,
+  responseTypeOf,
+  responseTypedNameOf,
+  validateResponseDraft,
+  type ClientResponseType,
+  type ProposalAccessLink,
+  type ProposalClientResponse,
+  type ProposalPublication,
+  type ResponseDraft,
+} from "@/lib/proposals/access/model";
+import type { PublicResponseRejection } from "@/lib/proposals/access/provider";
+import { DEMO_WORKSPACE_ID } from "./proposal-access-seed";
+import { findLinkByDemoToken, publicationById } from "./proposal-access";
 import type { ActivityRef } from "@/lib/activity/model";
 import type {
   Appointment,
@@ -401,24 +422,43 @@ const PROPOSAL_EVENT: Partial<Record<ProposalState, string>> = {
   APPROVED: "Approved",
 };
 
+/** Move a proposal to a new state and carry the pipeline with it.
+ *
+ *  Pure, and shared with the secure-client path: a proposal accepted by a client on the public
+ *  route and one marked accepted by a colleague must land the opportunity in the same place.
+ *  Two copies of this transition would be two chances for the pipeline to disagree with the
+ *  proposal it is supposed to be tracking. */
+function applyProposalState(
+  current: DemoState,
+  proposal: Proposal,
+  next: ProposalState,
+  lastEvent: string,
+): DemoState {
+  const state: DemoState = {
+    ...current,
+    proposals: replace(current.proposals, proposal.id, { state: next, lastEvent }),
+  };
+  // Accepting or declining a proposal is a pipeline event, so the linked opportunity and
+  // the lead follow it.
+  const stage: PipelineStage | null = next === "ACCEPTED" ? "Won" : next === "REJECTED" ? "Lost" : next === "SENT" ? "Proposal Sent" : null;
+  if (stage && proposal.opportunityId) {
+    state.opportunities = replace(current.opportunities, proposal.opportunityId, { stage });
+    state.leadOverrides = { ...current.leadOverrides, [proposal.leadId]: { ...current.leadOverrides[proposal.leadId], status: stage } };
+  }
+  return state;
+}
+
 export function setProposalState(id: string, next: ProposalState): void {
   updateDemoState((current) => {
     const proposal = current.proposals.find((p) => p.id === id);
     if (!proposal) return current;
-    const patch: Partial<Proposal> = { state: next, lastEvent: PROPOSAL_EVENT[next] ?? `Moved to ${next}` };
-    const state: DemoState = { ...current, proposals: replace(current.proposals, id, patch) };
-    // Accepting or declining a proposal is a pipeline event, so the linked opportunity and
-    // the lead follow it.
-    const stage: PipelineStage | null = next === "ACCEPTED" ? "Won" : next === "REJECTED" ? "Lost" : next === "SENT" ? "Proposal Sent" : null;
-    if (stage && proposal.opportunityId) {
-      state.opportunities = replace(current.opportunities, proposal.opportunityId, { stage });
-      state.leadOverrides = { ...current.leadOverrides, [proposal.leadId]: { ...current.leadOverrides[proposal.leadId], status: stage } };
-    }
+    const lastEvent = PROPOSAL_EVENT[next] ?? `Moved to ${next}`;
+    const state = applyProposalState(current, proposal, next, lastEvent);
     return {
       ...state,
       ...withActivity(current, {
         type: "proposal_status_changed",
-        summary: `${id} · ${proposal.client} — ${patch.lastEvent}`,
+        summary: `${id} · ${proposal.client} — ${lastEvent}`,
         related: { kind: "proposal", id, label: `${id} · ${proposal.client}` },
         parent: leadRef(proposal.leadId),
         metadata: [
@@ -477,6 +517,410 @@ export function duplicateProposal(id: string): string {
   const version = `v${Number(source.version.replace(/\D/g, "") || 1) + 1}`;
   return createProposal({ ...source, version, state: "DRAFT", lastEvent: "Duplicated just now", source: `Revision of ${source.version}` });
 }
+
+// ---------------------------------------------------------------------------
+// Secure client access
+//
+// Publishing, issuing links, revoking them, and everything a client does on the public route.
+// All of it writes to the local demo store and nowhere else — no email is delivered, no link
+// is transmitted, and no PDF is produced. The screens say so where a person can read it.
+// ---------------------------------------------------------------------------
+
+/** Demo link tokens are minted from the same monotonic counter as every other demo id, so a
+ *  session replays identically. They are not secrets and are not generated the way live
+ *  tokens are: a live token is 32 bytes of CSPRNG output produced server-side
+ *  (lib/proposals/access/token.ts), and nothing in this browser can produce one. */
+function mintDemoToken(current: DemoState): { token: string; id: string; nextId: number } {
+  const { id, nextId } = mintId(current, "lnk");
+  return { token: `${DEMO_TOKEN_PREFIX}${id}`, id, nextId };
+}
+
+/** Deterministic date arithmetic on an authored instant. Not a clock read: the input is
+ *  always DEMO_NOW or another fixture instant, so the output is the same on every run. */
+function addDays(iso: string, days: number): string {
+  const shifted = new Date(new Date(iso).getTime() + days * 24 * 60 * 60 * 1000);
+  return shifted.toISOString();
+}
+
+export const DEMO_LINK_DEFAULT_DAYS = 30;
+
+export type PublishResult =
+  | { ok: true; publicationId: string }
+  | { ok: false; reason: string };
+
+/** Publish the current version of a proposal as an immutable client-safe snapshot.
+ *
+ *  A proposal that fails its own validation cannot be published, and the reason returned is
+ *  the validation's own blocking reason rather than a generic failure — the staff member is
+ *  inside the workspace and is entitled to know exactly what is wrong. (A client is not; the
+ *  public route never surfaces any of this.)
+ *
+ *  Publishing again supersedes the previous version instead of editing it. The document a
+ *  client was sent stays exactly as it was sent, because that is the only version of events
+ *  they can be held to. */
+export function publishProposal(proposalId: string): PublishResult {
+  let result: PublishResult = { ok: false, reason: "That proposal is no longer available." };
+  updateDemoState((current) => {
+    const proposal = current.proposals.find((p) => p.id === proposalId);
+    if (!proposal) return current;
+
+    const detail = buildProposalDetail(proposal);
+    if (detail.blockedReason) {
+      result = { ok: false, reason: detail.blockedReason };
+      return current;
+    }
+
+    const existing = current.publications.filter((p) => p.internalProposalId === proposalId);
+    const previous = existing.reduce<ProposalPublication | null>(
+      (latest, p) => (latest && latest.versionNumber >= p.versionNumber ? latest : p),
+      null,
+    );
+
+    const { id, nextId } = mintId(current, "pub");
+    const publication: ProposalPublication = {
+      id,
+      workspaceId: DEMO_WORKSPACE_ID,
+      internalProposalId: proposalId,
+      versionNumber: (previous?.versionNumber ?? 0) + 1,
+      versionLabel: proposal.version,
+      title: detail.title,
+      clientOrganisation: proposal.client,
+      status: "published",
+      publishedAt: DEMO_NOW,
+      publishedByUserId: DEMO_CURRENT_USER_ID,
+      publishedByLabel: current.team.find((m) => m.id === DEMO_CURRENT_USER_ID)?.name ?? "You",
+      supersededByPublicationId: null,
+      snapshot: buildClientSnapshot({ detail, clientOrganisation: proposal.client }),
+    };
+    result = { ok: true, publicationId: id };
+
+    const publications = current.publications.map((p) =>
+      p.internalProposalId === proposalId && p.status === "published"
+        ? { ...p, status: "superseded" as const, supersededByPublicationId: id }
+        : p,
+    );
+
+    const related: ActivityRef = { kind: "proposal", id: proposalId, label: `${proposalId} · ${proposal.client}` };
+    const withPublish = withActivity({ ...current, nextId }, {
+      type: "proposal_published",
+      summary: `${proposalId} ${proposal.version} published for client access`,
+      detail: "Published in demo mode — nothing was delivered to the client.",
+      related,
+      parent: leadRef(proposal.leadId),
+      metadata: [
+        { label: "Version", value: proposal.version },
+        { label: "Sections", value: String(publication.snapshot.sections.length) },
+      ],
+    });
+
+    if (!previous) {
+      return { ...current, publications: [...publications, publication], ...withPublish };
+    }
+    // Superseding is its own event: a client holding the old link needs somebody in the
+    // workspace to know their version was replaced, and "published v3" does not say that.
+    const withSupersede = withActivity(
+      { ...current, nextId: withPublish.nextId, activity: withPublish.activity },
+      {
+        type: "proposal_superseded",
+        summary: `${proposalId} ${previous.versionLabel} superseded by ${proposal.version}`,
+        related,
+        parent: leadRef(proposal.leadId),
+        metadata: [
+          { label: "Superseded", value: previous.versionLabel },
+          { label: "Current", value: proposal.version },
+        ],
+      },
+    );
+    return { ...current, publications: [...publications, publication], ...withSupersede };
+  });
+  return result;
+}
+
+export type CreateLinkInput = {
+  publicationId: string;
+  recipientName: string;
+  recipientEmail: string;
+  expiresInDays?: number;
+  replacesAccessLinkId?: string;
+};
+
+export type CreateLinkResult =
+  | { ok: true; linkId: string; token: string }
+  | { ok: false; reason: string };
+
+/** Issue a secure access link to one named recipient.
+ *
+ *  One link per recipient, always — a shared link cannot be revoked for one person without
+ *  revoking it for everybody, and cannot say who opened it. When this replaces an existing
+ *  link, the old one is revoked in the same operation so there is never a window where both
+ *  are live. */
+export function createProposalAccessLink(input: CreateLinkInput): CreateLinkResult {
+  let result: CreateLinkResult = { ok: false, reason: "That published version is no longer available." };
+  updateDemoState((current) => {
+    const publication = current.publications.find((p) => p.id === input.publicationId);
+    if (!publication) return current;
+    const proposal = current.proposals.find((p) => p.id === publication.internalProposalId);
+    if (!proposal) return current;
+
+    const { token, id, nextId } = mintDemoToken(current);
+    const replaced = input.replacesAccessLinkId
+      ? current.accessLinks.find((link) => link.id === input.replacesAccessLinkId) ?? null
+      : null;
+
+    const link: ProposalAccessLink = {
+      id,
+      publicationId: publication.id,
+      workspaceId: DEMO_WORKSPACE_ID,
+      recipientName: input.recipientName.trim(),
+      recipientEmail: input.recipientEmail.trim(),
+      tokenHash: "",
+      demoToken: token,
+      expiresAt: addDays(DEMO_NOW, input.expiresInDays ?? DEMO_LINK_DEFAULT_DAYS),
+      createdAt: DEMO_NOW,
+      createdByUserId: DEMO_CURRENT_USER_ID,
+      revokedAt: null,
+      revokedByUserId: null,
+      firstOpenedAt: null,
+      lastOpenedAt: null,
+      openCount: 0,
+      decision: "none",
+      decidedAt: null,
+      decidedByName: null,
+      replacesAccessLinkId: replaced?.id ?? null,
+      replacedByAccessLinkId: null,
+    };
+    result = { ok: true, linkId: id, token };
+
+    const accessLinks = current.accessLinks.map((existing) =>
+      existing.id === replaced?.id
+        ? {
+            ...existing,
+            revokedAt: DEMO_NOW,
+            revokedByUserId: DEMO_CURRENT_USER_ID,
+            replacedByAccessLinkId: id,
+          }
+        : existing,
+    );
+
+    const related: ActivityRef = {
+      kind: "proposal",
+      id: proposal.id,
+      label: `${proposal.id} · ${proposal.client}`,
+    };
+    const activity = withActivity({ ...current, nextId }, {
+      type: replaced ? "proposal_access_link_replaced" : "proposal_access_link_created",
+      summary: replaced
+        ? `Client access for ${link.recipientName} reissued on ${proposal.id}`
+        : `Client access granted to ${link.recipientName} on ${proposal.id}`,
+      detail: "The link was created in this browser. Nothing was emailed.",
+      related,
+      parent: leadRef(proposal.leadId),
+      // The token is not recorded on the event, in demo or anywhere else. An activity log is
+      // read by more people than a proposal is, and a link in it is a link that leaked.
+      metadata: [
+        { label: "Recipient", value: link.recipientName },
+        { label: "Version", value: publication.versionLabel },
+      ],
+    });
+
+    // A published proposal a client can now reach has been sent, whatever the row said before.
+    const next = proposal.state === "DRAFT" || proposal.state === "INTERNAL REVIEW" || proposal.state === "APPROVED"
+      ? applyProposalState(current, proposal, "SENT", "Client access link issued in demo mode")
+      : current;
+
+    return { ...next, accessLinks: [...accessLinks, link], ...activity };
+  });
+  return result;
+}
+
+/** Withdraw a link. The recipient's page stops showing the document immediately and says the
+ *  link is no longer active — it does not say why, because why is workspace business. */
+export function revokeProposalAccessLink(linkId: string): void {
+  updateDemoState((current) => {
+    const link = current.accessLinks.find((l) => l.id === linkId);
+    if (!link || link.revokedAt) return current;
+    const publication = current.publications.find((p) => p.id === link.publicationId);
+    const proposal = publication
+      ? current.proposals.find((p) => p.id === publication.internalProposalId)
+      : null;
+    if (!proposal) return current;
+
+    return {
+      ...current,
+      accessLinks: replace(current.accessLinks, linkId, {
+        revokedAt: DEMO_NOW,
+        revokedByUserId: DEMO_CURRENT_USER_ID,
+      }),
+      ...withActivity(current, {
+        type: "proposal_access_link_revoked",
+        summary: `Client access revoked for ${link.recipientName} on ${proposal.id}`,
+        related: { kind: "proposal", id: proposal.id, label: `${proposal.id} · ${proposal.client}` },
+        parent: leadRef(proposal.leadId),
+        metadata: [{ label: "Recipient", value: link.recipientName }],
+      }),
+    };
+  });
+}
+
+/** Record that the client opened the proposal.
+ *
+ *  Called once per reader session by the public page — a reload, a prefetch or a second tab
+ *  must not inflate the count, or "viewed 4×" stops meaning anything to the person reading it.
+ *  An open of a link that is not currently readable records nothing: a revoked link that
+ *  somebody clicks was not a proposal view. */
+export function recordProposalOpen(token: string): void {
+  updateDemoState((current) => {
+    const link = findLinkByDemoToken(current, token);
+    if (!link) return current;
+    const publication = publicationById(current, link.publicationId);
+    if (!publication) return current;
+    if (!grantsContentAccess(resolveAccessState({ link, publication, now: DEMO_NOW }))) return current;
+    const proposal = current.proposals.find((p) => p.id === publication.internalProposalId);
+    if (!proposal) return current;
+
+    const first = link.firstOpenedAt === null;
+    const state: DemoState = {
+      ...current,
+      accessLinks: replace(current.accessLinks, link.id, {
+        firstOpenedAt: link.firstOpenedAt ?? DEMO_NOW,
+        lastOpenedAt: DEMO_NOW,
+        openCount: link.openCount + 1,
+      }),
+    };
+
+    const activity = withClientActivity(state, {
+      type: first ? "proposal_first_opened_by_client" : "proposal_opened_by_client",
+      actorLabel: link.recipientName,
+      summary: first
+        ? `${link.recipientName} opened ${proposal.id} for the first time`
+        : `${link.recipientName} reopened ${proposal.id}`,
+      related: { kind: "proposal", id: proposal.id, label: `${proposal.id} · ${proposal.client}` },
+      parent: leadRef(proposal.leadId),
+      metadata: [{ label: "Version", value: publication.versionLabel }],
+    });
+
+    // The first open is the only one that changes what the workspace knows.
+    const moved = first && proposal.state === "SENT"
+      ? applyProposalState(state, proposal, "VIEWED", `Opened by ${link.recipientName} in demo mode`)
+      : state;
+
+    return { ...moved, ...activity };
+  });
+}
+
+export type SubmitResult = { ok: true } | { ok: false; reason: PublicResponseRejection };
+
+/** Record a question, comment, acceptance or decline submitted from the public route.
+ *
+ *  Validation runs here as well as in the form. The form's copy is a courtesy; this is the
+ *  boundary, and in live mode its counterpart runs on the server for the same reason — a
+ *  client-side check is a suggestion to anybody willing to skip the page.
+ *
+ *  A decision is written once. A second, conflicting decision is refused rather than applied:
+ *  a proposal that was accepted and then declined by the same link is not a state this
+ *  product can report honestly to either party. */
+export function submitProposalResponse(token: string, draft: ResponseDraft): SubmitResult {
+  let result: SubmitResult = { ok: false, reason: "not_available" };
+  updateDemoState((current) => {
+    const link = findLinkByDemoToken(current, token);
+    if (!link) return current;
+    const publication = publicationById(current, link.publicationId);
+    if (!publication) return current;
+    const proposal = current.proposals.find((p) => p.id === publication.internalProposalId);
+    if (!proposal) return current;
+
+    const state = resolveAccessState({ link, publication, now: DEMO_NOW });
+    if (!acceptsResponses(state)) {
+      result = { ok: false, reason: state === "accepted" || state === "declined" ? "conflicting_decision" : "closed" };
+      return current;
+    }
+    if (Object.keys(validateResponseDraft(draft)).length > 0) {
+      result = { ok: false, reason: "invalid" };
+      return current;
+    }
+    const responseType = responseTypeOf(draft);
+    if (decisionConflict(link, responseType)) {
+      result = { ok: false, reason: "conflicting_decision" };
+      return current;
+    }
+
+    const { id, nextId } = mintId(current, "res");
+    const typedName = responseTypedNameOf(draft);
+    const response: ProposalClientResponse = {
+      id,
+      accessLinkId: link.id,
+      publicationId: publication.id,
+      workspaceId: DEMO_WORKSPACE_ID,
+      responseType,
+      message: responseMessageOf(draft),
+      typedName,
+      authorizationConfirmed: draft.type === "acceptance" ? draft.authorised : false,
+      idempotencyKey: id,
+      respondedAt: DEMO_NOW,
+      createdAt: DEMO_NOW,
+    };
+    result = { ok: true };
+
+    const decided = responseType === "acceptance" || responseType === "decline";
+    const linkPatch: Partial<ProposalAccessLink> = decided
+      ? {
+          decision: responseType === "acceptance" ? "accepted" : "declined",
+          decidedAt: DEMO_NOW,
+          // Only acceptance asks for a typed name, so a decline records none rather than
+          // borrowing the recipient's name for a signature-shaped field nobody filled in.
+          decidedByName: responseType === "acceptance" ? typedName : null,
+        }
+      : {};
+
+    const next: DemoState = {
+      ...current,
+      accessLinks: decided ? replace(current.accessLinks, link.id, linkPatch) : current.accessLinks,
+      clientResponses: [...current.clientResponses, response],
+    };
+
+    const related: ActivityRef = {
+      kind: "proposal",
+      id: proposal.id,
+      label: `${proposal.id} · ${proposal.client}`,
+    };
+    const activity = withClientActivity({ ...next, nextId }, {
+      type:
+        responseType === "question" ? "client_question_submitted"
+        : responseType === "comment" ? "client_comment_submitted"
+        : responseType === "acceptance" ? "proposal_accepted_by_client"
+        : "proposal_declined_by_client",
+      actorLabel: link.recipientName,
+      summary: `${link.recipientName} ${CLIENT_RESPONSE_SUMMARY[responseType]} ${proposal.id}`,
+      // The client's own words belong on the event: a question the workspace cannot read is
+      // a notification, not activity.
+      detail: response.message,
+      related,
+      parent: leadRef(proposal.leadId),
+      metadata: [{ label: "Version", value: publication.versionLabel }],
+    });
+
+    const moved = decided
+      ? applyProposalState(
+          next,
+          proposal,
+          responseType === "acceptance" ? "ACCEPTED" : "REJECTED",
+          responseType === "acceptance"
+            ? `Accepted by ${typedName} in demo mode`
+            : `Declined by ${link.recipientName} in demo mode`,
+        )
+      : next;
+
+    return { ...moved, ...activity };
+  });
+  return result;
+}
+
+const CLIENT_RESPONSE_SUMMARY: Record<ClientResponseType, string> = {
+  question: "asked a question on",
+  comment: "commented on",
+  acceptance: "accepted",
+  decline: "declined",
+};
 
 // ---------------------------------------------------------------------------
 // Follow-ups

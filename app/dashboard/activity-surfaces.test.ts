@@ -16,7 +16,7 @@ import {
   ACTIVITY_PROVIDER_REQUIRED_TITLE,
   resolveActivityPlane,
 } from "@/lib/activity/provider";
-import { CLIENT_ACTIVITY_UNAVAILABLE, UNSUPPORTED_CLIENT_EVENT_TYPES } from "@/lib/activity/model";
+import { SIGNATURE_ACTIVITY_UNAVAILABLE, UNSUPPORTED_CLIENT_EVENT_TYPES } from "@/lib/activity/model";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 const root = `${here}../../`;
@@ -97,17 +97,14 @@ describe("activity honesty (tests 120-131)", () => {
   });
 
   // 125
-  it("the proposal activity screen says client tracking is unavailable rather than implying silence", () => {
-    expect(proposalViewSrc).toContain("CLIENT_ACTIVITY_UNAVAILABLE");
-    expect(CLIENT_ACTIVITY_UNAVAILABLE).toMatch(/secure proposal access/i);
+  it("the proposal activity screen distinguishes a recorded acceptance from a signature", () => {
+    expect(proposalViewSrc).toContain("SIGNATURE_ACTIVITY_UNAVAILABLE");
+    expect(SIGNATURE_ACTIVITY_UNAVAILABLE).toMatch(/certified electronic signature/i);
   });
 
   // 126
-  it("nothing links to the unbuilt secure client proposal route", () => {
-    for (const [name, src] of ACTIVITY_SURFACES) {
-      expect(src, name).not.toMatch(/\/proposal\/[^s]/);
-    }
-    expect(IMPLEMENTED_ROUTES.has("/proposal/[secureToken]")).toBe(false);
+  it("the secure client proposal route is implemented, so linking to it is not a dead link", () => {
+    expect(IMPLEMENTED_ROUTES.has("/proposal/[secureToken]")).toBe(true);
   });
 
   // 127

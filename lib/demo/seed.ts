@@ -9,6 +9,7 @@
 // entity is the same record on every route.
 import { generateLeads } from "../../mocks/fixtures/generate-leads";
 import { buildActivityEvents } from "./activity-seed";
+import { buildProposalAccessSeed } from "./proposal-access-seed";
 import { CANONICAL_LEAD_STATUS_ORDER, type Lead, type LeadStatus } from "@command-center/contracts";
 import type {
   Appointment,
@@ -27,7 +28,7 @@ import type {
 
 /** Bumped whenever the shape of DemoState changes; a stored state from an older
  *  version is discarded and reseeded rather than migrated. */
-export const DEMO_STATE_VERSION = 3;
+export const DEMO_STATE_VERSION = 4;
 
 /** Fixed reference instant. Never the real clock — the same reason generate-leads.ts
  *  pins REFERENCE_NOW: a demo that reads Date.now() renders differently every run. */
@@ -761,6 +762,7 @@ export function createSeedState(leads?: readonly Lead[]): DemoState {
   const tasks = buildTasks(opportunities, appointments, meetings, proposals, followUps);
   const emails = buildEmails(index);
   const team = TEAM_SEED.map((member) => ({ ...member }));
+  const access = buildProposalAccessSeed(proposals);
   const activity = buildActivityEvents({
     today: DEMO_TODAY,
     team,
@@ -772,6 +774,9 @@ export function createSeedState(leads?: readonly Lead[]): DemoState {
     followUps,
     tasks,
     emails,
+    publications: access.publications,
+    accessLinks: access.accessLinks,
+    clientResponses: access.clientResponses,
   });
   return {
     version: DEMO_STATE_VERSION,
@@ -786,6 +791,9 @@ export function createSeedState(leads?: readonly Lead[]): DemoState {
     settings: SETTINGS_SEED.map((section) => ({ ...section, fields: section.fields.map((f) => ({ ...f })) })),
     leadOverrides: {},
     activity,
+    publications: access.publications,
+    accessLinks: access.accessLinks,
+    clientResponses: access.clientResponses,
     // Minted ids continue past the seeded history, so a change made in this session can
     // never be handed an id a fixture already used.
     nextId: activity.length + 1,

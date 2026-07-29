@@ -12,6 +12,11 @@
 // team-member ids drawn from the same directory the Leads route uses.
 import type { LeadStatus } from "@command-center/contracts";
 import type { ActivityEvent } from "@/lib/activity/model";
+import type {
+  ProposalAccessLink,
+  ProposalClientResponse,
+  ProposalPublication,
+} from "@/lib/proposals/access/model";
 
 /** Pipeline stage. Identical value set to LeadStatus — the canonical board is
  *  "STAGES 2-5 OF 11" over the eleven canonical lead statuses (CANON 1362, 1088). */
@@ -278,6 +283,15 @@ export type DemoState = {
   settings: SettingsSection[];
   leadOverrides: Record<string, LeadOverride>;
   activity: ActivityEvent[];
+  /** Immutable published versions of a proposal. A publication is a historical fact — the
+   *  document a client was actually sent — so nothing in this store edits one after the
+   *  fact; publishing again adds a new publication and supersedes the old one. */
+  publications: ProposalPublication[];
+  /** One secure link per recipient, so revoking one person's access leaves everybody else's
+   *  intact. Demo links carry a readable `demoToken` and no hash: there is no secret. */
+  accessLinks: ProposalAccessLink[];
+  /** Questions, comments and decisions submitted from the public proposal route. */
+  clientResponses: ProposalClientResponse[];
   /** Monotonic counter used to mint ids without a clock or a random source, so a demo
    *  session replays identically. */
   nextId: number;

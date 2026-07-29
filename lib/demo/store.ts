@@ -150,6 +150,42 @@ export function withActivity(
   return { activity: [event, ...current.activity].slice(0, 200), nextId };
 }
 
+/** Append an activity entry attributed to a CLIENT rather than to a workspace member.
+ *
+ *  Separate from {@link withActivity} on purpose. A client is not a team member: they have no
+ *  user id, they cannot be looked up in the directory, and attributing their action to
+ *  whoever happened to be signed in would put a colleague's name on somebody else's decision.
+ *  So `actorId` is null and the label is the recipient the link was issued to.
+ *
+ *  What a caller still cannot state: the instant, the category, the importance. The label is
+ *  the one added degree of freedom, and every call site takes it from the stored link rather
+ *  than from anything the public request sent — a browser that could name its own actor could
+ *  file an acceptance under a name that never agreed to anything. */
+export function withClientActivity(
+  current: DemoState,
+  intent: DemoActivityIntent & { actorLabel: string },
+): { activity: ActivityEvent[]; nextId: number } {
+  const { id, nextId } = mintId(current, "act");
+  const event: ActivityEvent = {
+    id,
+    type: intent.type,
+    category: categoryOf(intent.type),
+    source: "user_action",
+    // The client wrote it, so the client may be shown it. Nothing here is an internal note.
+    visibility: "client_safe",
+    importance: defaultImportance(intent.type),
+    actorId: null,
+    actorLabel: intent.actorLabel,
+    occurredAt: DEMO_NOW,
+    summary: intent.summary,
+    detail: intent.detail ?? "",
+    related: intent.related,
+    parent: intent.parent ?? null,
+    metadata: intent.metadata ?? [],
+  };
+  return { activity: [event, ...current.activity].slice(0, 200), nextId };
+}
+
 /** Read the demo state. Deliberately returns the whole object rather than taking a
  *  selector: a selector that builds a new array on every call makes useSyncExternalStore
  *  loop forever. Derive with useMemo at the call site instead. */
