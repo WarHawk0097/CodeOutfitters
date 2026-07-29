@@ -12,6 +12,11 @@ import {
   TASK_PRIORITY_TONE,
   TASK_RELATION_LABELS,
 } from "../../lib/tasks/model";
+import {
+  CONTROL_FOCUS,
+  ROW_ACTION,
+  ROW_ACTION_PRIMARY,
+} from "../../lib/command-center/ui/control-system";
 import { TONE_INK } from "../demo/tone";
 
 /**
@@ -97,7 +102,7 @@ export function TaskRow({
     <button
       type="button"
       onClick={() => onOpen(task)}
-      className="truncate text-left text-[13px] font-semibold text-cc-ink hover:underline"
+      className={`truncate rounded-[3px] text-left text-[13px] font-semibold text-cc-ink hover:underline ${CONTROL_FOCUS}`}
     >
       {task.title}
     </button>
@@ -123,13 +128,19 @@ export function TaskRow({
           <TaskRelationLink task={task} />
         </div>
       </div>
-      {actions ? <div className="flex flex-shrink-0 items-center gap-1.5">{actions}</div> : null}
+      {/* `self-center`: the row's text block is top-aligned, but an action that floats
+          level with the first line of a two-line row reads as detached from the record. */}
+      {actions ? (
+        <div className="flex flex-shrink-0 items-center gap-1.5 self-center">{actions}</div>
+      ) : null}
     </div>
   );
 }
 
-export const TASK_PRIMARY_ACTION =
-  "rounded-cc-control bg-cc-green px-[11px] py-[5px] text-[11.5px] font-semibold text-white";
+// Row actions come from the one control system. They used to be 26px tall with a
+// 11.5px label, which is why "Open" read as detached and low-contrast beside a 36px
+// search field; they are now the shared compact band (36px on pointer widths, 44px
+// below `sm` so the touch target is legal) with full-strength ink.
+export const TASK_PRIMARY_ACTION = ROW_ACTION_PRIMARY;
 
-export const TASK_SECONDARY_ACTION =
-  "rounded-cc-control border border-cc-line-strong bg-cc-surface px-[11px] py-[5px] text-[11.5px] font-semibold text-cc-t-table";
+export const TASK_SECONDARY_ACTION = ROW_ACTION;

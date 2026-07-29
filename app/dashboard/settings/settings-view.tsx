@@ -5,6 +5,12 @@
 //
 // Saving writes to the local demo store only. No provider is connected and no secret is ever
 // written — saveSettingsSection skips secret fields.
+import {
+  BTN_DISABLED,
+  BTN_PRIMARY,
+  SEGMENT,
+  SEGMENT_ACTIVE,
+} from "@/lib/command-center/ui/control-system";
 import { useMemo, useState } from "react";
 import { saveSettingsSection } from "../../../lib/demo/actions";
 import type { SettingField, SettingsSection, Tone } from "../../../lib/demo/types";
@@ -204,11 +210,7 @@ function ThemeSettingsCard() {
                 type="button"
                 aria-pressed={selected}
                 onClick={() => setAppearance(mode)}
-                className={`text-[12px] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-cc-green ${
-                  selected
-                    ? "rounded-[7px] bg-cc-green px-3 py-1.5 font-semibold text-white"
-                    : "rounded-[7px] px-3 py-1.5 font-medium text-cc-t2 hover:text-cc-ink"
-                }`}
+                className={selected ? SEGMENT_ACTIVE : SEGMENT}
               >
                 {APPEARANCE_LABELS[mode]}
               </button>
@@ -309,11 +311,7 @@ function SettingsSectionCard({ section }: { section: SettingsSection }) {
             type="submit"
             disabled={!dirty}
             aria-describedby={dirty ? undefined : `${section.id}-save-reason`}
-            className={
-              dirty
-                ? "rounded-cc-control bg-cc-green px-3 py-1.5 text-[12.5px] font-semibold text-white"
-                : "cursor-not-allowed rounded-cc-control border border-cc-line-strong bg-cc-secondary px-3 py-1.5 text-[12.5px] font-semibold text-cc-t3"
-            }
+            className={dirty ? BTN_PRIMARY : BTN_DISABLED}
           >
             Save changes
           </button>

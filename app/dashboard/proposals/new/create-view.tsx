@@ -14,6 +14,7 @@
 //
 // View-model note: the richer proposal presentation contracts (line items, pricing, terms)
 // belong to the builder slice; this screen only needs the source options below.
+import { BTN_DISABLED } from "@/lib/command-center/ui/control-system";
 import { useId, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -143,7 +144,7 @@ export function CreateContent() {
           type="button"
           disabled
           aria-describedby={noteId}
-          className="cursor-not-allowed rounded-cc-control bg-cc-green/60 px-3.5 py-1.5 text-[12px] font-semibold text-white/80"
+          className={BTN_DISABLED}
         >
           Continue
         </button>

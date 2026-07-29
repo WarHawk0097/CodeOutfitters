@@ -1,3 +1,4 @@
+import { ROW_ACTION_DISABLED, ROW_ACTION_PRIMARY } from "@/lib/command-center/ui/control-system";
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, Download, FileWarning, Paperclip } from 'lucide-react'
@@ -158,7 +159,7 @@ function AttachmentRow({
       </div>
       {demo ? (
         <span
-          className="inline-flex max-w-[14rem] flex-shrink-0 items-center gap-1.5 rounded-cc-control border border-cc-line px-3 py-2 text-right text-xs font-medium text-cc-t3"
+          className={`max-w-[14rem] text-right ${ROW_ACTION_DISABLED}`}
           title="Available when the production data service is connected."
         >
           <FileWarning className="h-3.5 w-3.5 flex-shrink-0" />
@@ -167,14 +168,14 @@ function AttachmentRow({
       ) : downloadable ? (
         <a
           href={`/api/dashboard/attachments/${a.id}/download`}
-          className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-cc-control bg-cc-green px-3 py-2 text-xs font-semibold text-white transition-transform active:scale-[0.98]"
+          className={ROW_ACTION_PRIMARY}
         >
           <Download className="h-3.5 w-3.5" />
           Download
         </a>
       ) : (
         <span
-          className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-cc-control border border-cc-line px-3 py-2 text-xs font-medium text-cc-t3"
+          className={ROW_ACTION_DISABLED}
           title="This file is not available for download."
         >
           <FileWarning className="h-3.5 w-3.5" />

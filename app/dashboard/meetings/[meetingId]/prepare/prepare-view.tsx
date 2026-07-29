@@ -10,6 +10,12 @@
 //     are deliberately absent here.
 //   - The consent message itself is APPROVED copy (M-D02 469 / CANON 1480); consent
 //     is not *given* here — recording/transcription cannot activate from preparation.
+import {
+  BTN_PRIMARY,
+  CONTROL_DISABLED_STATE,
+  FIELD_CONTROL,
+  ROW_ACTION,
+} from "@/lib/command-center/ui/control-system";
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -174,7 +180,7 @@ export function PrepareContent({
                 type="text"
                 value={draft}
                 onChange={(event) => onDraftChange(event.target.value)}
-                className="mt-1 block w-full rounded-cc-control border border-cc-line px-2 py-1 text-[12px] text-cc-ink outline-none focus:border-cc-green-border"
+                className={`mt-1 ${FIELD_CONTROL}`}
               />
             </label>
             {/* Disabled while the field is empty, with the reason announced:
@@ -183,7 +189,7 @@ export function PrepareContent({
               type="submit"
               disabled={draft.trim() === ""}
               aria-describedby="prepare-add-question-reason"
-              className="mb-1 rounded-cc-control border border-cc-green-border bg-cc-green-tint px-3 py-1.5 text-[12px] font-semibold text-cc-green-ink disabled:cursor-not-allowed disabled:border-cc-line disabled:bg-cc-secondary disabled:text-cc-t3"
+              className={`mb-1 ${ROW_ACTION} ${CONTROL_DISABLED_STATE}`}
             >
               Add
             </button>
@@ -239,7 +245,7 @@ export function PrepareContent({
           <Link
             href={`/dashboard/meetings/${meeting.id}/live`}
             aria-describedby="prepare-provider-note"
-            className="mt-3 block w-full rounded-cc-control bg-cc-green px-3 py-1.5 text-center text-[12.5px] font-semibold text-white outline-none transition-transform focus-visible:ring-2 focus-visible:ring-cc-green-border active:scale-[.99]"
+            className={`mt-3 w-full ${BTN_PRIMARY}`}
           >
             Open live workspace
           </Link>

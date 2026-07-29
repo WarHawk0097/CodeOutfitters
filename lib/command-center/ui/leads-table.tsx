@@ -19,6 +19,8 @@
 // never slices, filters or sorts the rows it was handed. Paginating only the rows already
 // loaded is exactly the defect this replaces — the footer read "Page 1 of 1" over a
 // 128-record dataset because the table could only see ten rows.
+import { CONTROL_DISABLED_INK, CONTROL_FOCUS } from "./control-system";
+import {  } from "@/lib/command-center/ui/control-system";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type SelectHTMLAttributes } from "react";
 import {
   APPOINTMENT_STATUS_LABELS,
@@ -236,9 +238,9 @@ const SKELETON_BARS = ["72%", "60%", "55%", "58%", "50%", "46%", "60%"];
 // call sites keeps the override in a `md:` variant, whose cascade order is defined —
 // appending a second `text-[…]` utility to the class string would not be.
 const PILL_NEUTRAL =
-  "rounded-cc-control border border-cc-line-strong px-[11px] py-[7px] text-[11.5px] text-cc-t-table md:text-[12.5px]";
+  "h-9 rounded-cc-control border border-cc-line-strong bg-cc-surface px-[11px] text-[11.5px] text-cc-t-table md:h-[34px] md:text-[12.5px]";
 const PILL_ACTIVE =
-  "rounded-cc-control border border-cc-green-border bg-cc-green-tint px-[11px] py-[7px] text-[11.5px] font-semibold text-cc-green-ink md:text-[12.5px]";
+  "h-9 rounded-cc-control border border-cc-green-border bg-cc-green-tint px-[11px] text-[11.5px] font-semibold text-cc-green-ink md:h-[34px] md:text-[12.5px]";
 
 /** The canonical filter pills draw their own "▾" (CANON 150 `Status ▾`, T-02 892, MO-02 1074).
     A native select is wrong for that in two ways, both measured in Edge against C-D05:
@@ -1046,7 +1048,7 @@ export function LeadsTable({
             onClick={() => goToPage(query.page - 1)}
             disabled={query.page <= 1}
             /* T-02 908 renders the pager as a plain mono string; C-D05 195 boxes it. */
-            className="hidden text-cc-t4 disabled:opacity-40 md:block md:px-[3px] md:font-cc-mono md:text-[10.5px] md:text-cc-t-table xl:rounded-[5px] xl:border xl:border-cc-line xl:px-[10px] xl:py-[5px] xl:font-cc-body xl:text-[12px] xl:text-cc-t4"
+            className={`hidden text-cc-t-table md:block md:px-[3px] md:font-cc-mono md:text-[10.5px] md:text-cc-t-table xl:min-h-[34px] xl:rounded-[5px] xl:border xl:border-cc-line-strong xl:px-[10px] xl:py-[5px] xl:font-cc-body xl:text-[12px] xl:font-semibold xl:text-cc-t-table ${CONTROL_FOCUS} ${CONTROL_DISABLED_INK}`}
           >
             {/* T-02 908 is a chevron, C-D05 195 is the word. The accessible name is the
                 aria-label above at both widths, so the glyph is never announced. */}
@@ -1086,7 +1088,7 @@ export function LeadsTable({
             aria-describedby={query.page >= pageCount ? "leads-pager-next-reason" : undefined}
             onClick={() => goToPage(query.page + 1)}
             disabled={query.page >= pageCount}
-            className="w-full rounded-[6px] border border-cc-line-strong bg-cc-surface py-2 text-center text-[11.5px] font-semibold text-cc-t-table disabled:opacity-40 md:w-auto md:rounded-none md:border-0 md:bg-transparent md:px-[3px] md:py-0 md:font-cc-mono md:text-[10.5px] md:font-normal xl:rounded-[5px] xl:border xl:border-cc-line-strong xl:bg-cc-surface xl:px-[10px] xl:py-[5px] xl:font-cc-body xl:text-[12px] xl:font-semibold"
+            className={`min-h-[44px] w-full rounded-[6px] border border-cc-line-strong bg-cc-surface py-2 text-center text-[11.5px] font-semibold text-cc-t-table md:min-h-0 md:w-auto md:rounded-none md:border-0 md:bg-transparent md:px-[3px] md:py-0 md:font-cc-mono md:text-[10.5px] md:font-normal xl:min-h-[34px] xl:rounded-[5px] xl:border xl:border-cc-line-strong xl:bg-cc-surface xl:px-[10px] xl:py-[5px] xl:font-cc-body xl:text-[12px] xl:font-semibold ${CONTROL_FOCUS} ${CONTROL_DISABLED_INK}`}
           >
             <span className="md:hidden">
               {canonicalState

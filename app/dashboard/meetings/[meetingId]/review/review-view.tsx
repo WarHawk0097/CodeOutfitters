@@ -19,6 +19,11 @@
 //   - The full transcript lives at a SEPARATE route (/transcript, M-D14/M-D15). The
 //     Transcript tab links there when the record has a ready transcript and keeps the
 //     open control disabled when it has none — it never fabricates a transcript feed here.
+import {
+  BTN_DISABLED,
+  ROW_ACTION,
+  ROW_ACTION_DISABLED,
+} from "@/lib/command-center/ui/control-system";
 import { useId, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -233,7 +238,7 @@ function SummaryPanel({ meeting, noteId }: { meeting: Meeting; noteId: string })
         </div>
 
         <div className="mt-3 flex flex-wrap gap-2">
-          <DisabledAction label="Approve summary" noteId={noteId} solid />
+          <DisabledAction label="Approve summary" noteId={noteId} />
           <DisabledAction label="Edit follow-up draft" noteId={noteId} />
           <DisabledAction label="Create proposal" noteId={noteId} />
         </div>
@@ -256,7 +261,7 @@ function SummaryPanel({ meeting, noteId }: { meeting: Meeting; noteId: string })
           Nothing is applied to the CRM until you Review and Apply Updates.
         </p>
         <div className="mt-2">
-          <DisabledAction label="Review and Apply Updates" noteId={noteId} solid />
+          <DisabledAction label="Review and Apply Updates" noteId={noteId} />
         </div>
       </aside>
     </div>
@@ -285,7 +290,7 @@ export function TranscriptPanel({ meeting }: { meeting: Meeting }) {
       {hasTranscript ? (
         <Link
           href={`/dashboard/meetings/${meeting.id}/transcript`}
-          className="mt-3 inline-block rounded-cc-control border border-cc-line px-3 py-1.5 text-[12px] font-semibold text-cc-green-ink outline-none hover:bg-cc-soft focus-visible:ring-2 focus-visible:ring-cc-green-border"
+          className={`mt-3 ${ROW_ACTION}`}
         >
           Open full transcript
         </Link>
@@ -297,7 +302,7 @@ export function TranscriptPanel({ meeting }: { meeting: Meeting }) {
             type="button"
             disabled
             aria-describedby={noTranscriptId}
-            className="mt-3 cursor-not-allowed rounded-cc-control border border-cc-line px-3 py-1.5 text-[12px] font-semibold text-cc-t3"
+            className={`mt-3 ${ROW_ACTION_DISABLED}`}
           >
             Open full transcript
           </button>
@@ -346,7 +351,7 @@ function ActionsPanel({ noteId }: { noteId: string }) {
         />
       </div>
       <div className="mt-3">
-        <DisabledAction label="Create follow-up" noteId={noteId} solid />
+        <DisabledAction label="Create follow-up" noteId={noteId} />
       </div>
     </div>
   );
@@ -354,18 +359,13 @@ function ActionsPanel({ noteId }: { noteId: string }) {
 
 // Every provider-dependent review action renders as a disabled button that names its
 // reason through aria-describedby — no color-only signal, and the reason is textual.
-function DisabledAction({ label, noteId, solid }: { label: string; noteId: string; solid?: boolean }) {
+function DisabledAction({ label, noteId }: { label: string; noteId: string }) {
   return (
     <button
       type="button"
       disabled
       aria-describedby={noteId}
-      className={
-        "cursor-not-allowed rounded-cc-control px-3 py-1.5 text-[12px] font-semibold " +
-        (solid
-          ? "border border-cc-green-border bg-cc-green-tint text-cc-green-ink opacity-70"
-          : "border border-cc-line text-cc-t3")
-      }
+      className={BTN_DISABLED}
     >
       {label}
     </button>

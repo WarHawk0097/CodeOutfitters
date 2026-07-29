@@ -15,6 +15,7 @@
 //     provider-dependent action (export, download source audio, save redactions) is
 //     disabled with a canonical unavailable reason. No audio player, waveform, timer, or
 //     download link to a nonexistent file is rendered.
+import { FIELD_CONTROL, ROW_ACTION } from "@/lib/command-center/ui/control-system";
 import { useId, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -205,7 +206,7 @@ export function TranscriptContent({ meeting }: { meeting: Meeting }) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search text…"
-          className="w-40 rounded-cc-control border border-cc-line px-2 py-1 text-[12px] text-cc-ink outline-none focus:border-cc-green-border"
+          className={`w-40 ${FIELD_CONTROL}`}
         />
         {query.trim() !== "" && (
           <button
@@ -304,7 +305,7 @@ export function TranscriptContent({ meeting }: { meeting: Meeting }) {
       <div className="flex flex-wrap items-center gap-2 border-t border-cc-line px-4 py-3">
         <Link
           href={`/dashboard/meetings/${meeting.id}/review`}
-          className="rounded-cc-control border border-cc-line px-3 py-1.5 text-[12px] font-semibold text-cc-t2 outline-none hover:text-cc-ink focus-visible:ring-2 focus-visible:ring-cc-green-border"
+          className={ROW_ACTION}
         >
           Back to review
         </Link>

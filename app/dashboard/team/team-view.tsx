@@ -4,6 +4,7 @@
 // Everything writes to the local demo store. Inviting a member records a Pending row and marks
 // it a demo invite — no invitation email is sent. Removing a member reassigns every record
 // they owned to Unassigned, so no route is left pointing at a member who no longer exists.
+import { BTN_DANGER, ROW_ACTION_ICON_QUIET } from "@/lib/command-center/ui/control-system";
 import { useCallback, useMemo, useState } from "react";
 import { inviteTeamMember, removeTeamMember, updateTeamMember } from "../../../lib/demo/actions";
 import type { TeamMember, TeamRole, TeamStatus, Tone } from "../../../lib/demo/types";
@@ -88,7 +89,7 @@ export function TeamScreen() {
         width={220}
         items={rowMenu}
         onSelect={(id) => (id === "edit" ? setEditId(member.id) : setRemoveId(member.id))}
-        className="px-1 leading-none text-cc-icon-muted hover:text-cc-t2"
+        className={ROW_ACTION_ICON_QUIET}
       />
     );
 
@@ -217,7 +218,7 @@ export function TeamScreen() {
                   setAnnouncement(`${removing.name} removed — owned records reassigned to Unassigned.`);
                   setRemoveId(null);
                 }}
-                className="rounded-cc-control bg-cc-red-ink px-3 py-1.5 text-[12.5px] font-semibold text-white"
+                className={BTN_DANGER}
               >
                 Remove member
               </button>

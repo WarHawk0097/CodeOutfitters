@@ -11,6 +11,7 @@
 // publish actions are invented, because none are canonically evidenced. "Use template" is the one
 // canonical forward action; it would open SCREEN_PROPOSAL_BUILDER (/proposals/[proposal-id]/edit),
 // which is not built yet, so it stays disabled with an honest reason and never dead-links.
+import { BTN_DISABLED } from "@/lib/command-center/ui/control-system";
 import { useId, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -188,7 +189,7 @@ function TemplatePreviewDialog({
             type="button"
             disabled
             aria-describedby={reasonId}
-            className="cursor-not-allowed rounded-cc-control bg-cc-green/60 px-3 py-1.5 text-[12.5px] font-semibold text-white/80"
+            className={BTN_DISABLED}
           >
             Use template
           </button>

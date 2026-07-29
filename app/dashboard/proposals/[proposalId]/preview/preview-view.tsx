@@ -12,6 +12,11 @@
 // the secure client link — is disabled with an honest reason and never dead-links. A blocked
 // validation finding holds the send gate (state-machines.json: blocked prevents send). Content is real,
 // selectable DOM: nothing is canvas-rendered text.
+import {
+  BTN_DISABLED,
+  BTN_ICON,
+  CONTROL_DISABLED_STATE,
+} from "@/lib/command-center/ui/control-system";
 import { useId, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ChevronLeft, ChevronRight, Minus, Plus } from "lucide-react";
@@ -176,7 +181,6 @@ export function PreviewWorkspace({
           <GatedButton label="Download PDF" reason="PDF generation and download are available in the live workspace." />
           <GatedButton
             label="Send"
-            primary
             reason={
               sendBlocked
                 ? "Send is blocked until the flagged validation issue is resolved, and is available in the live workspace."
@@ -197,7 +201,7 @@ export function PreviewWorkspace({
             disabled={pageIndex === 0}
             aria-label="Previous page"
             aria-describedby={pageIndex === 0 ? "preview-prev-page-reason" : undefined}
-            className="rounded-cc-control border border-cc-line p-1.5 text-cc-ink disabled:opacity-40 hover:border-cc-green-border"
+            className={`${BTN_ICON} ${CONTROL_DISABLED_STATE}`}
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -212,7 +216,7 @@ export function PreviewWorkspace({
             aria-describedby={
               pageIndex === document.pages.length - 1 ? "preview-next-page-reason" : undefined
             }
-            className="rounded-cc-control border border-cc-line p-1.5 text-cc-ink disabled:opacity-40 hover:border-cc-green-border"
+            className={`${BTN_ICON} ${CONTROL_DISABLED_STATE}`}
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -230,13 +234,13 @@ export function PreviewWorkspace({
         </nav>
 
         <div className="flex items-center gap-1" role="group" aria-label="Zoom">
-          <button type="button" onClick={() => setZoom((z) => stepZoom(z, -1))} aria-label="Zoom out" className="rounded-cc-control border border-cc-line p-1.5 text-cc-ink hover:border-cc-green-border">
+          <button type="button" onClick={() => setZoom((z) => stepZoom(z, -1))} aria-label="Zoom out" className={BTN_ICON}>
             <Minus className="h-4 w-4" />
           </button>
           <span className="min-w-[64px] text-center font-cc-mono text-[11px] text-cc-t2" aria-live="polite">
             {zoomLabel(zoom)}
           </span>
-          <button type="button" onClick={() => setZoom((z) => stepZoom(z, 1))} aria-label="Zoom in" className="rounded-cc-control border border-cc-line p-1.5 text-cc-ink hover:border-cc-green-border">
+          <button type="button" onClick={() => setZoom((z) => stepZoom(z, 1))} aria-label="Zoom in" className={BTN_ICON}>
             <Plus className="h-4 w-4" />
           </button>
           <button type="button" onClick={() => setZoom("fit-width")} aria-pressed={zoom === "fit-width"} className={`ml-1 rounded-cc-control border px-2 py-1 text-[11px] font-semibold ${zoom === "fit-width" ? "border-cc-green-border bg-cc-green-tint text-cc-green-ink" : "border-cc-line text-cc-ink"}`}>
@@ -304,12 +308,10 @@ function PdfStatusBadge({ status }: { status: PdfStatus }) {
 function GatedButton({
   label,
   reason,
-  primary,
   describedBy,
 }: {
   label: string;
   reason: string;
-  primary?: boolean;
   describedBy?: string;
 }) {
   const ownId = useId();
@@ -319,11 +321,7 @@ function GatedButton({
         type="button"
         disabled
         aria-describedby={describedBy ?? ownId}
-        className={
-          primary
-            ? "cursor-not-allowed rounded-cc-control bg-cc-green/60 px-3 py-1.5 text-[11.5px] font-semibold text-white/80"
-            : "cursor-not-allowed rounded-cc-control border border-cc-line px-3 py-1.5 text-[11.5px] font-semibold text-cc-t3"
-        }
+        className={BTN_DISABLED}
       >
         {label}
       </button>

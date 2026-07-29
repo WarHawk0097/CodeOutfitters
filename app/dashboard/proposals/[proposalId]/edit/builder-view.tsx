@@ -13,6 +13,11 @@
 // AI Assist actions are backend- and approval-gated (api-contracts.json + state-machines.json), so they
 // are disabled with honest reasons and never dead-link. Money is handled in integer cents so a subtotal
 // is exact and every amount is validated (no NaN / Infinity / negative / fractional-cent totals).
+import {
+  BTN_DISABLED,
+  CONTROL_DISABLED_INK,
+  CONTROL_FOCUS,
+} from "@/lib/command-center/ui/control-system";
 import { useId, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, GripVertical, Plus, Trash2, ChevronUp, ChevronDown } from "lucide-react";
@@ -205,7 +210,7 @@ export function BuilderWorkspace({
             Preview
           </Link>
           <GatedAction label="Request review" />
-          <GatedAction label="Save" primary />
+          <GatedAction label="Save" />
         </div>
       </header>
 
@@ -271,7 +276,7 @@ export function BuilderWorkspace({
 }
 
 // A backend- or approval-gated action, disabled with an honest, screen-reader-associated reason.
-function GatedAction({ label, primary }: { label: string; primary?: boolean }) {
+function GatedAction({ label }: { label: string }) {
   const reasonId = useId();
   return (
     <>
@@ -279,11 +284,7 @@ function GatedAction({ label, primary }: { label: string; primary?: boolean }) {
         type="button"
         disabled
         aria-describedby={reasonId}
-        className={
-          primary
-            ? "cursor-not-allowed rounded-cc-control bg-cc-green/60 px-3 py-1.5 text-[11.5px] font-semibold text-white/80"
-            : "cursor-not-allowed rounded-cc-control border border-cc-line px-3 py-1.5 text-[11.5px] font-semibold text-cc-t3"
-        }
+        className={BTN_DISABLED}
       >
         {label}
       </button>
@@ -334,7 +335,7 @@ function StructureNav({
               <span className="flex shrink-0 items-center opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
                 {/* First / last section: the move button is honestly disabled and says
                     why, instead of relying on the dimmed icon alone. */}
-                <button type="button" onClick={() => onMove(index, -1)} disabled={index === 0} aria-label={`Move ${section.name} up`} aria-describedby={index === 0 ? `move-up-reason-${section.id}` : undefined} className="rounded p-0.5 text-cc-icon-muted disabled:opacity-30 hover:text-cc-ink">
+                <button type="button" onClick={() => onMove(index, -1)} disabled={index === 0} aria-label={`Move ${section.name} up`} aria-describedby={index === 0 ? `move-up-reason-${section.id}` : undefined} className={`rounded p-0.5 text-cc-t2 hover:text-cc-ink ${CONTROL_FOCUS} ${CONTROL_DISABLED_INK}`}>
                   <ChevronUp className="h-3 w-3" />
                 </button>
                 {index === 0 ? (
@@ -342,7 +343,7 @@ function StructureNav({
                     This section is already first.
                   </span>
                 ) : null}
-                <button type="button" onClick={() => onMove(index, 1)} disabled={index === sections.length - 1} aria-label={`Move ${section.name} down`} aria-describedby={index === sections.length - 1 ? `move-down-reason-${section.id}` : undefined} className="rounded p-0.5 text-cc-icon-muted disabled:opacity-30 hover:text-cc-ink">
+                <button type="button" onClick={() => onMove(index, 1)} disabled={index === sections.length - 1} aria-label={`Move ${section.name} down`} aria-describedby={index === sections.length - 1 ? `move-down-reason-${section.id}` : undefined} className={`rounded p-0.5 text-cc-t2 hover:text-cc-ink ${CONTROL_FOCUS} ${CONTROL_DISABLED_INK}`}>
                   <ChevronDown className="h-3 w-3" />
                 </button>
                 {index === sections.length - 1 ? (
