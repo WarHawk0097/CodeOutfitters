@@ -25,9 +25,9 @@ import {
   NextUpCardMobile,
   PipelineJourney,
   RecentActivityCard,
-  TodaysWorkCard,
 } from "@command-center/ui";
 import { LeadFlowChart } from "../../../components/dashboard/lead-flow-chart";
+import { OperationsBand, TodaysWorkLive } from "../../../components/dashboard/overview-operations";
 import {
   PIPELINE_JOURNEY_ACTIVE_COUNT,
   PIPELINE_PHASE_FIXTURES,
@@ -36,8 +36,6 @@ import {
   OVERVIEW_KPIS,
   OVERVIEW_KPIS_MOBILE,
   RECENT_ACTIVITY,
-  TODAYS_WORK,
-  TODAYS_WORK_OPEN_COUNT,
 } from "../../../mocks/fixtures/overview-canonical";
 
 export default function DashboardPage() {
@@ -50,11 +48,7 @@ export default function DashboardPage() {
         <div className="mt-3.5 grid min-h-0 flex-1 grid-cols-[1fr_372px] grid-rows-[minmax(0,1fr)] gap-3.5">
           <div className="flex min-w-0 flex-col gap-[18px]">
             <LeadFlowChart />
-            <TodaysWorkCard
-              items={TODAYS_WORK}
-              openCount={TODAYS_WORK_OPEN_COUNT}
-              variant="desktop"
-            />
+            <TodaysWorkLive variant="desktop" />
           </div>
           <div className="flex h-full min-h-0 min-w-0 flex-col gap-3.5">
             <PipelineJourney
@@ -71,7 +65,7 @@ export default function DashboardPage() {
       {/* ----------------------------------------------- tablet, CANON 859-880 */}
       <div className="hidden flex-col gap-4 md:flex xl:hidden">
         <KpiGridTablet kpis={OVERVIEW_KPIS} />
-        <TodaysWorkCard items={TODAYS_WORK} openCount={TODAYS_WORK_OPEN_COUNT} variant="tablet" />
+        <TodaysWorkLive variant="tablet" />
         <LeadFlowChart />
         <PipelineJourney
           activeCount={PIPELINE_JOURNEY_ACTIVE_COUNT}
@@ -88,11 +82,7 @@ export default function DashboardPage() {
         <div className="text-[11px] text-cc-t3">Tue Apr 22 · 4 items need attention</div>
 
         <div className="mt-[11px]">
-          <TodaysWorkCard
-            items={TODAYS_WORK}
-            openCount={TODAYS_WORK_OPEN_COUNT}
-            variant="mobile"
-          />
+          <TodaysWorkLive variant="mobile" />
         </div>
         <div className="mt-[11px]">
           <KpiGridMobile kpis={OVERVIEW_KPIS_MOBILE} />
@@ -114,6 +104,11 @@ export default function DashboardPage() {
           <NextUpCardMobile />
         </div>
       </div>
+
+      {/* The operational band sits below the canonical composition at every width, so the
+          canonical frames above are unchanged: same cards, same order, same fixed height.
+          Every count in it is the length of a record set, and the set is one click away. */}
+      <OperationsBand />
     </>
   );
 }
