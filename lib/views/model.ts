@@ -106,12 +106,26 @@ export type ScopeDescriptor = {
 //   FOLLOW_UP_VIEW_VALUES follow-ups-view.tsx       FollowUpsView
 //   PROPOSAL_STATE_VALUES proposals-view.tsx        STATES
 //   PROPOSAL_VALUE_BUCKETS proposals-view.tsx       VALUE_BUCKETS ids
+//   PROPOSAL_VIEW_VALUES  proposals-view.tsx        ProposalsView
+//   LEAD_VIEW_VALUES      leads-data.tsx            LeadsView
 //   EMAIL_STATE_VALUES    email-activity-view.tsx   STATES
 //   LEAD_STATUS_VALUES    lib/command-center/contracts/leads.ts  LeadStatusSchema
 //   LEAD_SORT_FIELDS      lib/command-center/ui/leads-table.tsx  headerCell ids
 const TASK_VIEW_VALUES = ["today", "upcoming", "overdue", "assigned", "waiting", "completed"] as const;
 const TASK_PRIORITY_VALUES = ["High", "Medium", "Low"] as const;
-const MEETING_VIEW_VALUES = ["upcoming", "live", "review", "completed"] as const;
+// "prepare" is a DERIVED view, not a sixth tab: it selects the same READY meetings the
+// "upcoming" tab does, and exists so the Overview's "Meetings to prepare" count has an
+// exact destination. The tab strip highlights Upcoming for it; the difference is the
+// heading and the clearable chip, not the record set.
+const MEETING_VIEW_VALUES = ["upcoming", "live", "review", "completed", "prepare"] as const;
+
+// The two derived views that are reached only from the Overview's operational band.
+// They are `view` values, deliberately NOT extra members of the `state`/`status` enums
+// beside them: a proposal is never in a state called "attention", and overloading the
+// state vocabulary with a question the operations screen happens to ask would make every
+// stored saved view and every state filter mean two things.
+const PROPOSAL_VIEW_VALUES = ["attention"] as const;
+const LEAD_VIEW_VALUES = ["no-next-action"] as const;
 const FOLLOW_UP_VIEW_VALUES = ["OVERDUE", "DUE TODAY", "UPCOMING", "SNOOZED", "COMPLETED"] as const;
 const PROPOSAL_STATE_VALUES = [
   "DRAFT",
@@ -167,10 +181,12 @@ export const SCOPE_DESCRIPTORS: Record<SavedViewScope, ScopeDescriptor> = {
     path: SAVED_VIEW_SCOPE_PATHS.leads,
     // `service` and `owner` are opaque ids drawn from the response's facets and directory, so
     // they cannot be enumerated here; `status` can and is.
-    fields: { q: "text", status: LEAD_STATUS_VALUES, service: "id", owner: "id" },
+    fields: { view: LEAD_VIEW_VALUES, q: "text", status: LEAD_STATUS_VALUES, service: "id", owner: "id" },
     sortFields: LEAD_SORT_FIELDS,
     columns: [],
-    defaults: { q: "", status: "", service: "", owner: "" },
+    // No default view: the canonical Leads list is every lead. `view` is only ever
+    // present when a derived operational question was asked.
+    defaults: { view: "", q: "", status: "", service: "", owner: "" },
   },
   pipeline: {
     label: SAVED_VIEW_SCOPE_LABELS.pipeline,
@@ -191,10 +207,17 @@ export const SCOPE_DESCRIPTORS: Record<SavedViewScope, ScopeDescriptor> = {
   proposals: {
     label: SAVED_VIEW_SCOPE_LABELS.proposals,
     path: SAVED_VIEW_SCOPE_PATHS.proposals,
-    fields: { q: "text", owner: "id", state: PROPOSAL_STATE_VALUES, value: PROPOSAL_VALUE_BUCKETS },
+    fields: {
+      view: PROPOSAL_VIEW_VALUES,
+      q: "text",
+      owner: "id",
+      state: PROPOSAL_STATE_VALUES,
+      value: PROPOSAL_VALUE_BUCKETS,
+    },
     sortFields: [],
     columns: [],
-    defaults: { q: "", owner: "", state: "", value: "" },
+    // No default view: the canonical Proposals list is every proposal, in every state.
+    defaults: { view: "", q: "", owner: "", state: "", value: "" },
   },
   followUps: {
     label: SAVED_VIEW_SCOPE_LABELS.followUps,

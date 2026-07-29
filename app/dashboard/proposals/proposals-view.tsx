@@ -18,6 +18,7 @@ import {
 } from "../../../lib/demo/actions";
 import Link from "next/link";
 import { LEAD_DIRECTORY } from "../../../lib/demo/seed";
+import { needsAttention, PROPOSAL_ATTENTION_STATES } from "../../../lib/operations/attention";
 import type { Proposal, ProposalState, Tone } from "../../../lib/demo/types";
 import { useDemoQuery } from "../../../components/demo/use-demo-query";
 import { TONE_INK } from "../../../components/demo/tone";
@@ -123,6 +124,9 @@ export function ProposalsScreen() {
   const ownerFilter = filters.owner === "" ? null : (filters.owner ?? null);
   const stateFilter = filters.state === "" ? null : (filters.state ?? null);
   const valueFilter = filters.value === "" ? null : (filters.value ?? null);
+  // `?view=attention` — the Overview's "Proposals needing attention" count, arriving with
+  // the question it counted. Any other value was already dropped by the scope parser.
+  const viewFilter = filters.view === "" ? null : (filters.view ?? null);
 
   const [detailId, setDetailId] = useState<string | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
@@ -154,6 +158,9 @@ export function ProposalsScreen() {
     const needle = q.trim().toLowerCase();
     const bucket = VALUE_BUCKETS.find((b) => b.id === valueFilter);
     return state.proposals.filter((proposal) => {
+      // The derived view is a question about several states at once, which is why it is
+      // a `view` and not a `state` value: `state` selects exactly one.
+      if (viewFilter === "attention" && !needsAttention(proposal)) return false;
       if (ownerFilter && proposal.ownerId !== ownerFilter) return false;
       if (stateFilter && proposal.state !== stateFilter) return false;
       if (bucket && !bucket.test(proposal.value)) return false;
@@ -165,10 +172,10 @@ export function ProposalsScreen() {
         proposal.service.toLowerCase().includes(needle)
       );
     });
-  }, [state.proposals, q, ownerFilter, stateFilter, valueFilter]);
+  }, [state.proposals, q, ownerFilter, stateFilter, valueFilter, viewFilter]);
 
   const totalValue = useMemo(() => rows.reduce((sum, p) => sum + p.value, 0), [rows]);
-  const filtersApplied = Boolean(q || ownerFilter || stateFilter || valueFilter);
+  const filtersApplied = Boolean(q || ownerFilter || stateFilter || valueFilter || viewFilter);
   const find = (id: string | null) => (id ? (state.proposals.find((p) => p.id === id) ?? null) : null);
 
   const detail = find(detailId);
@@ -325,11 +332,32 @@ export function ProposalsScreen() {
         {filtersApplied ? (
           <ToolbarButton
             label="Clear filters"
-            onClick={() => publish({ ...filters, q: "", owner: "", state: "", value: "" }, sort)}
+            onClick={() =>
+              publish({ ...filters, q: "", owner: "", state: "", value: "", view: "" }, sort)
+            }
           />
         ) : null}
         <ToolbarButton label="New proposal" tone="primary" onClick={() => setCreateOpen(true)} />
       </RouteToolbar>
+
+      {/* Says which question produced this list, and clears back to every proposal. */}
+      {viewFilter === "attention" ? (
+        <div className="mb-2 flex flex-wrap items-center gap-2 rounded-cc-card border border-cc-green-border bg-cc-green-tint px-3 py-2">
+          <span className="text-[11.5px] font-semibold text-cc-green-ink">
+            Needing attention · {rows.length}
+          </span>
+          <span className="text-[11px] text-cc-t2">
+            {PROPOSAL_ATTENTION_STATES.join(" · ")}
+          </span>
+          <button
+            type="button"
+            onClick={() => set("view", "")}
+            className="ml-auto text-[11.5px] font-semibold text-cc-green underline decoration-cc-line underline-offset-2 hover:decoration-cc-green"
+          >
+            Clear filter
+          </button>
+        </div>
+      ) : null}
 
       <SavedViewsBar scope="proposals" filters={filters} sort={sort} onApply={publish} />
 

@@ -20,6 +20,7 @@ import {
   updateMeeting,
 } from "../../../lib/demo/actions";
 import { DEMO_TODAY, LEAD_DIRECTORY } from "../../../lib/demo/seed";
+import { MEETING_PREPARE_STATES, MEETING_REVIEW_STATES } from "../../../lib/operations/attention";
 import type { Meeting, MeetingState, Tone } from "../../../lib/demo/types";
 import { useDemoQuery } from "../../../components/demo/use-demo-query";
 import { TONE_INK } from "../../../components/demo/tone";
@@ -51,13 +52,30 @@ const STATE_TONE: Record<MeetingState, Tone> = {
 const STATES: MeetingState[] = ["READY", "LIVE", "NEEDS REVIEW", "COMPLETED", "FAILED · NO-SHOW", "CANCELLED"];
 
 // M-D01 445 / MO-08 1157: Upcoming · Live · Needs review · N · Completed (mobile "Done").
-type MeetingsView = "upcoming" | "live" | "review" | "completed";
+//
+// "prepare" is not a sixth tab. It is the Overview's "Meetings to prepare" count arriving
+// with its question attached: same READY records the Upcoming tab shows, reached from
+// `?view=prepare`, drawn with a chip that says what was asked and clears back to the
+// canonical tab. A separate /dashboard/meetings/prepare page would be a second list of the
+// same rows, free to drift from this one.
+type MeetingsView = "upcoming" | "live" | "review" | "completed" | "prepare";
+
+/** The tab that stays lit for a derived view. */
+const TAB_FOR_VIEW: Record<MeetingsView, MeetingsView> = {
+  upcoming: "upcoming",
+  live: "live",
+  review: "review",
+  completed: "completed",
+  prepare: "upcoming",
+};
 
 const VIEW_STATES: Record<MeetingsView, MeetingState[]> = {
-  upcoming: ["READY"],
+  // Shared with the Overview count, so the card and this list cannot disagree.
+  upcoming: [...MEETING_PREPARE_STATES],
   live: ["LIVE"],
-  review: ["NEEDS REVIEW"],
+  review: [...MEETING_REVIEW_STATES],
   completed: ["COMPLETED", "FAILED · NO-SHOW", "CANCELLED"],
+  prepare: [...MEETING_PREPARE_STATES],
 };
 
 const PLATFORMS = ["Google Meet", "Zoom", "Microsoft Teams", "Phone"] as const;
@@ -103,6 +121,7 @@ export function MeetingsScreen() {
   // Filters live in the URL: same door for a Saved View, a search result and a shared link.
   const { filters, sort, publish, set } = useListView("meetings");
   const view = (filters.view ?? "review") as MeetingsView;
+  const activeTab = TAB_FOR_VIEW[view] ?? "review";
   const setView = useCallback((next: MeetingsView) => set("view", next), [set]);
   const q = filters.q ?? "";
   const ownerFilter = filters.owner === "" ? null : (filters.owner ?? null);
@@ -392,9 +411,9 @@ export function MeetingsScreen() {
             type="button"
             role="tab"
             id={`meetings-tab-${candidate}`}
-            aria-selected={candidate === view}
+            aria-selected={candidate === activeTab}
             aria-controls="meetings-panel"
-            tabIndex={candidate === view ? 0 : -1}
+            tabIndex={candidate === activeTab ? 0 : -1}
             onClick={() => setView(candidate)}
             onKeyDown={(event) => {
               if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
@@ -405,7 +424,7 @@ export function MeetingsScreen() {
               document.getElementById(`meetings-tab-${next}`)?.focus();
             }}
             className={
-              candidate === view
+              candidate === activeTab
                 ? "rounded-cc-control bg-cc-ink-strong px-[11px] py-[7px] text-[11.5px] font-semibold text-white"
                 : "rounded-cc-control px-[11px] py-[7px] text-[11.5px] font-semibold text-cc-t2 hover:bg-cc-secondary"
             }
@@ -414,6 +433,26 @@ export function MeetingsScreen() {
           </button>
         ))}
       </div>
+
+      {/* The derived view says what was asked for and how to get back to the plain tab —
+          without it the list looks like Upcoming with an unexplained heading. */}
+      {view === "prepare" ? (
+        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-cc-card border border-cc-green-border bg-cc-green-tint px-3 py-2">
+          <span className="text-[11.5px] font-semibold text-cc-green-ink">
+            Meetings to prepare · {rows.length}
+          </span>
+          <span className="text-[11px] text-cc-t2">
+            Scheduled meetings that still need preparing, from the Overview.
+          </span>
+          <button
+            type="button"
+            onClick={() => setView("upcoming")}
+            className="ml-auto text-[11.5px] font-semibold text-cc-green underline decoration-cc-line underline-offset-2 hover:decoration-cc-green"
+          >
+            Clear filter
+          </button>
+        </div>
+      ) : null}
 
       <RouteToolbar>
         <SearchInput value={q} onChange={(value) => set("q", value)} label="Search meetings by name, company, service or platform" />

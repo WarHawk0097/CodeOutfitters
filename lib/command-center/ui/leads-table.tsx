@@ -28,6 +28,7 @@ import {
   pageCountOf,
 } from "@command-center/contracts";
 import type { Lead, LeadStatus } from "@command-center/contracts";
+import type { LinkComponent } from "./sidebar";
 
 // The query the server is answering. Owned by the data component above this one so a
 // filter applies to the whole dataset, not to the page already in the browser.
@@ -59,6 +60,10 @@ export type LeadsTableProps = {
       the same 128-record dataset paged by the same query, not a second mobile dataset.
       Omitted → the mobile list falls back to `data`, i.e. the current page only. */
   mobileData?: readonly Lead[];
+  /** MO-02 1081 draws an "Open ›" affordance on every mobile card. The card is the control
+      it advertises, so it navigates to the lead — routed through the host's link component
+      for the same reason the shell is (this package imports nothing from next/*). */
+  linkAs?: LinkComponent;
   /** MOCK/TEST-ONLY VISUAL STATE. Stages the composite presentation the canonical frames were
       authored in — two selected rows, the Service popover open, the applied-filter chip row, a
       page-2 skeleton row, the loading footer suffix and the MO-02 duplicate banner — so the
@@ -285,6 +290,7 @@ export function LeadsTable({
   serviceFacets = {},
   mobileData,
   canonicalState = false,
+  linkAs: Link = "a" as unknown as LinkComponent,
 }: LeadsTableProps) {
   const [selected, setSelected] = useState<readonly string[]>([]);
   const [facetOpen, setFacetOpen] = useState(false);
@@ -969,7 +975,12 @@ export function LeadsTable({
           which is why it reads `mobileRows` rather than `data`. */}
       <ul className="md:hidden">
         {mobileRows.map((lead) => (
-          <li key={lead.id} className="mb-2 rounded-[6px] border border-cc-line bg-cc-surface px-3 py-[10px]">
+          <li key={lead.id} className="mb-2">
+            <Link
+              href={`/dashboard/leads/${lead.id}`}
+              aria-label={`Open lead: ${lead.name}`}
+              className="block rounded-[6px] border border-cc-line bg-cc-surface px-3 py-[10px] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-cc-green"
+            >
             <div className="flex items-center justify-between gap-2">
               <span className="truncate text-[13px] font-semibold text-cc-ink">{lead.name}</span>
               <span className="flex shrink-0 items-center gap-[6px]">
@@ -995,6 +1006,7 @@ export function LeadsTable({
                 Open ›
               </span>
             </div>
+            </Link>
           </li>
         ))}
       </ul>

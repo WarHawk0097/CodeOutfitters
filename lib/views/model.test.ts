@@ -82,8 +82,8 @@ describe("saved view domain (tests 63-80)", () => {
     // The vocabulary is the contract between a stored view and a list. Spot-checked against
     // the controls each screen renders.
     expect(Object.keys(SCOPE_DESCRIPTORS.myWork.fields).sort()).toEqual(["owner", "priority", "q", "view"]);
-    expect(Object.keys(SCOPE_DESCRIPTORS.leads.fields).sort()).toEqual(["owner", "q", "service", "status"]);
-    expect(Object.keys(SCOPE_DESCRIPTORS.proposals.fields).sort()).toEqual(["owner", "q", "state", "value"]);
+    expect(Object.keys(SCOPE_DESCRIPTORS.leads.fields).sort()).toEqual(["owner", "q", "service", "status", "view"]);
+    expect(Object.keys(SCOPE_DESCRIPTORS.proposals.fields).sort()).toEqual(["owner", "q", "state", "value", "view"]);
     expect(Object.keys(SCOPE_DESCRIPTORS.emailActivity.fields).sort()).toEqual(["direction", "q", "read", "state"]);
     for (const scope of SAVED_VIEW_SCOPES) {
       const descriptor = SCOPE_DESCRIPTORS[scope];

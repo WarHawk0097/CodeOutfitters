@@ -8,6 +8,7 @@
 // number is sent to the API and answered against the whole dataset, so a filter
 // narrows 128 records rather than the ten currently on screen.
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import Link from "next/link";
 import { LeadsTable, type LeadsQuery } from "@command-center/ui";
 import { fetchLeads } from "../../../lib/data/leads";
 import { useHeaderStats, useLeadsExport } from "../header-stats";
@@ -24,6 +25,9 @@ import {
 // Which parts of the leads query are shareable state. Page is not: a link that reopens on page
 // 7 of a set that has since shortened is a link to an empty table, and a Saved View that pins a
 // page number means something different every week.
+// The keys the table's own controls own. `view` is deliberately absent: no control on the
+// table sets it, and `onQueryChange` copies the rest of the filter state forward, so the
+// derived view survives a status or search change instead of being silently cleared by it.
 const URL_FILTER_KEYS = ["q", "status", "service", "owner"] as const;
 
 // `?visual-state=canonical` stages the composite presentation the canonical Leads frames were
@@ -54,7 +58,10 @@ const neverChanges = () => () => {};
 export function LeadsData() {
   // Filters and sort come from the URL so that a Saved View, a search result and a shared link
   // are the same mechanism. Page stays local for the reason above.
-  const { filters, sort, publish } = useListView("leads");
+  const { filters, sort, publish, set } = useListView("leads");
+  // `?view=no-next-action` — the Overview's "Leads with no next action" count arriving with
+  // the question it counted. The scope parser has already rejected anything else.
+  const leadsView = (filters.view || null) as "no-next-action" | null;
   const [page, setPage] = useState(1);
   const query = useMemo<LeadsQuery>(
     () => ({
@@ -139,6 +146,9 @@ export function LeadsData() {
         status: query.status ?? undefined,
         service: query.service ?? undefined,
         owner: query.owner ?? undefined,
+        // Answered server-side against the whole dataset, so `total`, the facets and the
+        // pager describe the derived set rather than one page of it.
+        view: leadsView ?? undefined,
         sortBy: query.sortBy,
         sortDir: query.sortDir,
       },
@@ -179,7 +189,7 @@ export function LeadsData() {
     return () => {
       active = false;
     };
-  }, [query, setStats, scenarioArmed, mockScenario, attempt]);
+  }, [query, leadsView, setStats, scenarioArmed, mockScenario, attempt]);
 
   // Published for the header's Export CSV control, which must export the filtered and sorted
   // set the user is looking at. Page and pageSize are deliberately omitted: the export pages
@@ -190,11 +200,13 @@ export function LeadsData() {
       status: query.status ?? undefined,
       service: query.service ?? undefined,
       owner: query.owner ?? undefined,
+      // The export has to be the set on screen, derived view included.
+      view: leadsView ?? undefined,
       sortBy: query.sortBy,
       sortDir: query.sortDir,
     });
     return () => setExportQuery(null);
-  }, [query, setExportQuery]);
+  }, [query, leadsView, setExportQuery]);
 
   // Owner labels come from the response's owner DIRECTORY, never from the rows on screen.
   // Deriving them from rows was the defect this replaces: a filter that matched nothing
@@ -242,6 +254,28 @@ export function LeadsData() {
     <div className="mb-2">
       <SavedViewsBar scope="leads" filters={filters} sort={sort} onApply={publish} />
     </div>
+    {/* The derived view names itself and offers the way back to the full list. The count
+        is the server's total for the derived set, not the length of the page on screen. */}
+    {leadsView === "no-next-action" ? (
+      <div className="mb-2 flex flex-wrap items-center gap-2 rounded-cc-card border border-cc-green-border bg-cc-green-tint px-3 py-2">
+        <span className="text-[11.5px] font-semibold text-cc-green-ink">
+          No next action · {data.total}
+        </span>
+        <span className="text-[11px] text-cc-t2">
+          Leads with no open task against them.
+        </span>
+        <button
+          type="button"
+          onClick={() => {
+            setPage(1);
+            set("view", "");
+          }}
+          className="ml-auto text-[11.5px] font-semibold text-cc-green underline decoration-cc-line underline-offset-2 hover:decoration-cc-green"
+        >
+          Clear filter
+        </button>
+      </div>
+    ) : null}
     <LeadsTable
       data={data.rows}
       total={data.total}
@@ -253,6 +287,7 @@ export function LeadsData() {
       serviceFacets={data.serviceFacetCounts}
       mobileData={mobileRows}
       canonicalState={canonicalState}
+      linkAs={Link}
     />
     </>
   );
