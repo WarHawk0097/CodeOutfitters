@@ -24,9 +24,9 @@ import {
   MeetingsProposalsCard,
   NextUpCardMobile,
   PipelineJourney,
-  RecentActivityCard,
 } from "@command-center/ui";
 import { LeadFlowChart } from "../../../components/dashboard/lead-flow-chart";
+import { RecentActivityLive } from "../../../components/dashboard/overview-activity";
 import { OperationsBand, TodaysWorkLive } from "../../../components/dashboard/overview-operations";
 import {
   PIPELINE_JOURNEY_ACTIVE_COUNT,
@@ -35,7 +35,6 @@ import {
 import {
   OVERVIEW_KPIS,
   OVERVIEW_KPIS_MOBILE,
-  RECENT_ACTIVITY,
 } from "../../../mocks/fixtures/overview-canonical";
 
 export default function DashboardPage() {
@@ -57,7 +56,7 @@ export default function DashboardPage() {
               variant="desktop"
             />
             <MeetingsProposalsCard variant="desktop" />
-            <RecentActivityCard items={RECENT_ACTIVITY} />
+            <RecentActivityLive />
           </div>
         </div>
       </div>
