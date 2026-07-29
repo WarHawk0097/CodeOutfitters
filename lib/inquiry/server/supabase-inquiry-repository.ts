@@ -6,7 +6,12 @@ import type {
   PersistResult,
   EmailEventStatus,
 } from "./inquiry-repository";
-import { idempotencyConflict, isIdempotencyConflict, serverError } from "./inquiry-errors";
+import {
+  idempotencyConflict,
+  isIdempotencyConflict,
+  notConfigured,
+  serverError,
+} from "./inquiry-errors";
 import { toSubmitPayload } from "./inquiry-submit-payload";
 
 // Server-only Supabase client using the SERVICE-ROLE (secret) key. This key
@@ -17,7 +22,10 @@ function getServiceClient(): SupabaseClient {
   const secret = process.env.SUPABASE_SECRET_KEY;
   if (!url || !secret) {
     // Fail closed — never fall back to the anon key for a privileged write.
-    throw new Error("Inquiry backend is not configured (missing Supabase URL or secret key).");
+    // An InquiryError so the route returns the honest "not available" message
+    // instead of the transient-sounding 500 the catch-all would produce. The
+    // missing variable names stay here, out of the public message.
+    throw notConfigured();
   }
   return createClient(url, secret, {
     auth: { persistSession: false, autoRefreshToken: false },

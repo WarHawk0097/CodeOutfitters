@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { readJsonBody, MAX_BODY_BYTES, hashIp, buildRequestContext } from "./inquiry-request-context";
 import { SupabaseInquiryRepository } from "./supabase-inquiry-repository";
+import { InquiryError, notConfigured } from "./inquiry-errors";
 
 function req(body: string, contentType = "application/json"): Request {
   return new Request("http://localhost/api/inquiries", {
@@ -62,6 +63,32 @@ describe("server-only environment validation", () => {
   });
 
   it("fails closed when the secret key is missing (never falls back to anon)", () => {
-    expect(() => new SupabaseInquiryRepository()).toThrow(/not configured/i);
+    expect(() => new SupabaseInquiryRepository()).toThrow(InquiryError);
+  });
+
+  it("reports the unconfigured backend honestly, without promising a retry", () => {
+    let thrown: unknown;
+    try {
+      new SupabaseInquiryRepository();
+    } catch (err) {
+      thrown = err;
+    }
+    const error = thrown as InquiryError;
+    expect(error).toBeInstanceOf(InquiryError);
+    // 503, not 500: retrying an unconfigured backend can never succeed.
+    expect(error.status).toBe(503);
+    expect(error.code).toBe("server_error");
+    expect(error.publicMessage).toBe(notConfigured().publicMessage);
+    expect(error.publicMessage).not.toMatch(/try again/i);
+    // And the message names no variable, key or internal detail.
+    for (const leak of ["SUPABASE", "SECRET", "anon", "service", "process.env"]) {
+      expect(error.publicMessage, leak).not.toContain(leak);
+    }
+  });
+
+  it("constructs against a configured backend", () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
+    process.env.SUPABASE_SECRET_KEY = "test-secret-key";
+    expect(() => new SupabaseInquiryRepository()).not.toThrow();
   });
 });

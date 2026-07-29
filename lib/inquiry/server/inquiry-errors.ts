@@ -57,6 +57,16 @@ export const serverError = () =>
     "Something went wrong on our end. Please try again shortly.",
   );
 
+// Distinct from serverError(): the backend is not configured, so retrying will
+// never succeed. Saying "try again shortly" here would be a lie. Reuses the
+// `server_error` code so the wire contract (INQUIRY_ERROR_CODES) is unchanged.
+export const notConfigured = () =>
+  new InquiryError(
+    "server_error",
+    503,
+    "Online submissions are not available right now. Please email hello@codeoutfitters.com and we will pick it up from there.",
+  );
+
 // Postgres raises the idempotency conflict from submit_inquiry with this token.
 // Recognized structurally so a message-format change in the DB is a clear miss
 // rather than a silent misclassification.
