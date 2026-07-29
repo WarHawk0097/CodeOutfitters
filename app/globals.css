@@ -315,6 +315,15 @@ html[data-motion='reduced'] { scroll-behavior: auto; }
   --cc-green-ink: var(--cc-accent-hover);
   --cc-green-tint: var(--cc-accent-soft);
   --cc-green-border: var(--cc-accent-border);
+  /* The fill under a white primary label, and its pressed/hover step.
+     NOT --cc-green: the brand accent is tuned for a large marketing button and a brand
+     mark, and white on it measures 3.4:1 in the default palette and 3.5:1 in
+     midnight-emerald — under AA for the 12.5px label a dashboard button carries. The
+     accent's hover shade clears AA in all six palettes, so the dashboard fills with that
+     and presses one step darker. Marketing keeps --cc-accent untouched.
+     Asserted per palette in app/dashboard/palette-contrast.test.ts. */
+  --cc-green-solid: var(--cc-accent-hover);
+  --cc-green-press: color-mix(in srgb, var(--cc-accent-hover) 84%, #000000);
 
   --cc-amber: var(--cc-warning);
   --cc-amber-ink: #7d5514;
@@ -422,6 +431,8 @@ html[data-motion='reduced'] { scroll-behavior: auto; }
 
   --color-cc-green: var(--cc-green);
   --color-cc-green-ink: var(--cc-green-ink);
+  --color-cc-green-solid: var(--cc-green-solid);
+  --color-cc-green-press: var(--cc-green-press);
   --color-cc-green-tint: var(--cc-green-tint);
   --color-cc-green-border: var(--cc-green-border);
 
