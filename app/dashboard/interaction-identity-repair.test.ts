@@ -619,7 +619,11 @@ describe("canonical routing (52-63)", () => {
   // 53
   it("hard-codes no deployment hostname in product source", () => {
     const banned = /codeoutfitters\.vercel\.app|\.vercel\.app|vercel\.sh|localhost:\d+|127\.0\.0\.1/;
-    const offenders = PRODUCT_SOURCES.filter(([, src]) => banned.test(src)).map(([f]) => f);
+    // lib/routing/public-origin.ts is the one module allowed to name the canonical
+    // origin; every other file must still route through the constant it exports.
+    const offenders = PRODUCT_SOURCES.filter(
+      ([f, src]) => f !== "lib/routing/public-origin.ts" && banned.test(src),
+    ).map(([f]) => f);
     expect(offenders).toEqual([]);
   });
 

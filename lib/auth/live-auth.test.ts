@@ -432,10 +432,11 @@ describe("unauthenticated dashboard access (21)", () => {
     expect(source).toMatch(/if \(!user && path\.startsWith\('\/dashboard'\)\)/);
     expect(source).toContain("safeReturnTo(");
 
+    // Since the canonical host redirect the matcher covers the whole site, so the
+    // paths that get session work are the ones listed for it — /dashboard included.
     const matcher = readFileSync(`${repo}middleware.ts`, "utf8");
-    expect(matcher).toContain("'/dashboard/:path*'");
-    expect(matcher).toContain("'/access-pending'");
-    expect(matcher).toContain("'/auth/:path*'");
+    expect(matcher).toContain("const SESSION_PATHS = ['/dashboard', '/login', '/access-pending', '/auth']");
+    expect(matcher).toContain("if (needsSession(request.nextUrl.pathname)) return updateSession(request)");
   });
 
   it("server components re-check membership instead of trusting the middleware", () => {

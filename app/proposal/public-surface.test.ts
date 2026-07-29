@@ -59,7 +59,10 @@ describe("the public proposal route (tests 242-251)", () => {
 
   // 243
   it("is not behind the dashboard middleware, and the middleware still guards the dashboard", () => {
-    expect(middleware).toContain("/dashboard/:path*");
+    // The matcher is wider than /dashboard since the canonical host redirect, so the
+    // guard is read from the session path list the middleware actually branches on.
+    expect(middleware).toContain("const SESSION_PATHS = ['/dashboard', '/login', '/access-pending', '/auth']");
+    expect(middleware).toContain("if (needsSession(request.nextUrl.pathname)) return updateSession(request)");
     expect(middleware).not.toContain("/proposal/:path*");
     expect(middleware).not.toContain("/proposal/");
   });
@@ -223,7 +226,10 @@ describe("what no file in the tree may contain (tests 263-266)", () => {
   it("no source file hardcodes a deployment hostname", () => {
     for (const file of sourceFiles()) {
       const src = readFileSync(file, "utf8");
-      expect(src.includes("vercel.app"), file).toBe(false);
+      // lib/routing/public-origin.ts declares the canonical origin every other file
+      // imports; it is the single exception, and only for the hostname.
+      const isOriginModule = file.replace(/\\/g, "/").endsWith("lib/routing/public-origin.ts");
+      expect(isOriginModule || !src.includes("vercel.app"), file).toBe(true);
       expect(src.includes("codeoutfitters.com/proposal"), file).toBe(false);
     }
   });
