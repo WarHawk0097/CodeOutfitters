@@ -23,7 +23,14 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["lib/**/*.test.ts", "app/**/*.test.ts", "mocks/**/*.test.ts"],
+    include: [
+      "lib/**/*.test.ts",
+      "app/**/*.test.ts",
+      "mocks/**/*.test.ts",
+      // The Command Center's client components live in components/, and the surface tests that
+      // read their source have to be collected from where the source is.
+      "components/**/*.test.ts",
+    ],
     // Five *.pglite.test.ts suites hold an embedded Postgres each — a WASM heap the worker
     // does not hand back. Run enough of them at once and the process dies with "Fatal
     // process out of memory", which reports no failing test and names no file.

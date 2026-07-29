@@ -186,12 +186,27 @@ describe("command center repair — interaction facts (1-14)", () => {
   });
 
   // 12
-  it("the overview search is a real disabled input with a reason, not a decorative div", () => {
+  //
+  // This assertion is the inverse of what it was until Release 4, and deliberately so. The
+  // header used to hold a natively disabled search input carrying the reason "Search is
+  // available when a live workspace is connected", because no index existed. One does now
+  // (lib/search/demo-index.ts), so the honest control is an enabled one — and the old
+  // assertion would now be pinning a lie in place.
+  it("the header search is a real, enabled trigger — no disabled placeholder left behind", () => {
     const src = readFileSync(`${here}shell-nav.tsx`, "utf8");
-    expect(src).toContain('aria-describedby="overview-search-reason"');
-    expect(src).toContain("Search is available when a live workspace is connected.");
-    // No shortcut advertised that is not bound.
-    expect(src).not.toContain("⌘K");
+    expect(src).toContain("<CommandCenterTrigger");
+    expect(src).not.toContain('aria-describedby="overview-search-reason"');
+    expect(src).not.toContain("Search is available when a live workspace is connected.");
+  });
+
+  // 12b
+  it("the shortcut the trigger advertises is one the provider actually binds", () => {
+    const trigger = readFileSync(`${here}../../components/command-center/command-center.tsx`, "utf8");
+    // Advertised to assistive technology...
+    expect(trigger).toContain('aria-keyshortcuts="Control+K Meta+K"');
+    // ...and bound, in the same file, to a handler that opens the dialog.
+    expect(trigger).toContain("event.metaKey || event.ctrlKey");
+    expect(trigger).toContain('event.key === "k" || event.key === "K"');
   });
 
   // 13

@@ -58,11 +58,12 @@ describe("my work surfaces (tests 58-70)", () => {
   });
 
   // 59
-  it("the screen is wrapped in Suspense because it reads ?view= from the URL", () => {
-    // The Overview modules drill into a specific view. Next refuses to build a statically
-    // rendered page that calls useSearchParams outside a boundary, so this is a build
-    // requirement, not a nicety.
-    expect(viewSrc).toContain("useSearchParams");
+  it("the screen reads ?view= from the URL, behind a Suspense boundary", () => {
+    // The Overview modules drill into a specific view, and a Saved View applies its filters by
+    // writing this same query string — one mechanism, so a link, a search result and a saved
+    // view all reproduce the same screen.
+    expect(viewSrc).toContain('useListView("myWork")');
+    expect(viewSrc).toContain("filters.view");
     expect(pageSrc).toContain("<Suspense");
     expect(pageSrc).toContain("<MyWorkScreen />");
   });
