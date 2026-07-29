@@ -162,6 +162,20 @@ export const ACTIVITY_EVENT_TYPES = [
   "proposal_preview_generated",
   "proposal_marked_ready",
   "proposal_status_changed",
+  // Secure client access. Every one of these is now observable: publication and link
+  // management happen inside the workspace, and the open/response events are produced by the
+  // public /proposal/[secureToken] route rather than assumed.
+  "proposal_published",
+  "proposal_superseded",
+  "proposal_access_link_created",
+  "proposal_access_link_revoked",
+  "proposal_access_link_replaced",
+  "proposal_first_opened_by_client",
+  "proposal_opened_by_client",
+  "client_question_submitted",
+  "client_comment_submitted",
+  "proposal_accepted_by_client",
+  "proposal_declined_by_client",
   // Follow-up
   "follow_up_created",
   "follow_up_completed",
@@ -186,20 +200,24 @@ export const ACTIVITY_EVENT_TYPES = [
 ] as const;
 export type ActivityEventType = (typeof ACTIVITY_EVENT_TYPES)[number];
 
-/** Events that belong to the Secure Client Proposal release. Named here so the exclusion
- *  is testable and deliberate rather than an oversight. Nothing may emit these. */
+/** Events that belong to a release that has not happened. Named here so the exclusion is
+ *  testable and deliberate rather than an oversight. Nothing may emit these.
+ *
+ *  Client interaction — opened, questioned, accepted, declined, link revoked or expired — is
+ *  no longer on this list: the secure client proposal route observes all of it, so those
+ *  types are now real members of ACTIVITY_EVENT_TYPES. What remains deferred is electronic
+ *  SIGNATURE, which needs a certified third-party provider this product has not integrated.
+ *  Recording a "signed" event without one would be a claim about legal enforceability. */
 export const UNSUPPORTED_CLIENT_EVENT_TYPES = [
-  "client_viewed_proposal",
-  "client_accepted_proposal",
-  "client_declined_proposal",
-  "client_commented",
-  "proposal_link_expired",
-  "proposal_link_revoked",
+  "proposal_signature_requested",
+  "proposal_signed",
+  "proposal_signature_declined",
+  "proposal_signature_expired",
 ] as const;
 
-/** The honest sentence a proposal screen shows in place of client-interaction history. */
-export const CLIENT_ACTIVITY_UNAVAILABLE =
-  "Client interaction tracking becomes available when secure proposal access is enabled.";
+/** The honest sentence a proposal screen shows about what its history still cannot report. */
+export const SIGNATURE_ACTIVITY_UNAVAILABLE =
+  "Acceptance here is a recorded decision with a typed name. Certified electronic signature is not part of this release, so no signature events appear in this history.";
 
 type EventMeta = { category: ActivityCategory; label: string; importance: ActivityImportance };
 
@@ -249,6 +267,20 @@ export const ACTIVITY_EVENT_META: Record<ActivityEventType, EventMeta> = {
   proposal_preview_generated: { category: "proposal", label: "Preview generated", importance: "routine" },
   proposal_marked_ready: { category: "proposal", label: "Marked ready", importance: "notable" },
   proposal_status_changed: { category: "proposal", label: "Status changed", importance: "notable" },
+  proposal_published: { category: "proposal", label: "Version published", importance: "critical" },
+  proposal_superseded: { category: "proposal", label: "Version superseded", importance: "notable" },
+  proposal_access_link_created: { category: "proposal", label: "Client access granted", importance: "notable" },
+  proposal_access_link_revoked: { category: "proposal", label: "Client access revoked", importance: "critical" },
+  proposal_access_link_replaced: { category: "proposal", label: "Client access replaced", importance: "notable" },
+  // The first open is the one that changes what the workspace knows — the proposal has
+  // reached the client. Every open after that is ordinary traffic, and filing all of them as
+  // notable would bury the events that matter under a read counter.
+  proposal_first_opened_by_client: { category: "proposal", label: "Opened by client", importance: "critical" },
+  proposal_opened_by_client: { category: "proposal", label: "Reopened by client", importance: "routine" },
+  client_question_submitted: { category: "proposal", label: "Question from client", importance: "critical" },
+  client_comment_submitted: { category: "proposal", label: "Comment from client", importance: "notable" },
+  proposal_accepted_by_client: { category: "proposal", label: "Accepted by client", importance: "critical" },
+  proposal_declined_by_client: { category: "proposal", label: "Declined by client", importance: "critical" },
 
   follow_up_created: { category: "followUp", label: "Follow-up created", importance: "notable" },
   follow_up_completed: { category: "followUp", label: "Follow-up completed", importance: "notable" },

@@ -17,7 +17,7 @@ import {
   ACTIVITY_SOURCES,
   ACTIVITY_SOURCE_LABELS,
   ACTIVITY_VISIBILITIES,
-  CLIENT_ACTIVITY_UNAVAILABLE,
+  SIGNATURE_ACTIVITY_UNAVAILABLE,
   EMPTY_ACTIVITY_FILTER,
   UNSUPPORTED_CLIENT_EVENT_TYPES,
   actorsIn,
@@ -95,16 +95,17 @@ describe("activity taxonomy (tests 75-84)", () => {
   });
 
   // 78
-  it("client proposal events are not in the supported set", () => {
+  it("deferred signature events are not in the supported set", () => {
     for (const type of UNSUPPORTED_CLIENT_EVENT_TYPES) {
       expect(ACTIVITY_EVENT_TYPES as readonly string[]).not.toContain(type);
+      expect(type).toMatch(/signature|signed/);
     }
   });
 
   // 79
-  it("the unavailable-client-tracking sentence promises nothing that exists", () => {
-    expect(CLIENT_ACTIVITY_UNAVAILABLE).toContain("becomes available when");
-    expect(CLIENT_ACTIVITY_UNAVAILABLE).not.toMatch(/live|real-?time|synced/i);
+  it("the signature notice claims no certification and no legal effect", () => {
+    expect(SIGNATURE_ACTIVITY_UNAVAILABLE).toMatch(/not part of this release/i);
+    expect(SIGNATURE_ACTIVITY_UNAVAILABLE).not.toMatch(/live|real-?time|synced|legally/i);
   });
 
   // 80
