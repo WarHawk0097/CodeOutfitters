@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { createSeedState } from "../../../../../lib/demo/seed";
+import { CURRENT_USER } from "../../../../../lib/identity/current-user";
 import {
   SAMPLE_TRANSCRIPT,
   filterTranscript,
@@ -77,7 +78,7 @@ describe("meeting transcript route (M-D14/M-D15)", () => {
     const html = markup();
     expect(html).toContain("00:14:22");
     expect(html).toContain("Priyanka Rao");
-    expect(html).toContain("Marc Rivera");
+    expect(html).toContain(CURRENT_USER.name);
     expect(html).toContain("REQUIREMENT");
     expect(html).toContain("OBJECTION");
   });
@@ -96,9 +97,9 @@ describe("meeting transcript route (M-D14/M-D15)", () => {
 
   // 9 — speaker filtering is deterministic.
   it("filters the transcript by speaker", () => {
-    const marc = filterTranscript(SAMPLE_TRANSCRIPT, "", "Marc Rivera");
+    const marc = filterTranscript(SAMPLE_TRANSCRIPT, "", CURRENT_USER.name);
     expect(marc.length).toBeGreaterThan(0);
-    expect(marc.every((e) => e.speaker === "Marc Rivera")).toBe(true);
+    expect(marc.every((e) => e.speaker === CURRENT_USER.name)).toBe(true);
   });
 
   // 10 — hasReadyTranscript gates the two states.

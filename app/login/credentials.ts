@@ -5,8 +5,11 @@
 // is consulted ONLY in demo mode (see login-form.tsx); in live mode the existing
 // Supabase server action is the sole authority, so these constants can never be
 // used to bypass real authentication.
+import { CURRENT_USER } from "../../lib/identity/current-user";
 
-export const DEMO_EMAIL = "marc@gmail.com";
+// The address the demo signs in as is the address the demo is signed in AS: one
+// identity, so the sign-in screen and the account footer cannot name two people.
+export const DEMO_EMAIL = CURRENT_USER.email;
 export const DEMO_PASSWORD = "123";
 
 /** One generic message for every credential failure — never reveal which field was wrong. */

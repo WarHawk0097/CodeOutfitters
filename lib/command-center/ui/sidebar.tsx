@@ -17,6 +17,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode, RefObject } from "react";
 import { NavIcon, type NavIconKey } from "./nav-icons";
+import { CURRENT_USER } from "../../identity/current-user";
 
 export type NavItem = {
   label: string;
@@ -72,7 +73,10 @@ const BADGE_CLASS: Record<"attention" | "info", string> = {
   info: "bg-cc-sidebar-badge-bg text-cc-sidebar-badge-text",
 };
 
-type LinkComponent = (props: {
+/** How this package renders a link without importing a router: the app passes its own
+ *  `Link`, and the default `"a"` keeps the components usable on their own. Exported so
+ *  every card in the package takes the same prop rather than inventing its own. */
+export type LinkComponent = (props: {
   href: string;
   children: ReactNode;
   className?: string;
@@ -152,11 +156,13 @@ function BrandBlock() {
   );
 }
 
-// CANON 37 / 942 / 1115. Name and role are canonical display values; there is no
-// authentication in this phase, so nothing here is wired to a session.
+// CANON 37 / 942 / 1115. There is still no authentication in this phase, so nothing here
+// is wired to a session — but the name, initials and role now come from
+// lib/identity/current-user.ts rather than being spelled out here, so this footer, the two
+// drawers and the settings screen cannot describe three different people.
 function AccountFooter({
   avatar = 30,
-  role = "Administrator",
+  role = CURRENT_USER.displayRole,
   logout = false,
 }: {
   avatar?: number;
@@ -169,11 +175,13 @@ function AccountFooter({
         className="flex shrink-0 items-center justify-center rounded-[7px] bg-cc-avatar text-[11.5px] font-semibold text-cc-avatar-ink"
         style={{ width: avatar, height: avatar }}
       >
-        MR
+        {CURRENT_USER.initials}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-[12.5px] font-medium text-cc-sidebar-name">Marc Rivera</div>
-        <div className="text-[10.5px] text-cc-sidebar-muted">{role}</div>
+        <div className="truncate text-[12.5px] font-medium text-cc-sidebar-name">
+          {CURRENT_USER.name}
+        </div>
+        <div className="truncate text-[10.5px] text-cc-sidebar-muted">{role}</div>
       </div>
       {logout ? (
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} aria-hidden="true" className="text-cc-sidebar-muted">
@@ -244,7 +252,7 @@ const DRAWER_VARIANTS = {
     head: "px-[26px] pb-[22px]",
     close: 30,
     closeRadius: 7,
-    role: "Administrator",
+    role: CURRENT_USER.displayRole,
     avatar: 30,
   },
   mobile: {
@@ -254,7 +262,7 @@ const DRAWER_VARIANTS = {
     head: "px-6 pb-[18px]",
     close: 44,
     closeRadius: 8,
-    role: "Administrator · Sign out",
+    role: `${CURRENT_USER.displayRole} · Sign out`,
     avatar: 32,
   },
 } as const;

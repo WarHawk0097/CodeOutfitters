@@ -28,6 +28,7 @@ import {
   type ProposalPublication,
 } from "@/lib/proposals/access/model";
 import type { Proposal } from "./types";
+import { CURRENT_USER } from "../identity/current-user";
 
 /** The one workspace the demo plane represents. Demo mode never selects a workspace — there
  *  is exactly one, and no browser input can point at another. */
@@ -92,7 +93,7 @@ const PUBLICATION_FIXTURES: readonly PublicationFixture[] = [
     status: "published",
     publishedAt: at("2026-04-06", "11:30"),
     publishedByUserId: "user-002",
-    publishedByLabel: "Marc Rivera",
+    publishedByLabel: CURRENT_USER.name,
     supersededByPublicationId: null,
   },
   {

@@ -8,6 +8,7 @@
 // Every record links to a lead by id, and every owner is a team-member id, so the same
 // entity is the same record on every route.
 import { generateLeads } from "../../mocks/fixtures/generate-leads";
+import { CURRENT_USER } from "../identity/current-user";
 import { buildActivityEvents } from "./activity-seed";
 import { buildProposalAccessSeed } from "./proposal-access-seed";
 import { CANONICAL_LEAD_STATUS_ORDER, type Lead, type LeadStatus } from "@command-center/contracts";
@@ -37,11 +38,11 @@ export const DEMO_TODAY = "2026-04-22";
 
 // ---------------------------------------------------------------------------
 // Team — CANON 1434-1438 (teamRows). Ids match the owner ids the Leads dataset
-// already uses (user-001 Priya Nair, user-002 Marc Rivera), so an owner selector on
+// already uses (user-001 Priya Nair, user-002 = the signed-in user), so an owner selector on
 // any route offers the same people the Leads owner facet does.
 // ---------------------------------------------------------------------------
 export const TEAM_SEED: TeamMember[] = [
-  { id: "user-002", name: "Marc Rivera", initials: "MR", email: "marc@codeoutfitters.com", role: "Administrator", status: "Active", lastActive: "Active now" },
+  { id: CURRENT_USER.id, name: CURRENT_USER.name, initials: CURRENT_USER.initials, email: CURRENT_USER.email, role: "Administrator", status: "Active", lastActive: "Active now" },
   { id: "user-001", name: "Priya Nair", initials: "PN", email: "priya@codeoutfitters.com", role: "Sales", status: "Active", lastActive: "12m ago" },
   { id: "user-003", name: "Jordan Hale", initials: "JH", email: "jordan@codeoutfitters.com", role: "Sales", status: "Active", lastActive: "2h ago" },
   { id: "user-004", name: "Tara Osei", initials: "TO", email: "tara@codeoutfitters.com", role: "Sales", status: "Pending", lastActive: "Invited 2d ago" },
@@ -137,18 +138,18 @@ type CanonicalCard = {
 };
 
 const CANONICAL_CARDS: readonly CanonicalCard[] = [
-  { stage: "Contacted", name: "Thomas Beck", company: "Cascade Fitness", service: "AI Agents", context: "No reply for six days — second touch drafted", owner: "Marc Rivera", nextAction: "Call Apr 25", signal: null },
+  { stage: "Contacted", name: "Thomas Beck", company: "Cascade Fitness", service: "AI Agents", context: "No reply for six days — second touch drafted", owner: CURRENT_USER.name, nextAction: "Call Apr 25", signal: null },
   { stage: "Contacted", name: "Nadia Karim", company: "Ferrostar Freight", service: "Integrations", context: "Asked for security overview after intro call", owner: "Priya Nair", nextAction: "Send recap today", signal: { label: "High intent", tone: "green" } },
   { stage: "Appt Pending", name: "Ruben Ortega", company: "Northwind Logistics", service: "Workflow Automation", context: "Appointment not completed — abandoned at calendar", owner: "Priya Nair", nextAction: "Call now · overdue", signal: { label: "Overdue", tone: "red" } },
   { stage: "Appt Pending", name: "Owen Bradley", company: "Cedar Point Legal", service: "Workflow Automation", context: "Reminder email queued for this afternoon", owner: "Unassigned", nextAction: "Assign owner", signal: { label: "Missing owner", tone: "amber" } },
   { stage: "Appt Scheduled", name: "Alicia Fenwick", company: "Bright Harbor Realty", service: "Web Applications", context: "Discovery call today 10:00 — prep 6 questions", owner: "Priya Nair", nextAction: "Prepare meeting", signal: { label: "Meeting today", tone: "green" } },
-  { stage: "Appt Scheduled", name: "Yusuf Adeyemi", company: "Crestline Dental", service: "AI Automation", context: "Discovery call Apr 26 · agenda confirmed", owner: "Marc Rivera", nextAction: "Join Apr 26 · 2:00", signal: null },
+  { stage: "Appt Scheduled", name: "Yusuf Adeyemi", company: "Crestline Dental", service: "AI Automation", context: "Discovery call Apr 26 · agenda confirmed", owner: CURRENT_USER.name, nextAction: "Join Apr 26 · 2:00", signal: null },
   { stage: "Proposal Sent", name: "Gregory Mullins", company: "Harbor & Co Accounting", service: "Integrations", context: "Proposal viewed yesterday — 3rd view, pricing page", owner: "Priya Nair", nextAction: "Follow up today", signal: { label: "Proposal viewed", tone: "blue" } },
-  { stage: "Proposal Sent", name: "Sofia Marchetti", company: "Verano Hospitality", service: "AI Automation", context: "Waiting on technical requirements from IT", owner: "Marc Rivera", nextAction: "Confirm requirements", signal: null },
+  { stage: "Proposal Sent", name: "Sofia Marchetti", company: "Verano Hospitality", service: "AI Automation", context: "Waiting on technical requirements from IT", owner: CURRENT_USER.name, nextAction: "Confirm requirements", signal: null },
 ];
 
 const OWNER_ID_BY_NAME: Record<string, string> = {
-  "Marc Rivera": "user-002",
+  [CURRENT_USER.name]: CURRENT_USER.id,
   "Priya Nair": "user-001",
   "Jordan Hale": "user-003",
   "Tara Osei": "user-004",
@@ -279,7 +280,7 @@ function buildAppointments(index: Map<string, Lead>, opportunities: readonly Opp
 function buildMeetings(index: Map<string, Lead>, opportunities: readonly Opportunity[], appointments: readonly Appointment[]): Meeting[] {
   const rows: Array<Omit<Meeting, "id" | "leadId" | "opportunityId" | "appointmentId" | "joinUrl" | "outcome" | "notes" | "attendees"> & { person: string; attendees: string[] }> = [
     { person: "Alicia Fenwick", name: "Alicia Fenwick", company: "Bright Harbor Realty", service: "Web Applications", when: "Today · 10:00 AM PST", ownerId: "user-001", platform: "Google Meet", state: "READY", consent: "Consent pending", transcript: "—", ai: "—", crm: "—", attendees: ["Alicia Fenwick", "Priya Nair"] },
-    { person: "Priyanka Rao", name: "Priyanka Rao", company: "Solterra Energy", service: "Custom Software", when: "Yesterday · 1:30 PM", ownerId: "user-002", platform: "Zoom", state: "NEEDS REVIEW", consent: "Recorded w/ consent", transcript: "Ready · 48 min", ai: "14 requirements", crm: "6 recommendations", attendees: ["Priyanka Rao", "Marc Rivera"] },
+    { person: "Priyanka Rao", name: "Priyanka Rao", company: "Solterra Energy", service: "Custom Software", when: "Yesterday · 1:30 PM", ownerId: "user-002", platform: "Zoom", state: "NEEDS REVIEW", consent: "Recorded w/ consent", transcript: "Ready · 48 min", ai: "14 requirements", crm: "6 recommendations", attendees: ["Priyanka Rao", CURRENT_USER.name] },
     { person: "Derrick Vaughn", name: "Derrick Vaughn", company: "Ironclad Security", service: "Business Systems", when: "Apr 18 · 3:00 PM", ownerId: "user-001", platform: "Zoom", state: "COMPLETED", consent: "Recorded w/ consent", transcript: "Ready · 52 min", ai: "Approved", crm: "Applied", attendees: ["Derrick Vaughn", "Priya Nair"] },
     { person: "Ruben Ortega", name: "Ruben Ortega", company: "Northwind Logistics", service: "Workflow Automation", when: "Apr 21 · 9:30 AM", ownerId: "user-001", platform: "Google Meet", state: "FAILED · NO-SHOW", consent: "—", transcript: "—", ai: "—", crm: "—", attendees: ["Ruben Ortega", "Priya Nair"] },
   ];
@@ -373,8 +374,8 @@ export const SETTINGS_SEED: SettingsSection[] = [
       { id: "companyLegalName", label: "Company legal name", value: "CodeOutfitters Ltd", kind: "text" },
       { id: "contactEmail", label: "Contact email", value: "hello@codeoutfitters.com", kind: "email" },
       { id: "timezone", label: "Default timezone", value: "America/Los_Angeles", kind: "select", options: ["America/Los_Angeles", "America/New_York", "Europe/London", "UTC"] },
-      { id: "profileName", label: "Your display name", value: "Marc Rivera", kind: "text" },
-      { id: "profileRole", label: "Your role", value: "Administrator", kind: "select", options: ["Administrator", "Sales"] },
+      { id: "profileName", label: "Your display name", value: CURRENT_USER.name, kind: "text" },
+      { id: "profileRole", label: "Your role", value: CURRENT_USER.displayRole, kind: "select", options: [CURRENT_USER.displayRole, "Sales"] },
     ],
   },
   {
@@ -517,7 +518,7 @@ export const SETTINGS_SEED: SettingsSection[] = [
 /** The team member the demo dashboard is signed in as. "Assigned to me" means this id.
  *  Live mode replaces it with the authenticated member id — it is never read from the
  *  browser in live mode. */
-export const DEMO_CURRENT_USER_ID = "user-002";
+export const DEMO_CURRENT_USER_ID: string = CURRENT_USER.id;
 
 /** Look up a seeded record by id, loudly. A silent `undefined` here would produce a task
  *  with a null relation and a working-looking screen, so a seed rename must fail instead. */

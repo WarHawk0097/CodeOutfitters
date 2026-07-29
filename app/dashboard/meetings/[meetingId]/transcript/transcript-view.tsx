@@ -19,6 +19,7 @@ import { useId, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import type { DemoState, Meeting, Tone } from "../../../../../lib/demo/types";
+import { CURRENT_USER } from "../../../../../lib/identity/current-user";
 import { useDemoQuery } from "../../../../../components/demo/use-demo-query";
 import { TONE_INK } from "../../../../../components/demo/tone";
 import { RouteEmpty, RouteError, RouteLoading } from "../../../../../components/demo/route-states";
@@ -36,10 +37,10 @@ export type TranscriptEntry = {
 // clearly-marked SAMPLE, not output from any real recorded call.
 export const SAMPLE_TRANSCRIPT: readonly TranscriptEntry[] = [
   { time: "00:14:22", speaker: "Priyanka Rao", role: "client", text: "The dispatch team re-keys every work order into three systems — that’s where most errors come from.", marker: "REQUIREMENT" },
-  { time: "00:14:58", speaker: "Marc Rivera", role: "us", text: "How many orders a day are we talking about, roughly?", marker: null },
+  { time: "00:14:58", speaker: CURRENT_USER.name, role: "us", text: "How many orders a day are we talking about, roughly?", marker: null },
   { time: "00:15:06", speaker: "Priyanka Rao", role: "client", text: "Around 220 on weekdays, spikes to 400 in storm season.", marker: "CONFIRMED" },
   { time: "00:16:40", speaker: "Priyanka Rao", role: "client", text: "Honestly, our concern is ERP integration — the last vendor never got it stable.", marker: "OBJECTION" },
-  { time: "00:17:12", speaker: "Marc Rivera", role: "us", text: "Understood. We’d propose a read-only phase first, then controlled writes behind approvals.", marker: null },
+  { time: "00:17:12", speaker: CURRENT_USER.name, role: "us", text: "Understood. We’d propose a read-only phase first, then controlled writes behind approvals.", marker: null },
 ];
 
 const MARKER_TONE: Record<Marker, Tone> = {
