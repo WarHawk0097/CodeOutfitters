@@ -26,6 +26,7 @@ import type { DemoState, Meeting } from "../../../../../lib/demo/types";
 import { useDemoQuery } from "../../../../../components/demo/use-demo-query";
 import { TONE_INK } from "../../../../../components/demo/tone";
 import { RouteEmpty, RouteError, RouteLoading } from "../../../../../components/demo/route-states";
+import { NextActionCard } from "../../../../../components/dashboard/next-action-card";
 
 // M-D12 575: the review tab strip. Every tab is a safe local switch; the tabs whose
 // canonical content is provider-generated report REQUIRES PROVIDER instead of prose.
@@ -85,6 +86,17 @@ export function ReviewView({ meetingId }: { meetingId: string }) {
     <div className="cc-scope mx-auto max-w-6xl font-cc-body">
       {back}
       <ReviewContent meeting={meeting} />
+      {/* Deliberately outside ReviewContent: that component is kept hook-free so its
+          markup can be asserted under react-dom/server. The Next Action module reads the
+          task store, so it mounts here. */}
+      <div className="mt-4">
+        <NextActionCard
+          kind="meeting"
+          recordId={meeting.id}
+          recordLabel={`${meeting.name} · ${meeting.company}`}
+          leadId={meeting.leadId}
+        />
+      </div>
     </div>
   );
 }

@@ -29,6 +29,12 @@ const PAGE_META: Record<string, { title: string; subtitle?: ReactNode }> = {
       </>
     ),
   },
+  // The view switch, toolbar and dialogs live in the route body, so the header carries the
+  // title and the one sentence that says what the screen is for.
+  "/dashboard/my-work": {
+    title: "My Work",
+    subtitle: "Tasks, follow-ups and next actions that need your attention.",
+  },
   "/dashboard/leads": { title: "Leads" },
   // CANON 213. The count and the pager are live, so both come from components rather than
   // from literals here.
@@ -236,6 +242,7 @@ function LeadsHeaderRight() {
 // silence the 404, that would fake later-phase completion.
 export const IMPLEMENTED_ROUTES: ReadonlySet<string> = new Set([
   "/dashboard",
+  "/dashboard/my-work",
   "/dashboard/leads",
   "/dashboard/pipeline",
   "/dashboard/appointments",
@@ -323,7 +330,7 @@ const DEFAULT_PADDING = "px-4 py-[14px] md:px-5 md:py-[18px] xl:px-6 xl:pt-3 xl:
 
 // Appointments lands on the same three values (MO-07 1142, T-06 970, C-D11 315). Meetings
 // shares them too — MO-08 1158 is 11px 16px, the desktop directory sits in a 24px gutter.
-const RECORD_ROUTES = new Set(["/dashboard/leads", "/dashboard/pipeline", "/dashboard/appointments", "/dashboard/meetings", "/dashboard/follow-ups", "/dashboard/proposals", "/dashboard/email-activity", "/dashboard/team"]);
+const RECORD_ROUTES = new Set(["/dashboard/my-work", "/dashboard/leads", "/dashboard/pipeline", "/dashboard/appointments", "/dashboard/meetings", "/dashboard/follow-ups", "/dashboard/proposals", "/dashboard/email-activity", "/dashboard/team"]);
 
 export function ShellMain({ children }: { children: ReactNode }) {
   const pathname = usePathname();

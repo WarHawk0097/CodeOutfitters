@@ -30,6 +30,12 @@ export type NavGroup = { label: string; items: NavItem[]; adminOnly?: boolean };
 
 export const OPERATIONS_NAV: NavItem[] = [
   { label: "Overview", href: "/dashboard", icon: "overview" },
+  // My Work sits directly under Overview: the two are the "where do I start?" pair.
+  // Text-only, like Follow-ups and Email Activity — the canonical icon rail defines
+  // exactly six icons (CANON 849-854) and inventing a seventh would change that frame.
+  // The badge is the seeded overdue + due-today count; my-work-view.test.ts recomputes it
+  // from the demo seed so it cannot silently go stale.
+  { label: "My Work", href: "/dashboard/my-work", badge: "5" },
   { label: "Leads", href: "/dashboard/leads", icon: "leads", badge: "12" },
   { label: "Pipeline", href: "/dashboard/pipeline", icon: "pipeline" },
   { label: "Appointments", href: "/dashboard/appointments", icon: "appointments", badge: "3" },
@@ -55,7 +61,7 @@ export const NAV_GROUPS: NavGroup[] = [
 // refresh keeps the two states that actually mean something — "needs attention"
 // and "informational" — and renders both as token-driven pills, so contrast
 // follows the sidebar palette instead of a hard-coded hex.
-const ATTENTION_ITEMS = new Set(["Follow-ups", "Email Activity"]);
+const ATTENTION_ITEMS = new Set(["My Work", "Follow-ups", "Email Activity"]);
 
 export function badgeTone(item: NavItem): "attention" | "info" {
   return ATTENTION_ITEMS.has(item.label) ? "attention" : "info";

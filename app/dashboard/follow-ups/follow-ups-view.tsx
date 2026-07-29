@@ -25,6 +25,7 @@ import { MenuButton, type MenuItem } from "../../../components/demo/menu";
 import { Dialog, DialogCancelButton, DialogSubmitButton } from "../../../components/demo/dialog";
 import { SelectField, TextAreaField, TextField } from "../../../components/demo/field";
 import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
+import { NextActionCard } from "../../../components/dashboard/next-action-card";
 import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton } from "../../../components/demo/toolbar";
 import { longDate } from "../appointments/date-utils";
 
@@ -623,6 +624,16 @@ function FollowUpDetailDialog({
       <p className="mt-3 border-t border-cc-line pt-3 text-[12.5px] leading-[1.5] text-cc-t-table">
         {followUp.suggestion}
       </p>
+      {/* The follow-up says when we touch this lead again; the task says what we actually
+          have to do. Both live on the same record. */}
+      <div className="mt-3">
+        <NextActionCard
+          kind="followUp"
+          recordId={followUp.id}
+          recordLabel={`${followUp.name} · ${followUp.company}`}
+          leadId={followUp.leadId}
+        />
+      </div>
       <h3 className="mt-4 font-cc-mono text-[10px] tracking-[.06em] text-cc-t3">ACTIVITY HISTORY</h3>
       {activity.length === 0 ? (
         <p className="mt-1 text-[11.5px] text-cc-t3">No demo activity recorded for this follow-up yet.</p>

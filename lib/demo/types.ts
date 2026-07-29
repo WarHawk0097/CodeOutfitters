@@ -155,6 +155,62 @@ export type FollowUp = {
   suggestion: string;
 };
 
+// ---------------------------------------------------------------------------
+// Tasks — the next-action record.
+//
+// A follow-up is a scheduled touch on a lead. A task is the smaller thing: the one
+// concrete action a person owes on a record. Both already existed as concepts on this
+// dashboard; only the follow-up had a type. Tasks are deliberately NOT a project
+// management system — there is no story point, no sprint, no epic, no dependency graph
+// and no burndown. A task has a title, an owner, a due date, a state and, optionally,
+// the record it is about.
+// ---------------------------------------------------------------------------
+
+/** OPEN is the working state. WAITING means the ball is not in our court — it is tracked
+ *  separately from OPEN because "waiting on client" must not read as overdue work. */
+export type TaskState = "OPEN" | "WAITING" | "COMPLETED";
+
+export type TaskPriority = "High" | "Medium" | "Low";
+
+/** The record kinds a task can be about. Every kind here has a route that resolves, so a
+ *  task's related-record link is never a dead link (see relationHref in lib/tasks/model). */
+export type TaskRelationKind =
+  | "lead"
+  | "opportunity"
+  | "appointment"
+  | "meeting"
+  | "proposal"
+  | "followUp";
+
+/** The record a task is about. `null` is a general task — a real case, not a defect. */
+export type TaskRelation = {
+  kind: TaskRelationKind;
+  id: string;
+  /** Human label for the related record, resolved at seed/create time so a list row does
+   *  not have to join across six collections to render. */
+  label: string;
+} | null;
+
+export type Task = {
+  id: string;
+  title: string;
+  detail: string;
+  ownerId: string;
+  state: TaskState;
+  priority: TaskPriority;
+  /** YYYY-MM-DD, or "" for a task with no due date. Never clock-derived. */
+  dueDate: string;
+  /** The lead this task ultimately rolls up to, or null for a general task. Kept next to
+   *  `relation` because a task about a proposal is still a task about that lead. */
+  leadId: string | null;
+  relation: TaskRelation;
+  /** Who or what we are waiting on. Empty unless state is WAITING. */
+  waitingOn: string;
+  /** YYYY-MM-DD. Empty unless state is COMPLETED. */
+  completedOn: string;
+  createdOn: string;
+};
+
 export type EmailState = "QUEUED" | "SENT" | "DELIVERED" | "OPENED" | "FAILED" | "ARCHIVED";
 
 export type EmailActivity = {
@@ -199,7 +255,17 @@ export type ActivityEntry = {
   id: string;
   at: string;
   subjectId: string;
-  subjectKind: "lead" | "opportunity" | "appointment" | "meeting" | "proposal" | "followUp" | "email" | "team" | "settings";
+  subjectKind:
+    | "lead"
+    | "opportunity"
+    | "appointment"
+    | "meeting"
+    | "proposal"
+    | "followUp"
+    | "email"
+    | "team"
+    | "settings"
+    | "task";
   message: string;
 };
 
@@ -218,6 +284,7 @@ export type DemoState = {
   meetings: Meeting[];
   proposals: Proposal[];
   followUps: FollowUp[];
+  tasks: Task[];
   emails: EmailActivity[];
   settings: SettingsSection[];
   leadOverrides: Record<string, LeadOverride>;

@@ -8,6 +8,7 @@ import {
   resolveLeadAttachments,
 } from '@/lib/command-center/data'
 import { isDemoMode } from '@/lib/command-center/mode'
+import { NextActionCard } from '@/components/dashboard/next-action-card'
 import { isDownloadable } from '@/lib/dashboard/validation'
 
 export const metadata = { title: 'Lead — Command Center' }
@@ -74,6 +75,17 @@ export default async function LeadDetailPage({
             </div>
           ))}
       </dl>
+
+      {/* What happens next on this lead. Client island: the task record lives in the demo
+          store, while everything above it is server-resolved. */}
+      <div className="mb-8">
+        <NextActionCard
+          kind="lead"
+          recordId={leadId}
+          recordLabel={`${name} · ${String(lead.business_name ?? 'No company')}`}
+          leadId={leadId}
+        />
+      </div>
 
       {typeof lead.workflow_description === 'string' && lead.workflow_description && (
         <div className="mb-8">

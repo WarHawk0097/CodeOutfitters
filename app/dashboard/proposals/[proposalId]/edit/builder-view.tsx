@@ -20,6 +20,7 @@ import type { Proposal } from "../../../../../lib/demo/types";
 import { useDemoQuery } from "../../../../../components/demo/use-demo-query";
 import { RouteError, RouteLoading } from "../../../../../components/demo/route-states";
 import { TextAreaField, TextField } from "../../../../../components/demo/field";
+import { NextActionCard } from "../../../../../components/dashboard/next-action-card";
 
 // Money, canonical fixtures, and validation invariants live in the shared proposal domain
 // (lib/command-center/proposals) so the builder and the preview share one formatter, one canonical
@@ -66,7 +67,20 @@ export function ProposalBuilderView({ proposalId }: { proposalId: string }) {
   const proposal = state.proposals.find((p) => p.id === proposalId) ?? null;
   if (!proposal) return <BuilderNotFound proposalId={proposalId} />;
 
-  return <BuilderWorkspace proposal={proposal} detail={buildProposalDetail(proposal)} />;
+  return (
+    <>
+      <BuilderWorkspace proposal={proposal} detail={buildProposalDetail(proposal)} />
+      {/* Outside BuilderWorkspace so that component keeps its own store-free test surface. */}
+      <div className="mt-4">
+        <NextActionCard
+          kind="proposal"
+          recordId={proposal.id}
+          recordLabel={`${proposal.id} · ${proposal.client}`}
+          leadId={proposal.leadId}
+        />
+      </div>
+    </>
+  );
 }
 
 // Unknown / invalid id: an honest not-found that never fabricates a record and links back to the

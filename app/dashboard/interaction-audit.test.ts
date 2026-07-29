@@ -13,9 +13,12 @@ const src = readFileSync(`${here}shell-nav.tsx`, "utf8");
 
 describe("dashboard interaction audit (tests 23-32)", () => {
   // 23
-  it("exactly the ten built routes are treated as implemented", () => {
-    expect(IMPLEMENTED_ROUTES.size).toBe(10);
+  it("exactly the eleven built routes are treated as implemented", () => {
+    // Eleven since My Work landed. The number is asserted on purpose: a route added to
+    // this set without a page behind it is exactly the failure this file exists to catch.
+    expect(IMPLEMENTED_ROUTES.size).toBe(11);
     expect(IMPLEMENTED_ROUTES.has("/dashboard")).toBe(true);
+    expect(IMPLEMENTED_ROUTES.has("/dashboard/my-work")).toBe(true);
     expect(IMPLEMENTED_ROUTES.has("/dashboard/settings")).toBe(true);
   });
 

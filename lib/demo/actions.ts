@@ -5,7 +5,7 @@
 // email is delivered and no real account is created.
 "use client";
 
-import { stageToLeadStatus } from "./seed";
+import { createSeedState, DEMO_TODAY, stageToLeadStatus } from "./seed";
 import { getDemoState, mintId, updateDemoState, withActivity } from "./store";
 import type {
   Appointment,
@@ -20,6 +20,10 @@ import type {
   PipelineStage,
   Proposal,
   ProposalState,
+  Task,
+  TaskPriority,
+  TaskRelation,
+  TaskState,
   TeamMember,
   TeamRole,
 } from "./types";
@@ -546,4 +550,136 @@ export function saveSettingsSection(sectionId: string, values: Record<string, st
       ...withActivity(current, { subjectId: sectionId, subjectKind: "settings", message: `${section.label} settings saved` }),
     };
   });
+}
+
+// ---------------------------------------------------------------------------
+// Tasks
+//
+// These are the only writes My Work performs. Like every other action in this file they
+// change a record in this browser's demo store and nothing else: no request is made, no
+// account is updated, and the copy in the UI says so.
+// ---------------------------------------------------------------------------
+
+/** Fields a caller supplies when creating a task. Everything else is derived, so a create
+ *  form cannot invent a completion date or a state. */
+export type NewTaskInput = {
+  title: string;
+  detail?: string;
+  ownerId: string;
+  priority?: TaskPriority;
+  dueDate?: string;
+  leadId?: string | null;
+  relation?: TaskRelation;
+};
+
+export function createTask(input: NewTaskInput): string {
+  let created = "";
+  updateDemoState((current) => {
+    const { id, nextId } = mintId(current, "task");
+    created = id;
+    const task: Task = {
+      id,
+      title: input.title.trim(),
+      detail: input.detail?.trim() ?? "",
+      ownerId: input.ownerId,
+      state: "OPEN",
+      priority: input.priority ?? "Medium",
+      dueDate: input.dueDate ?? "",
+      leadId: input.leadId ?? null,
+      relation: input.relation ?? null,
+      waitingOn: "",
+      completedOn: "",
+      createdOn: DEMO_TODAY,
+    };
+    return {
+      ...current,
+      tasks: [task, ...current.tasks],
+      ...withActivity({ ...current, nextId }, { subjectId: id, subjectKind: "task", message: `Task created — ${task.title}` }),
+    };
+  });
+  return created;
+}
+
+/** Partial edit. State transitions go through the dedicated functions below so that the
+ *  fields which must move together (state, waitingOn, completedOn) always do. */
+export function updateTask(
+  id: string,
+  patch: Partial<Pick<Task, "title" | "detail" | "ownerId" | "priority" | "dueDate" | "relation" | "leadId">>,
+): void {
+  updateDemoState((current) => {
+    const task = current.tasks.find((candidate) => candidate.id === id);
+    if (!task) return current;
+    return {
+      ...current,
+      tasks: replace<Task>(current.tasks, id, patch),
+      ...withActivity(current, { subjectId: id, subjectKind: "task", message: `Task updated — ${patch.title ?? task.title}` }),
+    };
+  });
+}
+
+export function completeTask(id: string): void {
+  updateDemoState((current) => {
+    const task = current.tasks.find((candidate) => candidate.id === id);
+    if (!task || task.state === "COMPLETED") return current;
+    return {
+      ...current,
+      tasks: replace(current.tasks, id, {
+        state: "COMPLETED" as TaskState,
+        completedOn: DEMO_TODAY,
+        waitingOn: "",
+      }),
+      ...withActivity(current, { subjectId: id, subjectKind: "task", message: `Task completed — ${task.title}` }),
+    };
+  });
+}
+
+export function reopenTask(id: string): void {
+  updateDemoState((current) => {
+    const task = current.tasks.find((candidate) => candidate.id === id);
+    if (!task || task.state === "OPEN") return current;
+    return {
+      ...current,
+      tasks: replace(current.tasks, id, { state: "OPEN" as TaskState, completedOn: "", waitingOn: "" }),
+      ...withActivity(current, { subjectId: id, subjectKind: "task", message: `Task reopened — ${task.title}` }),
+    };
+  });
+}
+
+/** Park a task on someone else. `waitingOn` is required, because "waiting" without a
+ *  named party is not a status, it is an excuse. */
+export function setTaskWaiting(id: string, waitingOn: string): void {
+  const party = waitingOn.trim();
+  if (party === "") return;
+  updateDemoState((current) => {
+    const task = current.tasks.find((candidate) => candidate.id === id);
+    if (!task || task.state === "COMPLETED") return current;
+    return {
+      ...current,
+      tasks: replace(current.tasks, id, { state: "WAITING" as TaskState, waitingOn: party, completedOn: "" }),
+      ...withActivity(current, { subjectId: id, subjectKind: "task", message: `Task waiting on ${party} — ${task.title}` }),
+    };
+  });
+}
+
+export function reassignTask(id: string, ownerId: string): void {
+  updateDemoState((current) => {
+    const task = current.tasks.find((candidate) => candidate.id === id);
+    const owner = current.team.find((member) => member.id === ownerId);
+    if (!task || !owner || task.ownerId === ownerId) return current;
+    return {
+      ...current,
+      tasks: replace(current.tasks, id, { ownerId }),
+      ...withActivity(current, { subjectId: id, subjectKind: "task", message: `Task moved to ${owner.name} — ${task.title}` }),
+    };
+  });
+}
+
+/** Restore the seeded tasks and drop every task created in this browser. Scoped to tasks
+ *  on purpose: the demo toolbar's full reset already exists for everything else. */
+export function resetDemoTasks(): void {
+  updateDemoState((current) => ({
+    ...current,
+    tasks: createSeedState().tasks,
+    ...withActivity(current, { subjectId: "tasks", subjectKind: "task", message: "Demo tasks reset" }),
+  }));
 }

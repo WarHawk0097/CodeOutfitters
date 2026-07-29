@@ -18,6 +18,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Minus, Plus } from "lucide-react"
 import type { Proposal } from "../../../../../lib/demo/types";
 import { useDemoQuery } from "../../../../../components/demo/use-demo-query";
 import { RouteError, RouteLoading } from "../../../../../components/demo/route-states";
+import { NextActionCard } from "../../../../../components/dashboard/next-action-card";
 import { formatUsd } from "../../../../../lib/command-center/proposals/money";
 import { isSendBlocked, unresolvedCount } from "../../../../../lib/command-center/proposals/validation";
 import { buildPreviewDocument, CANONICAL_DEMO_PROPOSAL_ID } from "../../../../../lib/command-center/proposals/fixtures";
@@ -68,7 +69,21 @@ export function ProposalPreviewView({ proposalId }: { proposalId: string }) {
   const proposal = state.proposals.find((p) => p.id === proposalId) ?? null;
   if (!proposal) return <PreviewNotFound proposalId={proposalId} />;
 
-  return <PreviewWorkspace proposal={proposal} document={buildPreviewDocument(proposal)} />;
+  return (
+    <>
+      <PreviewWorkspace proposal={proposal} document={buildPreviewDocument(proposal)} />
+      {/* Same task record the builder shows — the preview is a second view of one proposal,
+          not a second proposal, so it must show the same next action. */}
+      <div className="cc-scope mx-auto mt-4 max-w-6xl font-cc-body">
+        <NextActionCard
+          kind="proposal"
+          recordId={proposal.id}
+          recordLabel={`${proposal.id} · ${proposal.client}`}
+          leadId={proposal.leadId}
+        />
+      </div>
+    </>
+  );
 }
 
 export function PreviewNotFound({ proposalId }: { proposalId: string }) {
