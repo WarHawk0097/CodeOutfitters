@@ -3,7 +3,7 @@
 export const UI_PACKAGE_VERSION = "0.1.0";
 
 export { Sidebar, NavList, NavDrawer, NAV_GROUPS, OPERATIONS_NAV, ADMINISTRATION_NAV } from "./sidebar";
-export type { NavItem, NavGroup } from "./sidebar";
+export type { NavItem, NavGroup, LinkComponent } from "./sidebar";
 
 export { ShellHeader } from "./shell-header";
 export type { ShellHeaderProps } from "./shell-header";
@@ -28,6 +28,7 @@ export {
 export type {
   OverviewKpi,
   TodaysWorkItem,
+  OperationalSummary,
   ActivityItem,
   LeadFlowGeometry,
 } from "./overview-cards";

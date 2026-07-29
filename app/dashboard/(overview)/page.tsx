@@ -21,13 +21,16 @@ import {
   KpiGridMobile,
   KpiGridTablet,
   KpiStrip,
-  MeetingsProposalsCard,
   NextUpCardMobile,
   PipelineJourney,
 } from "@command-center/ui";
 import { LeadFlowChart } from "../../../components/dashboard/lead-flow-chart";
 import { RecentActivityLive } from "../../../components/dashboard/overview-activity";
-import { OperationsBand, TodaysWorkLive } from "../../../components/dashboard/overview-operations";
+import {
+  MeetingsProposalsLive,
+  OperationsBand,
+  TodaysWorkLive,
+} from "../../../components/dashboard/overview-operations";
 import {
   PIPELINE_JOURNEY_ACTIVE_COUNT,
   PIPELINE_PHASE_FIXTURES,
@@ -55,7 +58,7 @@ export default function DashboardPage() {
               phases={PIPELINE_PHASE_FIXTURES}
               variant="desktop"
             />
-            <MeetingsProposalsCard variant="desktop" />
+            <MeetingsProposalsLive variant="desktop" />
             <RecentActivityLive />
           </div>
         </div>
@@ -87,7 +90,7 @@ export default function DashboardPage() {
           <KpiGridMobile kpis={OVERVIEW_KPIS_MOBILE} />
         </div>
         <div className="mt-[9px]">
-          <MeetingsProposalsCard variant="mobile" />
+          <MeetingsProposalsLive variant="mobile" />
         </div>
         <div className="mt-[9px]">
           <LeadFlowChart />

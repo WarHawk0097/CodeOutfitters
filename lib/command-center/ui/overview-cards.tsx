@@ -11,8 +11,15 @@
 // apps/web/mocks/fixtures/overview-canonical.ts, which documents the
 // no-backing-contract gap (same arrangement as pipeline-journey.tsx).
 //
-// Static presentation only — no state, no handlers, so no client boundary.
+// Presentation only — no state and no handlers, so still no client boundary. The
+// controls on these cards are links, and a link needs neither. What they are NOT is
+// decoration: the canonical HTML draws "View queue", the per-row "Open" and the
+// Meetings & proposals actions as styled text, and porting that markup literally
+// produced a screen of controls that looked pressable and did nothing. Every one of
+// them now takes an href from the caller, and a card that cannot be given one does not
+// draw the control at all.
 import type { CSSProperties } from "react";
+import type { LinkComponent } from "./sidebar";
 
 export type OverviewKpi = {
   label: string;
@@ -31,7 +38,15 @@ export type TodaysWorkItem = {
   meta: string;
   tag: string;
   color: string;
+  /** The visible label on the row's action — "Open". */
   cta: string;
+  /** Where the row's action goes. Required: a row with no destination is a row whose
+   *  action cannot exist, and drawing a disabled-looking one instead is what this card
+   *  used to do. */
+  href: string;
+  /** The action's accessible name. "Open" repeated down a column tells a screen-reader
+   *  user nothing about which task they are opening, so each row names its own. */
+  actionLabel: string;
 };
 
 export type ActivityItem = { text: string; time: string; color: string };
@@ -300,24 +315,38 @@ export function TodaysWorkCard({
   items,
   openCount,
   variant,
+  queueHref,
+  linkAs: Link = "a" as unknown as LinkComponent,
 }: {
   items: TodaysWorkItem[];
   openCount: string;
   variant: "desktop" | "tablet" | "mobile";
+  /** Where the header's "View queue" goes — the same records, in My Work. */
+  queueHref: string;
+  linkAs?: LinkComponent;
 }) {
   if (variant === "mobile") {
     return (
       <div className={CARD}>
-        <div className="border-b border-cc-line-inner px-[13px] py-[9px] text-[11px] font-bold tracking-[.08em] text-cc-t-header">
-          TODAY&apos;S WORK · {openCount}
+        <div className="flex items-center justify-between gap-2 border-b border-cc-line-inner px-[13px] py-[9px]">
+          <span className="text-[11px] font-bold tracking-[.08em] text-cc-t-header">
+            TODAY&apos;S WORK · {openCount}
+          </span>
+          <Link href={queueHref} className={`${ACTION_LINK} text-[10.5px]`} aria-label={QUEUE_LABEL}>
+            View queue
+          </Link>
         </div>
+        {/* The whole row is the control at this width: there is no room for a separate
+            button, and a 44px-tall link is a better touch target than one would be. */}
         {items.map((w) => (
-          <div
+          <Link
             key={w.title}
-            className="border-b border-cc-soft px-[13px] py-[9px] last:border-b-0"
+            href={w.href}
+            aria-label={w.actionLabel}
+            className={`flex min-h-[44px] flex-col justify-center border-b border-cc-soft px-[13px] py-[9px] last:border-b-0 hover:bg-cc-secondary ${ROW_FOCUS}`}
             style={insetRail(w.color)}
           >
-            <div className="flex justify-between gap-2">
+            <span className="flex justify-between gap-2">
               <span className="min-w-0 truncate text-[12px] font-semibold text-cc-ink">
                 {w.title}
               </span>
@@ -327,8 +356,8 @@ export function TodaysWorkCard({
               >
                 {w.tag}
               </span>
-            </div>
-          </div>
+            </span>
+          </Link>
         ))}
       </div>
     );
@@ -337,29 +366,33 @@ export function TodaysWorkCard({
   if (variant === "tablet") {
     return (
       <div className={CARD}>
-        <div className="flex justify-between border-b border-cc-line-inner px-4 py-[11px]">
-          <span className="text-[13px] font-semibold text-cc-ink">
+        <div className="flex justify-between gap-2 border-b border-cc-line-inner px-4 py-[11px]">
+          <span className="min-w-0 truncate text-[13px] font-semibold text-cc-ink">
             Today&apos;s work · {openCount} open
           </span>
-          <span className="text-[11.5px] font-semibold text-cc-green">View queue</span>
+          <Link href={queueHref} className={`${ACTION_LINK} text-[11.5px]`} aria-label={QUEUE_LABEL}>
+            View queue
+          </Link>
         </div>
         {items.map((w) => (
-          <div
+          <Link
             key={w.title}
-            className="flex min-h-[46px] items-center gap-3 border-b border-cc-soft px-4 py-1.5 last:border-b-0"
+            href={w.href}
+            aria-label={w.actionLabel}
+            className={`flex min-h-[46px] items-center gap-3 border-b border-cc-soft px-4 py-1.5 last:border-b-0 hover:bg-cc-secondary ${ROW_FOCUS}`}
             style={insetRail(w.color)}
           >
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-[13px] font-semibold text-cc-ink">{w.title}</div>
-              <div className="truncate text-[11px] text-cc-t3">{w.meta}</div>
-            </div>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[13px] font-semibold text-cc-ink">{w.title}</span>
+              <span className="block truncate text-[11px] text-cc-t3">{w.meta}</span>
+            </span>
             <span
               className="shrink-0 font-cc-mono text-[9px] font-semibold"
               style={{ color: w.color }}
             >
               {w.tag}
             </span>
-          </div>
+          </Link>
         ))}
       </div>
     );
@@ -367,15 +400,19 @@ export function TodaysWorkCard({
 
   return (
     <div className={CARD}>
-      <div className="flex items-center justify-between border-b border-cc-line-inner px-[18px] py-3">
-        <span className="text-[15px] font-semibold text-cc-ink">
+      <div className="flex items-center justify-between gap-2 border-b border-cc-line-inner px-[18px] py-3">
+        <span className="min-w-0 truncate text-[15px] font-semibold text-cc-ink">
           Today&apos;s work{" "}
           <span className="font-cc-mono text-[11px] font-normal text-cc-t3">
             · {openCount} open
           </span>
         </span>
-        <span className="text-[12px] font-semibold text-cc-green">View queue</span>
+        <Link href={queueHref} className={`${ACTION_LINK} text-[12px]`} aria-label={QUEUE_LABEL}>
+          View queue
+        </Link>
       </div>
+      {/* Desktop keeps the canonical two-control row — the row itself is not a link, so
+          the per-row action is the only interactive thing in it and nothing is nested. */}
       {items.map((w) => (
         <div
           key={w.title}
@@ -385,9 +422,11 @@ export function TodaysWorkCard({
             className="h-2 w-2 shrink-0 rounded-[2px]"
             style={{ backgroundColor: w.color }}
           />
+          {/* min-w-0 on both the flex child and the truncating spans: without it the
+              title's intrinsic width wins and the action column is pushed out of frame. */}
           <div className="flex min-w-0 flex-1 items-baseline gap-2.5">
-            <span className="truncate text-[13.5px] font-semibold text-cc-ink">{w.title}</span>
-            <span className="truncate text-[12px] text-cc-t3">{w.meta}</span>
+            <span className="min-w-0 truncate text-[13.5px] font-semibold text-cc-ink">{w.title}</span>
+            <span className="min-w-0 truncate text-[12px] text-cc-t3">{w.meta}</span>
           </div>
           <span
             className="shrink-0 font-cc-mono text-[10px] font-semibold tracking-[.08em]"
@@ -395,14 +434,29 @@ export function TodaysWorkCard({
           >
             {w.tag}
           </span>
-          <span className="shrink-0 rounded-[5px] border border-cc-line-strong px-2.5 py-[5px] text-[12px] font-semibold text-cc-t-table">
+          <Link
+            href={w.href}
+            aria-label={w.actionLabel}
+            className={`shrink-0 rounded-[5px] border border-cc-green-border px-2.5 py-[5px] text-[12px] font-semibold text-cc-green-ink hover:bg-cc-green-tint ${ROW_FOCUS}`}
+          >
             {w.cta}
-          </span>
+          </Link>
         </div>
       ))}
     </div>
   );
 }
+
+// One accessible name for the header control at all three widths. "View queue" alone is
+// ambiguous beside five other operational lists on the same screen.
+const QUEUE_LABEL = "View today's work queue in My Work";
+
+const ROW_FOCUS =
+  "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-cc-green";
+
+// The header controls are keyboard destinations like any other, so they carry the same
+// focus ring as the rows: an underline alone is not a focus indicator.
+const ACTION_LINK = `shrink-0 rounded-[3px] font-semibold text-cc-green underline decoration-cc-line underline-offset-2 hover:decoration-cc-green ${ROW_FOCUS}`;
 
 // CANON 868/1046: the row's colour is an inset left rail, not a border — a
 // border would shift the row's content box against the canonical frame.
@@ -412,25 +466,64 @@ function insetRail(color: string): CSSProperties {
 
 /* -------------------------------------------------- Meetings & proposals -- */
 
+/** One row of the Meetings & proposals card. Every string is supplied by the caller
+ *  from the same state the rest of the Overview counts, so this card can no longer
+ *  claim "2 meetings need review · Solterra discovery · Northwind no-show" while the
+ *  Meetings screen holds a different number and different records. */
+export type OperationalSummary = {
+  /** The headline, already counted: "2 meetings need review". */
+  label: string;
+  /** The records behind the count, named. Empty string draws no sub-line. */
+  detail: string;
+  /** Where the row's action goes. */
+  href: string;
+  /** The visible label on the action — "Review", "Open". */
+  actionLabel: string;
+  /** Its accessible name, which has to say what is being opened. */
+  ariaLabel: string;
+};
+
 // CANON 67-70 (desktop) / 1052-1054 (mobile). Desktop shows a 30px icon tile and
 // a sub-line per row; mobile reduces the tile to an 8px square and drops the sub.
-export function MeetingsProposalsCard({ variant }: { variant: "desktop" | "mobile" }) {
+export function MeetingsProposalsCard({
+  variant,
+  meetings,
+  proposals,
+  linkAs: Link = "a" as unknown as LinkComponent,
+}: {
+  variant: "desktop" | "mobile";
+  meetings: OperationalSummary;
+  proposals: OperationalSummary;
+  linkAs?: LinkComponent;
+}) {
   if (variant === "mobile") {
     return (
       <div className={CARD}>
-        <div className="flex items-center gap-2.5 border-b border-cc-soft px-[13px] py-[9px]">
-          <i className="h-2 w-2 rounded-[2px] bg-cc-blue" />
-          <span className="flex-1 text-[11.5px] font-semibold text-cc-ink">
-            2 meetings need review
+        <div className="flex min-h-[44px] items-center gap-2.5 border-b border-cc-soft px-[13px] py-[9px]">
+          <i className="h-2 w-2 shrink-0 rounded-[2px] bg-cc-blue" />
+          <span className="min-w-0 flex-1 truncate text-[11.5px] font-semibold text-cc-ink">
+            {meetings.label}
           </span>
-          <span className="text-[10.5px] font-semibold text-cc-green">Review</span>
+          <Link
+            href={meetings.href}
+            aria-label={meetings.ariaLabel}
+            className={`${ACTION_LINK} text-[10.5px] ${ROW_FOCUS}`}
+          >
+            {meetings.actionLabel}
+          </Link>
         </div>
-        <div className="flex items-center gap-2.5 px-[13px] py-[9px]">
-          <i className="h-2 w-2 rounded-[2px] bg-cc-green" />
-          <span className="flex-1 text-[11.5px] font-semibold text-cc-ink">
-            3 proposals awaiting action
+        <div className="flex min-h-[44px] items-center gap-2.5 px-[13px] py-[9px]">
+          <i className="h-2 w-2 shrink-0 rounded-[2px] bg-cc-green" />
+          <span className="min-w-0 flex-1 truncate text-[11.5px] font-semibold text-cc-ink">
+            {proposals.label}
           </span>
-          <span className="text-[10.5px] font-semibold text-cc-green">Open</span>
+          <Link
+            href={proposals.href}
+            aria-label={proposals.ariaLabel}
+            className={`${ACTION_LINK} text-[10.5px] ${ROW_FOCUS}`}
+          >
+            {proposals.actionLabel}
+          </Link>
         </div>
       </div>
     );
@@ -442,30 +535,46 @@ export function MeetingsProposalsCard({ variant }: { variant: "desktop" | "mobil
         Meetings &amp; proposals
       </div>
       <div className="flex items-center gap-[11px] border-b border-cc-soft px-4 py-[11px]">
-        <span className="inline-flex h-[30px] w-[30px] items-center justify-center rounded-md bg-cc-blue-tint text-cc-blue-ink">
+        <span className="inline-flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-md bg-cc-blue-tint text-cc-blue-ink">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} aria-hidden="true">
             <path d="M23 7l-7 5 7 5V7z" />
             <rect x="1" y="5" width="15" height="14" rx="2" />
           </svg>
         </span>
-        <div className="flex-1">
-          <div className="text-[12.5px] font-semibold text-cc-ink">2 meetings need review</div>
-          <div className="text-[11px] text-cc-t3">Solterra discovery · Northwind no-show</div>
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-[12.5px] font-semibold text-cc-ink">{meetings.label}</div>
+          {meetings.detail ? (
+            <div className="truncate text-[11px] text-cc-t3">{meetings.detail}</div>
+          ) : null}
         </div>
-        <span className="text-[11.5px] font-semibold text-cc-green">Review</span>
+        <Link
+          href={meetings.href}
+          aria-label={meetings.ariaLabel}
+          className={`${ACTION_LINK} text-[11.5px] ${ROW_FOCUS}`}
+        >
+          {meetings.actionLabel}
+        </Link>
       </div>
       <div className="flex items-center gap-[11px] px-4 py-[11px]">
-        <span className="inline-flex h-[30px] w-[30px] items-center justify-center rounded-md bg-cc-green-tint text-cc-green-ink">
+        <span className="inline-flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-md bg-cc-green-tint text-cc-green-ink">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} aria-hidden="true">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
             <path d="M14 2v6h6" />
           </svg>
         </span>
-        <div className="flex-1">
-          <div className="text-[12.5px] font-semibold text-cc-ink">3 proposals awaiting action</div>
-          <div className="text-[11px] text-cc-t3">1 internal review · 1 viewed · 1 expiring Fri</div>
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-[12.5px] font-semibold text-cc-ink">{proposals.label}</div>
+          {proposals.detail ? (
+            <div className="truncate text-[11px] text-cc-t3">{proposals.detail}</div>
+          ) : null}
         </div>
-        <span className="text-[11.5px] font-semibold text-cc-green">Open</span>
+        <Link
+          href={proposals.href}
+          aria-label={proposals.ariaLabel}
+          className={`${ACTION_LINK} text-[11.5px] ${ROW_FOCUS}`}
+        >
+          {proposals.actionLabel}
+        </Link>
       </div>
     </div>
   );

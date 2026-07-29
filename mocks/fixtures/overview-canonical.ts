@@ -18,7 +18,6 @@ import type {
   ActivityItem,
   LeadFlowGeometry,
   OverviewKpi,
-  TodaysWorkItem,
 } from "@command-center/ui";
 
 // Design source palette (G) — Command Center Final.dc.html line 1311.
@@ -90,40 +89,10 @@ export const OVERVIEW_KPIS: OverviewKpi[] = [
 // MO-01 1048-1050 shows only the first and last tile.
 export const OVERVIEW_KPIS_MOBILE: OverviewKpi[] = [OVERVIEW_KPIS[0]!, OVERVIEW_KPIS[3]!];
 
-// CANON 1330-1334; `color` is the design source's `tc`. The "· 7 open" count in the card header (CANON 57) is the
-// design source's own figure and is not derived from this four-row sample.
-export const TODAYS_WORK_OPEN_COUNT = "7";
-
-export const TODAYS_WORK: TodaysWorkItem[] = [
-  {
-    title: "Call Ruben Ortega — first contact",
-    meta: "Northwind Logistics · overdue since yesterday",
-    tag: "OVERDUE",
-    color: G.rd,
-    cta: "Open",
-  },
-  {
-    title: "Review discovery meeting — Priyanka Rao",
-    meta: "Solterra Energy · transcript + CRM recommendations ready",
-    tag: "REVIEW",
-    color: G.bl,
-    cta: "Review",
-  },
-  {
-    title: "Proposal follow-up — Gregory Mullins",
-    meta: "Harbor & Co · viewed yesterday, expires Friday",
-    tag: "DUE TODAY",
-    color: G.am,
-    cta: "Open",
-  },
-  {
-    title: "Appointment — Alicia Fenwick",
-    meta: "Bright Harbor Realty · 10:00 AM PST · prepare questions",
-    tag: "TODAY",
-    color: G.gr,
-    cta: "Prepare",
-  },
-];
+// TODAYS_WORK / TODAYS_WORK_OPEN_COUNT were REMOVED here, not relaxed. The card is fed
+// by TodaysWorkLive from the demo store — four design rows with no task ids behind them
+// could not give their actions a destination, and my-work-view.test.ts already asserts
+// the Overview does not import the design count.
 
 // CANON 1335-1340 — five rows.
 export const RECENT_ACTIVITY: ActivityItem[] = [

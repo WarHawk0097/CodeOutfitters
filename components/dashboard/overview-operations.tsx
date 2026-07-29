@@ -14,10 +14,20 @@
 // how work gets missed.
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { TodaysWorkCard, type TodaysWorkItem } from "@command-center/ui";
+import {
+  MeetingsProposalsCard,
+  TodaysWorkCard,
+  type OperationalSummary,
+  type TodaysWorkItem,
+} from "@command-center/ui";
 import { useDemoState } from "../../lib/demo/store";
 import { DEMO_CURRENT_USER_ID, DEMO_TODAY, LEAD_DIRECTORY } from "../../lib/demo/seed";
 import type { Task } from "../../lib/demo/types";
+import {
+  meetingsNeedingReview,
+  meetingsToPrepare,
+  proposalsNeedingAttention,
+} from "../../lib/operations/attention";
 import {
   dueLabel,
   dueTone,
@@ -31,9 +41,33 @@ import { resolveTaskPlane } from "../../lib/tasks/provider";
 import { useCommandCenterConfig } from "../command-center/mode-provider";
 import { TONE_BASE, TONE_INK } from "../demo/tone";
 
-/** Proposal states that mean somebody has to do something. ACCEPTED, REJECTED, EXPIRED and
- *  ARCHIVED are settled; SENT and APPROVED are correctly parked with the other side. */
-const PROPOSAL_ATTENTION = new Set(["DRAFT", "INTERNAL REVIEW", "CHANGES REQUESTED", "VIEWED"]);
+// Every operational destination in this file is a canonical list route with an explicit
+// `view` parameter, never a page of its own. Named here so the Overview and the tests
+// that check the counts against the destinations read the same strings.
+const TODAY_QUEUE_HREF = "/dashboard/my-work?view=today";
+const OVERDUE_HREF = "/dashboard/my-work?view=overdue";
+const WAITING_HREF = "/dashboard/my-work?view=waiting";
+const MEETINGS_PREPARE_HREF = "/dashboard/meetings?view=prepare";
+const MEETINGS_REVIEW_HREF = "/dashboard/meetings?view=review";
+const PROPOSALS_ATTENTION_HREF = "/dashboard/proposals?view=attention";
+const LEADS_NO_NEXT_ACTION_HREF = "/dashboard/leads?view=no-next-action";
+
+const CONTROL_FOCUS =
+  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cc-green";
+
+/** "3 proposals", "1 proposal". A count read aloud as "1 proposals" is a tell that the
+ *  string was written by hand and never derived. */
+function plural(count: number, singular: string, pluralForm = `${singular}s`): string {
+  return `${count} ${count === 1 ? singular : pluralForm}`;
+}
+
+/** The first few records behind a count, named — the sub-line the canonical card used to
+ *  hard-code. Truncated with a remainder rather than silently cut. */
+function nameRecords(labels: readonly string[], limit = 2): string {
+  if (labels.length === 0) return "";
+  if (labels.length <= limit) return labels.join(" · ");
+  return `${labels.slice(0, limit).join(" · ")} · +${labels.length - limit} more`;
+}
 
 function taskToWorkItem(task: Task, meta: string): TodaysWorkItem {
   return {
@@ -42,6 +76,8 @@ function taskToWorkItem(task: Task, meta: string): TodaysWorkItem {
     tag: dueLabel(task, DEMO_TODAY).toUpperCase(),
     color: TONE_BASE[dueTone(task, DEMO_TODAY)],
     cta: "Open",
+    href: `/dashboard/my-work/${task.id}`,
+    actionLabel: `Open task: ${task.title}`,
   };
 }
 
@@ -74,16 +110,66 @@ export function TodaysWorkLive({ variant }: { variant: "desktop" | "tablet" | "m
     ),
   );
 
+  // One control to the queue, not two. The card's own "View queue" used to be inert, and a
+  // second link was added underneath the card to compensate — two controls, one
+  // destination, and the one the eye goes to was the broken one.
   return (
-    <div className="flex min-h-0 flex-col gap-1.5">
-      <TodaysWorkCard items={items} openCount={String(attention.length)} variant={variant} />
-      <Link
-        href="/dashboard/my-work?view=today"
-        className="self-start text-[11.5px] font-semibold text-cc-green underline decoration-cc-line underline-offset-2"
-      >
-        Open in My Work
-      </Link>
+    <div className="flex min-h-0 flex-col">
+      <TodaysWorkCard
+        items={items}
+        openCount={String(attention.length)}
+        variant={variant}
+        queueHref={TODAY_QUEUE_HREF}
+        linkAs={Link}
+      />
     </div>
+  );
+}
+
+/**
+ * Meetings & proposals, counted rather than asserted.
+ *
+ * The canonical card shipped with "2 meetings need review", "Solterra discovery ·
+ * Northwind no-show" and "3 proposals awaiting action" written into the markup. Those
+ * were true of the design file and of nothing else: the demo state has held different
+ * meetings and a different number of them since the first mutation anyone made on the
+ * Meetings screen. Both rows are now derived from the same collections the operational
+ * band counts, using the same predicates the destination screens filter on.
+ */
+export function MeetingsProposalsLive({ variant }: { variant: "desktop" | "mobile" }) {
+  const { live } = useCommandCenterConfig();
+  const plane = resolveTaskPlane(live);
+  const state = useDemoState();
+
+  const summaries = useMemo(() => {
+    const review = meetingsNeedingReview(state.meetings);
+    const attention = proposalsNeedingAttention(state.proposals);
+    const meetings: OperationalSummary = {
+      label: `${plural(review.length, "meeting")} need${review.length === 1 ? "s" : ""} review`,
+      detail: nameRecords(review.map((meeting) => `${meeting.name} · ${meeting.company}`)),
+      href: MEETINGS_REVIEW_HREF,
+      actionLabel: "Review",
+      ariaLabel: "Review meetings that need review",
+    };
+    const proposals: OperationalSummary = {
+      label: `${plural(attention.length, "proposal")} awaiting action`,
+      detail: nameRecords(attention.map((proposal) => `${proposal.id} · ${proposal.state}`)),
+      href: PROPOSALS_ATTENTION_HREF,
+      actionLabel: "Open",
+      ariaLabel: "Open proposals needing attention",
+    };
+    return { meetings, proposals };
+  }, [state.meetings, state.proposals]);
+
+  if (plane.kind === "provider_required") return null;
+
+  return (
+    <MeetingsProposalsCard
+      variant={variant}
+      meetings={summaries.meetings}
+      proposals={summaries.proposals}
+      linkAs={Link}
+    />
   );
 }
 
@@ -91,12 +177,17 @@ type ModuleRecord = { id: string; label: string; href: string; tag?: string; ton
 
 function OperationsModule({
   label,
+  noun,
   records,
   href,
   emptyHint,
   total = records.length,
 }: {
   label: string;
+  /** What this module is about, in the lower case that reads correctly inside a control
+   *  label: "overdue tasks" gives "Show overdue tasks" / "Open overdue tasks". Five cards
+   *  each labelled "Open" is five identical accessible names for five destinations. */
+  noun: string;
   records: readonly ModuleRecord[];
   /** Where the whole set opens. Every value is a route that exists. */
   href: string;
@@ -112,24 +203,30 @@ function OperationsModule({
     <div className="rounded-cc-card border border-cc-line bg-cc-surface">
       <div className="flex items-baseline gap-2 px-4 pt-3">
         <span className="text-[22px] font-semibold leading-none text-cc-ink-strong">{total}</span>
-        <span className="text-[12px] font-semibold text-cc-t2">{label}</span>
+        <span className="min-w-0 text-[12px] font-semibold text-cc-t2">{label}</span>
       </div>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 pb-3 pt-2">
-        <button
-          type="button"
-          aria-expanded={open}
-          aria-controls={panelId}
-          onClick={() => setOpen((current) => !current)}
-          disabled={records.length === 0}
-          className="text-[11.5px] font-semibold text-cc-t2 underline decoration-cc-line underline-offset-2 disabled:no-underline disabled:opacity-50"
-        >
-          {records.length === 0 ? emptyHint : open ? "Hide the list" : "Show the list"}
-        </button>
+        {/* Two controls that do genuinely different things, so both stay — one expands the
+            list in place, the other leaves for the full list. They are labelled for what
+            they do rather than both saying "Open". */}
+        {records.length === 0 ? (
+          <span className="text-[11.5px] font-semibold text-cc-t3">{emptyHint}</span>
+        ) : (
+          <button
+            type="button"
+            aria-expanded={open}
+            aria-controls={panelId}
+            onClick={() => setOpen((current) => !current)}
+            className={`text-[11.5px] font-semibold text-cc-t2 underline decoration-cc-line underline-offset-2 hover:text-cc-ink ${CONTROL_FOCUS}`}
+          >
+            {open ? `Hide ${noun}` : `Show ${noun}`}
+          </button>
+        )}
         <Link
           href={href}
-          className="text-[11.5px] font-semibold text-cc-green underline decoration-cc-line underline-offset-2"
+          className={`text-[11.5px] font-semibold text-cc-green underline decoration-cc-line underline-offset-2 hover:decoration-cc-green ${CONTROL_FOCUS}`}
         >
-          Open
+          {`Open ${noun}`}
         </Link>
       </div>
       {open && records.length > 0 ? (
@@ -187,10 +284,11 @@ export function OperationsBand() {
     );
     const leads = LEAD_DIRECTORY.filter((lead) => uncovered.has(lead.id)).slice(0, 12);
 
-    // READY meetings are the ones with a prepare screen to walk into.
-    const toPrepare = state.meetings.filter((meeting) => meeting.state === "READY");
-
-    const proposals = state.proposals.filter((proposal) => PROPOSAL_ATTENTION.has(proposal.state));
+    // Both predicates come from lib/operations/attention.ts, which is also what
+    // /dashboard/meetings?view=prepare and /dashboard/proposals?view=attention filter on,
+    // so these counts and those lists cannot describe different sets.
+    const toPrepare = meetingsToPrepare(state.meetings);
+    const proposals = proposalsNeedingAttention(state.proposals);
 
     return {
       overdue: overdue.map(taskRecord),
@@ -219,40 +317,48 @@ export function OperationsBand() {
   if (plane.kind === "provider_required") return null;
 
   return (
-    <section aria-labelledby="operations-band-heading" className="mt-4">
+    // The desktop composition above is pinned to the frame height, so this band starts at
+    // the fold. The rule keeps its heading attached to its own cards rather than reading as
+    // a stray label under whatever section happens to end there.
+    <section aria-labelledby="operations-band-heading" className="mt-4 border-t border-cc-line pt-4">
       <h2 id="operations-band-heading" className="mb-2 font-cc-mono text-[10px] tracking-[.08em] text-cc-t3">
         WHAT NEEDS A DECISION
       </h2>
       <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
         <OperationsModule
           label="Overdue tasks"
+          noun="overdue tasks"
           records={modules.overdue}
-          href="/dashboard/my-work?view=overdue"
+          href={OVERDUE_HREF}
           emptyHint="Nothing overdue"
         />
         <OperationsModule
           label="Waiting on client"
+          noun="waiting-on-client tasks"
           records={modules.waiting}
-          href="/dashboard/my-work?view=waiting"
+          href={WAITING_HREF}
           emptyHint="Not waiting on anyone"
         />
         <OperationsModule
           label="Meetings to prepare"
+          noun="meetings to prepare"
           records={modules.toPrepare}
-          href="/dashboard/meetings"
+          href={MEETINGS_PREPARE_HREF}
           emptyHint="Nothing to prepare"
         />
         <OperationsModule
           label="Proposals needing attention"
+          noun="proposals needing attention"
           records={modules.proposals}
-          href="/dashboard/proposals"
+          href={PROPOSALS_ATTENTION_HREF}
           emptyHint="No proposal is waiting on us"
         />
         <OperationsModule
           label="Leads with no next action"
+          noun="leads without next actions"
           records={modules.leads}
           total={modules.uncoveredTotal}
-          href="/dashboard/leads"
+          href={LEADS_NO_NEXT_ACTION_HREF}
           emptyHint="Every lead has a next action"
         />
       </div>
