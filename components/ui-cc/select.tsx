@@ -5,6 +5,7 @@
 import * as React from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { cn } from "@/lib/utils";
+import { BTN_SELECT } from "@/lib/command-center/ui/control-system";
 
 export const Select = SelectPrimitive.Root;
 export const SelectValue = SelectPrimitive.Value;
@@ -17,17 +18,21 @@ export function SelectTrigger({
   return (
     <SelectPrimitive.Trigger
       className={cn(
-        "flex h-8 items-center justify-between gap-2 rounded-[var(--cc-radius-control)]",
-        "border border-cc-line bg-cc-surface px-2.5 text-[12px] text-cc-ink",
-        "focus:outline-none focus-visible:ring-2 focus-visible:ring-cc-blue focus-visible:ring-offset-1",
-        "disabled:cursor-not-allowed disabled:opacity-50 data-[placeholder]:text-cc-t3",
+        BTN_SELECT,
+        "font-normal",
+        // Radix owns the disabled attribute, so the disabled skin is declared here rather
+        // than swapped by the caller. `opacity-50` is gone: it faded the border and the
+        // text together, which is what made a disabled select and an enabled one with pale
+        // ink indistinguishable.
+        "disabled:cursor-not-allowed disabled:border-cc-line disabled:bg-cc-secondary disabled:text-cc-t3",
+        "data-[placeholder]:text-cc-t3",
         className,
       )}
       {...props}
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" className="opacity-60">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" className="shrink-0">
           <path d="M3 4.5 6 7.5 9 4.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </SelectPrimitive.Icon>

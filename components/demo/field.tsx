@@ -4,9 +4,12 @@
 // aria-invalid rather than left as loose red text next to an input.
 import { useId } from "react";
 import type { ReactNode } from "react";
+import { FIELD_CONTROL, FIELD_TEXTAREA } from "../../lib/command-center/ui/control-system";
 
-const CONTROL =
-  "w-full rounded-cc-control border border-cc-line-strong bg-cc-surface px-2.5 py-1.5 text-[12.5px] text-cc-ink focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-cc-green";
+// One height (40px), one radius and one padding scale with the toolbar controls and the
+// buttons — a form field 10px shorter than the button beside it is the misalignment the
+// owner photographed. Textareas take the same skin without the fixed height.
+const CONTROL = FIELD_CONTROL;
 
 function Wrapper({
   id,
@@ -109,7 +112,7 @@ export function TextAreaField({
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy(id, hint, error)}
         onChange={(event) => onChange(event.target.value)}
-        className={CONTROL}
+        className={FIELD_TEXTAREA}
       />
     </Wrapper>
   );

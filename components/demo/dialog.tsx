@@ -6,6 +6,14 @@
 // backdrop. Focus is trapped while open and restored to whatever opened it on close.
 import { useCallback, useEffect, useId, useRef } from "react";
 import type { ReactNode } from "react";
+import {
+  BTN_ICON_QUIET,
+  BTN_PRIMARY,
+  BTN_SECONDARY,
+  CONTROL_BASE,
+  SIZE_STANDARD,
+  VARIANT_DANGER,
+} from "../../lib/command-center/ui/control-system";
 
 const FOCUSABLE =
   'a[href],button:not([disabled]),textarea:not([disabled]),input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])';
@@ -106,7 +114,7 @@ export function Dialog({
             type="button"
             onClick={close}
             aria-label={`Close ${title}`}
-            className="-mr-1 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-cc-control text-cc-t3 hover:bg-cc-secondary"
+            className={`-mr-1.5 ${BTN_ICON_QUIET}`}
           >
             <span aria-hidden="true">✕</span>
           </button>
@@ -123,7 +131,7 @@ export function DialogCancelButton({ onClick, label = "Cancel" }: { onClick: () 
     <button
       type="button"
       onClick={onClick}
-      className="rounded-cc-control border border-cc-line-strong bg-cc-surface px-3 py-1.5 text-[12.5px] font-semibold text-cc-t-table"
+      className={BTN_SECONDARY}
     >
       {label}
     </button>
@@ -143,9 +151,7 @@ export function DialogSubmitButton({
     <button
       type="submit"
       form={form}
-      className={`rounded-cc-control px-3 py-1.5 text-[12.5px] font-semibold text-white ${
-        tone === "red" ? "bg-cc-red" : "bg-cc-green"
-      }`}
+      className={tone === "red" ? `${CONTROL_BASE} ${SIZE_STANDARD} ${VARIANT_DANGER}` : BTN_PRIMARY}
     >
       {label}
     </button>

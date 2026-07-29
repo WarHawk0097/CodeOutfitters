@@ -14,6 +14,7 @@
 
 import { useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { BTN_SECONDARY } from "./control-system";
 import { NavDrawer } from "./sidebar";
 
 type LinkComponent = (props: { href: string; children: ReactNode; className?: string }) => ReactNode;
@@ -126,7 +127,7 @@ export function ViewWebsiteLink() {
       href="/"
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex h-8 items-center gap-1.5 rounded-md border border-cc-line px-2.5 text-[12.5px] font-medium text-cc-t2 transition-colors hover:border-cc-t3 hover:text-cc-ink focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-cc-green"
+      className={BTN_SECONDARY}
     >
       <ExternalLinkIcon />
       View website

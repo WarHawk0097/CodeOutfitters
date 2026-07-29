@@ -7,7 +7,7 @@
 // implements the WAI-ARIA menu button pattern: aria-haspopup/aria-expanded/aria-controls on
 // the trigger, roving focus inside, Escape and outside-click close, and focus restored to the
 // trigger on close so the keyboard never lands nowhere.
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
 
 export type MenuItem = {
   id: string;
@@ -19,6 +19,24 @@ export type MenuItem = {
   selected?: boolean;
 };
 
+/** The trigger's chevron. An SVG rather than the "▾" glyph the canonical markup used:
+ *  the glyph inherits the text metrics, so it rendered at a different size in every
+ *  control it appeared in and read as part of the label to a screen reader. */
+export function MenuChevron() {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 12 12"
+      fill="none"
+      aria-hidden="true"
+      className="ml-0.5 shrink-0"
+    >
+      <path d="M3 4.75 6 7.75l3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function MenuButton({
   label,
   ariaLabel,
@@ -27,15 +45,22 @@ export function MenuButton({
   className,
   align = "left",
   width = 220,
+  chevron = false,
+  truncate = false,
 }: {
-  label: string;
-  /** Needed when the visible label is shorthand ("Move ▾") and the record is ambiguous. */
+  /** Text, or an icon for a trigger whose whole label is its accessible name. */
+  label: ReactNode;
+  /** Needed when the visible label is shorthand ("Move") and the record is ambiguous. */
   ariaLabel?: string;
   items: readonly MenuItem[];
   onSelect: (id: string) => void;
   className?: string;
   align?: "left" | "right";
   width?: number;
+  /** Draws the shared chevron after the label. Every select/menu trigger sets it. */
+  chevron?: boolean;
+  /** Lets a long saved-view name ellipsise instead of stretching the toolbar. */
+  truncate?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
@@ -117,14 +142,15 @@ export function MenuButton({
         onKeyDown={onTriggerKeyDown}
         className={className}
       >
-        {label}
+        <span className={truncate ? "min-w-0 truncate" : undefined}>{label}</span>
+        {chevron ? <MenuChevron /> : null}
       </button>
       {open ? (
         <div
           ref={menuRef}
           id={menuId}
           role="menu"
-          aria-label={ariaLabel ?? label}
+          aria-label={ariaLabel ?? (typeof label === "string" ? label : undefined)}
           onKeyDown={onMenuKeyDown}
           style={align === "right" ? { width, right: 0 } : { width, left: 0 }}
           className="absolute top-[calc(100%+4px)] z-30 max-h-[320px] overflow-y-auto rounded-cc-card border border-cc-line bg-cc-surface py-1 text-left shadow-[0_12px_28px_rgba(20,26,30,.16)]"
@@ -145,7 +171,7 @@ export function MenuButton({
                 close(true);
                 onSelect(item.id);
               }}
-              className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-[12.5px] focus-visible:bg-cc-secondary focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-cc-green ${
+              className={`flex min-h-[44px] w-full items-center justify-between gap-3 px-3 py-2 text-left text-[12.5px] focus-visible:bg-cc-secondary focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-cc-green sm:min-h-9 ${
                 item.disabled ? "cursor-default text-cc-t3" : "text-cc-ink hover:bg-cc-secondary"
               }`}
             >
