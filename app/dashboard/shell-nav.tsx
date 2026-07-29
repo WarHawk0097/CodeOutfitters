@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 import { Sidebar, ShellHeader } from "@command-center/ui";
 import { useHeaderStats, useLeadsExport, useDashboardRange } from "./header-stats";
 import { useCommandCenterConfig } from "@/components/command-center/mode-provider";
+import { CommandCenterTrigger } from "@/components/command-center/command-center";
 import { downloadCsv, exportLeadsCsv } from "../../lib/leads-csv";
 import { PipelineHeaderChip, PipelineMobileCount, PipelineSubtitle } from "./pipeline/pipeline-header";
 import { AppointmentsMobileView, AppointmentsSubtitle, AppointmentsViewTabs } from "./appointments/appointments-header";
@@ -74,27 +75,10 @@ function OverviewHeaderRight() {
   const { range, setRange } = useDashboardRange();
   return (
     <>
-      {/* C-D01 42 draws a search field here. No search index exists yet, so it is a
-          real but natively disabled input with the reason attached — not a div that
-          merely looks like a field, and no keyboard-shortcut hint for a shortcut
-          that is not bound. */}
-      <div className="hidden h-9 w-[300px] items-center gap-[9px] rounded-cc-control border border-cc-line bg-cc-secondary px-3 xl:flex">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true" className="text-cc-t3">
-          <circle cx="11" cy="11" r="7" />
-          <path d="m21 21-4.3-4.3" />
-        </svg>
-        <input
-          type="search"
-          disabled
-          aria-label="Search the Command Center"
-          aria-describedby="overview-search-reason"
-          placeholder="Search…"
-          className="min-w-0 flex-1 cursor-not-allowed bg-transparent text-[13px] text-cc-t3 outline-none placeholder:text-cc-t3"
-        />
-        <span id="overview-search-reason" className="sr-only">
-          Search is available when a live workspace is connected.
-        </span>
-      </div>
+      {/* C-D01 42 draws a search field here, and it is now a working one — see the
+          CommandCenterTrigger rendered for every route in ShellHeaderBar below, which
+          occupies exactly this frame at xl. It used to be a natively disabled input
+          with "no search index exists yet" attached; the index exists. */}
 
       {/* Live 7D/30D/90D switch. Shares its range with the Lead-flow card's in-card
           selector via useDashboardRange, so the two never disagree. aria-pressed
@@ -376,7 +360,16 @@ export function ShellHeaderBar() {
       title={meta?.title ?? "Command Center"}
       subtitle={leadsSubtitle ?? meta?.subtitle}
       right={
-        pathname === "/dashboard" ? (
+        <>
+          {/* Every route, not just Overview. Search that only exists on one screen is a
+              search box people learn to navigate away from. The field shape occupies the
+              C-D01 42 frame at xl; below that the icon keeps the control reachable rather
+              than leaving the keyboard shortcut as the only way in. */}
+          <CommandCenterTrigger variant="field" />
+          <span className="xl:hidden">
+            <CommandCenterTrigger variant="icon" />
+          </span>
+          {pathname === "/dashboard" ? (
           <OverviewHeaderRight />
         ) : isLeads ? (
           <LeadsHeaderRight />
@@ -387,7 +380,8 @@ export function ShellHeaderBar() {
           // keeps it top-right of the screen. One instance, so the control and the panel it
           // switches can never disagree.
           <AppointmentsViewTabs />
-        ) : undefined
+        ) : null}
+        </>
       }
       mobileCenter={
         // MO-01 1041 keeps the brand mark in the header and repeats the page
@@ -397,7 +391,12 @@ export function ShellHeaderBar() {
         pathname === "/dashboard" ? undefined : <h1 className="text-[15px] font-semibold text-cc-ink">{meta?.title}</h1>
       }
       mobileRight={
-        pathname === "/dashboard" ? (
+        <>
+          {/* Below md the `right` slot is not rendered at all, so without this the phone
+              layout would have no way to reach search — and there is no phone keyboard to
+              press Ctrl+K on. */}
+          <CommandCenterTrigger variant="icon" />
+          {pathname === "/dashboard" ? (
           <span className="flex h-8 w-8 items-center justify-center rounded-[7px] bg-cc-avatar text-[11px] font-semibold text-cc-avatar-ink">
             MR
           </span>
@@ -410,7 +409,8 @@ export function ShellHeaderBar() {
         ) : pathname === "/dashboard/appointments" ? (
           // MO-07 1141: the view switch collapses to "Calendar ▾" in the header.
           <AppointmentsMobileView />
-        ) : undefined
+        ) : null}
+        </>
       }
     />
   );

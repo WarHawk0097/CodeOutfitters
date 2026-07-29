@@ -32,6 +32,7 @@ import { Dialog, DialogCancelButton, DialogSubmitButton } from "../../../compone
 import { SelectField, TextAreaField, TextField } from "../../../components/demo/field";
 import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
 import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton } from "../../../components/demo/toolbar";
+import { setQueryParam, useQueryParam } from "../../../components/command-center/use-view-query";
 import { isPast, isUpcoming, useAppointmentsView } from "./view-store";
 import {
   addDays,
@@ -102,7 +103,11 @@ export function AppointmentsScreen() {
   const breakpoint = useBreakpoint();
   const { view, date, setDate, today } = useAppointmentsView();
 
-  const [q, setQ] = useState("");
+  // Appointments has no Saved View scope — its state is a day, not a filter set — but universal
+  // search links here with `?q=`, and a search result that lands on an unfiltered list is a
+  // result that did not arrive. The search term alone is therefore read from the URL.
+  const q = useQueryParam("q") ?? "";
+  const setQ = useCallback((value: string) => setQueryParam("q", value), []);
   const [ownerFilter, setOwnerFilter] = useState<string | null>(null);
   const [stateFilter, setStateFilter] = useState<string | null>(null);
 
