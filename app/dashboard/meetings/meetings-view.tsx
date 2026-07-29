@@ -10,7 +10,7 @@
 // No provider is connected. Every meeting carries an empty joinUrl, the readiness panel
 // reports REQUIRES PROVIDER exactly as M-D01 466-468 draws it, and no transcript text
 // exists to show — the UI says that instead of implying a recording is available.
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   cancelMeeting,
   completeMeeting,
@@ -29,6 +29,9 @@ import { Dialog, DialogCancelButton, DialogSubmitButton } from "../../../compone
 import { SelectField, TextAreaField, TextField } from "../../../components/demo/field";
 import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
 import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton } from "../../../components/demo/toolbar";
+import { SavedViewsBar } from "../../../components/command-center/saved-views";
+import { useListView, useQueryParam } from "../../../components/command-center/use-view-query";
+import { COMMAND_CREATE_PARAM } from "../../../lib/search/commands";
 import { longDate, timeRange } from "../appointments/date-utils";
 import { RecordActivity } from "@/components/dashboard/activity-ui";
 import { eventsFor, type ActivityEvent } from "@/lib/activity/model";
@@ -97,10 +100,13 @@ export function MeetingsScreen() {
   const { state, status, error, retry } = useDemoQuery();
   const breakpoint = useBreakpoint();
 
-  const [view, setView] = useState<MeetingsView>("review");
-  const [q, setQ] = useState("");
-  const [ownerFilter, setOwnerFilter] = useState<string | null>(null);
-  const [dateFilter, setDateFilter] = useState<string | null>(null);
+  // Filters live in the URL: same door for a Saved View, a search result and a shared link.
+  const { filters, sort, publish, set } = useListView("meetings");
+  const view = (filters.view ?? "review") as MeetingsView;
+  const setView = useCallback((next: MeetingsView) => set("view", next), [set]);
+  const q = filters.q ?? "";
+  const ownerFilter = filters.owner === "" ? null : (filters.owner ?? null);
+  const dateFilter = filters.date === "" ? null : (filters.date ?? null);
 
   const [detailId, setDetailId] = useState<string | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
@@ -112,6 +118,12 @@ export function MeetingsScreen() {
   const [cancelId, setCancelId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [announcement, setAnnouncement] = useState("");
+
+  // "Schedule meeting" in the command palette arrives with `?new=1`.
+  const createRequested = useQueryParam(COMMAND_CREATE_PARAM) === "1";
+  useEffect(() => {
+    if (createRequested) setCreateOpen(true);
+  }, [createRequested]);
 
   const ownerName = useCallback(
     (id: string) => (id === "unassigned" ? "Unassigned" : (state.team.find((m) => m.id === id)?.name ?? id)),
@@ -404,22 +416,20 @@ export function MeetingsScreen() {
       </div>
 
       <RouteToolbar>
-        <SearchInput value={q} onChange={setQ} label="Search meetings by name, company, service or platform" />
-        <FilterMenu label="Owner" allLabel="All owners" value={ownerFilter} options={ownerOptions} onChange={setOwnerFilter} />
-        <FilterMenu label="Date" allLabel="Any date" value={dateFilter} options={dateOptions} onChange={setDateFilter} />
-        <ToolbarButton label="Today" onClick={() => setDateFilter(DEMO_TODAY)} />
+        <SearchInput value={q} onChange={(value) => set("q", value)} label="Search meetings by name, company, service or platform" />
+        <FilterMenu label="Owner" allLabel="All owners" value={ownerFilter} options={ownerOptions} onChange={(value) => set("owner", value)} />
+        <FilterMenu label="Date" allLabel="Any date" value={dateFilter} options={dateOptions} onChange={(value) => set("date", value)} />
+        <ToolbarButton label="Today" onClick={() => set("date", DEMO_TODAY)} />
         {filtersApplied ? (
           <ToolbarButton
             label="Clear filters"
-            onClick={() => {
-              setQ("");
-              setOwnerFilter(null);
-              setDateFilter(null);
-            }}
+            onClick={() => publish({ ...filters, q: "", owner: "", date: "" }, sort)}
           />
         ) : null}
         <ToolbarButton label="New meeting" tone="primary" onClick={() => setCreateOpen(true)} />
       </RouteToolbar>
+
+      <SavedViewsBar scope="meetings" filters={filters} sort={sort} onApply={publish} />
 
       <div id="meetings-panel" role="tabpanel" aria-labelledby={`meetings-tab-${view}`}>
         {rows.length === 0 ? (

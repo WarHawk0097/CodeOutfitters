@@ -13,7 +13,7 @@
 // (T-03 926, MO-03 1097) and is also the keyboard path, which is why MO-03 1099 states
 // "MOVE MENU = DRAG ALTERNATIVE (NO DRAG REQUIRED)". Both call the same mutation, so a
 // card cannot end up in a different place depending on how it was moved.
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   createOpportunity,
   moveOpportunity,
@@ -29,6 +29,9 @@ import { Dialog, DialogCancelButton, DialogSubmitButton } from "../../../compone
 import { SelectField, TextAreaField, TextField } from "../../../components/demo/field";
 import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
 import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton } from "../../../components/demo/toolbar";
+import { SavedViewsBar } from "../../../components/command-center/saved-views";
+import { useListView, useQueryParam } from "../../../components/command-center/use-view-query";
+import { COMMAND_CREATE_PARAM } from "../../../lib/search/commands";
 import { useStageWindow } from "./stage-window";
 import { RecordActivity } from "@/components/dashboard/activity-ui";
 import { eventsFor, type ActivityEvent } from "@/lib/activity/model";
@@ -72,14 +75,23 @@ export function PipelineBoard() {
   const { state, status, error, retry } = useDemoQuery();
   const window_ = useStageWindow();
 
-  const [q, setQ] = useState("");
-  const [ownerFilter, setOwnerFilter] = useState<string | null>(null);
-  const [serviceFilter, setServiceFilter] = useState<string | null>(null);
-  const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
+  // Filters live in the URL: same door for a Saved View, a search result and a shared link.
+  const { filters, sort, publish, set } = useListView("pipeline");
+  const q = filters.q ?? "";
+  const ownerFilter = filters.owner === "" ? null : (filters.owner ?? null);
+  const serviceFilter = filters.service === "" ? null : (filters.service ?? null);
+  const priorityFilter = filters.priority === "" ? null : (filters.priority ?? null);
 
   const [detailId, setDetailId] = useState<string | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+
+  // "Add lead" in the command palette arrives with `?new=1`.
+  const createRequested = useQueryParam(COMMAND_CREATE_PARAM) === "1";
+  useEffect(() => {
+    if (createRequested) setCreateOpen(true);
+  }, [createRequested]);
+
   const [gate, setGate] = useState<{ id: string; stage: PipelineStage } | null>(null);
   const [gateReason, setGateReason] = useState("");
   const [gateError, setGateError] = useState<string | null>(null);
@@ -416,29 +428,26 @@ export function PipelineBoard() {
           filters are required by the implementation brief, so they are added here as a
           documented additive deviation rather than omitted. */}
       <RouteToolbar>
-        <SearchInput value={q} onChange={setQ} label="Search pipeline by name, company or service" />
-        <FilterMenu label="Owner" allLabel="All owners" value={ownerFilter} options={ownerOptions} onChange={setOwnerFilter} />
-        <FilterMenu label="Service" allLabel="All services" value={serviceFilter} options={serviceOptions} onChange={setServiceFilter} />
+        <SearchInput value={q} onChange={(value) => set("q", value)} label="Search pipeline by name, company or service" />
+        <FilterMenu label="Owner" allLabel="All owners" value={ownerFilter} options={ownerOptions} onChange={(value) => set("owner", value)} />
+        <FilterMenu label="Service" allLabel="All services" value={serviceFilter} options={serviceOptions} onChange={(value) => set("service", value)} />
         <FilterMenu
           label="Priority"
           allLabel="All priorities"
           value={priorityFilter}
           options={PRIORITIES.map((p) => ({ id: p, label: p }))}
-          onChange={setPriorityFilter}
+          onChange={(value) => set("priority", value)}
         />
         {filtersApplied ? (
           <ToolbarButton
             label="Clear filters"
-            onClick={() => {
-              setQ("");
-              setOwnerFilter(null);
-              setServiceFilter(null);
-              setPriorityFilter(null);
-            }}
+            onClick={() => publish({ ...filters, q: "", owner: "", service: "", priority: "" }, sort)}
           />
         ) : null}
         <ToolbarButton label="New opportunity" tone="primary" onClick={() => setCreateOpen(true)} />
       </RouteToolbar>
+
+      <SavedViewsBar scope="pipeline" filters={filters} sort={sort} onApply={publish} />
 
       {window_.breakpoint === "mobile" ? (
         <>

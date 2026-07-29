@@ -9,8 +9,7 @@
 // nowhere else — the copy on every form and every confirmation says exactly that. In live
 // mode this screen renders a provider-required state instead of falling back to the demo
 // store, because one person's browser is not a workspace's task list.
-import { useCallback, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createTask, resetDemoTasks } from "../../../lib/demo/actions";
 import { DEMO_CURRENT_USER_ID, DEMO_TODAY } from "../../../lib/demo/seed";
 import type { Task, TaskPriority } from "../../../lib/demo/types";
@@ -32,6 +31,9 @@ import {
   TASK_PROVIDER_REQUIRED_TITLE,
 } from "../../../lib/tasks/provider";
 import { useCommandCenterConfig } from "../../../components/command-center/mode-provider";
+import { SavedViewsBar } from "../../../components/command-center/saved-views";
+import { useListView, useQueryParam } from "../../../components/command-center/use-view-query";
+import { COMMAND_CREATE_PARAM } from "../../../lib/search/commands";
 import { useDemoQuery } from "../../../components/demo/use-demo-query";
 import { Dialog, DialogCancelButton } from "../../../components/demo/dialog";
 import { SelectField, TextAreaField, TextField } from "../../../components/demo/field";
@@ -56,14 +58,27 @@ export function MyWorkScreen() {
   const { live } = useCommandCenterConfig();
   const plane = resolveTaskPlane(live);
   const { state, status, error, retry } = useDemoQuery();
-  const searchParams = useSearchParams();
 
-  const [view, setView] = useState<TaskView>(() => readView(searchParams.get("view")));
-  const [q, setQ] = useState("");
-  const [ownerFilter, setOwnerFilter] = useState<string | null>(null);
-  const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
+  // The filter state lives in the URL, so a Saved View, a search result and a link a colleague
+  // was sent all arrive by the same door.
+  const { filters, sort, publish, set } = useListView("myWork");
+  const view = readView(filters.view ?? null);
+  const q = filters.q ?? "";
+  const ownerFilter = filters.owner === "" ? null : (filters.owner ?? null);
+  const priorityFilter = filters.priority === "" ? null : (filters.priority ?? null);
+  const setView = useCallback((next: TaskView) => set("view", next), [set]);
+
   const [openId, setOpenId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+
+  // "Create task" in the command palette opens this screen with `?new=1`. The command promises
+  // a create form; this is where that promise is kept, and without it the command would be a
+  // navigation wearing a create label.
+  const createRequested = useQueryParam(COMMAND_CREATE_PARAM) === "1";
+  useEffect(() => {
+    if (createRequested) setCreateOpen(true);
+  }, [createRequested]);
+
   const [resetOpen, setResetOpen] = useState(false);
   const [announcement, setAnnouncement] = useState("");
 
@@ -197,22 +212,20 @@ export function MyWorkScreen() {
       </div>
 
       <RouteToolbar>
-        <SearchInput value={q} onChange={setQ} label="Search tasks by title, detail or related record" />
-        <FilterMenu label="Owner" allLabel="All owners" value={ownerFilter} options={ownerOptions} onChange={setOwnerFilter} />
-        <FilterMenu label="Priority" allLabel="Any priority" value={priorityFilter} options={priorityOptions} onChange={setPriorityFilter} />
+        <SearchInput value={q} onChange={(value) => set("q", value)} label="Search tasks by title, detail or related record" />
+        <FilterMenu label="Owner" allLabel="All owners" value={ownerFilter} options={ownerOptions} onChange={(value) => set("owner", value)} />
+        <FilterMenu label="Priority" allLabel="Any priority" value={priorityFilter} options={priorityOptions} onChange={(value) => set("priority", value)} />
         {filtersApplied ? (
           <ToolbarButton
             label="Clear filters"
-            onClick={() => {
-              setQ("");
-              setOwnerFilter(null);
-              setPriorityFilter(null);
-            }}
+            onClick={() => publish({ ...filters, q: "", owner: "", priority: "" }, sort)}
           />
         ) : null}
         <ToolbarButton label="Reset demo tasks" onClick={() => setResetOpen(true)} />
         <ToolbarButton label="New task" tone="primary" onClick={() => setCreateOpen(true)} />
       </RouteToolbar>
+
+      <SavedViewsBar scope="myWork" filters={filters} sort={sort} onApply={publish} />
 
       <div id="my-work-panel" role="tabpanel" aria-labelledby={`my-work-tab-${view}`}>
         {rows.length === 0 ? (

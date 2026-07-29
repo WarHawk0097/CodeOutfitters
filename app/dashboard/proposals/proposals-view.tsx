@@ -9,7 +9,7 @@
 //
 // Nothing is emailed. "Mark sent" records a demo send; no proposal is delivered to a real
 // address and the preview/download is generated locally in the browser.
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   createProposal,
   duplicateProposal,
@@ -27,6 +27,9 @@ import { Dialog, DialogCancelButton, DialogSubmitButton } from "../../../compone
 import { SelectField, TextField } from "../../../components/demo/field";
 import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
 import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton } from "../../../components/demo/toolbar";
+import { SavedViewsBar } from "../../../components/command-center/saved-views";
+import { useListView, useQueryParam } from "../../../components/command-center/use-view-query";
+import { COMMAND_CREATE_PARAM } from "../../../lib/search/commands";
 import { RecordActivity } from "@/components/dashboard/activity-ui";
 import { eventsFor, type ActivityEvent } from "@/lib/activity/model";
 
@@ -114,10 +117,12 @@ export function ProposalsScreen() {
   const { state, status, error, retry } = useDemoQuery();
   const breakpoint = useBreakpoint();
 
-  const [q, setQ] = useState("");
-  const [ownerFilter, setOwnerFilter] = useState<string | null>(null);
-  const [stateFilter, setStateFilter] = useState<string | null>(null);
-  const [valueFilter, setValueFilter] = useState<string | null>(null);
+  // Filters live in the URL: same door for a Saved View, a search result and a shared link.
+  const { filters, sort, publish, set } = useListView("proposals");
+  const q = filters.q ?? "";
+  const ownerFilter = filters.owner === "" ? null : (filters.owner ?? null);
+  const stateFilter = filters.state === "" ? null : (filters.state ?? null);
+  const valueFilter = filters.value === "" ? null : (filters.value ?? null);
 
   const [detailId, setDetailId] = useState<string | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
@@ -125,6 +130,12 @@ export function ProposalsScreen() {
   const [confirm, setConfirm] = useState<{ id: string; next: ProposalState } | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [announcement, setAnnouncement] = useState("");
+
+  // "Create proposal" in the command palette arrives with `?new=1`.
+  const createRequested = useQueryParam(COMMAND_CREATE_PARAM) === "1";
+  useEffect(() => {
+    if (createRequested) setCreateOpen(true);
+  }, [createRequested]);
 
   const ownerName = useCallback(
     (id: string) => (id === "unassigned" ? "Unassigned" : (state.team.find((m) => m.id === id)?.name ?? id)),
@@ -307,23 +318,20 @@ export function ProposalsScreen() {
       </p>
 
       <RouteToolbar>
-        <SearchInput value={q} onChange={setQ} label="Search proposals by id, client, lead or service" />
-        <FilterMenu label="Owner" allLabel="All owners" value={ownerFilter} options={ownerOptions} onChange={setOwnerFilter} />
-        <FilterMenu label="Status" allLabel="Any status" value={stateFilter} options={stateOptions} onChange={setStateFilter} />
-        <FilterMenu label="Value" allLabel="Any value" value={valueFilter} options={valueOptions} onChange={setValueFilter} />
+        <SearchInput value={q} onChange={(value) => set("q", value)} label="Search proposals by id, client, lead or service" />
+        <FilterMenu label="Owner" allLabel="All owners" value={ownerFilter} options={ownerOptions} onChange={(value) => set("owner", value)} />
+        <FilterMenu label="Status" allLabel="Any status" value={stateFilter} options={stateOptions} onChange={(value) => set("state", value)} />
+        <FilterMenu label="Value" allLabel="Any value" value={valueFilter} options={valueOptions} onChange={(value) => set("value", value)} />
         {filtersApplied ? (
           <ToolbarButton
             label="Clear filters"
-            onClick={() => {
-              setQ("");
-              setOwnerFilter(null);
-              setStateFilter(null);
-              setValueFilter(null);
-            }}
+            onClick={() => publish({ ...filters, q: "", owner: "", state: "", value: "" }, sort)}
           />
         ) : null}
         <ToolbarButton label="New proposal" tone="primary" onClick={() => setCreateOpen(true)} />
       </RouteToolbar>
+
+      <SavedViewsBar scope="proposals" filters={filters} sort={sort} onApply={publish} />
 
       {rows.length === 0 ? (
         <RouteEmpty

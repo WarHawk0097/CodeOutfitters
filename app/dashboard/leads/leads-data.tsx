@@ -11,6 +11,9 @@ import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 
 import { LeadsTable, type LeadsQuery } from "@command-center/ui";
 import { fetchLeads } from "../../../lib/data/leads";
 import { useHeaderStats, useLeadsExport } from "../header-stats";
+import { SavedViewsBar } from "../../../components/command-center/saved-views";
+import { useListView } from "../../../components/command-center/use-view-query";
+import { isDefaultState } from "../../../lib/views/model";
 import {
   LEADS_PAGE_SIZE,
   UNKNOWN_OWNER_LABEL,
@@ -18,14 +21,10 @@ import {
   type LeadsListResponse,
 } from "@command-center/contracts";
 
-const INITIAL_QUERY: LeadsQuery = {
-  page: 1,
-  pageSize: LEADS_PAGE_SIZE,
-  q: "",
-  status: null,
-  service: null,
-  owner: null,
-};
+// Which parts of the leads query are shareable state. Page is not: a link that reopens on page
+// 7 of a set that has since shortened is a link to an empty table, and a Saved View that pins a
+// page number means something different every week.
+const URL_FILTER_KEYS = ["q", "status", "service", "owner"] as const;
 
 // `?visual-state=canonical` stages the composite presentation the canonical Leads frames were
 // authored in, so a captured frame and the canonical PNG show the same state. It is a
@@ -53,7 +52,25 @@ function mockScenarioRequested(): string | null {
 const neverChanges = () => () => {};
 
 export function LeadsData() {
-  const [query, setQuery] = useState<LeadsQuery>(INITIAL_QUERY);
+  // Filters and sort come from the URL so that a Saved View, a search result and a shared link
+  // are the same mechanism. Page stays local for the reason above.
+  const { filters, sort, publish } = useListView("leads");
+  const [page, setPage] = useState(1);
+  const query = useMemo<LeadsQuery>(
+    () => ({
+      page,
+      pageSize: LEADS_PAGE_SIZE,
+      q: filters.q ?? "",
+      // `sanitizeFilters` has already rejected any value outside the status vocabulary, so the
+      // only strings that reach here are ones this union contains.
+      status: (filters.status || null) as LeadsQuery["status"],
+      service: filters.service || null,
+      owner: filters.owner || null,
+      sortBy: sort?.field as LeadsQuery["sortBy"],
+      sortDir: sort?.direction,
+    }),
+    [page, filters, sort],
+  );
   // useSyncExternalStore, not an effect: the server has no query string for this client route,
   // so the server snapshot is false and the client snapshot is read during hydration — no
   // mismatch, and no setState in an effect. The parameter never changes without a reload, so
@@ -77,23 +94,37 @@ export function LeadsData() {
   // `filter-error` fails the first request caused by a filter, sort, search or page change —
   // which is also what mobile load-more issues, so one scenario covers both. Either way the
   // arming ends at the first Retry, so nothing stays broken.
+  const untouched = page === 1 && isDefaultState("leads", filters, sort);
   const scenarioArmed =
     attempt === 0 &&
     (mockScenario === "initial-error"
-      ? query === INITIAL_QUERY
+      ? untouched
       : mockScenario === "filter-error"
-        ? query !== INITIAL_QUERY
+        ? !untouched
         : false);
 
   // Any change other than the page itself returns to page 1 — a filter that kept
   // page 7 would land on an empty page whenever the narrowed set is shorter.
   // Applied here, once, so no individual control can forget to do it.
-  const onQueryChange = useCallback((patch: Partial<LeadsQuery>) => {
-    setQuery((prev) => {
-      const changesResultSet = Object.keys(patch).some((k) => k !== "page");
-      return { ...prev, ...patch, page: changesResultSet ? (patch.page ?? 1) : (patch.page ?? prev.page) };
-    });
-  }, []);
+  const onQueryChange = useCallback(
+    (patch: Partial<LeadsQuery>) => {
+      const changesResultSet = Object.keys(patch).some((key) => key !== "page");
+      setPage(changesResultSet ? (patch.page ?? 1) : (patch.page ?? page));
+      if (!changesResultSet) return;
+      const next: Record<string, string> = { ...filters };
+      for (const key of URL_FILTER_KEYS) {
+        if (key in patch) next[key] = patch[key] ?? "";
+      }
+      const nextSort =
+        "sortBy" in patch || "sortDir" in patch
+          ? patch.sortBy
+            ? { field: patch.sortBy, direction: patch.sortDir ?? "asc" }
+            : null
+          : sort;
+      publish(next, nextSort);
+    },
+    [filters, sort, page, publish],
+  );
 
   useEffect(() => {
     // `active` guards against an out-of-order response: a slow page-1 request
@@ -207,6 +238,10 @@ export function LeadsData() {
   }
 
   return (
+    <>
+    <div className="mb-2">
+      <SavedViewsBar scope="leads" filters={filters} sort={sort} onApply={publish} />
+    </div>
     <LeadsTable
       data={data.rows}
       total={data.total}
@@ -219,5 +254,6 @@ export function LeadsData() {
       mobileData={mobileRows}
       canonicalState={canonicalState}
     />
+    </>
   );
 }

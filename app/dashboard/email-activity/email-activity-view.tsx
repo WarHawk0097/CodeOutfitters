@@ -17,6 +17,8 @@ import { Dialog, DialogCancelButton, DialogSubmitButton } from "../../../compone
 import { SelectField, TextAreaField, TextField } from "../../../components/demo/field";
 import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
 import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton } from "../../../components/demo/toolbar";
+import { SavedViewsBar } from "../../../components/command-center/saved-views";
+import { useListView } from "../../../components/command-center/use-view-query";
 
 const STATE_TONE: Record<EmailState, Tone> = {
   QUEUED: "amber",
@@ -48,10 +50,12 @@ export function EmailActivityScreen() {
   const { state, status, error, retry } = useDemoQuery();
   const breakpoint = useBreakpoint();
 
-  const [q, setQ] = useState("");
-  const [directionFilter, setDirectionFilter] = useState<string | null>(null);
-  const [stateFilter, setStateFilter] = useState<string | null>(null);
-  const [readFilter, setReadFilter] = useState<string | null>(null);
+  // Filters live in the URL: same door for a Saved View, a search result and a shared link.
+  const { filters, sort, publish, set } = useListView("emailActivity");
+  const q = filters.q ?? "";
+  const directionFilter = filters.direction === "" ? null : (filters.direction ?? null);
+  const stateFilter = filters.state === "" ? null : (filters.state ?? null);
+  const readFilter = filters.read === "" ? null : (filters.read ?? null);
   const [visible, setVisible] = useState(PAGE_SIZE);
 
   const [threadId, setThreadId] = useState<string | null>(null);
@@ -211,29 +215,26 @@ export function EmailActivityScreen() {
       </p>
 
       <RouteToolbar>
-        <SearchInput value={q} onChange={setQ} label="Search email by subject, lead, recipient or type" />
+        <SearchInput value={q} onChange={(value) => set("q", value)} label="Search email by subject, lead, recipient or type" />
         <FilterMenu
           label="Direction"
           allLabel="All directions"
           value={directionFilter}
           options={DIRECTIONS.map((d) => ({ id: d.id, label: d.label }))}
-          onChange={setDirectionFilter}
+          onChange={(value) => set("direction", value)}
         />
-        <FilterMenu label="Status" allLabel="Any status" value={stateFilter} options={STATES.map((s) => ({ id: s, label: s }))} onChange={setStateFilter} />
-        <FilterMenu label="Read" allLabel="Read & unread" value={readFilter} options={READ_OPTIONS.map((r) => ({ id: r.id, label: r.label }))} onChange={setReadFilter} />
+        <FilterMenu label="Status" allLabel="Any status" value={stateFilter} options={STATES.map((s) => ({ id: s, label: s }))} onChange={(value) => set("state", value)} />
+        <FilterMenu label="Read" allLabel="Read & unread" value={readFilter} options={READ_OPTIONS.map((r) => ({ id: r.id, label: r.label }))} onChange={(value) => set("read", value)} />
         {filtersApplied ? (
           <ToolbarButton
             label="Clear filters"
-            onClick={() => {
-              setQ("");
-              setDirectionFilter(null);
-              setStateFilter(null);
-              setReadFilter(null);
-            }}
+            onClick={() => publish({ ...filters, q: "", direction: "", state: "", read: "" }, sort)}
           />
         ) : null}
         <ToolbarButton label="Compose" tone="primary" onClick={() => startCompose()} />
       </RouteToolbar>
+
+      <SavedViewsBar scope="emailActivity" filters={filters} sort={sort} onApply={publish} />
 
       {rows.length === 0 ? (
         <RouteEmpty

@@ -1,9 +1,9 @@
 // My Work. The screen owns its own switch, toolbar and dialogs; the shell header carries
 // the title and subtitle (see shell-nav PAGE_META).
 //
-// Suspense is required, not decorative: MyWorkScreen reads `?view=` with useSearchParams so
-// the Overview modules can drill straight into one view, and Next refuses to build a
-// statically rendered page that reads search params outside a boundary.
+// The boundary covers the first client render: MyWorkScreen reads `?view=` and the rest of its
+// filter state from the address bar, which no server render can know, so the fallback is what
+// the page shows for the moment before hydration decides which view was asked for.
 import { Suspense } from "react";
 import { MyWorkScreen } from "./my-work-view";
 import { RouteLoading } from "../../../components/demo/route-states";
