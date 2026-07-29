@@ -11,6 +11,7 @@
 // carries a leadId, an appointment carries a leadId and an opportunityId, and owners are
 // team-member ids drawn from the same directory the Leads route uses.
 import type { LeadStatus } from "@command-center/contracts";
+import type { ActivityEvent } from "@/lib/activity/model";
 
 /** Pipeline stage. Identical value set to LeadStatus — the canonical board is
  *  "STAGES 2-5 OF 11" over the eleven canonical lead statuses (CANON 1362, 1088). */
@@ -251,23 +252,11 @@ export type SettingsSection = {
   fields: SettingField[];
 };
 
-export type ActivityEntry = {
-  id: string;
-  at: string;
-  subjectId: string;
-  subjectKind:
-    | "lead"
-    | "opportunity"
-    | "appointment"
-    | "meeting"
-    | "proposal"
-    | "followUp"
-    | "email"
-    | "team"
-    | "settings"
-    | "task";
-  message: string;
-};
+/** The demo activity log is the shared activity-event model, not a second private shape.
+ *  One log means the timeline on a lead, the history on a proposal and the recent activity
+ *  on Overview are the same events read through different filters — a record cannot show a
+ *  change on one screen and not on another. */
+export type { ActivityEvent };
 
 /** Fields a demo mutation may push onto a lead so the Leads route reflects it. */
 export type LeadOverride = {
@@ -288,7 +277,7 @@ export type DemoState = {
   emails: EmailActivity[];
   settings: SettingsSection[];
   leadOverrides: Record<string, LeadOverride>;
-  activity: ActivityEntry[];
+  activity: ActivityEvent[];
   /** Monotonic counter used to mint ids without a clock or a random source, so a demo
    *  session replays identically. */
   nextId: number;

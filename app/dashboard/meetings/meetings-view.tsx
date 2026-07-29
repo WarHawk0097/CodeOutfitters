@@ -30,6 +30,8 @@ import { SelectField, TextAreaField, TextField } from "../../../components/demo/
 import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
 import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton } from "../../../components/demo/toolbar";
 import { longDate, timeRange } from "../appointments/date-utils";
+import { RecordActivity } from "@/components/dashboard/activity-ui";
+import { eventsFor, type ActivityEvent } from "@/lib/activity/model";
 
 // CANON 1392-1396 gives each meeting an `stc` colour. FAILED · NO-SHOW is red, NEEDS
 // REVIEW blue, COMPLETED neutral, READY green. LIVE and CANCELLED are not drawn on any
@@ -437,7 +439,7 @@ export function MeetingsScreen() {
           meeting={detail}
           ownerName={ownerName(detail.ownerId)}
           day={dayOf(detail)}
-          activity={state.activity.filter((entry) => entry.subjectId === detail.id)}
+          activity={eventsFor(state.activity, "meeting", detail.id)}
           onClose={() => setDetailId(null)}
           onComplete={() => {
             setDetailId(null);
@@ -619,7 +621,7 @@ function MeetingDetailDialog({
   meeting: Meeting;
   ownerName: string;
   day: string | null;
-  activity: readonly { id: string; message: string }[];
+  activity: readonly ActivityEvent[];
   onClose: () => void;
   onEdit: () => void;
   onComplete: () => void;
@@ -673,18 +675,10 @@ function MeetingDetailDialog({
         <p className="mt-3 border-t border-cc-line pt-3 text-[12.5px] text-cc-t-table">Outcome: {meeting.outcome}</p>
       ) : null}
       {meeting.notes ? <p className="mt-2 text-[12.5px] text-cc-t-table">{meeting.notes}</p> : null}
-      <h3 className="mt-4 font-cc-mono text-[10px] tracking-[.06em] text-cc-t3">ACTIVITY HISTORY</h3>
-      {activity.length === 0 ? (
-        <p className="mt-1 text-[11.5px] text-cc-t3">No demo activity recorded for this meeting yet.</p>
-      ) : (
-        <ul className="mt-1 space-y-1">
-          {activity.map((entry) => (
-            <li key={entry.id} className="text-[11.5px] text-cc-t-table">
-              {entry.message}
-            </li>
-          ))}
-        </ul>
-      )}
+      <RecordActivity
+        events={activity}
+        emptyLabel="No demo activity recorded for this meeting yet."
+      />
     </Dialog>
   );
 }

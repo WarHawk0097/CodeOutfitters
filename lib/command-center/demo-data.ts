@@ -10,6 +10,7 @@ import type {
   LeadDetail,
   LeadAttachment,
 } from '@/lib/dashboard/server'
+import { LEAD_DIRECTORY } from '@/lib/demo/seed'
 
 export const DEMO_WORKSPACE_NAME = 'CodeOutfitters Demo Workspace'
 
@@ -44,6 +45,10 @@ type DemoLead = {
 }
 
 // Newest first (matches the live created_at DESC ordering).
+//
+// Every timestamp sits before the one demo reference date the rest of the demo runs on
+// (DEMO_TODAY in lib/demo/seed.ts, 2026-04-22). A second demo "today" here would put lead
+// activity in the future of the record it belongs to, so these dates move with that one.
 const DEMO_LEADS: DemoLead[] = [
   {
     id: '0a7c9e14-8b3f-4c21-9d5a-1e2f3a4b5c6d',
@@ -60,7 +65,7 @@ const DEMO_LEADS: DemoLead[] = [
     source_page: '/services',
     formVariant: 'services_inline',
     status: 'New',
-    created_at: '2026-07-21T09:12:00.000Z',
+    created_at: '2026-04-14T09:12:00.000Z',
     workflow_description:
       'We manually reconcile carrier invoices against shipment records every week — roughly 400 line items across three spreadsheets. Looking to discover where automation could remove the double entry and flag mismatches before they hit finance.',
     attachments: [
@@ -71,7 +76,7 @@ const DEMO_LEADS: DemoLead[] = [
         byteSize: 48213,
         scanStatus: 'clean',
         uploadStatus: 'completed',
-        createdAt: '2026-07-21T09:12:30.000Z',
+        createdAt: '2026-04-14T09:12:30.000Z',
       },
     ],
   },
@@ -90,7 +95,7 @@ const DEMO_LEADS: DemoLead[] = [
     source_page: '/industries',
     formVariant: 'industries_inline',
     status: 'Qualified',
-    created_at: '2026-07-20T15:47:00.000Z',
+    created_at: '2026-03-31T15:47:00.000Z',
     workflow_description:
       'Store managers report daily numbers by email and we consolidate them by hand. We want a single operations dashboard that pulls POS, staffing, and inventory into one live view for 62 locations.',
     attachments: [
@@ -101,7 +106,7 @@ const DEMO_LEADS: DemoLead[] = [
         byteSize: 71680,
         scanStatus: 'clean',
         uploadStatus: 'completed',
-        createdAt: '2026-07-20T15:48:10.000Z',
+        createdAt: '2026-03-31T15:48:10.000Z',
       },
       {
         id: 'aa1c0003-0000-4000-8000-000000000003',
@@ -110,7 +115,7 @@ const DEMO_LEADS: DemoLead[] = [
         byteSize: 205331,
         scanStatus: 'pending',
         uploadStatus: 'completed',
-        createdAt: '2026-07-20T15:49:02.000Z',
+        createdAt: '2026-03-31T15:49:02.000Z',
       },
     ],
   },
@@ -129,7 +134,7 @@ const DEMO_LEADS: DemoLead[] = [
     source_page: '/case-studies',
     formVariant: 'case_study_contextual',
     status: 'In review',
-    created_at: '2026-07-19T11:03:00.000Z',
+    created_at: '2026-03-24T11:03:00.000Z',
     workflow_description:
       'Support volume doubled after our last launch. We are evaluating an AI assist layer that drafts responses from our knowledge base while keeping a human in the loop for anything touching account balances.',
     attachments: [],
@@ -149,7 +154,7 @@ const DEMO_LEADS: DemoLead[] = [
     source_page: '/process',
     formVariant: 'workflow_audit_popup',
     status: 'New',
-    created_at: '2026-07-18T08:26:00.000Z',
+    created_at: '2026-03-17T08:26:00.000Z',
     workflow_description:
       'Patient intake still runs on paper forms that staff re-key into two separate systems. We want an audit of the end-to-end workflow before committing to a build, with a clear map of where errors and delays come from.',
     attachments: [
@@ -160,7 +165,7 @@ const DEMO_LEADS: DemoLead[] = [
         byteSize: 3120,
         scanStatus: 'rejected',
         uploadStatus: 'completed',
-        createdAt: '2026-07-18T08:27:15.000Z',
+        createdAt: '2026-03-17T08:27:15.000Z',
       },
     ],
   },
@@ -179,7 +184,7 @@ const DEMO_LEADS: DemoLead[] = [
     source_page: '/security',
     formVariant: 'security_contextual',
     status: 'Qualified',
-    created_at: '2026-07-17T14:55:00.000Z',
+    created_at: '2026-03-10T14:55:00.000Z',
     workflow_description:
       'We need to connect our on-prem ERP to a new supplier portal without exposing the ERP to the public internet. Security review and a documented integration boundary are the priority for this engagement.',
     attachments: [
@@ -190,13 +195,17 @@ const DEMO_LEADS: DemoLead[] = [
         byteSize: 512044,
         scanStatus: 'clean',
         uploadStatus: 'completed',
-        createdAt: '2026-07-17T14:56:40.000Z',
+        createdAt: '2026-03-10T14:56:40.000Z',
       },
     ],
   },
 ]
 
 const byId = new Map(DEMO_LEADS.map((l) => [l.id, l]))
+
+// The pipeline lead directory, indexed once. Imported here and never the other way round:
+// lib/demo never reads this module, so there is no cycle between the two demo universes.
+const PIPELINE_LEADS_BY_ID = new Map(LEAD_DIRECTORY.map((lead) => [lead.id, lead]))
 
 // A recognizable demo lead id for QA / URLs.
 export const DEMO_SAMPLE_LEAD_ID = DEMO_LEADS[0].id
@@ -236,9 +245,38 @@ export function listDemoLeads(
   return { items, total: DEMO_LEADS.length }
 }
 
+// The demo has two kinds of lead and both open on /dashboard/leads/[leadId]:
+//
+//   1. the intake submissions above — a website form, with attachments and the fields the
+//      form asks for;
+//   2. the pipeline leads in lib/demo/seed.ts, which are what the Leads table lists and
+//      what every meeting, proposal, task and follow-up in the demo is attached to.
+//
+// Only the second kind has a working history, so the lead route has to resolve it or the
+// Lead 360 timeline would be a screen nobody can reach. The mapping below carries across
+// only fields a pipeline lead genuinely has; intake-only fields (work email, phone, budget,
+// industry, timeline) are left absent rather than invented, and the detail page already
+// drops empty fields, so a pipeline lead renders what is true about it and nothing else.
+function pipelineLeadDetail(leadId: string): LeadDetail | null {
+  const lead = PIPELINE_LEADS_BY_ID.get(leadId)
+  if (!lead) return null
+  const [firstName, ...restName] = lead.name.split(' ')
+  return {
+    id: lead.id,
+    first_name: firstName,
+    last_name: restName.join(' '),
+    business_name: lead.company,
+    status: lead.status,
+    service_interest: lead.serviceInterest ?? null,
+    source_page: lead.sourcePage ?? null,
+    created_at: lead.createdAt,
+    formVariant: null,
+  }
+}
+
 export function getDemoLead(leadId: string): LeadDetail | null {
   const l = byId.get(leadId)
-  if (!l) return null
+  if (!l) return pipelineLeadDetail(leadId)
   const { attachments: _omit, ...rest } = l
   return { ...rest } as LeadDetail
 }

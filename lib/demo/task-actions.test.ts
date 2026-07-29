@@ -49,9 +49,11 @@ describe("demo task store (tests 35-57)", () => {
 
   // 36
   it("the state version is bumped so a pre-task stored session is discarded, not migrated", () => {
-    // A session written before tasks existed has no `tasks` array at all. Reading it back
-    // would hand every task screen `undefined`, so the version must have moved.
-    expect(DEMO_STATE_VERSION).toBe(2);
+    // A session written before tasks existed has no `tasks` array at all, and one written
+    // before the activity log became a shared ActivityEvent still holds the old
+    // {subjectId, message} entries. Reading either back would hand a screen a shape it
+    // cannot render, so the version moves with every change to DemoState.
+    expect(DEMO_STATE_VERSION).toBe(3);
     expect(createSeedState().version).toBe(DEMO_STATE_VERSION);
   });
 
@@ -123,10 +125,16 @@ describe("demo task store (tests 35-57)", () => {
   it("a create is recorded in activity as a task event stamped with the fixed demo clock", () => {
     const id = createTask({ title: "Chase the deposit", ownerId: DEMO_CURRENT_USER_ID });
     const entry = getDemoState().activity[0];
-    expect(entry?.subjectKind).toBe("task");
-    expect(entry?.subjectId).toBe(id);
-    expect(entry?.at).toBe(DEMO_NOW);
-    expect(entry?.message).toContain("Chase the deposit");
+    expect(entry?.type).toBe("task_created");
+    expect(entry?.category).toBe("task");
+    expect(entry?.related.kind).toBe("task");
+    expect(entry?.related.id).toBe(id);
+    expect(entry?.occurredAt).toBe(DEMO_NOW);
+    expect(entry?.summary).toContain("Chase the deposit");
+    // The call site states what happened; it never states who or when. Those are derived
+    // in withActivity, which is what stops a demo write from forging an actor.
+    expect(entry?.actorId).toBe(DEMO_CURRENT_USER_ID);
+    expect(entry?.source).toBe("user_action");
   });
 
   // 43

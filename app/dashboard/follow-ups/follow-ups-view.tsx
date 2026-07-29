@@ -28,6 +28,8 @@ import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/r
 import { NextActionCard } from "../../../components/dashboard/next-action-card";
 import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton } from "../../../components/demo/toolbar";
 import { longDate } from "../appointments/date-utils";
+import { RecordActivity } from "@/components/dashboard/activity-ui";
+import { eventsFor, type ActivityEvent } from "@/lib/activity/model";
 
 // C-D12 342-353 draws OVERDUE (red), DUE TODAY (amber) and the queue; the four states the
 // switch offers each get a tone from the canonical palette by the same grammar the rest of
@@ -437,7 +439,7 @@ export function FollowUpsScreen() {
         <FollowUpDetailDialog
           followUp={detail}
           ownerName={ownerName(detail.ownerId)}
-          activity={state.activity.filter((entry) => entry.subjectId === detail.id)}
+          activity={eventsFor(state.activity, "followUp", detail.id)}
           onClose={() => setDetailId(null)}
           onEdit={() => {
             setDetailId(null);
@@ -574,7 +576,7 @@ function FollowUpDetailDialog({
 }: {
   followUp: FollowUp;
   ownerName: string;
-  activity: readonly { id: string; message: string }[];
+  activity: readonly ActivityEvent[];
   onClose: () => void;
   onEdit: () => void;
   onComplete: () => void;
@@ -634,18 +636,10 @@ function FollowUpDetailDialog({
           leadId={followUp.leadId}
         />
       </div>
-      <h3 className="mt-4 font-cc-mono text-[10px] tracking-[.06em] text-cc-t3">ACTIVITY HISTORY</h3>
-      {activity.length === 0 ? (
-        <p className="mt-1 text-[11.5px] text-cc-t3">No demo activity recorded for this follow-up yet.</p>
-      ) : (
-        <ul className="mt-1 space-y-1">
-          {activity.map((entry) => (
-            <li key={entry.id} className="text-[11.5px] text-cc-t-table">
-              {entry.message}
-            </li>
-          ))}
-        </ul>
-      )}
+      <RecordActivity
+        events={activity}
+        emptyLabel="No demo activity recorded for this follow-up yet."
+      />
     </Dialog>
   );
 }

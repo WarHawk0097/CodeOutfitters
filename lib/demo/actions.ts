@@ -5,8 +5,9 @@
 // email is delivered and no real account is created.
 "use client";
 
-import { createSeedState, DEMO_TODAY, stageToLeadStatus } from "./seed";
+import { createSeedState, DEMO_TODAY, LEAD_DIRECTORY, stageToLeadStatus } from "./seed";
 import { getDemoState, mintId, updateDemoState, withActivity } from "./store";
+import type { ActivityRef } from "@/lib/activity/model";
 import type {
   Appointment,
   AppointmentState,
@@ -30,6 +31,28 @@ import type {
 
 function replace<T extends { id: string }>(rows: T[], id: string, patch: Partial<T>): T[] {
   return rows.map((row) => (row.id === id ? { ...row, ...patch } : row));
+}
+
+const LEAD_NAMES = new Map(LEAD_DIRECTORY.map((lead) => [lead.id, lead.name]));
+
+/** The lead a record belongs to, as an activity reference.
+ *
+ *  Every pipeline record carries a leadId, so passing this as the event's `parent` is what
+ *  makes a proposal edit or a meeting cancellation show up on that lead's timeline without
+ *  the event being written twice. */
+function leadRef(leadId: string): ActivityRef {
+  return { kind: "lead", id: leadId, label: LEAD_NAMES.get(leadId) ?? "Lead" };
+}
+
+/** Where a task's history rolls up to. The lead comes first because that is the record a
+ *  person opens; a task with no lead still belongs to whatever it was created from, and a
+ *  standalone task belongs to nothing and says so by returning null. */
+function taskParent(task: Task): ActivityRef | null {
+  if (task.leadId) return leadRef(task.leadId);
+  if (task.relation) {
+    return { kind: task.relation.kind, id: task.relation.id, label: task.relation.label };
+  }
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -66,11 +89,17 @@ export function moveOpportunity(opportunityId: string, stage: PipelineStage, rea
         },
       },
       ...withActivity(current, {
-        subjectId: opportunityId,
-        subjectKind: "opportunity",
-        message: reason
+        type: "lead_stage_changed",
+        summary: reason
           ? `${opportunity.name} moved to ${stage} — ${reason}`
           : `${opportunity.name} moved to ${stage}`,
+        related: { kind: "opportunity", id: opportunityId, label: opportunity.name },
+        parent: leadRef(opportunity.leadId),
+        metadata: [
+          { label: "From", value: opportunity.stage },
+          { label: "To", value: stage },
+          ...(reason ? [{ label: "Reason", value: reason }] : []),
+        ],
       }),
     };
   });
@@ -93,7 +122,15 @@ export function updateOpportunity(opportunityId: string, patch: Partial<Opportun
         [opportunity.leadId]: { ...next.leadOverrides[opportunity.leadId], ownerId: patch.ownerId },
       };
     }
-    return { ...next, ...withActivity(current, { subjectId: opportunityId, subjectKind: "opportunity", message: `${opportunity.name} updated` }) };
+    return {
+      ...next,
+      ...withActivity(current, {
+        type: "opportunity_updated",
+        summary: `${opportunity.name} updated`,
+        related: { kind: "opportunity", id: opportunityId, label: opportunity.name },
+        parent: leadRef(opportunity.leadId),
+      }),
+    };
   });
 }
 
@@ -103,9 +140,11 @@ export function createOpportunity(input: Omit<Opportunity, "id">): string {
     const { id, nextId } = mintId(current, "opp");
     created = id;
     const activity = withActivity({ ...current, nextId }, {
-      subjectId: id,
-      subjectKind: "opportunity",
-      message: `${input.name} added to ${input.stage}`,
+      type: "opportunity_created",
+      summary: `${input.name} added to ${input.stage}`,
+      related: { kind: "opportunity", id, label: input.name },
+      parent: leadRef(input.leadId),
+      metadata: [{ label: "Stage", value: input.stage }],
     });
     return {
       ...current,
@@ -153,7 +192,13 @@ export function createAppointment(input: Omit<Appointment, "id">): string {
       ...current,
       appointments: [...current.appointments, { ...input, id }],
       leadOverrides: withAppointmentLead(current, input.leadId, appointmentNextStep(input)),
-      ...withActivity({ ...current, nextId }, { subjectId: id, subjectKind: "appointment", message: `Appointment booked — ${input.title}` }),
+      ...withActivity({ ...current, nextId }, {
+        type: "appointment_booked",
+        summary: `Appointment booked — ${input.title}`,
+        related: { kind: "appointment", id, label: input.title },
+        parent: leadRef(input.leadId),
+        metadata: [{ label: "When", value: `${input.date} ${input.startTime}` }],
+      }),
     };
   });
   return created;
@@ -168,7 +213,12 @@ export function updateAppointment(id: string, patch: Partial<Appointment>): void
       ...current,
       appointments: replace(current.appointments, id, patch),
       leadOverrides: withAppointmentLead(current, next.leadId, appointmentNextStep(next)),
-      ...withActivity(current, { subjectId: id, subjectKind: "appointment", message: `${appointment.title} updated` }),
+      ...withActivity(current, {
+        type: "appointment_updated",
+        summary: `${appointment.title} updated`,
+        related: { kind: "appointment", id, label: appointment.title },
+        parent: leadRef(next.leadId),
+      }),
     };
   });
 }
@@ -184,7 +234,16 @@ export function rescheduleAppointment(id: string, date: string, startTime: strin
         ...current.leadOverrides,
         [appointment.leadId]: { ...current.leadOverrides[appointment.leadId], nextStepLabel: `Meeting ${date} ${startTime}` },
       },
-      ...withActivity(current, { subjectId: id, subjectKind: "appointment", message: `${appointment.title} rescheduled to ${date} ${startTime}` }),
+      ...withActivity(current, {
+        type: "appointment_rescheduled",
+        summary: `${appointment.title} rescheduled to ${date} ${startTime}`,
+        related: { kind: "appointment", id, label: appointment.title },
+        parent: leadRef(appointment.leadId),
+        metadata: [
+          { label: "From", value: `${appointment.date} ${appointment.startTime}` },
+          { label: "To", value: `${date} ${startTime}` },
+        ],
+      }),
     };
   });
 }
@@ -197,7 +256,13 @@ export function cancelAppointment(id: string, reason: string): void {
       ...current,
       appointments: replace(current.appointments, id, { state: "cancelled" as AppointmentState, detail: reason || "Cancelled" }),
       leadOverrides: withAppointmentLead(current, appointment.leadId, appointmentNextStep({ ...appointment, state: "cancelled" })),
-      ...withActivity(current, { subjectId: id, subjectKind: "appointment", message: `${appointment.title} cancelled` }),
+      ...withActivity(current, {
+        type: "appointment_cancelled",
+        summary: `${appointment.title} cancelled`,
+        detail: reason,
+        related: { kind: "appointment", id, label: appointment.title },
+        parent: leadRef(appointment.leadId),
+      }),
     };
   });
 }
@@ -213,7 +278,12 @@ export function updateMeeting(id: string, patch: Partial<Meeting>): void {
     return {
       ...current,
       meetings: replace(current.meetings, id, patch),
-      ...withActivity(current, { subjectId: id, subjectKind: "meeting", message: `${meeting.name} — meeting updated` }),
+      ...withActivity(current, {
+        type: "meeting_updated",
+        summary: `${meeting.name} — meeting updated`,
+        related: { kind: "meeting", id, label: meeting.name },
+        parent: leadRef(meeting.leadId),
+      }),
     };
   });
 }
@@ -226,7 +296,13 @@ export function createMeeting(input: Omit<Meeting, "id">): string {
     return {
       ...current,
       meetings: [...current.meetings, { ...input, id }],
-      ...withActivity({ ...current, nextId }, { subjectId: id, subjectKind: "meeting", message: `Meeting added — ${input.name}` }),
+      ...withActivity({ ...current, nextId }, {
+        type: "meeting_scheduled",
+        summary: `Meeting added — ${input.name}`,
+        related: { kind: "meeting", id, label: input.name },
+        parent: leadRef(input.leadId),
+        metadata: [{ label: "When", value: input.when }],
+      }),
     };
   });
   return created;
@@ -255,7 +331,16 @@ export function rescheduleMeeting(
         meeting.leadId,
         rescheduled ? appointmentNextStep(rescheduled) : `Meeting ${next.date} ${next.startTime}`,
       ),
-      ...withActivity(current, { subjectId: id, subjectKind: "meeting", message: `${meeting.name} — meeting rescheduled to ${next.when}` }),
+      ...withActivity(current, {
+        type: "meeting_rescheduled",
+        summary: `${meeting.name} — meeting rescheduled to ${next.when}`,
+        related: { kind: "meeting", id, label: meeting.name },
+        parent: leadRef(meeting.leadId),
+        metadata: [
+          { label: "From", value: meeting.when },
+          { label: "To", value: next.when },
+        ],
+      }),
     };
   });
 }
@@ -272,7 +357,12 @@ export function cancelMeeting(id: string, reason: string): void {
         ? replace(current.appointments, appointment.id, { state: "cancelled" as AppointmentState, detail: reason })
         : current.appointments,
       leadOverrides: withAppointmentLead(current, meeting.leadId, "Rebook meeting"),
-      ...withActivity(current, { subjectId: id, subjectKind: "meeting", message: `${meeting.name} — meeting cancelled` }),
+      ...withActivity(current, {
+        type: "meeting_cancelled",
+        summary: `${meeting.name} — meeting cancelled`,
+        related: { kind: "meeting", id, label: meeting.name },
+        parent: leadRef(meeting.leadId),
+      }),
     };
   });
 }
@@ -288,7 +378,12 @@ export function completeMeeting(id: string, outcome: string, notes: string): voi
         ...current.leadOverrides,
         [meeting.leadId]: { ...current.leadOverrides[meeting.leadId], nextStepLabel: outcome || "Meeting complete" },
       },
-      ...withActivity(current, { subjectId: id, subjectKind: "meeting", message: `${meeting.name} — meeting marked complete` }),
+      ...withActivity(current, {
+        type: "meeting_completed",
+        summary: `${meeting.name} — meeting marked complete`,
+        related: { kind: "meeting", id, label: meeting.name },
+        parent: leadRef(meeting.leadId),
+      }),
     };
   });
 }
@@ -319,7 +414,19 @@ export function setProposalState(id: string, next: ProposalState): void {
       state.opportunities = replace(current.opportunities, proposal.opportunityId, { stage });
       state.leadOverrides = { ...current.leadOverrides, [proposal.leadId]: { ...current.leadOverrides[proposal.leadId], status: stage } };
     }
-    return { ...state, ...withActivity(current, { subjectId: id, subjectKind: "proposal", message: `${id} · ${proposal.client} — ${patch.lastEvent}` }) };
+    return {
+      ...state,
+      ...withActivity(current, {
+        type: "proposal_status_changed",
+        summary: `${id} · ${proposal.client} — ${patch.lastEvent}`,
+        related: { kind: "proposal", id, label: `${id} · ${proposal.client}` },
+        parent: leadRef(proposal.leadId),
+        metadata: [
+          { label: "From", value: proposal.state },
+          { label: "To", value: next },
+        ],
+      }),
+    };
   });
 }
 
@@ -330,7 +437,12 @@ export function updateProposal(id: string, patch: Partial<Proposal>): void {
     return {
       ...current,
       proposals: replace(current.proposals, id, patch),
-      ...withActivity(current, { subjectId: id, subjectKind: "proposal", message: `${id} updated` }),
+      ...withActivity(current, {
+        type: "proposal_edited",
+        summary: `${id} updated`,
+        related: { kind: "proposal", id, label: `${id} · ${proposal.client}` },
+        parent: leadRef(proposal.leadId),
+      }),
     };
   });
 }
@@ -347,7 +459,13 @@ export function createProposal(input: Omit<Proposal, "id">): string {
     return {
       ...current,
       proposals: [{ ...input, id }, ...current.proposals],
-      ...withActivity(current, { subjectId: id, subjectKind: "proposal", message: `${id} · ${input.client} created` }),
+      ...withActivity(current, {
+        type: "proposal_created",
+        summary: `${id} · ${input.client} created`,
+        related: { kind: "proposal", id, label: `${id} · ${input.client}` },
+        parent: leadRef(input.leadId),
+        metadata: [{ label: "Version", value: input.version }],
+      }),
     };
   });
   return created;
@@ -375,7 +493,12 @@ export function completeFollowUp(id: string): void {
         ...current.leadOverrides,
         [followUp.leadId]: { ...current.leadOverrides[followUp.leadId], nextStepLabel: `${followUp.type} done` },
       },
-      ...withActivity(current, { subjectId: id, subjectKind: "followUp", message: `${followUp.name} — ${followUp.type} completed` }),
+      ...withActivity(current, {
+        type: "follow_up_completed",
+        summary: `${followUp.name} — ${followUp.type} completed`,
+        related: { kind: "followUp", id, label: `${followUp.name} — ${followUp.type}` },
+        parent: leadRef(followUp.leadId),
+      }),
     };
   });
 }
@@ -391,7 +514,16 @@ export function rescheduleFollowUp(id: string, dueDate: string, state: FollowUpS
         ...current.leadOverrides,
         [followUp.leadId]: { ...current.leadOverrides[followUp.leadId], nextStepLabel: `${followUp.type} ${dueDate}` },
       },
-      ...withActivity(current, { subjectId: id, subjectKind: "followUp", message: `${followUp.name} — ${followUp.type} due ${dueDate}` }),
+      ...withActivity(current, {
+        type: "follow_up_rescheduled",
+        summary: `${followUp.name} — ${followUp.type} due ${dueDate}`,
+        related: { kind: "followUp", id, label: `${followUp.name} — ${followUp.type}` },
+        parent: leadRef(followUp.leadId),
+        metadata: [
+          { label: "From", value: followUp.dueDate },
+          { label: "To", value: dueDate },
+        ],
+      }),
     };
   });
 }
@@ -407,7 +539,12 @@ export function updateFollowUp(id: string, patch: Partial<FollowUp>): void {
     return {
       ...current,
       followUps: replace(current.followUps, id, patch),
-      ...withActivity(current, { subjectId: id, subjectKind: "followUp", message: `${followUp.name} — follow-up updated` }),
+      ...withActivity(current, {
+        type: "follow_up_updated",
+        summary: `${followUp.name} — follow-up updated`,
+        related: { kind: "followUp", id, label: `${followUp.name} — ${followUp.type}` },
+        parent: leadRef(followUp.leadId),
+      }),
     };
   });
 }
@@ -420,7 +557,13 @@ export function createFollowUp(input: Omit<FollowUp, "id">): string {
     return {
       ...current,
       followUps: [{ ...input, id }, ...current.followUps],
-      ...withActivity({ ...current, nextId }, { subjectId: id, subjectKind: "followUp", message: `${input.name} — ${input.type} scheduled` }),
+      ...withActivity({ ...current, nextId }, {
+        type: "follow_up_created",
+        summary: `${input.name} — ${input.type} scheduled`,
+        related: { kind: "followUp", id, label: `${input.name} — ${input.type}` },
+        parent: leadRef(input.leadId),
+        metadata: [{ label: "Due", value: input.dueDate }],
+      }),
     };
   });
   return created;
@@ -441,7 +584,12 @@ export function setEmailArchived(id: string, archived: boolean): void {
     return {
       ...current,
       emails: replace(current.emails, id, { archived, state: archived ? "ARCHIVED" : email.state }),
-      ...withActivity(current, { subjectId: id, subjectKind: "email", message: `${email.subject} ${archived ? "archived" : "restored"}` }),
+      ...withActivity(current, {
+        type: "email_archived",
+        summary: `${email.subject} ${archived ? "archived" : "restored"}`,
+        related: { kind: "email", id, label: email.subject },
+        parent: leadRef(email.leadId),
+      }),
     };
   });
 }
@@ -453,7 +601,12 @@ export function retryEmail(id: string): void {
     return {
       ...current,
       emails: replace(current.emails, id, { state: "QUEUED", sent: "just now" }),
-      ...withActivity(current, { subjectId: id, subjectKind: "email", message: `${email.subject} queued for retry (demo — not delivered)` }),
+      ...withActivity(current, {
+        type: "email_retry_queued",
+        summary: `${email.subject} queued for retry (demo — not delivered)`,
+        related: { kind: "email", id, label: email.subject },
+        parent: leadRef(email.leadId),
+      }),
     };
   });
 }
@@ -466,7 +619,12 @@ export function sendEmail(input: Omit<EmailActivity, "id">): string {
     return {
       ...current,
       emails: [{ ...input, id }, ...current.emails],
-      ...withActivity({ ...current, nextId }, { subjectId: id, subjectKind: "email", message: `${input.subject} sent in demo mode — no email was delivered` }),
+      ...withActivity({ ...current, nextId }, {
+        type: "email_sent",
+        summary: `${input.subject} sent in demo mode — no email was delivered`,
+        related: { kind: "email", id, label: input.subject },
+        parent: leadRef(input.leadId),
+      }),
     };
   });
   return created;
@@ -486,7 +644,11 @@ export function inviteTeamMember(name: string, email: string, role: TeamRole): s
     return {
       ...current,
       team: [...current.team, member],
-      ...withActivity({ ...current, nextId }, { subjectId: id, subjectKind: "team", message: `${name} invited in demo mode — no invitation was sent` }),
+      ...withActivity({ ...current, nextId }, {
+        type: "team_member_invited",
+        summary: `${name} invited in demo mode — no invitation was sent`,
+        related: { kind: "workspace", id, label: name },
+      }),
     };
   });
   return created;
@@ -499,7 +661,11 @@ export function updateTeamMember(id: string, patch: Partial<TeamMember>): void {
     return {
       ...current,
       team: replace(current.team, id, patch),
-      ...withActivity(current, { subjectId: id, subjectKind: "team", message: `${member.name} updated` }),
+      ...withActivity(current, {
+        type: "team_updated",
+        summary: `${member.name} updated`,
+        related: { kind: "workspace", id, label: member.name },
+      }),
     };
   });
 }
@@ -520,7 +686,11 @@ export function removeTeamMember(id: string): void {
       meetings: reassign(current.meetings),
       proposals: reassign(current.proposals),
       followUps: reassign(current.followUps),
-      ...withActivity(current, { subjectId: id, subjectKind: "team", message: `${member.name} removed — owned records reassigned to Unassigned` }),
+      ...withActivity(current, {
+        type: "team_member_removed",
+        summary: `${member.name} removed — owned records reassigned to Unassigned`,
+        related: { kind: "workspace", id, label: member.name },
+      }),
     };
   });
 }
@@ -547,7 +717,11 @@ export function saveSettingsSection(sectionId: string, values: Record<string, st
               ),
             },
       ),
-      ...withActivity(current, { subjectId: sectionId, subjectKind: "settings", message: `${section.label} settings saved` }),
+      ...withActivity(current, {
+        type: "settings_updated",
+        summary: `${section.label} settings saved`,
+        related: { kind: "workspace", id: sectionId, label: section.label },
+      }),
     };
   });
 }
@@ -594,7 +768,14 @@ export function createTask(input: NewTaskInput): string {
     return {
       ...current,
       tasks: [task, ...current.tasks],
-      ...withActivity({ ...current, nextId }, { subjectId: id, subjectKind: "task", message: `Task created — ${task.title}` }),
+      ...withActivity({ ...current, nextId }, {
+        type: "task_created",
+        summary: `Task created — ${task.title}`,
+        detail: task.detail,
+        related: { kind: "task", id, label: task.title },
+        parent: taskParent(task),
+        metadata: task.dueDate ? [{ label: "Due", value: task.dueDate }] : [],
+      }),
     };
   });
   return created;
@@ -612,7 +793,12 @@ export function updateTask(
     return {
       ...current,
       tasks: replace<Task>(current.tasks, id, patch),
-      ...withActivity(current, { subjectId: id, subjectKind: "task", message: `Task updated — ${patch.title ?? task.title}` }),
+      ...withActivity(current, {
+        type: "task_updated",
+        summary: `Task updated — ${patch.title ?? task.title}`,
+        related: { kind: "task", id, label: patch.title ?? task.title },
+        parent: taskParent({ ...task, ...patch }),
+      }),
     };
   });
 }
@@ -628,7 +814,12 @@ export function completeTask(id: string): void {
         completedOn: DEMO_TODAY,
         waitingOn: "",
       }),
-      ...withActivity(current, { subjectId: id, subjectKind: "task", message: `Task completed — ${task.title}` }),
+      ...withActivity(current, {
+        type: "task_completed",
+        summary: `Task completed — ${task.title}`,
+        related: { kind: "task", id, label: task.title },
+        parent: taskParent(task),
+      }),
     };
   });
 }
@@ -640,7 +831,12 @@ export function reopenTask(id: string): void {
     return {
       ...current,
       tasks: replace(current.tasks, id, { state: "OPEN" as TaskState, completedOn: "", waitingOn: "" }),
-      ...withActivity(current, { subjectId: id, subjectKind: "task", message: `Task reopened — ${task.title}` }),
+      ...withActivity(current, {
+        type: "task_reopened",
+        summary: `Task reopened — ${task.title}`,
+        related: { kind: "task", id, label: task.title },
+        parent: taskParent(task),
+      }),
     };
   });
 }
@@ -656,7 +852,13 @@ export function setTaskWaiting(id: string, waitingOn: string): void {
     return {
       ...current,
       tasks: replace(current.tasks, id, { state: "WAITING" as TaskState, waitingOn: party, completedOn: "" }),
-      ...withActivity(current, { subjectId: id, subjectKind: "task", message: `Task waiting on ${party} — ${task.title}` }),
+      ...withActivity(current, {
+        type: "task_waiting_changed",
+        summary: `Task waiting on ${party} — ${task.title}`,
+        related: { kind: "task", id, label: task.title },
+        parent: taskParent(task),
+        metadata: [{ label: "Waiting on", value: party }],
+      }),
     };
   });
 }
@@ -669,7 +871,13 @@ export function reassignTask(id: string, ownerId: string): void {
     return {
       ...current,
       tasks: replace(current.tasks, id, { ownerId }),
-      ...withActivity(current, { subjectId: id, subjectKind: "task", message: `Task moved to ${owner.name} — ${task.title}` }),
+      ...withActivity(current, {
+        type: "task_assignee_changed",
+        summary: `Task moved to ${owner.name} — ${task.title}`,
+        related: { kind: "task", id, label: task.title },
+        parent: taskParent(task),
+        metadata: [{ label: "Assignee", value: owner.name }],
+      }),
     };
   });
 }
@@ -680,6 +888,10 @@ export function resetDemoTasks(): void {
   updateDemoState((current) => ({
     ...current,
     tasks: createSeedState().tasks,
-    ...withActivity(current, { subjectId: "tasks", subjectKind: "task", message: "Demo tasks reset" }),
+    ...withActivity(current, {
+      type: "workspace_updated",
+      summary: "Demo tasks reset",
+      related: { kind: "workspace", id: "demo-tasks", label: "Demo tasks" },
+    }),
   }));
 }

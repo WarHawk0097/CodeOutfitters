@@ -26,6 +26,8 @@ import { Dialog, DialogCancelButton, DialogSubmitButton } from "../../../compone
 import { SelectField, TextField } from "../../../components/demo/field";
 import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
 import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton } from "../../../components/demo/toolbar";
+import { RecordActivity } from "@/components/dashboard/activity-ui";
+import { eventsFor, type ActivityEvent } from "@/lib/activity/model";
 
 // CANON 1428-1433 draws a directory, not per-state chips; these tones follow the same
 // palette grammar the rest of the app uses (in-motion blue, waiting amber, won green,
@@ -352,7 +354,7 @@ export function ProposalsScreen() {
         <ProposalDetailDialog
           proposal={detail}
           ownerName={ownerName(detail.ownerId)}
-          activity={state.activity.filter((entry) => entry.subjectId === detail.id)}
+          activity={eventsFor(state.activity, "proposal", detail.id)}
           onClose={() => setDetailId(null)}
           onEdit={() => {
             setDetailId(null);
@@ -480,7 +482,7 @@ function ProposalDetailDialog({
 }: {
   proposal: Proposal;
   ownerName: string;
-  activity: readonly { id: string; message: string }[];
+  activity: readonly ActivityEvent[];
   onClose: () => void;
   onEdit: () => void;
   onPreview: () => void;
@@ -530,18 +532,10 @@ function ProposalDetailDialog({
         <dt className="text-cc-t3">Last event</dt>
         <dd className="text-cc-ink">{proposal.lastEvent}</dd>
       </dl>
-      <h3 className="mt-4 font-cc-mono text-[10px] tracking-[.06em] text-cc-t3">ACTIVITY HISTORY</h3>
-      {activity.length === 0 ? (
-        <p className="mt-1 text-[11.5px] text-cc-t3">No demo activity recorded for this proposal yet.</p>
-      ) : (
-        <ul className="mt-1 space-y-1">
-          {activity.map((entry) => (
-            <li key={entry.id} className="text-[11.5px] text-cc-t-table">
-              {entry.message}
-            </li>
-          ))}
-        </ul>
-      )}
+      <RecordActivity
+        events={activity}
+        emptyLabel="No demo activity recorded for this proposal yet."
+      />
     </Dialog>
   );
 }

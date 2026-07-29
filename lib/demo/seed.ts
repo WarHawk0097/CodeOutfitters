@@ -8,6 +8,7 @@
 // Every record links to a lead by id, and every owner is a team-member id, so the same
 // entity is the same record on every route.
 import { generateLeads } from "../../mocks/fixtures/generate-leads";
+import { buildActivityEvents } from "./activity-seed";
 import { CANONICAL_LEAD_STATUS_ORDER, type Lead, type LeadStatus } from "@command-center/contracts";
 import type {
   Appointment,
@@ -26,7 +27,7 @@ import type {
 
 /** Bumped whenever the shape of DemoState changes; a stored state from an older
  *  version is discarded and reseeded rather than migrated. */
-export const DEMO_STATE_VERSION = 2;
+export const DEMO_STATE_VERSION = 3;
 
 /** Fixed reference instant. Never the real clock — the same reason generate-leads.ts
  *  pins REFERENCE_NOW: a demo that reads Date.now() renders differently every run. */
@@ -757,20 +758,37 @@ export function createSeedState(leads?: readonly Lead[]): DemoState {
   const meetings = buildMeetings(index, opportunities, appointments);
   const proposals = buildProposals(index, opportunities);
   const followUps = buildFollowUps(index, opportunities);
-  return {
-    version: DEMO_STATE_VERSION,
-    team: TEAM_SEED.map((member) => ({ ...member })),
+  const tasks = buildTasks(opportunities, appointments, meetings, proposals, followUps);
+  const emails = buildEmails(index);
+  const team = TEAM_SEED.map((member) => ({ ...member }));
+  const activity = buildActivityEvents({
+    today: DEMO_TODAY,
+    team,
+    leads: dataset,
     opportunities,
     appointments,
     meetings,
     proposals,
     followUps,
-    tasks: buildTasks(opportunities, appointments, meetings, proposals, followUps),
-    emails: buildEmails(index),
+    tasks,
+    emails,
+  });
+  return {
+    version: DEMO_STATE_VERSION,
+    team,
+    opportunities,
+    appointments,
+    meetings,
+    proposals,
+    followUps,
+    tasks,
+    emails,
     settings: SETTINGS_SEED.map((section) => ({ ...section, fields: section.fields.map((f) => ({ ...f })) })),
     leadOverrides: {},
-    activity: [],
-    nextId: 1,
+    activity,
+    // Minted ids continue past the seeded history, so a change made in this session can
+    // never be handed an id a fixture already used.
+    nextId: activity.length + 1,
   };
 }
 

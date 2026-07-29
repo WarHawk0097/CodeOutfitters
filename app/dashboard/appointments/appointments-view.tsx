@@ -46,6 +46,8 @@ import {
   timeRange,
   weekdayLabel,
 } from "./date-utils";
+import { RecordActivity } from "@/components/dashboard/activity-ui";
+import { eventsFor, type ActivityEvent } from "@/lib/activity/model";
 
 // C-D11 320/328/336 give three states a chip. `short` is the tablet and mobile wording
 // (T-06 972 "READY", 973 "PREP NEEDED"). The remaining three states are not drawn on any
@@ -585,7 +587,7 @@ export function AppointmentsScreen() {
           appointment={detail}
           ownerName={ownerName(detail.ownerId)}
           meeting={meetingFor(detail.id)}
-          activity={state.activity.filter((entry) => entry.subjectId === detail.id)}
+          activity={eventsFor(state.activity, "appointment", detail.id)}
           onClose={() => setDetailId(null)}
           onEdit={() => {
             setDetailId(null);
@@ -716,7 +718,7 @@ function AppointmentDetailDialog({
   appointment: Appointment;
   ownerName: string;
   meeting: Meeting | undefined;
-  activity: readonly { id: string; message: string }[];
+  activity: readonly ActivityEvent[];
   onClose: () => void;
   onEdit: () => void;
 }) {
@@ -752,18 +754,10 @@ function AppointmentDetailDialog({
       </dl>
       <p className="mt-3 border-t border-cc-line pt-3 text-[12.5px] text-cc-t-table">{appointment.detail}</p>
       {appointment.notes ? <p className="mt-2 text-[12.5px] text-cc-t-table">{appointment.notes}</p> : null}
-      <h3 className="mt-4 font-cc-mono text-[10px] tracking-[.06em] text-cc-t3">ACTIVITY HISTORY</h3>
-      {activity.length === 0 ? (
-        <p className="mt-1 text-[11.5px] text-cc-t3">No demo activity recorded for this appointment yet.</p>
-      ) : (
-        <ul className="mt-1 space-y-1">
-          {activity.map((entry) => (
-            <li key={entry.id} className="text-[11.5px] text-cc-t-table">
-              {entry.message}
-            </li>
-          ))}
-        </ul>
-      )}
+      <RecordActivity
+        events={activity}
+        emptyLabel="No demo activity recorded for this appointment yet."
+      />
     </Dialog>
   );
 }
