@@ -1,6 +1,7 @@
 "use client";
 // Narrow client wrapper around Sidebar/ShellHeader — only usePathname needs the
 // client boundary; the rest of the shell layout stays server-rendered.
+import { BTN_DISABLED, BTN_PRIMARY } from "../../lib/command-center/ui/control-system";
 import { useId, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
@@ -163,7 +164,7 @@ function LeadsHeaderRight() {
         title={DEFERRED_REASON}
         aria-describedby="leads-columns-reason"
         onClick={(event) => event.preventDefault()}
-        className="cursor-default rounded-cc-control border border-cc-green-border bg-cc-green-tint px-[11px] py-[7px] text-[12px] font-semibold text-cc-green-ink xl:px-[13px] xl:py-2 xl:text-[12.5px]"
+        className={BTN_DISABLED}
       >
         Columns ▾
       </span>
@@ -178,9 +179,10 @@ function LeadsHeaderRight() {
           onClick={onExport}
           aria-disabled={exporting || !exportQuery}
           aria-label="Export CSV"
-          // appearance-none plus an explicit border: a <button> inherits user-agent chrome that
-          // the <span> this replaces did not have, and the frame it sits in is pixel-accepted.
-          className="appearance-none rounded-cc-control border-0 bg-cc-green px-[11px] py-[7px] text-[12px] font-semibold text-white xl:px-[13px] xl:py-2 xl:text-[12.5px]"
+          // The shared primary skin: white on --cc-green-solid rather than on the brand
+          // accent, which is under AA at this size, and it resets the user-agent chrome a
+          // <button> inherits and the <span> this replaces did not have.
+          className={BTN_PRIMARY}
         >
           Export<span className="hidden xl:inline"> CSV</span>
         </button>
@@ -195,7 +197,9 @@ function LeadsHeaderRight() {
           title="Available when the production data service is connected."
           aria-describedby="leads-export-reason"
           onClick={(event) => event.preventDefault()}
-          className="cursor-default appearance-none rounded-cc-control border-0 bg-cc-green px-[11px] py-[7px] text-[12px] font-semibold text-white xl:px-[13px] xl:py-2 xl:text-[12.5px]"
+          // Inert, so it wears the disabled skin rather than the primary fill: an export
+          // that cannot run must not look like the one that can.
+          className={BTN_DISABLED}
         >
           Export<span className="hidden xl:inline"> CSV</span>
         </span>

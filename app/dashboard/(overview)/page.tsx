@@ -44,15 +44,22 @@ export default function DashboardPage() {
   return (
     <>
       {/* ---------------------------------------------- desktop, CANON 44-79 */}
-      <div className="hidden h-full min-h-0 flex-col xl:flex">
+      <div className="hidden flex-col xl:flex">
         <KpiStrip kpis={OVERVIEW_KPIS} />
-        {/* CANON 48: fixed 372px rail, rows pinned to the frame height. */}
-        <div className="mt-3.5 grid min-h-0 flex-1 grid-cols-[1fr_372px] grid-rows-[minmax(0,1fr)] gap-3.5">
+        {/* CANON 48: fixed 372px rail. The rows are NOT pinned to the frame height.
+            They were — `h-full min-h-0` here, `flex-1 grid-rows-[minmax(0,1fr)]` on the
+            grid, `h-full` on the rail — and that is the overlap the owner photographed:
+            the rail's content is taller than one viewport, so Meetings & proposals and
+            Recent activity spilled out of a row whose height was fixed at 100% and drew
+            themselves on top of the operations band in the next row. `items-start` keeps
+            each column at its own content height, so the band starts after the taller of
+            the two. ShellMain already scrolls; this page does not need to. */}
+        <div className="mt-3.5 grid grid-cols-[1fr_372px] items-start gap-3.5">
           <div className="flex min-w-0 flex-col gap-[18px]">
             <LeadFlowChart />
             <TodaysWorkLive variant="desktop" />
           </div>
-          <div className="flex h-full min-h-0 min-w-0 flex-col gap-3.5">
+          <div className="flex min-w-0 flex-col gap-3.5">
             <PipelineJourney
               activeCount={PIPELINE_JOURNEY_ACTIVE_COUNT}
               phases={PIPELINE_PHASE_FIXTURES}

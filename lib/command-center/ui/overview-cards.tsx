@@ -19,6 +19,7 @@
 // them now takes an href from the caller, and a card that cannot be given one does not
 // draw the control at all.
 import type { CSSProperties } from "react";
+import { CARD_ROW_ACTION, CONTROL_FOCUS_INSET } from "./control-system";
 import type { LinkComponent } from "./sidebar";
 
 export type OverviewKpi = {
@@ -437,7 +438,7 @@ export function TodaysWorkCard({
           <Link
             href={w.href}
             aria-label={w.actionLabel}
-            className={`shrink-0 rounded-[5px] border border-cc-green-border px-2.5 py-[5px] text-[12px] font-semibold text-cc-green-ink hover:bg-cc-green-tint ${ROW_FOCUS}`}
+            className={CARD_ROW_ACTION}
           >
             {w.cta}
           </Link>
@@ -451,12 +452,15 @@ export function TodaysWorkCard({
 // ambiguous beside five other operational lists on the same screen.
 const QUEUE_LABEL = "View today's work queue in My Work";
 
-const ROW_FOCUS =
-  "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-cc-green";
+const ROW_FOCUS = CONTROL_FOCUS_INSET;
 
 // The header controls are keyboard destinations like any other, so they carry the same
 // focus ring as the rows: an underline alone is not a focus indicator.
-const ACTION_LINK = `shrink-0 rounded-[3px] font-semibold text-cc-green underline decoration-cc-line underline-offset-2 hover:decoration-cc-green ${ROW_FOCUS}`;
+//
+// `text-cc-green-ink`, not `text-cc-green`: the accent itself is a fill colour and only
+// clears 3:1 against white, which is what made these header links read as pale. The
+// darker ink variant is the same hue at AA contrast.
+const ACTION_LINK = `shrink-0 rounded-[3px] font-semibold text-cc-green-ink underline decoration-cc-green-border underline-offset-2 hover:decoration-cc-green ${ROW_FOCUS}`;
 
 // CANON 868/1046: the row's colour is an inset left rail, not a border — a
 // border would shift the row's content box against the canonical frame.
@@ -507,7 +511,7 @@ export function MeetingsProposalsCard({
           <Link
             href={meetings.href}
             aria-label={meetings.ariaLabel}
-            className={`${ACTION_LINK} text-[10.5px] ${ROW_FOCUS}`}
+            className={CARD_ROW_ACTION}
           >
             {meetings.actionLabel}
           </Link>
@@ -520,7 +524,7 @@ export function MeetingsProposalsCard({
           <Link
             href={proposals.href}
             aria-label={proposals.ariaLabel}
-            className={`${ACTION_LINK} text-[10.5px] ${ROW_FOCUS}`}
+            className={CARD_ROW_ACTION}
           >
             {proposals.actionLabel}
           </Link>
@@ -550,7 +554,7 @@ export function MeetingsProposalsCard({
         <Link
           href={meetings.href}
           aria-label={meetings.ariaLabel}
-          className={`${ACTION_LINK} text-[11.5px] ${ROW_FOCUS}`}
+          className={CARD_ROW_ACTION}
         >
           {meetings.actionLabel}
         </Link>
@@ -571,7 +575,7 @@ export function MeetingsProposalsCard({
         <Link
           href={proposals.href}
           aria-label={proposals.ariaLabel}
-          className={`${ACTION_LINK} text-[11.5px] ${ROW_FOCUS}`}
+          className={CARD_ROW_ACTION}
         >
           {proposals.actionLabel}
         </Link>
@@ -582,11 +586,13 @@ export function MeetingsProposalsCard({
 
 /* ---------------------------------------------------------- Recent work --- */
 
-// CANON 72-74. Desktop only: the card takes the remaining rail height and clips
-// its own overflow rather than growing the frame.
+// CANON 72-74. Desktop only. It used to be `flex-1 overflow-hidden` inside a rail
+// pinned to the viewport, which is how the rail came to paint over the band below it:
+// `overflow-hidden` clips the box, not the row it overflowed. The card is now its own
+// content's height and the rail is a normal column, so nothing overlaps anything.
 export function RecentActivityCard({ items }: { items: ActivityItem[] }) {
   return (
-    <div className={`${CARD} min-h-0 flex-1 overflow-hidden`}>
+    <div className={`${CARD} overflow-hidden`}>
       <div className="border-b border-cc-line-inner px-4 py-3 text-[13px] font-semibold text-cc-ink">
         Recent activity
       </div>
