@@ -11,6 +11,12 @@
 // carries a leadId, an appointment carries a leadId and an opportunityId, and owners are
 // team-member ids drawn from the same directory the Leads route uses.
 import type { LeadStatus } from "@command-center/contracts";
+import type { ActivityEvent } from "@/lib/activity/model";
+import type {
+  ProposalAccessLink,
+  ProposalClientResponse,
+  ProposalPublication,
+} from "@/lib/proposals/access/model";
 
 /** Pipeline stage. Identical value set to LeadStatus — the canonical board is
  *  "STAGES 2-5 OF 11" over the eleven canonical lead statuses (CANON 1362, 1088). */
@@ -155,6 +161,62 @@ export type FollowUp = {
   suggestion: string;
 };
 
+// ---------------------------------------------------------------------------
+// Tasks — the next-action record.
+//
+// A follow-up is a scheduled touch on a lead. A task is the smaller thing: the one
+// concrete action a person owes on a record. Both already existed as concepts on this
+// dashboard; only the follow-up had a type. Tasks are deliberately NOT a project
+// management system — there is no story point, no sprint, no epic, no dependency graph
+// and no burndown. A task has a title, an owner, a due date, a state and, optionally,
+// the record it is about.
+// ---------------------------------------------------------------------------
+
+/** OPEN is the working state. WAITING means the ball is not in our court — it is tracked
+ *  separately from OPEN because "waiting on client" must not read as overdue work. */
+export type TaskState = "OPEN" | "WAITING" | "COMPLETED";
+
+export type TaskPriority = "High" | "Medium" | "Low";
+
+/** The record kinds a task can be about. Every kind here has a route that resolves, so a
+ *  task's related-record link is never a dead link (see relationHref in lib/tasks/model). */
+export type TaskRelationKind =
+  | "lead"
+  | "opportunity"
+  | "appointment"
+  | "meeting"
+  | "proposal"
+  | "followUp";
+
+/** The record a task is about. `null` is a general task — a real case, not a defect. */
+export type TaskRelation = {
+  kind: TaskRelationKind;
+  id: string;
+  /** Human label for the related record, resolved at seed/create time so a list row does
+   *  not have to join across six collections to render. */
+  label: string;
+} | null;
+
+export type Task = {
+  id: string;
+  title: string;
+  detail: string;
+  ownerId: string;
+  state: TaskState;
+  priority: TaskPriority;
+  /** YYYY-MM-DD, or "" for a task with no due date. Never clock-derived. */
+  dueDate: string;
+  /** The lead this task ultimately rolls up to, or null for a general task. Kept next to
+   *  `relation` because a task about a proposal is still a task about that lead. */
+  leadId: string | null;
+  relation: TaskRelation;
+  /** Who or what we are waiting on. Empty unless state is WAITING. */
+  waitingOn: string;
+  /** YYYY-MM-DD. Empty unless state is COMPLETED. */
+  completedOn: string;
+  createdOn: string;
+};
+
 export type EmailState = "QUEUED" | "SENT" | "DELIVERED" | "OPENED" | "FAILED" | "ARCHIVED";
 
 export type EmailActivity = {
@@ -195,13 +257,11 @@ export type SettingsSection = {
   fields: SettingField[];
 };
 
-export type ActivityEntry = {
-  id: string;
-  at: string;
-  subjectId: string;
-  subjectKind: "lead" | "opportunity" | "appointment" | "meeting" | "proposal" | "followUp" | "email" | "team" | "settings";
-  message: string;
-};
+/** The demo activity log is the shared activity-event model, not a second private shape.
+ *  One log means the timeline on a lead, the history on a proposal and the recent activity
+ *  on Overview are the same events read through different filters — a record cannot show a
+ *  change on one screen and not on another. */
+export type { ActivityEvent };
 
 /** Fields a demo mutation may push onto a lead so the Leads route reflects it. */
 export type LeadOverride = {
@@ -218,10 +278,20 @@ export type DemoState = {
   meetings: Meeting[];
   proposals: Proposal[];
   followUps: FollowUp[];
+  tasks: Task[];
   emails: EmailActivity[];
   settings: SettingsSection[];
   leadOverrides: Record<string, LeadOverride>;
-  activity: ActivityEntry[];
+  activity: ActivityEvent[];
+  /** Immutable published versions of a proposal. A publication is a historical fact — the
+   *  document a client was actually sent — so nothing in this store edits one after the
+   *  fact; publishing again adds a new publication and supersedes the old one. */
+  publications: ProposalPublication[];
+  /** One secure link per recipient, so revoking one person's access leaves everybody else's
+   *  intact. Demo links carry a readable `demoToken` and no hash: there is no secret. */
+  accessLinks: ProposalAccessLink[];
+  /** Questions, comments and decisions submitted from the public proposal route. */
+  clientResponses: ProposalClientResponse[];
   /** Monotonic counter used to mint ids without a clock or a random source, so a demo
    *  session replays identically. */
   nextId: number;

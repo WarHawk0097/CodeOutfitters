@@ -1,6 +1,7 @@
 // Loading, error and empty presentation shared by every demo route, so the three states
 // look and announce the same way everywhere instead of being re-invented per page.
 import type { ReactNode } from "react";
+import { BTN_PRIMARY } from "../../lib/command-center/ui/control-system";
 
 export function RouteLoading({ label }: { label: string }) {
   return (
@@ -31,7 +32,7 @@ export function RouteError({
       <button
         type="button"
         onClick={onRetry}
-        className="mt-3 rounded-cc-control bg-cc-green px-3 py-1.5 text-[12.5px] font-semibold text-white"
+        className={`mt-3 ${BTN_PRIMARY}`}
       >
         Retry
       </button>

@@ -13,6 +13,11 @@
 // AI Assist actions are backend- and approval-gated (api-contracts.json + state-machines.json), so they
 // are disabled with honest reasons and never dead-link. Money is handled in integer cents so a subtotal
 // is exact and every amount is validated (no NaN / Infinity / negative / fractional-cent totals).
+import {
+  BTN_DISABLED,
+  CONTROL_DISABLED_INK,
+  CONTROL_FOCUS,
+} from "@/lib/command-center/ui/control-system";
 import { useId, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, GripVertical, Plus, Trash2, ChevronUp, ChevronDown } from "lucide-react";
@@ -20,6 +25,7 @@ import type { Proposal } from "../../../../../lib/demo/types";
 import { useDemoQuery } from "../../../../../components/demo/use-demo-query";
 import { RouteError, RouteLoading } from "../../../../../components/demo/route-states";
 import { TextAreaField, TextField } from "../../../../../components/demo/field";
+import { NextActionCard } from "../../../../../components/dashboard/next-action-card";
 
 // Money, canonical fixtures, and validation invariants live in the shared proposal domain
 // (lib/command-center/proposals) so the builder and the preview share one formatter, one canonical
@@ -66,7 +72,20 @@ export function ProposalBuilderView({ proposalId }: { proposalId: string }) {
   const proposal = state.proposals.find((p) => p.id === proposalId) ?? null;
   if (!proposal) return <BuilderNotFound proposalId={proposalId} />;
 
-  return <BuilderWorkspace proposal={proposal} detail={buildProposalDetail(proposal)} />;
+  return (
+    <>
+      <BuilderWorkspace proposal={proposal} detail={buildProposalDetail(proposal)} />
+      {/* Outside BuilderWorkspace so that component keeps its own store-free test surface. */}
+      <div className="mt-4">
+        <NextActionCard
+          kind="proposal"
+          recordId={proposal.id}
+          recordLabel={`${proposal.id} · ${proposal.client}`}
+          leadId={proposal.leadId}
+        />
+      </div>
+    </>
+  );
 }
 
 // Unknown / invalid id: an honest not-found that never fabricates a record and links back to the
@@ -191,7 +210,7 @@ export function BuilderWorkspace({
             Preview
           </Link>
           <GatedAction label="Request review" />
-          <GatedAction label="Save" primary />
+          <GatedAction label="Save" />
         </div>
       </header>
 
@@ -257,7 +276,7 @@ export function BuilderWorkspace({
 }
 
 // A backend- or approval-gated action, disabled with an honest, screen-reader-associated reason.
-function GatedAction({ label, primary }: { label: string; primary?: boolean }) {
+function GatedAction({ label }: { label: string }) {
   const reasonId = useId();
   return (
     <>
@@ -265,11 +284,7 @@ function GatedAction({ label, primary }: { label: string; primary?: boolean }) {
         type="button"
         disabled
         aria-describedby={reasonId}
-        className={
-          primary
-            ? "cursor-not-allowed rounded-cc-control bg-cc-green/60 px-3 py-1.5 text-[11.5px] font-semibold text-white/80"
-            : "cursor-not-allowed rounded-cc-control border border-cc-line px-3 py-1.5 text-[11.5px] font-semibold text-cc-t3"
-        }
+        className={BTN_DISABLED}
       >
         {label}
       </button>
@@ -320,7 +335,7 @@ function StructureNav({
               <span className="flex shrink-0 items-center opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
                 {/* First / last section: the move button is honestly disabled and says
                     why, instead of relying on the dimmed icon alone. */}
-                <button type="button" onClick={() => onMove(index, -1)} disabled={index === 0} aria-label={`Move ${section.name} up`} aria-describedby={index === 0 ? `move-up-reason-${section.id}` : undefined} className="rounded p-0.5 text-cc-icon-muted disabled:opacity-30 hover:text-cc-ink">
+                <button type="button" onClick={() => onMove(index, -1)} disabled={index === 0} aria-label={`Move ${section.name} up`} aria-describedby={index === 0 ? `move-up-reason-${section.id}` : undefined} className={`rounded p-0.5 text-cc-t2 hover:text-cc-ink ${CONTROL_FOCUS} ${CONTROL_DISABLED_INK}`}>
                   <ChevronUp className="h-3 w-3" />
                 </button>
                 {index === 0 ? (
@@ -328,7 +343,7 @@ function StructureNav({
                     This section is already first.
                   </span>
                 ) : null}
-                <button type="button" onClick={() => onMove(index, 1)} disabled={index === sections.length - 1} aria-label={`Move ${section.name} down`} aria-describedby={index === sections.length - 1 ? `move-down-reason-${section.id}` : undefined} className="rounded p-0.5 text-cc-icon-muted disabled:opacity-30 hover:text-cc-ink">
+                <button type="button" onClick={() => onMove(index, 1)} disabled={index === sections.length - 1} aria-label={`Move ${section.name} down`} aria-describedby={index === sections.length - 1 ? `move-down-reason-${section.id}` : undefined} className={`rounded p-0.5 text-cc-t2 hover:text-cc-ink ${CONTROL_FOCUS} ${CONTROL_DISABLED_INK}`}>
                   <ChevronDown className="h-3 w-3" />
                 </button>
                 {index === sections.length - 1 ? (
@@ -593,12 +608,15 @@ function AiAssistTab() {
   const reasonId = useId();
   return (
     <div>
-      <div className="flex flex-wrap gap-1.5" aria-describedby={reasonId}>
+      <div className="flex flex-wrap gap-1.5">
         {["Rewrite", "Shorten", "Make executive", "Clarify scope"].map((label) => (
+          // The reason is described on each button, not on the group: aria-describedby does
+          // not inherit, so on the container it is announced for nothing.
           <button
             key={label}
             type="button"
             disabled
+            aria-describedby={reasonId}
             className="cursor-not-allowed rounded-cc-control border border-cc-line px-2.5 py-1 text-[10.5px] font-semibold text-cc-t3"
           >
             {label}

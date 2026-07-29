@@ -119,6 +119,13 @@ export const LeadsListParamsSchema = PaginationParamsSchema.extend({
   // Owner is filtered by the opaque id, not the display name.
   owner: IdSchema.optional(),
   q: z.string().optional(),
+  // A derived operational question, not a lead attribute: "no-next-action" selects the
+  // leads that no open task covers. It is answered where the whole dataset is — a client
+  // holding one page of ten cannot filter 128 records and still report a true total.
+  // Deliberately its own parameter rather than a `status` value: a lead in ANY status can
+  // be uncovered, so folding it into the status vocabulary would make status mean two
+  // different kinds of thing.
+  view: z.enum(["no-next-action"]).optional(),
 });
 export type LeadsListParams = z.infer<typeof LeadsListParamsSchema>;
 

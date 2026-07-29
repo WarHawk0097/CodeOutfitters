@@ -1,4 +1,5 @@
 import { MetadataRoute } from 'next'
+import { CANONICAL_ORIGIN } from '@/lib/routing/public-origin'
 
 export const dynamic = 'force-static'
 
@@ -7,6 +8,6 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       { userAgent: '*', allow: '/', disallow: '/admin' },
     ],
-    sitemap: 'https://codeoutfitters.com/sitemap.xml',
+    sitemap: `${CANONICAL_ORIGIN}/sitemap.xml`,
   }
 }

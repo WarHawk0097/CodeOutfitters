@@ -13,7 +13,16 @@
 // (T-03 926, MO-03 1097) and is also the keyboard path, which is why MO-03 1099 states
 // "MOVE MENU = DRAG ALTERNATIVE (NO DRAG REQUIRED)". Both call the same mutation, so a
 // card cannot end up in a different place depending on how it was moved.
-import { useCallback, useMemo, useState } from "react";
+import {
+  BTN_PRIMARY,
+  CARD_ROW_ACTION,
+  CONTROL_DISABLED_STATE,
+  ROW_ACTION,
+  ROW_ACTION_ICON,
+  ROW_ACTION_ICON_QUIET,
+  VARIANT_SELECTED,
+} from "@/lib/command-center/ui/control-system";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   createOpportunity,
   moveOpportunity,
@@ -28,8 +37,13 @@ import { MenuButton, type MenuItem } from "../../../components/demo/menu";
 import { Dialog, DialogCancelButton, DialogSubmitButton } from "../../../components/demo/dialog";
 import { SelectField, TextAreaField, TextField } from "../../../components/demo/field";
 import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
-import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton } from "../../../components/demo/toolbar";
+import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton, ToolbarDivider } from "../../../components/demo/toolbar";
+import { SavedViewsBar } from "../../../components/command-center/saved-views";
+import { useListView, useQueryParam } from "../../../components/command-center/use-view-query";
+import { COMMAND_CREATE_PARAM } from "../../../lib/search/commands";
 import { useStageWindow } from "./stage-window";
+import { RecordActivity } from "@/components/dashboard/activity-ui";
+import { eventsFor, type ActivityEvent } from "@/lib/activity/model";
 
 // CANON 1379-1388 gives four stages a colour: Contacted G.nt, Appointment Pending G.am,
 // Appointment Scheduled G.gr, Proposal Sent G.bl. The remaining seven are not drawn on any
@@ -70,14 +84,23 @@ export function PipelineBoard() {
   const { state, status, error, retry } = useDemoQuery();
   const window_ = useStageWindow();
 
-  const [q, setQ] = useState("");
-  const [ownerFilter, setOwnerFilter] = useState<string | null>(null);
-  const [serviceFilter, setServiceFilter] = useState<string | null>(null);
-  const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
+  // Filters live in the URL: same door for a Saved View, a search result and a shared link.
+  const { filters, sort, publish, set } = useListView("pipeline");
+  const q = filters.q ?? "";
+  const ownerFilter = filters.owner === "" ? null : (filters.owner ?? null);
+  const serviceFilter = filters.service === "" ? null : (filters.service ?? null);
+  const priorityFilter = filters.priority === "" ? null : (filters.priority ?? null);
 
   const [detailId, setDetailId] = useState<string | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+
+  // "Add lead" in the command palette arrives with `?new=1`.
+  const createRequested = useQueryParam(COMMAND_CREATE_PARAM) === "1";
+  useEffect(() => {
+    if (createRequested) setCreateOpen(true);
+  }, [createRequested]);
+
   const [gate, setGate] = useState<{ id: string; stage: PipelineStage } | null>(null);
   const [gateReason, setGateReason] = useState("");
   const [gateError, setGateError] = useState<string | null>(null);
@@ -285,7 +308,7 @@ export function PipelineBoard() {
                 else if (id === "edit") setEditId(card.id);
                 else performMove(card.id, id as PipelineStage);
               }}
-              className="px-1 leading-none text-cc-icon-muted hover:text-cc-t2"
+              className={ROW_ACTION_ICON_QUIET}
             />
           </span>
         </div>
@@ -300,29 +323,31 @@ export function PipelineBoard() {
             <button
               type="button"
               onClick={() => setDetailId(card.id)}
-              className="flex-1 rounded-cc-control border border-cc-line-strong py-[9px] text-center text-[11.5px] font-semibold text-cc-t-table"
+              className={`flex-1 ${ROW_ACTION}`}
             >
               Open
             </button>
             <MenuButton
-              label="Move to stage ▾"
+              label="Move to stage"
               ariaLabel={`Move ${card.name} to another stage`}
               align="right"
               items={stageMenuItems(card)}
               onSelect={(id) => performMove(card.id, id as PipelineStage)}
-              className="flex-1 rounded-cc-control border border-cc-green-border bg-cc-green-tint py-[9px] text-center text-[11.5px] font-semibold text-cc-green-ink"
+              chevron
+              className={`flex-1 ${ROW_ACTION} ${VARIANT_SELECTED}`}
             />
           </div>
         ) : form === "tablet" ? (
           <div className="mt-[10px] flex items-center justify-between gap-2 rounded-cc-control bg-cc-secondary px-[9px] py-[7px]">
             <span className="min-w-0 truncate text-[11px] text-cc-t2">{ownerName(card.ownerId)}</span>
             <MenuButton
-              label="Move to stage ▾"
+              label="Move to stage"
               ariaLabel={`Move ${card.name} to another stage`}
               align="right"
               items={stageMenuItems(card)}
               onSelect={(id) => performMove(card.id, id as PipelineStage)}
-              className="flex-shrink-0 text-[11px] font-semibold text-cc-green-ink"
+              chevron
+              className={CARD_ROW_ACTION}
             />
           </div>
         ) : (
@@ -414,28 +439,25 @@ export function PipelineBoard() {
           filters are required by the implementation brief, so they are added here as a
           documented additive deviation rather than omitted. */}
       <RouteToolbar>
-        <SearchInput value={q} onChange={setQ} label="Search pipeline by name, company or service" />
-        <FilterMenu label="Owner" allLabel="All owners" value={ownerFilter} options={ownerOptions} onChange={setOwnerFilter} />
-        <FilterMenu label="Service" allLabel="All services" value={serviceFilter} options={serviceOptions} onChange={setServiceFilter} />
+        <SearchInput value={q} onChange={(value) => set("q", value)} label="Search pipeline by name, company or service" />
+        <FilterMenu label="Owner" allLabel="All owners" value={ownerFilter} options={ownerOptions} onChange={(value) => set("owner", value)} />
+        <FilterMenu label="Service" allLabel="All services" value={serviceFilter} options={serviceOptions} onChange={(value) => set("service", value)} />
         <FilterMenu
           label="Priority"
           allLabel="All priorities"
           value={priorityFilter}
           options={PRIORITIES.map((p) => ({ id: p, label: p }))}
-          onChange={setPriorityFilter}
+          onChange={(value) => set("priority", value)}
         />
         {filtersApplied ? (
           <ToolbarButton
             label="Clear filters"
-            onClick={() => {
-              setQ("");
-              setOwnerFilter(null);
-              setServiceFilter(null);
-              setPriorityFilter(null);
-            }}
+            onClick={() => publish({ ...filters, q: "", owner: "", service: "", priority: "" }, sort)}
           />
         ) : null}
         <ToolbarButton label="New opportunity" tone="primary" onClick={() => setCreateOpen(true)} />
+        <ToolbarDivider />
+        <SavedViewsBar scope="pipeline" filters={filters} sort={sort} onApply={publish} />
       </RouteToolbar>
 
       {window_.breakpoint === "mobile" ? (
@@ -448,7 +470,7 @@ export function PipelineBoard() {
                 onClick={() => window_.step(-1)}
                 disabled={!window_.canPrev}
                 aria-label="Previous stage"
-                className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-cc-control border border-cc-line-strong text-cc-t2 disabled:opacity-40"
+                className={`${ROW_ACTION_ICON} ${CONTROL_DISABLED_STATE}`}
               >
                 <span aria-hidden="true">‹</span>
               </button>
@@ -472,7 +494,7 @@ export function PipelineBoard() {
                 onClick={() => window_.step(1)}
                 disabled={!window_.canNext}
                 aria-label="Next stage"
-                className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-cc-control border border-cc-t-table text-cc-ink disabled:opacity-40"
+                className={`${ROW_ACTION_ICON} ${CONTROL_DISABLED_STATE}`}
               >
                 <span aria-hidden="true">›</span>
               </button>
@@ -521,7 +543,7 @@ export function PipelineBoard() {
         <OpportunityDetailDialog
           opportunity={detail}
           ownerName={ownerName(detail.ownerId)}
-          activity={state.activity.filter((entry) => entry.subjectId === detail.id)}
+          activity={eventsFor(state.activity, "opportunity", detail.id)}
           onClose={() => setDetailId(null)}
           onEdit={() => {
             setDetailId(null);
@@ -640,7 +662,7 @@ function OpportunityDetailDialog({
 }: {
   opportunity: Opportunity;
   ownerName: string;
-  activity: readonly { id: string; message: string }[];
+  activity: readonly ActivityEvent[];
   onClose: () => void;
   onEdit: () => void;
 }) {
@@ -657,7 +679,7 @@ function OpportunityDetailDialog({
           <button
             type="button"
             onClick={onEdit}
-            className="rounded-cc-control bg-cc-green px-3 py-1.5 text-[12.5px] font-semibold text-white"
+            className={BTN_PRIMARY}
           >
             Edit opportunity
           </button>
@@ -677,18 +699,10 @@ function OpportunityDetailDialog({
         <dd className="text-cc-ink">{opportunity.nextAction}</dd>
       </dl>
       <p className="mt-3 border-t border-cc-line pt-3 text-[12.5px] text-cc-t-table">{opportunity.context}</p>
-      <h3 className="mt-4 font-cc-mono text-[10px] tracking-[.06em] text-cc-t3">ACTIVITY HISTORY</h3>
-      {activity.length === 0 ? (
-        <p className="mt-1 text-[11.5px] text-cc-t3">No demo activity recorded for this opportunity yet.</p>
-      ) : (
-        <ul className="mt-1 space-y-1">
-          {activity.map((entry) => (
-            <li key={entry.id} className="text-[11.5px] text-cc-t-table">
-              {entry.message}
-            </li>
-          ))}
-        </ul>
-      )}
+      <RecordActivity
+        events={activity}
+        emptyLabel="No demo activity recorded for this opportunity yet."
+      />
     </Dialog>
   );
 }

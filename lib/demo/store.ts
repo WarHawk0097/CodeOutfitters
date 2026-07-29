@@ -7,8 +7,15 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { createSeedState, DEMO_NOW, DEMO_STATE_VERSION } from "./seed";
-import type { ActivityEntry, DemoState } from "./types";
+import { createSeedState, DEMO_CURRENT_USER_ID, DEMO_NOW, DEMO_STATE_VERSION } from "./seed";
+import { categoryOf, defaultImportance } from "@/lib/activity/model";
+import type {
+  ActivityEvent,
+  ActivityEventType,
+  ActivityMetadata,
+  ActivityRef,
+} from "@/lib/activity/model";
+import type { DemoState } from "./types";
 
 const STORAGE_KEY = "cc-demo-state";
 
@@ -101,15 +108,82 @@ export function mintId(current: DemoState, prefix: string): { id: string; nextId
 
 /** Append an activity entry. Newest first — every route that shows history reads the
  *  head of this list. */
+/** What a caller of an activity-producing mutation is allowed to state.
+ *
+ *  Deliberately absent: category, importance, occurredAt, source and actor. A call site
+ *  that could set those could file a routine edit as a critical event, or stamp it with
+ *  someone else's name — so they are derived here from the event type and the fixed demo
+ *  clock, exactly as the live provider derives them server-side (lib/activity/provider.ts). */
+export type DemoActivityIntent = {
+  type: ActivityEventType;
+  summary: string;
+  detail?: string;
+  related: ActivityRef;
+  parent?: ActivityRef | null;
+  metadata?: ActivityMetadata;
+};
+
 export function withActivity(
   current: DemoState,
-  entry: Omit<ActivityEntry, "id" | "at">,
-): { activity: ActivityEntry[]; nextId: number } {
+  intent: DemoActivityIntent,
+): { activity: ActivityEvent[]; nextId: number } {
   const { id, nextId } = mintId(current, "act");
-  return {
-    activity: [{ id, at: DEMO_NOW, ...entry }, ...current.activity].slice(0, 200),
-    nextId,
+  const actor = current.team.find((member) => member.id === DEMO_CURRENT_USER_ID) ?? null;
+  const event: ActivityEvent = {
+    id,
+    type: intent.type,
+    category: categoryOf(intent.type),
+    // A change made in this session came from a person clicking something, which is what
+    // separates it from the seeded history the demo opens with.
+    source: "user_action",
+    visibility: "internal",
+    importance: defaultImportance(intent.type),
+    actorId: actor?.id ?? null,
+    actorLabel: actor?.name ?? "You",
+    occurredAt: DEMO_NOW,
+    summary: intent.summary,
+    detail: intent.detail ?? "",
+    related: intent.related,
+    parent: intent.parent ?? null,
+    metadata: intent.metadata ?? [],
   };
+  return { activity: [event, ...current.activity].slice(0, 200), nextId };
+}
+
+/** Append an activity entry attributed to a CLIENT rather than to a workspace member.
+ *
+ *  Separate from {@link withActivity} on purpose. A client is not a team member: they have no
+ *  user id, they cannot be looked up in the directory, and attributing their action to
+ *  whoever happened to be signed in would put a colleague's name on somebody else's decision.
+ *  So `actorId` is null and the label is the recipient the link was issued to.
+ *
+ *  What a caller still cannot state: the instant, the category, the importance. The label is
+ *  the one added degree of freedom, and every call site takes it from the stored link rather
+ *  than from anything the public request sent — a browser that could name its own actor could
+ *  file an acceptance under a name that never agreed to anything. */
+export function withClientActivity(
+  current: DemoState,
+  intent: DemoActivityIntent & { actorLabel: string },
+): { activity: ActivityEvent[]; nextId: number } {
+  const { id, nextId } = mintId(current, "act");
+  const event: ActivityEvent = {
+    id,
+    type: intent.type,
+    category: categoryOf(intent.type),
+    source: "user_action",
+    // The client wrote it, so the client may be shown it. Nothing here is an internal note.
+    visibility: "client_safe",
+    importance: defaultImportance(intent.type),
+    actorId: null,
+    actorLabel: intent.actorLabel,
+    occurredAt: DEMO_NOW,
+    summary: intent.summary,
+    detail: intent.detail ?? "",
+    related: intent.related,
+    parent: intent.parent ?? null,
+    metadata: intent.metadata ?? [],
+  };
+  return { activity: [event, ...current.activity].slice(0, 200), nextId };
 }
 
 /** Read the demo state. Deliberately returns the whole object rather than taking a

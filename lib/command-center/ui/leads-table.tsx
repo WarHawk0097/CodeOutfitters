@@ -19,6 +19,8 @@
 // never slices, filters or sorts the rows it was handed. Paginating only the rows already
 // loaded is exactly the defect this replaces — the footer read "Page 1 of 1" over a
 // 128-record dataset because the table could only see ten rows.
+import { CONTROL_DISABLED_INK, CONTROL_FOCUS } from "./control-system";
+import {  } from "@/lib/command-center/ui/control-system";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type SelectHTMLAttributes } from "react";
 import {
   APPOINTMENT_STATUS_LABELS,
@@ -28,6 +30,7 @@ import {
   pageCountOf,
 } from "@command-center/contracts";
 import type { Lead, LeadStatus } from "@command-center/contracts";
+import type { LinkComponent } from "./sidebar";
 
 // The query the server is answering. Owned by the data component above this one so a
 // filter applies to the whole dataset, not to the page already in the browser.
@@ -59,6 +62,10 @@ export type LeadsTableProps = {
       the same 128-record dataset paged by the same query, not a second mobile dataset.
       Omitted → the mobile list falls back to `data`, i.e. the current page only. */
   mobileData?: readonly Lead[];
+  /** MO-02 1081 draws an "Open ›" affordance on every mobile card. The card is the control
+      it advertises, so it navigates to the lead — routed through the host's link component
+      for the same reason the shell is (this package imports nothing from next/*). */
+  linkAs?: LinkComponent;
   /** MOCK/TEST-ONLY VISUAL STATE. Stages the composite presentation the canonical frames were
       authored in — two selected rows, the Service popover open, the applied-filter chip row, a
       page-2 skeleton row, the loading footer suffix and the MO-02 duplicate banner — so the
@@ -81,17 +88,17 @@ const STATUS_OPTIONS: readonly LeadStatus[] = CANONICAL_LEAD_STATUS_ORDER;
 // Status dot colours, CANON 1362 (`ST`) resolved through the `G` palette at CANON 1311.
 // Negotiation is the one status with a literal of its own there rather than a palette entry.
 const STATUS_DOT: Record<LeadStatus, string> = {
-  New: "#46708E",
-  Contacted: "#85826F",
-  "Appt Pending": "#B07C24",
-  "Appt Scheduled": "#2F7D4F",
-  "Discovery Done": "#46708E",
-  "Proposal Req.": "#B07C24",
-  "Proposal Sent": "#46708E",
-  Negotiation: "#96731F",
-  Won: "#2F7D4F",
-  Lost: "#A63D2B",
-  FUL: "#85826F",
+  New: "var(--cc-blue)",
+  Contacted: "var(--cc-neutral)",
+  "Appt Pending": "var(--cc-amber)",
+  "Appt Scheduled": "var(--cc-green-ink)",
+  "Discovery Done": "var(--cc-blue)",
+  "Proposal Req.": "var(--cc-amber)",
+  "Proposal Sent": "var(--cc-blue)",
+  Negotiation: "var(--cc-amber-ink)",
+  Won: "var(--cc-green-ink)",
+  Lost: "var(--cc-red)",
+  FUL: "var(--cc-neutral)",
 };
 
 // CANON 1374 colours the NEXT STEP cell by an authored per-row urgency code that no contract
@@ -231,9 +238,9 @@ const SKELETON_BARS = ["72%", "60%", "55%", "58%", "50%", "46%", "60%"];
 // call sites keeps the override in a `md:` variant, whose cascade order is defined —
 // appending a second `text-[…]` utility to the class string would not be.
 const PILL_NEUTRAL =
-  "rounded-cc-control border border-cc-line-strong px-[11px] py-[7px] text-[11.5px] text-cc-t-table md:text-[12.5px]";
+  "h-9 rounded-cc-control border border-cc-line-strong bg-cc-surface px-[11px] text-[11.5px] text-cc-t-table md:h-[34px] md:text-[12.5px]";
 const PILL_ACTIVE =
-  "rounded-cc-control border border-cc-green-border bg-cc-green-tint px-[11px] py-[7px] text-[11.5px] font-semibold text-cc-green-ink md:text-[12.5px]";
+  "h-9 rounded-cc-control border border-cc-green-border bg-cc-green-tint px-[11px] text-[11.5px] font-semibold text-cc-green-ink md:h-[34px] md:text-[12.5px]";
 
 /** The canonical filter pills draw their own "▾" (CANON 150 `Status ▾`, T-02 892, MO-02 1074).
     A native select is wrong for that in two ways, both measured in Edge against C-D05:
@@ -285,6 +292,7 @@ export function LeadsTable({
   serviceFacets = {},
   mobileData,
   canonicalState = false,
+  linkAs: Link = "a" as unknown as LinkComponent,
 }: LeadsTableProps) {
   const [selected, setSelected] = useState<readonly string[]>([]);
   const [facetOpen, setFacetOpen] = useState(false);
@@ -527,10 +535,10 @@ export function LeadsTable({
             height="13"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="#7A868D"
+            stroke="currentColor"
             strokeWidth={2}
             aria-hidden="true"
-            className="hidden md:block"
+            className="hidden text-cc-t3 md:block"
           >
             <circle cx="11" cy="11" r="7" />
             <path d="m21 21-4.3-4.3" />
@@ -752,12 +760,12 @@ export function LeadsTable({
       {/* MO-02 1076. No contract field carries duplicate detection, so this is staged
           presentation only and never renders outside the mock/test visual state. */}
       {canonicalState ? (
-        <div className="mb-2 flex items-center gap-2 rounded-[6px] border border-[#E5D3A1] bg-cc-surface px-[11px] py-2 md:hidden">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8A5F17" strokeWidth={2} aria-hidden="true">
+        <div className="mb-2 flex items-center gap-2 rounded-[6px] border border-cc-amber-border bg-cc-surface px-[11px] py-2 md:hidden">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true" className="text-cc-amber-ink">
             <path d="M12 9v4M12 17h.01" />
             <circle cx="12" cy="12" r="9" />
           </svg>
-          <span className="text-[10.5px] text-[#6E5A1E]">Possible duplicate — matching phone on LD-4820</span>
+          <span className="text-[10.5px] text-cc-amber-ink">Possible duplicate — matching phone on LD-4820</span>
         </div>
       ) : null}
 
@@ -809,19 +817,19 @@ export function LeadsTable({
           Only "Clear" has a list operation behind it in this phase; every action label is
           inert chrome. */}
       {activeSelected.length > 0 ? (
-        <div className="hidden items-center gap-3 bg-cc-ink-strong px-[14px] py-2 text-[#F2F5F6] md:flex xl:gap-[14px] xl:px-4 xl:py-[9px]">
+        <div className="hidden items-center gap-3 bg-cc-sidebar-bg px-[14px] py-2 text-cc-sidebar-active-text md:flex xl:gap-[14px] xl:px-4 xl:py-[9px]">
           <span className="font-cc-mono text-[11px] font-semibold uppercase xl:text-[11.5px]">
             {activeSelected.length} selected
           </span>
           {/* C-D05 170 only; T-02 896 has no separator element. */}
-          <span aria-hidden="true" className="hidden h-[14px] w-px bg-[#3B4248] xl:block" />
+          <span aria-hidden="true" className="hidden h-[14px] w-px bg-cc-sidebar-border xl:block" />
           {TABLET_BULK_ACTIONS.map((action) => (
-            <span key={action} aria-hidden="true" className="text-[11.5px] text-[#D5DBDE] xl:hidden">
+            <span key={action} aria-hidden="true" className="text-[11.5px] text-cc-sidebar-text xl:hidden">
               {action}
             </span>
           ))}
           {DESKTOP_BULK_ACTIONS.map((action) => (
-            <span key={action} aria-hidden="true" className="hidden text-[12px] text-[#D5DBDE] xl:inline">
+            <span key={action} aria-hidden="true" className="hidden text-[12px] text-cc-sidebar-text xl:inline">
               {action}
             </span>
           ))}
@@ -861,7 +869,7 @@ export function LeadsTable({
               role="row"
               style={{ gridTemplateColumns: DESKTOP_GRID }}
               className={`grid h-[42px] items-center gap-3 border-b border-cc-soft px-4 ${
-                activeSelected.includes(lead.id) ? "bg-[#EAF2ED]" : "bg-cc-surface"
+                activeSelected.includes(lead.id) ? "bg-cc-green-tint" : "bg-cc-surface"
               }`}
             >
               {checkbox(activeSelected.includes(lead.id), `Select row ${lead.name}`, () => toggleRow(lead.id), "h-[14px] w-[14px]")}
@@ -879,7 +887,7 @@ export function LeadsTable({
               <span role="cell" className="flex min-w-0 items-center gap-[7px]">
                 <span
                   aria-hidden="true"
-                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-[5px] bg-[#EEF2F0] text-[8.5px] font-bold text-cc-green-ink"
+                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-[5px] bg-cc-green-tint text-[8.5px] font-bold text-cc-green-ink"
                 >
                   {ownerInitials(ownerLabelOf(lead))}
                 </span>
@@ -911,7 +919,7 @@ export function LeadsTable({
               <span />
               {SKELETON_BARS.map((width, i) => (
                 <div key={i}>
-                  <div className="h-[9px] rounded-[3px] bg-[#E7EBED]" style={{ width }} />
+                  <div className="h-[9px] rounded-[3px] bg-cc-skeleton" style={{ width }} />
                 </div>
               ))}
               <span />
@@ -942,7 +950,7 @@ export function LeadsTable({
               role="row"
               style={{ gridTemplateColumns: TABLET_GRID }}
               className={`grid h-12 items-center gap-[10px] border-b border-cc-soft px-[14px] ${
-                activeSelected.includes(lead.id) ? "bg-[#EAF2ED]" : "bg-cc-surface"
+                activeSelected.includes(lead.id) ? "bg-cc-green-tint" : "bg-cc-surface"
               }`}
             >
               {checkbox(activeSelected.includes(lead.id), `Select row ${lead.name}`, () => toggleRow(lead.id), "h-[15px] w-[15px]")}
@@ -969,7 +977,12 @@ export function LeadsTable({
           which is why it reads `mobileRows` rather than `data`. */}
       <ul className="md:hidden">
         {mobileRows.map((lead) => (
-          <li key={lead.id} className="mb-2 rounded-[6px] border border-cc-line bg-cc-surface px-3 py-[10px]">
+          <li key={lead.id} className="mb-2">
+            <Link
+              href={`/dashboard/leads/${lead.id}`}
+              aria-label={`Open lead: ${lead.name}`}
+              className="block rounded-[6px] border border-cc-line bg-cc-surface px-3 py-[10px] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-cc-green"
+            >
             <div className="flex items-center justify-between gap-2">
               <span className="truncate text-[13px] font-semibold text-cc-ink">{lead.name}</span>
               <span className="flex shrink-0 items-center gap-[6px]">
@@ -995,6 +1008,7 @@ export function LeadsTable({
                 Open ›
               </span>
             </div>
+            </Link>
           </li>
         ))}
       </ul>
@@ -1034,7 +1048,7 @@ export function LeadsTable({
             onClick={() => goToPage(query.page - 1)}
             disabled={query.page <= 1}
             /* T-02 908 renders the pager as a plain mono string; C-D05 195 boxes it. */
-            className="hidden text-cc-t4 disabled:opacity-40 md:block md:px-[3px] md:font-cc-mono md:text-[10.5px] md:text-cc-t-table xl:rounded-[5px] xl:border xl:border-cc-line xl:px-[10px] xl:py-[5px] xl:font-cc-body xl:text-[12px] xl:text-cc-t4"
+            className={`hidden text-cc-t-table md:block md:px-[3px] md:font-cc-mono md:text-[10.5px] md:text-cc-t-table xl:min-h-[34px] xl:rounded-[5px] xl:border xl:border-cc-line-strong xl:px-[10px] xl:py-[5px] xl:font-cc-body xl:text-[12px] xl:font-semibold xl:text-cc-t-table ${CONTROL_FOCUS} ${CONTROL_DISABLED_INK}`}
           >
             {/* T-02 908 is a chevron, C-D05 195 is the word. The accessible name is the
                 aria-label above at both widths, so the glyph is never announced. */}
@@ -1074,7 +1088,7 @@ export function LeadsTable({
             aria-describedby={query.page >= pageCount ? "leads-pager-next-reason" : undefined}
             onClick={() => goToPage(query.page + 1)}
             disabled={query.page >= pageCount}
-            className="w-full rounded-[6px] border border-cc-line-strong bg-cc-surface py-2 text-center text-[11.5px] font-semibold text-cc-t-table disabled:opacity-40 md:w-auto md:rounded-none md:border-0 md:bg-transparent md:px-[3px] md:py-0 md:font-cc-mono md:text-[10.5px] md:font-normal xl:rounded-[5px] xl:border xl:border-cc-line-strong xl:bg-cc-surface xl:px-[10px] xl:py-[5px] xl:font-cc-body xl:text-[12px] xl:font-semibold"
+            className={`min-h-[44px] w-full rounded-[6px] border border-cc-line-strong bg-cc-surface py-2 text-center text-[11.5px] font-semibold text-cc-t-table md:min-h-0 md:w-auto md:rounded-none md:border-0 md:bg-transparent md:px-[3px] md:py-0 md:font-cc-mono md:text-[10.5px] md:font-normal xl:min-h-[34px] xl:rounded-[5px] xl:border xl:border-cc-line-strong xl:bg-cc-surface xl:px-[10px] xl:py-[5px] xl:font-cc-body xl:text-[12px] xl:font-semibold ${CONTROL_FOCUS} ${CONTROL_DISABLED_INK}`}
           >
             <span className="md:hidden">
               {canonicalState

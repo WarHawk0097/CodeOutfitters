@@ -33,6 +33,13 @@ pnpm-lock.yaml
 .tokensave/
 graphify-out/
 
+# Provider key material. Apple "Sign in with Apple" private keys and any other
+# PEM/PKCS material must never be tracked — they belong in the provider
+# dashboard and the team password manager.
+*.p8
+*.pem
+*.key
+
 # Local approved design-source archive (not used by the native production build)
 \# CodeOutfitters Project Audit)/
 

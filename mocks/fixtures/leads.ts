@@ -12,6 +12,7 @@
 //
 // Canonical column order: [name, company, service, sourcePath, status, owner, appointment,
 // last, next, created, urgency].
+import { CURRENT_USER } from "../../lib/identity/current-user";
 import type { Lead } from "@command-center/contracts";
 
 // ISO dates are anchored to a fixed reference date so the authored relative labels
@@ -73,7 +74,7 @@ export const LEAD_FIXTURES: Lead[] = [
     company: "Cascade Fitness",
     status: "Contacted",
     owner: "user-002",
-    ownerName: "Marc Rivera",
+    ownerName: CURRENT_USER.name,
     createdAt: "2026-04-20T17:00:00.000Z",
     updatedAt: "2026-04-22T14:00:00.000Z",
     serviceInterest: "AI Agents",
@@ -90,7 +91,7 @@ export const LEAD_FIXTURES: Lead[] = [
     company: "Solterra Energy",
     status: "Discovery Done",
     owner: "user-002",
-    ownerName: "Marc Rivera",
+    ownerName: CURRENT_USER.name,
     createdAt: "2026-04-18T17:00:00.000Z",
     updatedAt: "2026-04-21T17:00:00.000Z",
     serviceInterest: "Custom Software",
@@ -123,7 +124,7 @@ export const LEAD_FIXTURES: Lead[] = [
     company: "Verano Hospitality",
     status: "Proposal Req.",
     owner: "user-002",
-    ownerName: "Marc Rivera",
+    ownerName: CURRENT_USER.name,
     createdAt: "2026-04-14T17:00:00.000Z",
     updatedAt: "2026-04-20T17:00:00.000Z",
     serviceInterest: "AI Automation",
@@ -157,7 +158,7 @@ export const LEAD_FIXTURES: Lead[] = [
     company: "Petal & Stem",
     status: "Won",
     owner: "user-002",
-    ownerName: "Marc Rivera",
+    ownerName: CURRENT_USER.name,
     createdAt: "2026-04-04T17:00:00.000Z",
     updatedAt: "2026-04-19T17:00:00.000Z",
     serviceInterest: "Web Applications",
@@ -173,7 +174,7 @@ export const LEAD_FIXTURES: Lead[] = [
     company: "Lumen Health",
     status: "FUL",
     owner: "user-002",
-    ownerName: "Marc Rivera",
+    ownerName: CURRENT_USER.name,
     createdAt: "2026-03-24T17:00:00.000Z",
     updatedAt: "2026-04-13T17:00:00.000Z",
     serviceInterest: "AI Agents",

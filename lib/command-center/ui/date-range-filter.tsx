@@ -7,6 +7,17 @@
 // keyboard/a11y/touch-target support, no new dependency. Calendar-grid popover visual
 // parity with date-range-picker.tsx is PENDING_HUMAN_VISUAL_REVIEW.
 import { useState } from "react";
+import {
+  BTN_SELECT,
+  CONTROL_BASE,
+  FIELD_CONTROL,
+  ROW_ACTION,
+  SIZE_COMPACT,
+  VARIANT_PRIMARY,
+  VARIANT_SELECTED,
+  VARIANT_TERTIARY,
+} from "./control-system";
+import { MenuChevron } from "../../../components/demo/menu";
 
 export type DateRange = { start: string | null; end: string | null };
 
@@ -28,11 +39,12 @@ export function DateRangeFilter({ value, onChange, presets = [] }: DateRangeFilt
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className={`rounded-cc-control border border-cc-line px-3 py-1.5 text-sm ${
-          applied ? "bg-cc-green-tint text-cc-green-ink" : "bg-cc-surface text-cc-t2"
-        }`}
+        className={applied ? `${BTN_SELECT} ${VARIANT_SELECTED}` : BTN_SELECT}
       >
-        {applied ? `${value.start ?? "..."} → ${value.end ?? "..."}` : "Date range"}
+        <span className="min-w-0 truncate">
+          {applied ? `${value.start ?? "..."} → ${value.end ?? "..."}` : "Date range"}
+        </span>
+        <MenuChevron />
       </button>
 
       {open ? (
@@ -44,7 +56,7 @@ export function DateRangeFilter({ value, onChange, presets = [] }: DateRangeFilt
                   key={preset.label}
                   type="button"
                   onClick={() => onChange(preset.getRange())}
-                  className="rounded-cc-control border border-cc-line px-2 py-1 text-xs text-cc-t2 hover:bg-cc-soft"
+                  className={ROW_ACTION}
                 >
                   {preset.label}
                 </button>
@@ -58,7 +70,7 @@ export function DateRangeFilter({ value, onChange, presets = [] }: DateRangeFilt
               type="date"
               value={value.start ?? ""}
               onChange={(e) => onChange({ ...value, start: e.target.value || null })}
-              className="mt-0.5 block w-full rounded-cc-control border border-cc-line px-2 py-1 text-sm"
+              className={`mt-1 ${FIELD_CONTROL}`}
             />
           </label>
           <label className="mb-2 block text-xs text-cc-t3">
@@ -67,7 +79,7 @@ export function DateRangeFilter({ value, onChange, presets = [] }: DateRangeFilt
               type="date"
               value={value.end ?? ""}
               onChange={(e) => onChange({ ...value, end: e.target.value || null })}
-              className="mt-0.5 block w-full rounded-cc-control border border-cc-line px-2 py-1 text-sm"
+              className={`mt-1 ${FIELD_CONTROL}`}
             />
           </label>
 
@@ -75,14 +87,14 @@ export function DateRangeFilter({ value, onChange, presets = [] }: DateRangeFilt
             <button
               type="button"
               onClick={() => onChange({ start: null, end: null })}
-              className="text-xs text-cc-t3 underline"
+              className={`${CONTROL_BASE} ${SIZE_COMPACT} ${VARIANT_TERTIARY}`}
             >
               Clear
             </button>
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="rounded-cc-control bg-cc-green px-2 py-1 text-xs text-white"
+              className={`${CONTROL_BASE} ${SIZE_COMPACT} ${VARIANT_PRIMARY}`}
             >
               Apply
             </button>

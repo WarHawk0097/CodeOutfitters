@@ -19,6 +19,11 @@
 //   - The full transcript lives at a SEPARATE route (/transcript, M-D14/M-D15). The
 //     Transcript tab links there when the record has a ready transcript and keeps the
 //     open control disabled when it has none — it never fabricates a transcript feed here.
+import {
+  BTN_DISABLED,
+  ROW_ACTION,
+  ROW_ACTION_DISABLED,
+} from "@/lib/command-center/ui/control-system";
 import { useId, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -26,6 +31,9 @@ import type { DemoState, Meeting } from "../../../../../lib/demo/types";
 import { useDemoQuery } from "../../../../../components/demo/use-demo-query";
 import { TONE_INK } from "../../../../../components/demo/tone";
 import { RouteEmpty, RouteError, RouteLoading } from "../../../../../components/demo/route-states";
+import { NextActionCard } from "../../../../../components/dashboard/next-action-card";
+import { eventsFor } from "../../../../../lib/activity/model";
+import { RecordActivity } from "../../../../../components/dashboard/activity-ui";
 
 // M-D12 575: the review tab strip. Every tab is a safe local switch; the tabs whose
 // canonical content is provider-generated report REQUIRES PROVIDER instead of prose.
@@ -85,6 +93,21 @@ export function ReviewView({ meetingId }: { meetingId: string }) {
     <div className="cc-scope mx-auto max-w-6xl font-cc-body">
       {back}
       <ReviewContent meeting={meeting} />
+      {/* Deliberately outside ReviewContent: that component is kept hook-free so its
+          markup can be asserted under react-dom/server. The Next Action module reads the
+          task store, so it mounts here. */}
+      <div className="mt-4">
+        <NextActionCard
+          kind="meeting"
+          recordId={meeting.id}
+          recordLabel={`${meeting.name} · ${meeting.company}`}
+          leadId={meeting.leadId}
+        />
+        <RecordActivity
+          events={eventsFor(state.activity, "meeting", meeting.id)}
+          emptyLabel="Nothing has been recorded against this meeting yet."
+        />
+      </div>
     </div>
   );
 }
@@ -215,7 +238,7 @@ function SummaryPanel({ meeting, noteId }: { meeting: Meeting; noteId: string })
         </div>
 
         <div className="mt-3 flex flex-wrap gap-2">
-          <DisabledAction label="Approve summary" noteId={noteId} solid />
+          <DisabledAction label="Approve summary" noteId={noteId} />
           <DisabledAction label="Edit follow-up draft" noteId={noteId} />
           <DisabledAction label="Create proposal" noteId={noteId} />
         </div>
@@ -238,7 +261,7 @@ function SummaryPanel({ meeting, noteId }: { meeting: Meeting; noteId: string })
           Nothing is applied to the CRM until you Review and Apply Updates.
         </p>
         <div className="mt-2">
-          <DisabledAction label="Review and Apply Updates" noteId={noteId} solid />
+          <DisabledAction label="Review and Apply Updates" noteId={noteId} />
         </div>
       </aside>
     </div>
@@ -250,6 +273,7 @@ function SummaryPanel({ meeting, noteId }: { meeting: Meeting; noteId: string })
 // ready transcript; a record with none keeps the open control disabled and never dead-links.
 export function TranscriptPanel({ meeting }: { meeting: Meeting }) {
   const hasTranscript = meeting.transcript.trim() !== "" && meeting.transcript.trim() !== "—";
+  const noTranscriptId = useId();
   return (
     <div>
       <h2 className="font-cc-mono text-[10.5px] font-bold tracking-[.08em] text-cc-t-header">
@@ -266,18 +290,26 @@ export function TranscriptPanel({ meeting }: { meeting: Meeting }) {
       {hasTranscript ? (
         <Link
           href={`/dashboard/meetings/${meeting.id}/transcript`}
-          className="mt-3 inline-block rounded-cc-control border border-cc-line px-3 py-1.5 text-[12px] font-semibold text-cc-green-ink outline-none hover:bg-cc-soft focus-visible:ring-2 focus-visible:ring-cc-green-border"
+          className={`mt-3 ${ROW_ACTION}`}
         >
           Open full transcript
         </Link>
       ) : (
-        <button
-          type="button"
-          disabled
-          className="mt-3 cursor-not-allowed rounded-cc-control border border-cc-line px-3 py-1.5 text-[12px] font-semibold text-cc-t3"
-        >
-          Open full transcript
-        </button>
+        // Disabled AND explained: a control that refuses a click without saying why is
+        // indistinguishable from a broken one.
+        <>
+          <button
+            type="button"
+            disabled
+            aria-describedby={noTranscriptId}
+            className={`mt-3 ${ROW_ACTION_DISABLED}`}
+          >
+            Open full transcript
+          </button>
+          <p id={noTranscriptId} className="mt-2 text-[11.5px] text-cc-t3">
+            There is no transcript for this meeting, so there is nothing to open.
+          </p>
+        </>
       )}
     </div>
   );
@@ -319,7 +351,7 @@ function ActionsPanel({ noteId }: { noteId: string }) {
         />
       </div>
       <div className="mt-3">
-        <DisabledAction label="Create follow-up" noteId={noteId} solid />
+        <DisabledAction label="Create follow-up" noteId={noteId} />
       </div>
     </div>
   );
@@ -327,18 +359,13 @@ function ActionsPanel({ noteId }: { noteId: string }) {
 
 // Every provider-dependent review action renders as a disabled button that names its
 // reason through aria-describedby — no color-only signal, and the reason is textual.
-function DisabledAction({ label, noteId, solid }: { label: string; noteId: string; solid?: boolean }) {
+function DisabledAction({ label, noteId }: { label: string; noteId: string }) {
   return (
     <button
       type="button"
       disabled
       aria-describedby={noteId}
-      className={
-        "cursor-not-allowed rounded-cc-control px-3 py-1.5 text-[12px] font-semibold " +
-        (solid
-          ? "border border-cc-green-border bg-cc-green-tint text-cc-green-ink opacity-70"
-          : "border border-cc-line text-cc-t3")
-      }
+      className={BTN_DISABLED}
     >
       {label}
     </button>

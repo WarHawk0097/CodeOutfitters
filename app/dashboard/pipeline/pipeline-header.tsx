@@ -5,6 +5,7 @@
 //
 // The chip and the board read the same useStageWindow store, so the label can never
 // describe a different slice from the one the columns show.
+import { CONTROL_DISABLED_INK, CONTROL_FOCUS } from "@/lib/command-center/ui/control-system";
 import { useDemoState } from "../../../lib/demo/store";
 import { useStageWindow } from "./stage-window";
 
@@ -38,7 +39,7 @@ export function PipelineHeaderChip() {
         onClick={() => step(-1)}
         disabled={!canPrev}
         aria-label="Show earlier stages"
-        className="rounded-[4px] px-1 py-px text-cc-t2 hover:bg-cc-secondary disabled:opacity-40"
+        className={`rounded-[4px] px-1 py-px text-cc-t2 hover:bg-cc-secondary ${CONTROL_FOCUS} ${CONTROL_DISABLED_INK}`}
       >
         <span aria-hidden="true">‹</span>
       </button>
@@ -47,7 +48,7 @@ export function PipelineHeaderChip() {
         onClick={() => step(1)}
         disabled={!canNext}
         aria-label="Show later stages"
-        className="rounded-[4px] px-1 py-px text-cc-t2 hover:bg-cc-secondary disabled:opacity-40"
+        className={`rounded-[4px] px-1 py-px text-cc-t2 hover:bg-cc-secondary ${CONTROL_FOCUS} ${CONTROL_DISABLED_INK}`}
       >
         <span aria-hidden="true">›</span>
       </button>

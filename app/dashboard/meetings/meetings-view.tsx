@@ -10,7 +10,15 @@
 // No provider is connected. Every meeting carries an empty joinUrl, the readiness panel
 // reports REQUIRES PROVIDER exactly as M-D01 466-468 draws it, and no transcript text
 // exists to show — the UI says that instead of implying a recording is available.
-import { useCallback, useMemo, useState } from "react";
+import {
+  BTN_PRIMARY,
+  BTN_SECONDARY,
+  ROW_ACTION,
+  ROW_ACTION_ICON_QUIET,
+  SEGMENT,
+  SEGMENT_ACTIVE,
+} from "@/lib/command-center/ui/control-system";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   cancelMeeting,
   completeMeeting,
@@ -20,6 +28,7 @@ import {
   updateMeeting,
 } from "../../../lib/demo/actions";
 import { DEMO_TODAY, LEAD_DIRECTORY } from "../../../lib/demo/seed";
+import { MEETING_PREPARE_STATES, MEETING_REVIEW_STATES } from "../../../lib/operations/attention";
 import type { Meeting, MeetingState, Tone } from "../../../lib/demo/types";
 import { useDemoQuery } from "../../../components/demo/use-demo-query";
 import { TONE_INK } from "../../../components/demo/tone";
@@ -28,8 +37,13 @@ import { MenuButton, type MenuItem } from "../../../components/demo/menu";
 import { Dialog, DialogCancelButton, DialogSubmitButton } from "../../../components/demo/dialog";
 import { SelectField, TextAreaField, TextField } from "../../../components/demo/field";
 import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
-import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton } from "../../../components/demo/toolbar";
+import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton, ToolbarDivider } from "../../../components/demo/toolbar";
+import { SavedViewsBar } from "../../../components/command-center/saved-views";
+import { useListView, useQueryParam } from "../../../components/command-center/use-view-query";
+import { COMMAND_CREATE_PARAM } from "../../../lib/search/commands";
 import { longDate, timeRange } from "../appointments/date-utils";
+import { RecordActivity } from "@/components/dashboard/activity-ui";
+import { eventsFor, type ActivityEvent } from "@/lib/activity/model";
 
 // CANON 1392-1396 gives each meeting an `stc` colour. FAILED · NO-SHOW is red, NEEDS
 // REVIEW blue, COMPLETED neutral, READY green. LIVE and CANCELLED are not drawn on any
@@ -46,13 +60,30 @@ const STATE_TONE: Record<MeetingState, Tone> = {
 const STATES: MeetingState[] = ["READY", "LIVE", "NEEDS REVIEW", "COMPLETED", "FAILED · NO-SHOW", "CANCELLED"];
 
 // M-D01 445 / MO-08 1157: Upcoming · Live · Needs review · N · Completed (mobile "Done").
-type MeetingsView = "upcoming" | "live" | "review" | "completed";
+//
+// "prepare" is not a sixth tab. It is the Overview's "Meetings to prepare" count arriving
+// with its question attached: same READY records the Upcoming tab shows, reached from
+// `?view=prepare`, drawn with a chip that says what was asked and clears back to the
+// canonical tab. A separate /dashboard/meetings/prepare page would be a second list of the
+// same rows, free to drift from this one.
+type MeetingsView = "upcoming" | "live" | "review" | "completed" | "prepare";
+
+/** The tab that stays lit for a derived view. */
+const TAB_FOR_VIEW: Record<MeetingsView, MeetingsView> = {
+  upcoming: "upcoming",
+  live: "live",
+  review: "review",
+  completed: "completed",
+  prepare: "upcoming",
+};
 
 const VIEW_STATES: Record<MeetingsView, MeetingState[]> = {
-  upcoming: ["READY"],
+  // Shared with the Overview count, so the card and this list cannot disagree.
+  upcoming: [...MEETING_PREPARE_STATES],
   live: ["LIVE"],
-  review: ["NEEDS REVIEW"],
+  review: [...MEETING_REVIEW_STATES],
   completed: ["COMPLETED", "FAILED · NO-SHOW", "CANCELLED"],
+  prepare: [...MEETING_PREPARE_STATES],
 };
 
 const PLATFORMS = ["Google Meet", "Zoom", "Microsoft Teams", "Phone"] as const;
@@ -74,8 +105,7 @@ const PINNED_QUESTIONS: readonly string[] = [
   "Decision — Who signs off, and by when do you want a decision?",
 ];
 
-const ACTION_CLASS =
-  "rounded-cc-control border border-cc-line-strong px-[11px] py-[5px] text-[11.5px] font-semibold text-cc-green-ink hover:border-cc-green-border";
+const ACTION_CLASS = ROW_ACTION;
 
 type MeetingDraft = {
   name: string;
@@ -95,10 +125,14 @@ export function MeetingsScreen() {
   const { state, status, error, retry } = useDemoQuery();
   const breakpoint = useBreakpoint();
 
-  const [view, setView] = useState<MeetingsView>("review");
-  const [q, setQ] = useState("");
-  const [ownerFilter, setOwnerFilter] = useState<string | null>(null);
-  const [dateFilter, setDateFilter] = useState<string | null>(null);
+  // Filters live in the URL: same door for a Saved View, a search result and a shared link.
+  const { filters, sort, publish, set } = useListView("meetings");
+  const view = (filters.view ?? "review") as MeetingsView;
+  const activeTab = TAB_FOR_VIEW[view] ?? "review";
+  const setView = useCallback((next: MeetingsView) => set("view", next), [set]);
+  const q = filters.q ?? "";
+  const ownerFilter = filters.owner === "" ? null : (filters.owner ?? null);
+  const dateFilter = filters.date === "" ? null : (filters.date ?? null);
 
   const [detailId, setDetailId] = useState<string | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
@@ -110,6 +144,12 @@ export function MeetingsScreen() {
   const [cancelId, setCancelId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [announcement, setAnnouncement] = useState("");
+
+  // "Schedule meeting" in the command palette arrives with `?new=1`.
+  const createRequested = useQueryParam(COMMAND_CREATE_PARAM) === "1";
+  useEffect(() => {
+    if (createRequested) setCreateOpen(true);
+  }, [createRequested]);
 
   const ownerName = useCallback(
     (id: string) => (id === "unassigned" ? "Unassigned" : (state.team.find((m) => m.id === id)?.name ?? id)),
@@ -265,7 +305,7 @@ export function MeetingsScreen() {
         width={250}
         items={rowMenu(meeting)}
         onSelect={(id) => onMenuSelect(meeting, id)}
-        className="px-1 leading-none text-cc-icon-muted hover:text-cc-t2"
+        className={ROW_ACTION_ICON_QUIET}
       />
     );
     const actions = actionsFor(meeting);
@@ -378,9 +418,9 @@ export function MeetingsScreen() {
             type="button"
             role="tab"
             id={`meetings-tab-${candidate}`}
-            aria-selected={candidate === view}
+            aria-selected={candidate === activeTab}
             aria-controls="meetings-panel"
-            tabIndex={candidate === view ? 0 : -1}
+            tabIndex={candidate === activeTab ? 0 : -1}
             onClick={() => setView(candidate)}
             onKeyDown={(event) => {
               if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
@@ -391,9 +431,9 @@ export function MeetingsScreen() {
               document.getElementById(`meetings-tab-${next}`)?.focus();
             }}
             className={
-              candidate === view
-                ? "rounded-cc-control bg-cc-ink-strong px-[11px] py-[7px] text-[11.5px] font-semibold text-white"
-                : "rounded-cc-control px-[11px] py-[7px] text-[11.5px] font-semibold text-cc-t2 hover:bg-cc-secondary"
+              candidate === activeTab
+                ? SEGMENT_ACTIVE
+                : SEGMENT
             }
           >
             {viewLabel(candidate)}
@@ -401,22 +441,40 @@ export function MeetingsScreen() {
         ))}
       </div>
 
+      {/* The derived view says what was asked for and how to get back to the plain tab —
+          without it the list looks like Upcoming with an unexplained heading. */}
+      {view === "prepare" ? (
+        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-cc-card border border-cc-green-border bg-cc-green-tint px-3 py-2">
+          <span className="text-[11.5px] font-semibold text-cc-green-ink">
+            Meetings to prepare · {rows.length}
+          </span>
+          <span className="text-[11px] text-cc-t2">
+            Scheduled meetings that still need preparing, from the Overview.
+          </span>
+          <button
+            type="button"
+            onClick={() => setView("upcoming")}
+            className="ml-auto text-[11.5px] font-semibold text-cc-green underline decoration-cc-line underline-offset-2 hover:decoration-cc-green"
+          >
+            Clear filter
+          </button>
+        </div>
+      ) : null}
+
       <RouteToolbar>
-        <SearchInput value={q} onChange={setQ} label="Search meetings by name, company, service or platform" />
-        <FilterMenu label="Owner" allLabel="All owners" value={ownerFilter} options={ownerOptions} onChange={setOwnerFilter} />
-        <FilterMenu label="Date" allLabel="Any date" value={dateFilter} options={dateOptions} onChange={setDateFilter} />
-        <ToolbarButton label="Today" onClick={() => setDateFilter(DEMO_TODAY)} />
+        <SearchInput value={q} onChange={(value) => set("q", value)} label="Search meetings by name, company, service or platform" />
+        <FilterMenu label="Owner" allLabel="All owners" value={ownerFilter} options={ownerOptions} onChange={(value) => set("owner", value)} />
+        <FilterMenu label="Date" allLabel="Any date" value={dateFilter} options={dateOptions} onChange={(value) => set("date", value)} />
+        <ToolbarButton label="Today" onClick={() => set("date", DEMO_TODAY)} />
         {filtersApplied ? (
           <ToolbarButton
             label="Clear filters"
-            onClick={() => {
-              setQ("");
-              setOwnerFilter(null);
-              setDateFilter(null);
-            }}
+            onClick={() => publish({ ...filters, q: "", owner: "", date: "" }, sort)}
           />
         ) : null}
         <ToolbarButton label="New meeting" tone="primary" onClick={() => setCreateOpen(true)} />
+        <ToolbarDivider />
+        <SavedViewsBar scope="meetings" filters={filters} sort={sort} onApply={publish} />
       </RouteToolbar>
 
       <div id="meetings-panel" role="tabpanel" aria-labelledby={`meetings-tab-${view}`}>
@@ -437,7 +495,7 @@ export function MeetingsScreen() {
           meeting={detail}
           ownerName={ownerName(detail.ownerId)}
           day={dayOf(detail)}
-          activity={state.activity.filter((entry) => entry.subjectId === detail.id)}
+          activity={eventsFor(state.activity, "meeting", detail.id)}
           onClose={() => setDetailId(null)}
           onComplete={() => {
             setDetailId(null);
@@ -619,7 +677,7 @@ function MeetingDetailDialog({
   meeting: Meeting;
   ownerName: string;
   day: string | null;
-  activity: readonly { id: string; message: string }[];
+  activity: readonly ActivityEvent[];
   onClose: () => void;
   onEdit: () => void;
   onComplete: () => void;
@@ -637,14 +695,14 @@ function MeetingDetailDialog({
           <button
             type="button"
             onClick={onEdit}
-            className="rounded-cc-control border border-cc-line-strong bg-cc-surface px-3 py-1.5 text-[12.5px] font-semibold text-cc-t-table"
+            className={BTN_SECONDARY}
           >
             Edit meeting
           </button>
           <button
             type="button"
             onClick={onComplete}
-            className="rounded-cc-control bg-cc-green px-3 py-1.5 text-[12.5px] font-semibold text-white"
+            className={BTN_PRIMARY}
           >
             Mark complete
           </button>
@@ -673,18 +731,10 @@ function MeetingDetailDialog({
         <p className="mt-3 border-t border-cc-line pt-3 text-[12.5px] text-cc-t-table">Outcome: {meeting.outcome}</p>
       ) : null}
       {meeting.notes ? <p className="mt-2 text-[12.5px] text-cc-t-table">{meeting.notes}</p> : null}
-      <h3 className="mt-4 font-cc-mono text-[10px] tracking-[.06em] text-cc-t3">ACTIVITY HISTORY</h3>
-      {activity.length === 0 ? (
-        <p className="mt-1 text-[11.5px] text-cc-t3">No demo activity recorded for this meeting yet.</p>
-      ) : (
-        <ul className="mt-1 space-y-1">
-          {activity.map((entry) => (
-            <li key={entry.id} className="text-[11.5px] text-cc-t-table">
-              {entry.message}
-            </li>
-          ))}
-        </ul>
-      )}
+      <RecordActivity
+        events={activity}
+        emptyLabel="No demo activity recorded for this meeting yet."
+      />
     </Dialog>
   );
 }
@@ -707,7 +757,7 @@ function PrepareDialog({ meeting, onClose, onJoin }: { meeting: Meeting; onClose
           <button
             type="button"
             onClick={onJoin}
-            className="rounded-cc-control bg-cc-green px-3 py-1.5 text-[12.5px] font-semibold text-white"
+            className={BTN_PRIMARY}
           >
             Open live workspace
           </button>

@@ -12,6 +12,13 @@
 //
 // Nothing here contacts a meeting provider. Every appointment's linked meeting carries an
 // empty joinUrl (see seed.ts), so "Join meeting" says so instead of pretending.
+import {
+  BTN_PRIMARY,
+  ROW_ACTION,
+  ROW_ACTION_ICON,
+  ROW_ACTION_ICON_QUIET,
+  ROW_ACTION_PRIMARY,
+} from "@/lib/command-center/ui/control-system";
 import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import {
@@ -32,6 +39,7 @@ import { Dialog, DialogCancelButton, DialogSubmitButton } from "../../../compone
 import { SelectField, TextAreaField, TextField } from "../../../components/demo/field";
 import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
 import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton } from "../../../components/demo/toolbar";
+import { setQueryParam, useQueryParam } from "../../../components/command-center/use-view-query";
 import { isPast, isUpcoming, useAppointmentsView } from "./view-store";
 import {
   addDays,
@@ -46,6 +54,8 @@ import {
   timeRange,
   weekdayLabel,
 } from "./date-utils";
+import { RecordActivity } from "@/components/dashboard/activity-ui";
+import { eventsFor, type ActivityEvent } from "@/lib/activity/model";
 
 // C-D11 320/328/336 give three states a chip. `short` is the tablet and mobile wording
 // (T-06 972 "READY", 973 "PREP NEEDED"). The remaining three states are not drawn on any
@@ -86,10 +96,8 @@ type CreateDraft = AppointmentDraft & { leadId: string };
 
 type ScheduleDraft = { date: string; startTime: string; endTime: string };
 
-const SECONDARY_ACTION =
-  "rounded-cc-control border border-cc-line-strong px-[11px] py-[5px] text-[11.5px] font-semibold text-cc-t-table hover:border-cc-green-border hover:text-cc-green-ink";
-const PRIMARY_ACTION =
-  "rounded-cc-control bg-cc-green px-[11px] py-[5px] text-[11.5px] font-semibold text-white";
+const SECONDARY_ACTION = ROW_ACTION;
+const PRIMARY_ACTION = ROW_ACTION_PRIMARY;
 const TINT_ACTION =
   "rounded-cc-control border border-cc-green-border bg-cc-green-tint px-[11px] py-[5px] text-[11.5px] font-semibold text-cc-green-ink";
 const DANGER_ACTION =
@@ -100,7 +108,11 @@ export function AppointmentsScreen() {
   const breakpoint = useBreakpoint();
   const { view, date, setDate, today } = useAppointmentsView();
 
-  const [q, setQ] = useState("");
+  // Appointments has no Saved View scope — its state is a day, not a filter set — but universal
+  // search links here with `?q=`, and a search result that lands on an unfiltered list is a
+  // result that did not arrive. The search term alone is therefore read from the URL.
+  const q = useQueryParam("q") ?? "";
+  const setQ = useCallback((value: string) => setQueryParam("q", value), []);
   const [ownerFilter, setOwnerFilter] = useState<string | null>(null);
   const [stateFilter, setStateFilter] = useState<string | null>(null);
 
@@ -342,7 +354,7 @@ export function AppointmentsScreen() {
             width={240}
             items={rowMenu(appointment)}
             onSelect={(id) => onMenuSelect(appointment, id)}
-            className="px-1 leading-none text-cc-icon-muted hover:text-cc-t2"
+            className={ROW_ACTION_ICON_QUIET}
           />
         </span>
       </div>
@@ -416,7 +428,7 @@ export function AppointmentsScreen() {
         type="button"
         onClick={() => setDate(addDays(date, -1))}
         aria-label="Previous day"
-        className="inline-flex h-[38px] w-[30px] flex-shrink-0 items-center justify-center rounded-cc-control border border-cc-line-strong text-cc-t2"
+        className={ROW_ACTION_ICON}
       >
         <span aria-hidden="true">‹</span>
       </button>
@@ -451,7 +463,7 @@ export function AppointmentsScreen() {
         type="button"
         onClick={() => setDate(addDays(date, 1))}
         aria-label="Next day"
-        className="inline-flex h-[38px] w-[30px] flex-shrink-0 items-center justify-center rounded-cc-control border border-cc-line-strong text-cc-t2"
+        className={ROW_ACTION_ICON}
       >
         <span aria-hidden="true">›</span>
       </button>
@@ -465,7 +477,7 @@ export function AppointmentsScreen() {
           type="button"
           onClick={() => setDate(addMonths(date, -1))}
           aria-label="Previous month"
-          className="rounded-cc-control border border-cc-line-strong px-2 py-1 text-cc-t2"
+          className={ROW_ACTION_ICON}
         >
           <span aria-hidden="true">‹</span>
         </button>
@@ -474,7 +486,7 @@ export function AppointmentsScreen() {
           type="button"
           onClick={() => setDate(addMonths(date, 1))}
           aria-label="Next month"
-          className="rounded-cc-control border border-cc-line-strong px-2 py-1 text-cc-t2"
+          className={ROW_ACTION_ICON}
         >
           <span aria-hidden="true">›</span>
         </button>
@@ -585,7 +597,7 @@ export function AppointmentsScreen() {
           appointment={detail}
           ownerName={ownerName(detail.ownerId)}
           meeting={meetingFor(detail.id)}
-          activity={state.activity.filter((entry) => entry.subjectId === detail.id)}
+          activity={eventsFor(state.activity, "appointment", detail.id)}
           onClose={() => setDetailId(null)}
           onEdit={() => {
             setDetailId(null);
@@ -716,7 +728,7 @@ function AppointmentDetailDialog({
   appointment: Appointment;
   ownerName: string;
   meeting: Meeting | undefined;
-  activity: readonly { id: string; message: string }[];
+  activity: readonly ActivityEvent[];
   onClose: () => void;
   onEdit: () => void;
 }) {
@@ -730,7 +742,7 @@ function AppointmentDetailDialog({
       footer={
         <>
           <DialogCancelButton onClick={onClose} label="Close" />
-          <button type="button" onClick={onEdit} className="rounded-cc-control bg-cc-green px-3 py-1.5 text-[12.5px] font-semibold text-white">
+          <button type="button" onClick={onEdit} className={BTN_PRIMARY}>
             Edit appointment
           </button>
         </>
@@ -752,18 +764,10 @@ function AppointmentDetailDialog({
       </dl>
       <p className="mt-3 border-t border-cc-line pt-3 text-[12.5px] text-cc-t-table">{appointment.detail}</p>
       {appointment.notes ? <p className="mt-2 text-[12.5px] text-cc-t-table">{appointment.notes}</p> : null}
-      <h3 className="mt-4 font-cc-mono text-[10px] tracking-[.06em] text-cc-t3">ACTIVITY HISTORY</h3>
-      {activity.length === 0 ? (
-        <p className="mt-1 text-[11.5px] text-cc-t3">No demo activity recorded for this appointment yet.</p>
-      ) : (
-        <ul className="mt-1 space-y-1">
-          {activity.map((entry) => (
-            <li key={entry.id} className="text-[11.5px] text-cc-t-table">
-              {entry.message}
-            </li>
-          ))}
-        </ul>
-      )}
+      <RecordActivity
+        events={activity}
+        emptyLabel="No demo activity recorded for this appointment yet."
+      />
     </Dialog>
   );
 }

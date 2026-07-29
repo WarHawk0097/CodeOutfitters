@@ -17,6 +17,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode, RefObject } from "react";
 import { NavIcon, type NavIconKey } from "./nav-icons";
+import { CURRENT_USER } from "../../identity/current-user";
 
 export type NavItem = {
   label: string;
@@ -30,6 +31,12 @@ export type NavGroup = { label: string; items: NavItem[]; adminOnly?: boolean };
 
 export const OPERATIONS_NAV: NavItem[] = [
   { label: "Overview", href: "/dashboard", icon: "overview" },
+  // My Work sits directly under Overview: the two are the "where do I start?" pair.
+  // Text-only, like Follow-ups and Email Activity — the canonical icon rail defines
+  // exactly six icons (CANON 849-854) and inventing a seventh would change that frame.
+  // The badge is the seeded overdue + due-today count; my-work-view.test.ts recomputes it
+  // from the demo seed so it cannot silently go stale.
+  { label: "My Work", href: "/dashboard/my-work", badge: "5" },
   { label: "Leads", href: "/dashboard/leads", icon: "leads", badge: "12" },
   { label: "Pipeline", href: "/dashboard/pipeline", icon: "pipeline" },
   { label: "Appointments", href: "/dashboard/appointments", icon: "appointments", badge: "3" },
@@ -49,17 +56,27 @@ export const NAV_GROUPS: NavGroup[] = [
   { label: "ADMINISTRATION", items: ADMINISTRATION_NAV, adminOnly: true },
 ];
 
-// CANON 1313: const BC={'12':'#8FBF9B','3':'#6B6754','2':'#D98C7B','4':'#D9A94E'}
-const BADGE_COLOR: Record<string, string> = { "12": "#8FBF9B", "3": "#6B6754", "2": "#D98C7B", "4": "#D9A94E" };
+// Canonical CANON 1313 used four fixed hues (#8FBF9B / #6B6754 / #D98C7B /
+// #D9A94E) keyed on the *count string*, which meant the colour carried no
+// meaning and the #6B6754 badges failed contrast against the rail. The brand
+// refresh keeps the two states that actually mean something — "needs attention"
+// and "informational" — and renders both as token-driven pills, so contrast
+// follows the sidebar palette instead of a hard-coded hex.
+const ATTENTION_ITEMS = new Set(["My Work", "Follow-ups", "Email Activity"]);
 
-// CANON 1321 resolves the badge colour with one per-item exception: the
-// Meeting Intelligence "2" is green, not the red-ish "2" Email Activity uses.
-function badgeColor(item: NavItem): string {
-  if (item.badge === "2" && item.label === "Meeting Intelligence") return "#8FBF9B";
-  return (item.badge && BADGE_COLOR[item.badge]) || "#6B6754";
+export function badgeTone(item: NavItem): "attention" | "info" {
+  return ATTENTION_ITEMS.has(item.label) ? "attention" : "info";
 }
 
-type LinkComponent = (props: {
+const BADGE_CLASS: Record<"attention" | "info", string> = {
+  attention: "bg-cc-gold/25 text-cc-sidebar-badge-text ring-1 ring-cc-gold/60",
+  info: "bg-cc-sidebar-badge-bg text-cc-sidebar-badge-text",
+};
+
+/** How this package renders a link without importing a router: the app passes its own
+ *  `Link`, and the default `"a"` keeps the components usable on their own. Exported so
+ *  every card in the package takes the same prop rather than inventing its own. */
+export type LinkComponent = (props: {
   href: string;
   children: ReactNode;
   className?: string;
@@ -84,8 +101,10 @@ export function NavList({
   return (
     <div className="min-h-0 overflow-y-auto">
       {NAV_GROUPS.map((group) => (
-        <div key={group.label}>
-          <div className="px-[26px] pt-[14px] pb-2 text-[10px] font-semibold tracking-[.16em] text-cc-sidebar-label">
+        // A hairline above every group but the first: section headings alone
+        // were not enough separation once the rows gained a hover surface.
+        <div key={group.label} className="border-t border-cc-sidebar-border first:border-t-0">
+          <div className="px-[26px] pt-[16px] pb-2 text-[10px] font-semibold tracking-[.16em] text-cc-sidebar-heading">
             {group.label}
           </div>
           <ul>
@@ -96,16 +115,20 @@ export function NavList({
                   <Link
                     href={item.href}
                     aria-current={active ? "page" : undefined}
-                    className={`flex h-[37px] items-center justify-between gap-2 px-[26px] text-[13.5px] ${ROW_FOCUS} ${
+                    className={`flex h-[37px] items-center justify-between gap-2 px-[26px] text-[13.5px] transition-colors ${ROW_FOCUS} ${
                       active
-                        ? "font-medium text-cc-sidebar-active shadow-[inset_2px_0_0_var(--cc-sidebar-rail)]"
-                        : "text-cc-sidebar-text hover:text-cc-sidebar-active"
+                        ? "bg-cc-sidebar-active-bg font-medium text-cc-sidebar-active-text shadow-[inset_2px_0_0_var(--cc-sidebar-rail)]"
+                        : "text-cc-sidebar-text hover:bg-cc-sidebar-hover hover:text-cc-sidebar-active-text"
                     }`}
                   >
                     <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">{item.label}</span>
                     {item.badge ? (
-                      <span className="shrink-0 font-cc-sidebar-mono text-[11px]" style={{ color: badgeColor(item) }}>
+                      <span
+                        className={`shrink-0 rounded-full px-[7px] py-[1px] font-cc-sidebar-mono text-[10.5px] leading-[15px] ${BADGE_CLASS[badgeTone(item)]}`}
+                      >
                         {item.badge}
+                        {/* Never count-only: screen readers get the unit. */}
+                        <span className="sr-only"> {badgeTone(item) === "attention" ? "needing attention" : "new"}</span>
                       </span>
                     ) : null}
                   </Link>
@@ -123,19 +146,23 @@ export function NavList({
 function BrandBlock() {
   return (
     <div>
-      <div className="text-[16px] text-cc-sidebar-active">
-        Code<b>Outfitters</b>
+      {/* The bold half is the public wordmark green, so the rail reads as the
+          same brand as the marketing site instead of a grey monogram. */}
+      <div className="text-[16px] text-cc-sidebar-active-text">
+        Code<b className="text-cc-sidebar-logo">Outfitters</b>
       </div>
-      <div className="mt-1 text-[9.5px] tracking-[.22em] text-cc-sidebar-muted">COMMAND CENTER</div>
+      <div className="mt-1 text-[9.5px] tracking-[.22em] text-cc-sidebar-heading">COMMAND CENTER</div>
     </div>
   );
 }
 
-// CANON 37 / 942 / 1115. Name and role are canonical display values; there is no
-// authentication in this phase, so nothing here is wired to a session.
+// CANON 37 / 942 / 1115. There is still no authentication in this phase, so nothing here
+// is wired to a session — but the name, initials and role now come from
+// lib/identity/current-user.ts rather than being spelled out here, so this footer, the two
+// drawers and the settings screen cannot describe three different people.
 function AccountFooter({
   avatar = 30,
-  role = "Administrator",
+  role = CURRENT_USER.displayRole,
   logout = false,
 }: {
   avatar?: number;
@@ -148,14 +175,16 @@ function AccountFooter({
         className="flex shrink-0 items-center justify-center rounded-[7px] bg-cc-avatar text-[11.5px] font-semibold text-cc-avatar-ink"
         style={{ width: avatar, height: avatar }}
       >
-        MR
+        {CURRENT_USER.initials}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-[12.5px] font-medium text-cc-sidebar-name">Marc Rivera</div>
-        <div className="text-[10.5px] text-cc-sidebar-muted">{role}</div>
+        <div className="truncate text-[12.5px] font-medium text-cc-sidebar-name">
+          {CURRENT_USER.name}
+        </div>
+        <div className="truncate text-[10.5px] text-cc-sidebar-muted">{role}</div>
       </div>
       {logout ? (
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6B6754" strokeWidth={1.75} aria-hidden="true">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} aria-hidden="true" className="text-cc-sidebar-muted">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
         </svg>
       ) : null}
@@ -223,7 +252,7 @@ const DRAWER_VARIANTS = {
     head: "px-[26px] pb-[22px]",
     close: 30,
     closeRadius: 7,
-    role: "Administrator",
+    role: CURRENT_USER.displayRole,
     avatar: 30,
   },
   mobile: {
@@ -233,7 +262,7 @@ const DRAWER_VARIANTS = {
     head: "px-6 pb-[18px]",
     close: 44,
     closeRadius: 8,
-    role: "Administrator · Sign out",
+    role: `${CURRENT_USER.displayRole} · Sign out`,
     avatar: 32,
   },
 } as const;
@@ -438,10 +467,10 @@ function IconRail({
             title={item.label}
             aria-label={item.label}
             aria-current={item.href === activeHref ? "page" : undefined}
-            className={`flex h-10 w-11 items-center justify-center ${ROW_FOCUS} ${
+            className={`flex h-10 w-11 items-center justify-center transition-colors ${ROW_FOCUS} ${
               item.href === activeHref
-                ? "text-cc-sidebar-active shadow-[inset_2px_0_0_var(--cc-sidebar-rail)]"
-                : "text-cc-sidebar-text"
+                ? "bg-cc-sidebar-active-bg text-cc-sidebar-active-text shadow-[inset_2px_0_0_var(--cc-sidebar-rail)]"
+                : "text-cc-sidebar-text hover:bg-cc-sidebar-hover hover:text-cc-sidebar-active-text"
             }`}
           >
             <NavIcon icon={item.icon} />

@@ -12,6 +12,7 @@ import type { ReactNode } from "react";
 import { ShellNav, ShellHeaderBar, ShellMain } from "./shell-nav";
 import { HeaderStatsProvider } from "./header-stats";
 import { CommandCenterConfigProvider } from "@/components/command-center/mode-provider";
+import { CommandCenterProvider } from "@/components/command-center/command-center";
 import { commandCenterClientConfig } from "@/lib/command-center/mode";
 import { MockBrowserInit } from "@/mocks/browser-init";
 import { DashboardThemeRoot } from "./theme";
@@ -31,6 +32,10 @@ export default function ShellLayout({ children }: { children: ReactNode }) {
         worker, live never does. */}
     <MockBrowserInit enabled={!config.live}>
     <HeaderStatsProvider>
+    {/* Inside the mode and demo-state providers because the dialog searches the demo store and
+        must know whether the workspace is live; outside the frame because the dialog is
+        positioned against the viewport, not against the scrolling content column. */}
+    <CommandCenterProvider>
     <DashboardThemeRoot className="flex h-screen overflow-hidden bg-cc-canvas">
       <ShellNav />
       <div className="flex min-w-0 flex-1 flex-col">
@@ -41,6 +46,7 @@ export default function ShellLayout({ children }: { children: ReactNode }) {
         <ShellMain>{children}</ShellMain>
       </div>
     </DashboardThemeRoot>
+    </CommandCenterProvider>
     </HeaderStatsProvider>
     </MockBrowserInit>
     </CommandCenterConfigProvider>

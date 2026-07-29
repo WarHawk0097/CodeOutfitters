@@ -1,8 +1,8 @@
 'use server'
 
-import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { publicOrigin } from '@/lib/routing/public-origin'
 
 // Password-reset request server action. Recovery is performed server-side; the
 // emailed link lands on /auth/callback which exchanges the recovery code for a
@@ -12,10 +12,10 @@ import { createClient } from '@/lib/supabase/server'
 export async function requestPasswordReset(formData: FormData) {
   const email = String(formData.get('email') ?? '')
 
-  const h = await headers()
-  const host = h.get('x-forwarded-host') ?? h.get('host') ?? ''
-  const proto = h.get('x-forwarded-proto') ?? 'https'
-  const origin = host ? `${proto}://${host}` : ''
+  // The emailed link is built from the resolved public origin, never from the
+  // request's forwarded host: a forwarded host is caller-controlled, and a reset
+  // link that honours it is a working account-takeover redirect.
+  const origin = publicOrigin()
 
   const supabase = await createClient()
   // Fire-and-forget: ignore the result so timing/errors can't reveal account

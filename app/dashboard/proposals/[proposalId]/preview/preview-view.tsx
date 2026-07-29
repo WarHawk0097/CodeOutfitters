@@ -12,12 +12,18 @@
 // the secure client link — is disabled with an honest reason and never dead-links. A blocked
 // validation finding holds the send gate (state-machines.json: blocked prevents send). Content is real,
 // selectable DOM: nothing is canvas-rendered text.
+import {
+  BTN_DISABLED,
+  BTN_ICON,
+  CONTROL_DISABLED_STATE,
+} from "@/lib/command-center/ui/control-system";
 import { useId, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ChevronLeft, ChevronRight, Minus, Plus } from "lucide-react";
 import type { Proposal } from "../../../../../lib/demo/types";
 import { useDemoQuery } from "../../../../../components/demo/use-demo-query";
 import { RouteError, RouteLoading } from "../../../../../components/demo/route-states";
+import { NextActionCard } from "../../../../../components/dashboard/next-action-card";
 import { formatUsd } from "../../../../../lib/command-center/proposals/money";
 import { isSendBlocked, unresolvedCount } from "../../../../../lib/command-center/proposals/validation";
 import { buildPreviewDocument, CANONICAL_DEMO_PROPOSAL_ID } from "../../../../../lib/command-center/proposals/fixtures";
@@ -68,7 +74,21 @@ export function ProposalPreviewView({ proposalId }: { proposalId: string }) {
   const proposal = state.proposals.find((p) => p.id === proposalId) ?? null;
   if (!proposal) return <PreviewNotFound proposalId={proposalId} />;
 
-  return <PreviewWorkspace proposal={proposal} document={buildPreviewDocument(proposal)} />;
+  return (
+    <>
+      <PreviewWorkspace proposal={proposal} document={buildPreviewDocument(proposal)} />
+      {/* Same task record the builder shows — the preview is a second view of one proposal,
+          not a second proposal, so it must show the same next action. */}
+      <div className="cc-scope mx-auto mt-4 max-w-6xl font-cc-body">
+        <NextActionCard
+          kind="proposal"
+          recordId={proposal.id}
+          recordLabel={`${proposal.id} · ${proposal.client}`}
+          leadId={proposal.leadId}
+        />
+      </div>
+    </>
+  );
 }
 
 export function PreviewNotFound({ proposalId }: { proposalId: string }) {
@@ -161,7 +181,6 @@ export function PreviewWorkspace({
           <GatedButton label="Download PDF" reason="PDF generation and download are available in the live workspace." />
           <GatedButton
             label="Send"
-            primary
             reason={
               sendBlocked
                 ? "Send is blocked until the flagged validation issue is resolved, and is available in the live workspace."
@@ -182,7 +201,7 @@ export function PreviewWorkspace({
             disabled={pageIndex === 0}
             aria-label="Previous page"
             aria-describedby={pageIndex === 0 ? "preview-prev-page-reason" : undefined}
-            className="rounded-cc-control border border-cc-line p-1.5 text-cc-ink disabled:opacity-40 hover:border-cc-green-border"
+            className={`${BTN_ICON} ${CONTROL_DISABLED_STATE}`}
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -197,7 +216,7 @@ export function PreviewWorkspace({
             aria-describedby={
               pageIndex === document.pages.length - 1 ? "preview-next-page-reason" : undefined
             }
-            className="rounded-cc-control border border-cc-line p-1.5 text-cc-ink disabled:opacity-40 hover:border-cc-green-border"
+            className={`${BTN_ICON} ${CONTROL_DISABLED_STATE}`}
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -215,13 +234,13 @@ export function PreviewWorkspace({
         </nav>
 
         <div className="flex items-center gap-1" role="group" aria-label="Zoom">
-          <button type="button" onClick={() => setZoom((z) => stepZoom(z, -1))} aria-label="Zoom out" className="rounded-cc-control border border-cc-line p-1.5 text-cc-ink hover:border-cc-green-border">
+          <button type="button" onClick={() => setZoom((z) => stepZoom(z, -1))} aria-label="Zoom out" className={BTN_ICON}>
             <Minus className="h-4 w-4" />
           </button>
           <span className="min-w-[64px] text-center font-cc-mono text-[11px] text-cc-t2" aria-live="polite">
             {zoomLabel(zoom)}
           </span>
-          <button type="button" onClick={() => setZoom((z) => stepZoom(z, 1))} aria-label="Zoom in" className="rounded-cc-control border border-cc-line p-1.5 text-cc-ink hover:border-cc-green-border">
+          <button type="button" onClick={() => setZoom((z) => stepZoom(z, 1))} aria-label="Zoom in" className={BTN_ICON}>
             <Plus className="h-4 w-4" />
           </button>
           <button type="button" onClick={() => setZoom("fit-width")} aria-pressed={zoom === "fit-width"} className={`ml-1 rounded-cc-control border px-2 py-1 text-[11px] font-semibold ${zoom === "fit-width" ? "border-cc-green-border bg-cc-green-tint text-cc-green-ink" : "border-cc-line text-cc-ink"}`}>
@@ -274,7 +293,7 @@ export function PreviewWorkspace({
 function PdfStatusBadge({ status }: { status: PdfStatus }) {
   const tone: Record<PdfStatus, string> = {
     ready: "bg-cc-green-tint text-cc-green-ink",
-    outdated: "bg-[#F4EBD4] text-[#6E5A1E]",
+    outdated: "bg-cc-amber-tint text-cc-amber-ink",
     generating: "bg-cc-soft text-cc-t2",
     failed: "bg-cc-red-ink/10 text-cc-red-ink",
   };
@@ -289,12 +308,10 @@ function PdfStatusBadge({ status }: { status: PdfStatus }) {
 function GatedButton({
   label,
   reason,
-  primary,
   describedBy,
 }: {
   label: string;
   reason: string;
-  primary?: boolean;
   describedBy?: string;
 }) {
   const ownId = useId();
@@ -304,11 +321,7 @@ function GatedButton({
         type="button"
         disabled
         aria-describedby={describedBy ?? ownId}
-        className={
-          primary
-            ? "cursor-not-allowed rounded-cc-control bg-cc-green/60 px-3 py-1.5 text-[11.5px] font-semibold text-white/80"
-            : "cursor-not-allowed rounded-cc-control border border-cc-line px-3 py-1.5 text-[11.5px] font-semibold text-cc-t3"
-        }
+        className={BTN_DISABLED}
       >
         {label}
       </button>
@@ -380,7 +393,7 @@ function DocPageView({ page, printLayout }: { page: ProposalDocPage; printLayout
     <article
       aria-label={`Proposal page — ${page.navLabel}`}
       className={`flex min-h-[520px] flex-col rounded-cc-card p-8 shadow-[0_18px_50px_rgba(19,23,26,.14)] sm:p-10 ${
-        isCover ? "bg-[#17190F] text-[#F4F1E6]" : "bg-white text-cc-t-table"
+        isCover ? "bg-cc-sidebar-bg text-cc-sidebar-active-text" : "bg-white text-cc-t-table"
       } ${printLayout ? "rounded-none" : ""}`}
     >
       <div className="flex-1">
@@ -401,14 +414,14 @@ function BlockView({ block, onCover }: { block: DocBlock; onCover: boolean }) {
     case "heading":
       return (
         <div className="mt-6 first:mt-0">
-          <div className={`font-cc-mono text-[10px] tracking-[.18em] ${onCover ? "text-[#8F937F]" : "text-cc-t3"}`}>{block.eyebrow}</div>
+          <div className={`font-cc-mono text-[10px] tracking-[.18em] ${onCover ? "text-cc-sidebar-heading" : "text-cc-t3"}`}>{block.eyebrow}</div>
           {block.title ? (
             <h2 className={`mt-2 font-semibold tracking-[-.02em] ${onCover ? "text-[30px] leading-[1.15]" : "text-[22px] text-cc-ink-strong"}`}>{block.title}</h2>
           ) : null}
         </div>
       );
     case "paragraph":
-      return <p className={`mt-3 text-[12.5px] leading-[1.7] ${onCover ? "text-[#A9AC9F]" : "text-cc-t-table"}`}>{block.text}</p>;
+      return <p className={`mt-3 text-[12.5px] leading-[1.7] ${onCover ? "text-cc-sidebar-text" : "text-cc-t-table"}`}>{block.text}</p>;
     case "stat":
       return (
         <div className={`mt-4 inline-block w-full border-t-2 pt-2 ${block.accent ? "border-cc-green" : "border-cc-ink-strong"}`}>

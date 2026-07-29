@@ -9,14 +9,23 @@
 //
 // Nothing is emailed. "Mark sent" records a demo send; no proposal is delivered to a real
 // address and the preview/download is generated locally in the browser.
-import { useCallback, useMemo, useState } from "react";
+import {
+  BTN_DANGER,
+  BTN_PRIMARY,
+  BTN_SECONDARY,
+  ROW_ACTION,
+  ROW_ACTION_ICON_QUIET,
+} from "@/lib/command-center/ui/control-system";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   createProposal,
   duplicateProposal,
   setProposalState,
   updateProposal,
 } from "../../../lib/demo/actions";
+import Link from "next/link";
 import { LEAD_DIRECTORY } from "../../../lib/demo/seed";
+import { needsAttention, PROPOSAL_ATTENTION_STATES } from "../../../lib/operations/attention";
 import type { Proposal, ProposalState, Tone } from "../../../lib/demo/types";
 import { useDemoQuery } from "../../../components/demo/use-demo-query";
 import { TONE_INK } from "../../../components/demo/tone";
@@ -25,7 +34,12 @@ import { MenuButton, type MenuItem } from "../../../components/demo/menu";
 import { Dialog, DialogCancelButton, DialogSubmitButton } from "../../../components/demo/dialog";
 import { SelectField, TextField } from "../../../components/demo/field";
 import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
-import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton } from "../../../components/demo/toolbar";
+import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton, ToolbarDivider } from "../../../components/demo/toolbar";
+import { SavedViewsBar } from "../../../components/command-center/saved-views";
+import { useListView, useQueryParam } from "../../../components/command-center/use-view-query";
+import { COMMAND_CREATE_PARAM } from "../../../lib/search/commands";
+import { RecordActivity } from "@/components/dashboard/activity-ui";
+import { eventsFor, type ActivityEvent } from "@/lib/activity/model";
 
 // CANON 1428-1433 draws a directory, not per-state chips; these tones follow the same
 // palette grammar the rest of the app uses (in-motion blue, waiting amber, won green,
@@ -64,8 +78,7 @@ const VALUE_BUCKETS = [
 
 const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 
-const SECONDARY_ACTION =
-  "rounded-cc-control border border-cc-line-strong px-[11px] py-[5px] text-[11.5px] font-semibold text-cc-t-table hover:border-cc-green-border hover:text-cc-green-ink";
+const SECONDARY_ACTION = ROW_ACTION;
 
 type ProposalDraft = {
   client: string;
@@ -111,10 +124,15 @@ export function ProposalsScreen() {
   const { state, status, error, retry } = useDemoQuery();
   const breakpoint = useBreakpoint();
 
-  const [q, setQ] = useState("");
-  const [ownerFilter, setOwnerFilter] = useState<string | null>(null);
-  const [stateFilter, setStateFilter] = useState<string | null>(null);
-  const [valueFilter, setValueFilter] = useState<string | null>(null);
+  // Filters live in the URL: same door for a Saved View, a search result and a shared link.
+  const { filters, sort, publish, set } = useListView("proposals");
+  const q = filters.q ?? "";
+  const ownerFilter = filters.owner === "" ? null : (filters.owner ?? null);
+  const stateFilter = filters.state === "" ? null : (filters.state ?? null);
+  const valueFilter = filters.value === "" ? null : (filters.value ?? null);
+  // `?view=attention` — the Overview's "Proposals needing attention" count, arriving with
+  // the question it counted. Any other value was already dropped by the scope parser.
+  const viewFilter = filters.view === "" ? null : (filters.view ?? null);
 
   const [detailId, setDetailId] = useState<string | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
@@ -122,6 +140,12 @@ export function ProposalsScreen() {
   const [confirm, setConfirm] = useState<{ id: string; next: ProposalState } | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [announcement, setAnnouncement] = useState("");
+
+  // "Create proposal" in the command palette arrives with `?new=1`.
+  const createRequested = useQueryParam(COMMAND_CREATE_PARAM) === "1";
+  useEffect(() => {
+    if (createRequested) setCreateOpen(true);
+  }, [createRequested]);
 
   const ownerName = useCallback(
     (id: string) => (id === "unassigned" ? "Unassigned" : (state.team.find((m) => m.id === id)?.name ?? id)),
@@ -140,6 +164,9 @@ export function ProposalsScreen() {
     const needle = q.trim().toLowerCase();
     const bucket = VALUE_BUCKETS.find((b) => b.id === valueFilter);
     return state.proposals.filter((proposal) => {
+      // The derived view is a question about several states at once, which is why it is
+      // a `view` and not a `state` value: `state` selects exactly one.
+      if (viewFilter === "attention" && !needsAttention(proposal)) return false;
       if (ownerFilter && proposal.ownerId !== ownerFilter) return false;
       if (stateFilter && proposal.state !== stateFilter) return false;
       if (bucket && !bucket.test(proposal.value)) return false;
@@ -151,10 +178,10 @@ export function ProposalsScreen() {
         proposal.service.toLowerCase().includes(needle)
       );
     });
-  }, [state.proposals, q, ownerFilter, stateFilter, valueFilter]);
+  }, [state.proposals, q, ownerFilter, stateFilter, valueFilter, viewFilter]);
 
   const totalValue = useMemo(() => rows.reduce((sum, p) => sum + p.value, 0), [rows]);
-  const filtersApplied = Boolean(q || ownerFilter || stateFilter || valueFilter);
+  const filtersApplied = Boolean(q || ownerFilter || stateFilter || valueFilter || viewFilter);
   const find = (id: string | null) => (id ? (state.proposals.find((p) => p.id === id) ?? null) : null);
 
   const detail = find(detailId);
@@ -222,7 +249,7 @@ export function ProposalsScreen() {
         width={280}
         items={rowMenu(proposal)}
         onSelect={(id) => onMenuSelect(proposal, id)}
-        className="px-1 leading-none text-cc-icon-muted hover:text-cc-t2"
+        className={ROW_ACTION_ICON_QUIET}
       />
     );
 
@@ -304,23 +331,41 @@ export function ProposalsScreen() {
       </p>
 
       <RouteToolbar>
-        <SearchInput value={q} onChange={setQ} label="Search proposals by id, client, lead or service" />
-        <FilterMenu label="Owner" allLabel="All owners" value={ownerFilter} options={ownerOptions} onChange={setOwnerFilter} />
-        <FilterMenu label="Status" allLabel="Any status" value={stateFilter} options={stateOptions} onChange={setStateFilter} />
-        <FilterMenu label="Value" allLabel="Any value" value={valueFilter} options={valueOptions} onChange={setValueFilter} />
+        <SearchInput value={q} onChange={(value) => set("q", value)} label="Search proposals by id, client, lead or service" />
+        <FilterMenu label="Owner" allLabel="All owners" value={ownerFilter} options={ownerOptions} onChange={(value) => set("owner", value)} />
+        <FilterMenu label="Status" allLabel="Any status" value={stateFilter} options={stateOptions} onChange={(value) => set("state", value)} />
+        <FilterMenu label="Value" allLabel="Any value" value={valueFilter} options={valueOptions} onChange={(value) => set("value", value)} />
         {filtersApplied ? (
           <ToolbarButton
             label="Clear filters"
-            onClick={() => {
-              setQ("");
-              setOwnerFilter(null);
-              setStateFilter(null);
-              setValueFilter(null);
-            }}
+            onClick={() =>
+              publish({ ...filters, q: "", owner: "", state: "", value: "", view: "" }, sort)
+            }
           />
         ) : null}
         <ToolbarButton label="New proposal" tone="primary" onClick={() => setCreateOpen(true)} />
+        <ToolbarDivider />
+        <SavedViewsBar scope="proposals" filters={filters} sort={sort} onApply={publish} />
       </RouteToolbar>
+
+      {/* Says which question produced this list, and clears back to every proposal. */}
+      {viewFilter === "attention" ? (
+        <div className="mb-2 flex flex-wrap items-center gap-2 rounded-cc-card border border-cc-green-border bg-cc-green-tint px-3 py-2">
+          <span className="text-[11.5px] font-semibold text-cc-green-ink">
+            Needing attention · {rows.length}
+          </span>
+          <span className="text-[11px] text-cc-t2">
+            {PROPOSAL_ATTENTION_STATES.join(" · ")}
+          </span>
+          <button
+            type="button"
+            onClick={() => set("view", "")}
+            className="ml-auto text-[11.5px] font-semibold text-cc-green underline decoration-cc-line underline-offset-2 hover:decoration-cc-green"
+          >
+            Clear filter
+          </button>
+        </div>
+      ) : null}
 
       {rows.length === 0 ? (
         <RouteEmpty
@@ -352,7 +397,7 @@ export function ProposalsScreen() {
         <ProposalDetailDialog
           proposal={detail}
           ownerName={ownerName(detail.ownerId)}
-          activity={state.activity.filter((entry) => entry.subjectId === detail.id)}
+          activity={eventsFor(state.activity, "proposal", detail.id)}
           onClose={() => setDetailId(null)}
           onEdit={() => {
             setDetailId(null);
@@ -435,7 +480,7 @@ export function ProposalsScreen() {
               <button
                 type="button"
                 onClick={() => onDownload(previewing)}
-                className="rounded-cc-control bg-cc-green px-3 py-1.5 text-[12.5px] font-semibold text-white"
+                className={BTN_PRIMARY}
               >
                 Download (.txt)
               </button>
@@ -480,7 +525,7 @@ function ProposalDetailDialog({
 }: {
   proposal: Proposal;
   ownerName: string;
-  activity: readonly { id: string; message: string }[];
+  activity: readonly ActivityEvent[];
   onClose: () => void;
   onEdit: () => void;
   onPreview: () => void;
@@ -495,17 +540,24 @@ function ProposalDetailDialog({
       footer={
         <>
           <DialogCancelButton onClick={onClose} label="Close" />
+          {/* A real route, not a placeholder: publishing and client links live behind it. */}
+          <Link
+            href={`/dashboard/proposals/${proposal.id}/access`}
+            className={BTN_SECONDARY}
+          >
+            Client access
+          </Link>
           <button
             type="button"
             onClick={onPreview}
-            className="rounded-cc-control border border-cc-line-strong bg-cc-surface px-3 py-1.5 text-[12.5px] font-semibold text-cc-t-table"
+            className={BTN_SECONDARY}
           >
             Preview
           </button>
           <button
             type="button"
             onClick={onEdit}
-            className="rounded-cc-control bg-cc-green px-3 py-1.5 text-[12.5px] font-semibold text-white"
+            className={BTN_PRIMARY}
           >
             Edit proposal
           </button>
@@ -530,18 +582,11 @@ function ProposalDetailDialog({
         <dt className="text-cc-t3">Last event</dt>
         <dd className="text-cc-ink">{proposal.lastEvent}</dd>
       </dl>
-      <h3 className="mt-4 font-cc-mono text-[10px] tracking-[.06em] text-cc-t3">ACTIVITY HISTORY</h3>
-      {activity.length === 0 ? (
-        <p className="mt-1 text-[11.5px] text-cc-t3">No demo activity recorded for this proposal yet.</p>
-      ) : (
-        <ul className="mt-1 space-y-1">
-          {activity.map((entry) => (
-            <li key={entry.id} className="text-[11.5px] text-cc-t-table">
-              {entry.message}
-            </li>
-          ))}
-        </ul>
-      )}
+      <RecordActivity
+        events={activity}
+        emptyLabel="No demo activity recorded for this proposal yet."
+        moreHref={`/dashboard/proposals/${proposal.id}/activity`}
+      />
     </Dialog>
   );
 }
@@ -590,11 +635,7 @@ function ConfirmStateDialog({
           <button
             type="button"
             onClick={onConfirm}
-            className={
-              c.tone === "red"
-                ? "rounded-cc-control bg-cc-red-ink px-3 py-1.5 text-[12.5px] font-semibold text-white"
-                : "rounded-cc-control bg-cc-green px-3 py-1.5 text-[12.5px] font-semibold text-white"
-            }
+            className={c.tone === "red" ? BTN_DANGER : BTN_PRIMARY}
           >
             {c.label}
           </button>

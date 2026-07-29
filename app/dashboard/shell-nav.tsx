@@ -1,6 +1,7 @@
 "use client";
 // Narrow client wrapper around Sidebar/ShellHeader — only usePathname needs the
 // client boundary; the rest of the shell layout stays server-rendered.
+import { BTN_DISABLED, BTN_PRIMARY } from "../../lib/command-center/ui/control-system";
 import { useId, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
@@ -8,6 +9,7 @@ import { usePathname } from "next/navigation";
 import { Sidebar, ShellHeader } from "@command-center/ui";
 import { useHeaderStats, useLeadsExport, useDashboardRange } from "./header-stats";
 import { useCommandCenterConfig } from "@/components/command-center/mode-provider";
+import { CommandCenterTrigger } from "@/components/command-center/command-center";
 import { downloadCsv, exportLeadsCsv } from "../../lib/leads-csv";
 import { PipelineHeaderChip, PipelineMobileCount, PipelineSubtitle } from "./pipeline/pipeline-header";
 import { AppointmentsMobileView, AppointmentsSubtitle, AppointmentsViewTabs } from "./appointments/appointments-header";
@@ -28,6 +30,12 @@ const PAGE_META: Record<string, { title: string; subtitle?: ReactNode }> = {
         <span className="hidden xl:inline"> · next meeting in 1h 20m</span>
       </>
     ),
+  },
+  // The view switch, toolbar and dialogs live in the route body, so the header carries the
+  // title and the one sentence that says what the screen is for.
+  "/dashboard/my-work": {
+    title: "My Work",
+    subtitle: "Tasks, follow-ups and next actions that need your attention.",
   },
   "/dashboard/leads": { title: "Leads" },
   // CANON 213. The count and the pager are live, so both come from components rather than
@@ -68,27 +76,10 @@ function OverviewHeaderRight() {
   const { range, setRange } = useDashboardRange();
   return (
     <>
-      {/* C-D01 42 draws a search field here. No search index exists yet, so it is a
-          real but natively disabled input with the reason attached — not a div that
-          merely looks like a field, and no keyboard-shortcut hint for a shortcut
-          that is not bound. */}
-      <div className="hidden h-9 w-[300px] items-center gap-[9px] rounded-cc-control border border-cc-line bg-cc-secondary px-3 xl:flex">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7A868D" strokeWidth={2} aria-hidden="true">
-          <circle cx="11" cy="11" r="7" />
-          <path d="m21 21-4.3-4.3" />
-        </svg>
-        <input
-          type="search"
-          disabled
-          aria-label="Search the Command Center"
-          aria-describedby="overview-search-reason"
-          placeholder="Search…"
-          className="min-w-0 flex-1 cursor-not-allowed bg-transparent text-[13px] text-cc-t3 outline-none placeholder:text-cc-t3"
-        />
-        <span id="overview-search-reason" className="sr-only">
-          Search is available when a live workspace is connected.
-        </span>
-      </div>
+      {/* C-D01 42 draws a search field here, and it is now a working one — see the
+          CommandCenterTrigger rendered for every route in ShellHeaderBar below, which
+          occupies exactly this frame at xl. It used to be a natively disabled input
+          with "no search index exists yet" attached; the index exists. */}
 
       {/* Live 7D/30D/90D switch. Shares its range with the Lead-flow card's in-card
           selector via useDashboardRange, so the two never disagree. aria-pressed
@@ -115,7 +106,7 @@ function OverviewHeaderRight() {
         })}
       </div>
 
-      <svg className="hidden xl:block" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3E4A52" strokeWidth={1.75} aria-hidden="true">
+      <svg className="hidden text-cc-t-table xl:block" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} aria-hidden="true">
         <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
         <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
       </svg>
@@ -173,7 +164,7 @@ function LeadsHeaderRight() {
         title={DEFERRED_REASON}
         aria-describedby="leads-columns-reason"
         onClick={(event) => event.preventDefault()}
-        className="cursor-default rounded-cc-control border border-cc-green-border bg-cc-green-tint px-[11px] py-[7px] text-[12px] font-semibold text-cc-green-ink xl:px-[13px] xl:py-2 xl:text-[12.5px]"
+        className={BTN_DISABLED}
       >
         Columns ▾
       </span>
@@ -188,9 +179,10 @@ function LeadsHeaderRight() {
           onClick={onExport}
           aria-disabled={exporting || !exportQuery}
           aria-label="Export CSV"
-          // appearance-none plus an explicit border: a <button> inherits user-agent chrome that
-          // the <span> this replaces did not have, and the frame it sits in is pixel-accepted.
-          className="appearance-none rounded-cc-control border-0 bg-cc-green px-[11px] py-[7px] text-[12px] font-semibold text-white xl:px-[13px] xl:py-2 xl:text-[12.5px]"
+          // The shared primary skin: white on --cc-green-solid rather than on the brand
+          // accent, which is under AA at this size, and it resets the user-agent chrome a
+          // <button> inherits and the <span> this replaces did not have.
+          className={BTN_PRIMARY}
         >
           Export<span className="hidden xl:inline"> CSV</span>
         </button>
@@ -205,7 +197,9 @@ function LeadsHeaderRight() {
           title="Available when the production data service is connected."
           aria-describedby="leads-export-reason"
           onClick={(event) => event.preventDefault()}
-          className="cursor-default appearance-none rounded-cc-control border-0 bg-cc-green px-[11px] py-[7px] text-[12px] font-semibold text-white xl:px-[13px] xl:py-2 xl:text-[12.5px]"
+          // Inert, so it wears the disabled skin rather than the primary fill: an export
+          // that cannot run must not look like the one that can.
+          className={BTN_DISABLED}
         >
           Export<span className="hidden xl:inline"> CSV</span>
         </span>
@@ -236,12 +230,18 @@ function LeadsHeaderRight() {
 // silence the 404, that would fake later-phase completion.
 export const IMPLEMENTED_ROUTES: ReadonlySet<string> = new Set([
   "/dashboard",
+  "/dashboard/my-work",
   "/dashboard/leads",
   "/dashboard/pipeline",
   "/dashboard/appointments",
   "/dashboard/meetings",
   "/dashboard/follow-ups",
   "/dashboard/proposals",
+  "/dashboard/proposals/[proposalId]/activity",
+  "/dashboard/proposals/[proposalId]/access",
+  // Not a dashboard route: the public, unauthenticated proposal page. It is listed here for
+  // the same reason as everything else — so a link to it is a link to something that exists.
+  "/proposal/[secureToken]",
   "/dashboard/email-activity",
   "/dashboard/team",
   "/dashboard/settings",
@@ -323,7 +323,7 @@ const DEFAULT_PADDING = "px-4 py-[14px] md:px-5 md:py-[18px] xl:px-6 xl:pt-3 xl:
 
 // Appointments lands on the same three values (MO-07 1142, T-06 970, C-D11 315). Meetings
 // shares them too — MO-08 1158 is 11px 16px, the desktop directory sits in a 24px gutter.
-const RECORD_ROUTES = new Set(["/dashboard/leads", "/dashboard/pipeline", "/dashboard/appointments", "/dashboard/meetings", "/dashboard/follow-ups", "/dashboard/proposals", "/dashboard/email-activity", "/dashboard/team"]);
+const RECORD_ROUTES = new Set(["/dashboard/my-work", "/dashboard/leads", "/dashboard/pipeline", "/dashboard/appointments", "/dashboard/meetings", "/dashboard/follow-ups", "/dashboard/proposals", "/dashboard/email-activity", "/dashboard/team"]);
 
 export function ShellMain({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -364,7 +364,16 @@ export function ShellHeaderBar() {
       title={meta?.title ?? "Command Center"}
       subtitle={leadsSubtitle ?? meta?.subtitle}
       right={
-        pathname === "/dashboard" ? (
+        <>
+          {/* Every route, not just Overview. Search that only exists on one screen is a
+              search box people learn to navigate away from. The field shape occupies the
+              C-D01 42 frame at xl; below that the icon keeps the control reachable rather
+              than leaving the keyboard shortcut as the only way in. */}
+          <CommandCenterTrigger variant="field" />
+          <span className="xl:hidden">
+            <CommandCenterTrigger variant="icon" />
+          </span>
+          {pathname === "/dashboard" ? (
           <OverviewHeaderRight />
         ) : isLeads ? (
           <LeadsHeaderRight />
@@ -375,7 +384,8 @@ export function ShellHeaderBar() {
           // keeps it top-right of the screen. One instance, so the control and the panel it
           // switches can never disagree.
           <AppointmentsViewTabs />
-        ) : undefined
+        ) : null}
+        </>
       }
       mobileCenter={
         // MO-01 1041 keeps the brand mark in the header and repeats the page
@@ -385,7 +395,12 @@ export function ShellHeaderBar() {
         pathname === "/dashboard" ? undefined : <h1 className="text-[15px] font-semibold text-cc-ink">{meta?.title}</h1>
       }
       mobileRight={
-        pathname === "/dashboard" ? (
+        <>
+          {/* Below md the `right` slot is not rendered at all, so without this the phone
+              layout would have no way to reach search — and there is no phone keyboard to
+              press Ctrl+K on. */}
+          <CommandCenterTrigger variant="icon" />
+          {pathname === "/dashboard" ? (
           <span className="flex h-8 w-8 items-center justify-center rounded-[7px] bg-cc-avatar text-[11px] font-semibold text-cc-avatar-ink">
             MR
           </span>
@@ -398,7 +413,8 @@ export function ShellHeaderBar() {
         ) : pathname === "/dashboard/appointments" ? (
           // MO-07 1141: the view switch collapses to "Calendar ▾" in the header.
           <AppointmentsMobileView />
-        ) : undefined
+        ) : null}
+        </>
       }
     />
   );

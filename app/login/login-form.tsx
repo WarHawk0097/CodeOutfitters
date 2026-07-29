@@ -7,13 +7,14 @@
 //          published demo credential is checked in memory and we open the demo
 //          workspace. Nothing is persisted: the password never reaches
 //          localStorage, sessionStorage, cookies, the query string or a log.
-//   live — the existing Work Order F server action owns authentication. The demo
-//          constants below are NOT consulted in live mode, so they can never
-//          bypass real auth.
+//   live — the server actions own authentication. The demo constants below are
+//          NOT consulted in live mode, so they can never bypass real auth, and
+//          the demo credential block is not rendered at all.
 //
-// Google / Apple render but stay natively disabled while no OAuth provider is
-// configured, each wired to a visible reason through aria-describedby. No fake
-// redirect, no fake spinner, no fake success.
+// Provider buttons submit a server action; they are enabled only when the server
+// says that provider is configured. A disabled button always carries a reason
+// through aria-describedby, never a silent no-op.
+
 import { useId, useRef, useState } from "react";
 import Link from "next/link";
 import {
@@ -24,8 +25,8 @@ import {
   validateCredentials,
   type LoginErrors,
 } from "./credentials";
-
-const PROVIDER_REASON = "Available when live authentication is connected.";
+import type { AuthState } from "@/lib/auth/auth-state";
+import type { ProviderAvailability } from "@/lib/auth/providers";
 
 type Errors = LoginErrors;
 
@@ -60,17 +61,28 @@ function AppleMark() {
   );
 }
 
+const PROVIDER_MARKS = {
+  google: GoogleMark,
+  apple: AppleMark,
+} as const;
+
 export function LoginForm({
   live,
   initialError,
   returnTo,
   action,
+  providers,
+  providerAction,
 }: {
   live: boolean;
   initialError: boolean;
   returnTo: string;
   /** The live sign-in server action, handed down by page.tsx. Absent in demo. */
   action?: (formData: FormData) => void | Promise<void>;
+  /** Google first, then Apple, with server-resolved enablement. */
+  providers: ProviderAvailability[];
+  /** The live OAuth server action. Absent in demo. */
+  providerAction?: (formData: FormData) => void | Promise<void>;
 }) {
   const uid = useId();
   const emailRef = useRef<HTMLInputElement>(null);
@@ -82,14 +94,18 @@ export function LoginForm({
   const [errors, setErrors] = useState<Errors>({});
   const [formError, setFormError] = useState(initialError ? GENERIC_CREDENTIAL_ERROR : "");
   const [status, setStatus] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  // signed_out until something is submitted; authenticating while a real
+  // navigation is in flight; auth_error when the server rejected us.
+  const [authState, setAuthState] = useState<AuthState>(
+    initialError ? "auth_error" : "signed_out",
+  );
+  const submitting = authState === "authenticating";
 
   const emailId = `${uid}-email`;
   const passwordId = `${uid}-password`;
   const emailErrorId = `${uid}-email-error`;
   const passwordErrorId = `${uid}-password-error`;
   const formErrorId = `${uid}-form-error`;
-  const providerReasonId = `${uid}-provider-reason`;
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     if (submitting) {
@@ -104,6 +120,7 @@ export function LoginForm({
       event.preventDefault();
       setFormError("");
       setStatus("");
+      setAuthState("signed_out");
       // Focus the first invalid field.
       (nextErrors.email ? emailRef : passwordRef).current?.focus();
       return;
@@ -112,12 +129,12 @@ export function LoginForm({
     if (live) {
       // Live mode: let the server action run. Demo constants are never consulted.
       setFormError("");
-      setSubmitting(true);
+      setAuthState("authenticating");
       return;
     }
 
     event.preventDefault();
-    setSubmitting(true);
+    setAuthState("authenticating");
 
     if (matchesDemoCredential(email, password)) {
       setFormError("");
@@ -131,7 +148,7 @@ export function LoginForm({
 
     setStatus("");
     setFormError(GENERIC_CREDENTIAL_ERROR);
-    setSubmitting(false);
+    setAuthState("auth_error");
     emailRef.current?.focus();
   }
 
@@ -142,6 +159,7 @@ export function LoginForm({
     setErrors({});
     setFormError("");
     setStatus("");
+    setAuthState("signed_out");
     emailRef.current?.focus();
   }
 
@@ -159,6 +177,57 @@ export function LoginForm({
       <p className="login-status" role="status" aria-live="polite">
         {status}
       </p>
+
+      <div className="login-providers">
+        {providers.map((provider) => {
+          const Mark = PROVIDER_MARKS[provider.id];
+          const reasonId = `${uid}-${provider.id}-reason`;
+          const usable = provider.enabled && live && Boolean(providerAction);
+
+          if (!usable) {
+            return (
+              <div key={provider.id} className="login-provider-slot">
+                <button
+                  type="button"
+                  className="login-provider"
+                  disabled
+                  aria-describedby={reasonId}
+                >
+                  <Mark />
+                  {provider.label}
+                </button>
+                <p id={reasonId} className="login-provider-reason">
+                  {provider.reason}
+                </p>
+              </div>
+            );
+          }
+
+          return (
+            <form
+              key={provider.id}
+              className="login-provider-slot"
+              action={providerAction}
+              onSubmit={() => {
+                setFormError("");
+                setStatus(`Redirecting to ${provider.id === "google" ? "Google" : "Apple"}…`);
+                setAuthState("authenticating");
+              }}
+            >
+              <input type="hidden" name="provider" value={provider.id} />
+              <input type="hidden" name="returnTo" value={returnTo} />
+              <button type="submit" className="login-provider" disabled={submitting}>
+                <Mark />
+                {provider.label}
+              </button>
+            </form>
+          );
+        })}
+      </div>
+
+      <div className="login-divider">
+        <span>or continue with email</span>
+      </div>
 
       <form
         className="login-form"
@@ -236,34 +305,6 @@ export function LoginForm({
           Sign in
         </button>
       </form>
-
-      <div className="login-divider">
-        <span>or continue with</span>
-      </div>
-
-      <div className="login-providers">
-        <button
-          type="button"
-          className="login-provider"
-          disabled
-          aria-describedby={providerReasonId}
-        >
-          <GoogleMark />
-          Continue with Google
-        </button>
-        <button
-          type="button"
-          className="login-provider"
-          disabled
-          aria-describedby={providerReasonId}
-        >
-          <AppleMark />
-          Continue with Apple
-        </button>
-        <p id={providerReasonId} className="login-provider-reason">
-          {PROVIDER_REASON}
-        </p>
-      </div>
 
       {live ? null : (
         <section className="login-demo" aria-labelledby={`${uid}-demo-heading`}>

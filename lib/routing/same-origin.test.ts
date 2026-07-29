@@ -16,6 +16,8 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { safeReturnTo } from "@/lib/auth/return-url";
+import { destinationForAuthState } from "@/lib/auth/auth-state";
+import { CANONICAL_ORIGIN } from "@/lib/routing/public-origin";
 
 const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
 
@@ -59,8 +61,21 @@ describe("one production origin", () => {
     expect(productSources.length).toBeGreaterThan(50);
   });
 
-  it("no product source references a Vercel deployment hostname", () => {
+  // The canonical origin is declared in exactly one module, and that module is the
+  // only place in product source the hostname may be written. The ban is unchanged
+  // everywhere else — a second file naming a hostname is still a failure.
+  const ORIGIN_MODULE = "lib/routing/public-origin.ts";
+
+  it("declares the canonical origin in one module and nowhere else", () => {
+    const declaring = productSources.find(({ path }) => path === ORIGIN_MODULE);
+    expect(declaring, ORIGIN_MODULE).toBeDefined();
+    expect(declaring!.src).toContain(`export const CANONICAL_ORIGIN = "${CANONICAL_ORIGIN}"`);
+    expect(CANONICAL_ORIGIN).toBe("https://codeoutfitters.vercel.app");
+  });
+
+  it("no other product source references a Vercel deployment hostname", () => {
     const offenders = productSources
+      .filter(({ path }) => path !== ORIGIN_MODULE)
       .filter(({ src }) => /[\w-]+\.vercel\.app/.test(src))
       .map(({ path }) => path);
     expect(offenders).toEqual([]);
@@ -112,7 +127,13 @@ describe("/login -> /dashboard", () => {
 
   it("live sign-in defaults to /dashboard through the validated returnTo", () => {
     expect(loginActionsSrc).toContain("safeReturnTo(");
-    expect(loginActionsSrc).toContain("redirect(returnTo)");
+    // The destination is now membership-gated: a member goes to the validated
+    // returnTo, everyone else to /access-pending. Both stay same-origin.
+    expect(loginActionsSrc).toContain("redirect(await postAuthDestination(returnTo))");
+    expect(destinationForAuthState("authenticated_member", "/dashboard")).toBe("/dashboard");
+    expect(destinationForAuthState("authenticated_without_membership", "/dashboard")).toBe(
+      "/access-pending",
+    );
     expect(safeReturnTo(undefined)).toBe("/dashboard");
   });
 

@@ -2,8 +2,13 @@
 // (Overview/Leads/nav shell) per work/PHASED-IMPLEMENTATION-PLAN.md.
 export const UI_PACKAGE_VERSION = "0.1.0";
 
+// The control system. Re-exported for convenience, but modules that only want the class
+// strings should import "./control-system" directly — it is a leaf with no component
+// dependencies, so a server component can read it without pulling the client tree in.
+export * from "./control-system";
+
 export { Sidebar, NavList, NavDrawer, NAV_GROUPS, OPERATIONS_NAV, ADMINISTRATION_NAV } from "./sidebar";
-export type { NavItem, NavGroup } from "./sidebar";
+export type { NavItem, NavGroup, LinkComponent } from "./sidebar";
 
 export { ShellHeader } from "./shell-header";
 export type { ShellHeaderProps } from "./shell-header";
@@ -28,6 +33,7 @@ export {
 export type {
   OverviewKpi,
   TodaysWorkItem,
+  OperationalSummary,
   ActivityItem,
   LeadFlowGeometry,
 } from "./overview-cards";

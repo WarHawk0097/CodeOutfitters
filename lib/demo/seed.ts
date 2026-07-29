@@ -8,6 +8,9 @@
 // Every record links to a lead by id, and every owner is a team-member id, so the same
 // entity is the same record on every route.
 import { generateLeads } from "../../mocks/fixtures/generate-leads";
+import { CURRENT_USER } from "../identity/current-user";
+import { buildActivityEvents } from "./activity-seed";
+import { buildProposalAccessSeed } from "./proposal-access-seed";
 import { CANONICAL_LEAD_STATUS_ORDER, type Lead, type LeadStatus } from "@command-center/contracts";
 import type {
   Appointment,
@@ -20,12 +23,13 @@ import type {
   Proposal,
   SettingsSection,
   Signal,
+  Task,
   TeamMember,
 } from "./types";
 
 /** Bumped whenever the shape of DemoState changes; a stored state from an older
  *  version is discarded and reseeded rather than migrated. */
-export const DEMO_STATE_VERSION = 1;
+export const DEMO_STATE_VERSION = 4;
 
 /** Fixed reference instant. Never the real clock — the same reason generate-leads.ts
  *  pins REFERENCE_NOW: a demo that reads Date.now() renders differently every run. */
@@ -34,11 +38,11 @@ export const DEMO_TODAY = "2026-04-22";
 
 // ---------------------------------------------------------------------------
 // Team — CANON 1434-1438 (teamRows). Ids match the owner ids the Leads dataset
-// already uses (user-001 Priya Nair, user-002 Marc Rivera), so an owner selector on
+// already uses (user-001 Priya Nair, user-002 = the signed-in user), so an owner selector on
 // any route offers the same people the Leads owner facet does.
 // ---------------------------------------------------------------------------
 export const TEAM_SEED: TeamMember[] = [
-  { id: "user-002", name: "Marc Rivera", initials: "MR", email: "marc@codeoutfitters.com", role: "Administrator", status: "Active", lastActive: "Active now" },
+  { id: CURRENT_USER.id, name: CURRENT_USER.name, initials: CURRENT_USER.initials, email: CURRENT_USER.email, role: "Administrator", status: "Active", lastActive: "Active now" },
   { id: "user-001", name: "Priya Nair", initials: "PN", email: "priya@codeoutfitters.com", role: "Sales", status: "Active", lastActive: "12m ago" },
   { id: "user-003", name: "Jordan Hale", initials: "JH", email: "jordan@codeoutfitters.com", role: "Sales", status: "Active", lastActive: "2h ago" },
   { id: "user-004", name: "Tara Osei", initials: "TO", email: "tara@codeoutfitters.com", role: "Sales", status: "Pending", lastActive: "Invited 2d ago" },
@@ -134,18 +138,18 @@ type CanonicalCard = {
 };
 
 const CANONICAL_CARDS: readonly CanonicalCard[] = [
-  { stage: "Contacted", name: "Thomas Beck", company: "Cascade Fitness", service: "AI Agents", context: "No reply for six days — second touch drafted", owner: "Marc Rivera", nextAction: "Call Apr 25", signal: null },
+  { stage: "Contacted", name: "Thomas Beck", company: "Cascade Fitness", service: "AI Agents", context: "No reply for six days — second touch drafted", owner: CURRENT_USER.name, nextAction: "Call Apr 25", signal: null },
   { stage: "Contacted", name: "Nadia Karim", company: "Ferrostar Freight", service: "Integrations", context: "Asked for security overview after intro call", owner: "Priya Nair", nextAction: "Send recap today", signal: { label: "High intent", tone: "green" } },
   { stage: "Appt Pending", name: "Ruben Ortega", company: "Northwind Logistics", service: "Workflow Automation", context: "Appointment not completed — abandoned at calendar", owner: "Priya Nair", nextAction: "Call now · overdue", signal: { label: "Overdue", tone: "red" } },
   { stage: "Appt Pending", name: "Owen Bradley", company: "Cedar Point Legal", service: "Workflow Automation", context: "Reminder email queued for this afternoon", owner: "Unassigned", nextAction: "Assign owner", signal: { label: "Missing owner", tone: "amber" } },
   { stage: "Appt Scheduled", name: "Alicia Fenwick", company: "Bright Harbor Realty", service: "Web Applications", context: "Discovery call today 10:00 — prep 6 questions", owner: "Priya Nair", nextAction: "Prepare meeting", signal: { label: "Meeting today", tone: "green" } },
-  { stage: "Appt Scheduled", name: "Yusuf Adeyemi", company: "Crestline Dental", service: "AI Automation", context: "Discovery call Apr 26 · agenda confirmed", owner: "Marc Rivera", nextAction: "Join Apr 26 · 2:00", signal: null },
+  { stage: "Appt Scheduled", name: "Yusuf Adeyemi", company: "Crestline Dental", service: "AI Automation", context: "Discovery call Apr 26 · agenda confirmed", owner: CURRENT_USER.name, nextAction: "Join Apr 26 · 2:00", signal: null },
   { stage: "Proposal Sent", name: "Gregory Mullins", company: "Harbor & Co Accounting", service: "Integrations", context: "Proposal viewed yesterday — 3rd view, pricing page", owner: "Priya Nair", nextAction: "Follow up today", signal: { label: "Proposal viewed", tone: "blue" } },
-  { stage: "Proposal Sent", name: "Sofia Marchetti", company: "Verano Hospitality", service: "AI Automation", context: "Waiting on technical requirements from IT", owner: "Marc Rivera", nextAction: "Confirm requirements", signal: null },
+  { stage: "Proposal Sent", name: "Sofia Marchetti", company: "Verano Hospitality", service: "AI Automation", context: "Waiting on technical requirements from IT", owner: CURRENT_USER.name, nextAction: "Confirm requirements", signal: null },
 ];
 
 const OWNER_ID_BY_NAME: Record<string, string> = {
-  "Marc Rivera": "user-002",
+  [CURRENT_USER.name]: CURRENT_USER.id,
   "Priya Nair": "user-001",
   "Jordan Hale": "user-003",
   "Tara Osei": "user-004",
@@ -276,7 +280,7 @@ function buildAppointments(index: Map<string, Lead>, opportunities: readonly Opp
 function buildMeetings(index: Map<string, Lead>, opportunities: readonly Opportunity[], appointments: readonly Appointment[]): Meeting[] {
   const rows: Array<Omit<Meeting, "id" | "leadId" | "opportunityId" | "appointmentId" | "joinUrl" | "outcome" | "notes" | "attendees"> & { person: string; attendees: string[] }> = [
     { person: "Alicia Fenwick", name: "Alicia Fenwick", company: "Bright Harbor Realty", service: "Web Applications", when: "Today · 10:00 AM PST", ownerId: "user-001", platform: "Google Meet", state: "READY", consent: "Consent pending", transcript: "—", ai: "—", crm: "—", attendees: ["Alicia Fenwick", "Priya Nair"] },
-    { person: "Priyanka Rao", name: "Priyanka Rao", company: "Solterra Energy", service: "Custom Software", when: "Yesterday · 1:30 PM", ownerId: "user-002", platform: "Zoom", state: "NEEDS REVIEW", consent: "Recorded w/ consent", transcript: "Ready · 48 min", ai: "14 requirements", crm: "6 recommendations", attendees: ["Priyanka Rao", "Marc Rivera"] },
+    { person: "Priyanka Rao", name: "Priyanka Rao", company: "Solterra Energy", service: "Custom Software", when: "Yesterday · 1:30 PM", ownerId: "user-002", platform: "Zoom", state: "NEEDS REVIEW", consent: "Recorded w/ consent", transcript: "Ready · 48 min", ai: "14 requirements", crm: "6 recommendations", attendees: ["Priyanka Rao", CURRENT_USER.name] },
     { person: "Derrick Vaughn", name: "Derrick Vaughn", company: "Ironclad Security", service: "Business Systems", when: "Apr 18 · 3:00 PM", ownerId: "user-001", platform: "Zoom", state: "COMPLETED", consent: "Recorded w/ consent", transcript: "Ready · 52 min", ai: "Approved", crm: "Applied", attendees: ["Derrick Vaughn", "Priya Nair"] },
     { person: "Ruben Ortega", name: "Ruben Ortega", company: "Northwind Logistics", service: "Workflow Automation", when: "Apr 21 · 9:30 AM", ownerId: "user-001", platform: "Google Meet", state: "FAILED · NO-SHOW", consent: "—", transcript: "—", ai: "—", crm: "—", attendees: ["Ruben Ortega", "Priya Nair"] },
   ];
@@ -370,8 +374,8 @@ export const SETTINGS_SEED: SettingsSection[] = [
       { id: "companyLegalName", label: "Company legal name", value: "CodeOutfitters Ltd", kind: "text" },
       { id: "contactEmail", label: "Contact email", value: "hello@codeoutfitters.com", kind: "email" },
       { id: "timezone", label: "Default timezone", value: "America/Los_Angeles", kind: "select", options: ["America/Los_Angeles", "America/New_York", "Europe/London", "UTC"] },
-      { id: "profileName", label: "Your display name", value: "Marc Rivera", kind: "text" },
-      { id: "profileRole", label: "Your role", value: "Administrator", kind: "select", options: ["Administrator", "Sales"] },
+      { id: "profileName", label: "Your display name", value: CURRENT_USER.name, kind: "text" },
+      { id: "profileRole", label: "Your role", value: CURRENT_USER.displayRole, kind: "select", options: [CURRENT_USER.displayRole, "Sales"] },
     ],
   },
   {
@@ -503,6 +507,246 @@ export const SETTINGS_SEED: SettingsSection[] = [
   },
 ];
 
+// ---------------------------------------------------------------------------
+// Tasks — SYNTHETIC. Deterministic next actions over the records built above.
+//
+// Every task points at a record this seed already created, by that record's own id, so
+// "open the record this task is about" always resolves. Nothing here is generated from a
+// clock: due dates are literals relative to DEMO_TODAY (2026-04-22).
+// ---------------------------------------------------------------------------
+
+/** The team member the demo dashboard is signed in as. "Assigned to me" means this id.
+ *  Live mode replaces it with the authenticated member id — it is never read from the
+ *  browser in live mode. */
+export const DEMO_CURRENT_USER_ID: string = CURRENT_USER.id;
+
+/** Look up a seeded record by id, loudly. A silent `undefined` here would produce a task
+ *  with a null relation and a working-looking screen, so a seed rename must fail instead. */
+function must<T extends { id: string }>(rows: readonly T[], id: string, kind: string): T {
+  const row = rows.find((candidate) => candidate.id === id);
+  if (!row) throw new Error(`demo seed: no ${kind} with id ${id}`);
+  return row;
+}
+
+function buildTasks(
+  opportunities: readonly Opportunity[],
+  appointments: readonly Appointment[],
+  meetings: readonly Meeting[],
+  proposals: readonly Proposal[],
+  followUps: readonly FollowUp[],
+): Task[] {
+  const fuRuben = must(followUps, "fu-001", "follow-up");
+  const fuGregory = must(followUps, "fu-002", "follow-up");
+  const fuNadia = must(followUps, "fu-005", "follow-up");
+  const mtgNoShow = must(meetings, "mtg-004", "meeting");
+  const mtgReview = must(meetings, "mtg-002", "meeting");
+  const mtgDone = must(meetings, "mtg-003", "meeting");
+  const proDraft = must(proposals, "PRO-2034", "proposal");
+  const proViewed = must(proposals, "PRO-2031", "proposal");
+  const proInternal = must(proposals, "PRO-2029", "proposal");
+  const proAccepted = must(proposals, "PRO-2024", "proposal");
+  const aptToday = must(appointments, "apt-001", "appointment");
+  const oppFirst = opportunities[0]!;
+  const oppSecond = opportunities[1]!;
+
+  const base = { createdOn: "2026-04-17", waitingOn: "", completedOn: "" } as const;
+
+  return [
+    // Overdue — due before DEMO_TODAY and still open.
+    {
+      ...base,
+      id: "task-001",
+      title: "Send Ruben Ortega the revised scope summary",
+      detail: "He asked for the trimmed scope after the pricing conversation. One page, no attachments.",
+      ownerId: "user-002",
+      state: "OPEN",
+      priority: "High",
+      dueDate: "2026-04-20",
+      leadId: fuRuben.leadId,
+      relation: { kind: "followUp", id: fuRuben.id, label: `${fuRuben.name} · ${fuRuben.company}` },
+    },
+    {
+      ...base,
+      id: "task-002",
+      title: "Re-book the discovery call that no-showed",
+      detail: "Meeting was marked FAILED · NO-SHOW. Offer two slots rather than asking for availability.",
+      ownerId: "user-002",
+      state: "OPEN",
+      priority: "High",
+      dueDate: "2026-04-21",
+      leadId: mtgNoShow.leadId,
+      relation: { kind: "meeting", id: mtgNoShow.id, label: `${mtgNoShow.name} · ${mtgNoShow.company}` },
+    },
+    // Due today.
+    {
+      ...base,
+      id: "task-003",
+      title: "Finish the Solterra Energy proposal draft",
+      detail: "Draft is missing the phasing section and the final number.",
+      ownerId: "user-002",
+      state: "OPEN",
+      priority: "High",
+      dueDate: DEMO_TODAY,
+      leadId: proDraft.leadId,
+      relation: { kind: "proposal", id: proDraft.id, label: `${proDraft.id} · ${proDraft.client}` },
+    },
+    {
+      ...base,
+      id: "task-004",
+      title: "Prepare the agenda for the 10:00 call",
+      detail: "Three questions, in order, and the one number we need before we can quote.",
+      ownerId: "user-002",
+      state: "OPEN",
+      priority: "Medium",
+      dueDate: DEMO_TODAY,
+      leadId: aptToday.leadId,
+      relation: { kind: "appointment", id: aptToday.id, label: `${aptToday.title} · ${aptToday.startTime}` },
+    },
+    // Due today, owned by someone else — so "Assigned to me" is a real filter.
+    {
+      ...base,
+      id: "task-005",
+      title: "Confirm Harbor & Co's decision timeline",
+      detail: "Gregory said end of month; get the actual date before the proposal expires.",
+      ownerId: "user-001",
+      state: "OPEN",
+      priority: "Medium",
+      dueDate: DEMO_TODAY,
+      leadId: fuGregory.leadId,
+      relation: { kind: "followUp", id: fuGregory.id, label: `${fuGregory.name} · ${fuGregory.company}` },
+    },
+    // Upcoming.
+    {
+      ...base,
+      id: "task-006",
+      title: "Review the meeting summary before it reaches the CRM",
+      detail: "Marked NEEDS REVIEW. Check the stated budget line against what was actually said.",
+      ownerId: "user-002",
+      state: "OPEN",
+      priority: "Medium",
+      dueDate: "2026-04-24",
+      leadId: mtgReview.leadId,
+      relation: { kind: "meeting", id: mtgReview.id, label: `${mtgReview.name} · ${mtgReview.company}` },
+    },
+    {
+      ...base,
+      id: "task-007",
+      title: `Agree next step on ${oppFirst.company}`,
+      detail: "Card has sat on the same stage for two weeks. Either move it or say why.",
+      ownerId: "user-002",
+      state: "OPEN",
+      priority: "Low",
+      dueDate: "2026-04-27",
+      leadId: oppFirst.leadId,
+      relation: { kind: "opportunity", id: oppFirst.id, label: `${oppFirst.name} · ${oppFirst.company}` },
+    },
+    {
+      ...base,
+      id: "task-008",
+      title: `Qualify ${oppSecond.name} properly`,
+      detail: "Service interest is recorded but budget and timeline are both blank.",
+      ownerId: "user-003",
+      state: "OPEN",
+      priority: "Low",
+      dueDate: "2026-04-29",
+      leadId: oppSecond.leadId,
+      relation: { kind: "lead", id: oppSecond.leadId, label: `${oppSecond.name} · ${oppSecond.company}` },
+    },
+    // Waiting on someone else — not our overdue work, tracked separately.
+    {
+      ...base,
+      id: "task-009",
+      title: "Chase the signature on the Harbor & Co proposal",
+      detail: "Proposal is VIEWED. Do not resend; ask what is blocking it.",
+      ownerId: "user-002",
+      state: "WAITING",
+      priority: "High",
+      dueDate: "2026-04-25",
+      waitingOn: proViewed.client,
+      leadId: proViewed.leadId,
+      relation: { kind: "proposal", id: proViewed.id, label: `${proViewed.id} · ${proViewed.client}` },
+    },
+    {
+      ...base,
+      id: "task-010",
+      title: "Hold Verano until internal review clears",
+      detail: "Nothing goes out while the proposal is in INTERNAL REVIEW.",
+      ownerId: "user-002",
+      state: "WAITING",
+      priority: "Medium",
+      dueDate: "2026-04-23",
+      waitingOn: proInternal.client,
+      leadId: proInternal.leadId,
+      relation: { kind: "proposal", id: proInternal.id, label: `${proInternal.id} · ${proInternal.client}` },
+    },
+    {
+      ...base,
+      id: "task-011",
+      title: "Waiting on Nadia Karim's technical contact",
+      detail: "She is introducing us; no action our side until she does.",
+      ownerId: "user-001",
+      state: "WAITING",
+      priority: "Low",
+      dueDate: "2026-04-28",
+      waitingOn: fuNadia.company,
+      leadId: fuNadia.leadId,
+      relation: { kind: "followUp", id: fuNadia.id, label: `${fuNadia.name} · ${fuNadia.company}` },
+    },
+    // Completed.
+    {
+      ...base,
+      id: "task-012",
+      title: "Write up the Derrick Vaughn discovery notes",
+      detail: "Summary approved and attached to the meeting record.",
+      ownerId: "user-002",
+      state: "COMPLETED",
+      priority: "Medium",
+      dueDate: "2026-04-21",
+      completedOn: "2026-04-21",
+      leadId: mtgDone.leadId,
+      relation: { kind: "meeting", id: mtgDone.id, label: `${mtgDone.name} · ${mtgDone.company}` },
+    },
+    {
+      ...base,
+      id: "task-013",
+      title: "Send the kickoff pack for the accepted proposal",
+      detail: "Accepted. Pack sent with the schedule and the single point of contact.",
+      ownerId: "user-002",
+      state: "COMPLETED",
+      priority: "High",
+      dueDate: "2026-04-20",
+      completedOn: "2026-04-20",
+      leadId: proAccepted.leadId,
+      relation: { kind: "proposal", id: proAccepted.id, label: `${proAccepted.id} · ${proAccepted.client}` },
+    },
+    // General tasks — no related record. A real case, not a defect.
+    {
+      ...base,
+      id: "task-014",
+      title: "Refresh the pricing one-pager used in proposals",
+      detail: "Two service names on it are out of date.",
+      ownerId: "user-002",
+      state: "OPEN",
+      priority: "Low",
+      dueDate: "2026-04-23",
+      leadId: null,
+      relation: null,
+    },
+    {
+      ...base,
+      id: "task-015",
+      title: "Tidy the saved views on the pipeline board",
+      detail: "No date on this one. It gets done when there is room.",
+      ownerId: "user-002",
+      state: "OPEN",
+      priority: "Low",
+      dueDate: "",
+      leadId: null,
+      relation: null,
+    },
+  ];
+}
+
 /** The lead directory every demo route links against. Built once: a route that has to
  *  attach a new record to a lead picks from this list rather than inventing an id, which is
  *  what keeps "every record links to a real lead" true after a create as well as at seed. */
@@ -514,19 +758,46 @@ export function createSeedState(leads?: readonly Lead[]): DemoState {
   const opportunities = buildOpportunities(dataset, index);
   const appointments = buildAppointments(index, opportunities);
   const meetings = buildMeetings(index, opportunities, appointments);
-  return {
-    version: DEMO_STATE_VERSION,
-    team: TEAM_SEED.map((member) => ({ ...member })),
+  const proposals = buildProposals(index, opportunities);
+  const followUps = buildFollowUps(index, opportunities);
+  const tasks = buildTasks(opportunities, appointments, meetings, proposals, followUps);
+  const emails = buildEmails(index);
+  const team = TEAM_SEED.map((member) => ({ ...member }));
+  const access = buildProposalAccessSeed(proposals);
+  const activity = buildActivityEvents({
+    today: DEMO_TODAY,
+    team,
+    leads: dataset,
     opportunities,
     appointments,
     meetings,
-    proposals: buildProposals(index, opportunities),
-    followUps: buildFollowUps(index, opportunities),
-    emails: buildEmails(index),
+    proposals,
+    followUps,
+    tasks,
+    emails,
+    publications: access.publications,
+    accessLinks: access.accessLinks,
+    clientResponses: access.clientResponses,
+  });
+  return {
+    version: DEMO_STATE_VERSION,
+    team,
+    opportunities,
+    appointments,
+    meetings,
+    proposals,
+    followUps,
+    tasks,
+    emails,
     settings: SETTINGS_SEED.map((section) => ({ ...section, fields: section.fields.map((f) => ({ ...f })) })),
     leadOverrides: {},
-    activity: [],
-    nextId: 1,
+    activity,
+    publications: access.publications,
+    accessLinks: access.accessLinks,
+    clientResponses: access.clientResponses,
+    // Minted ids continue past the seeded history, so a change made in this session can
+    // never be handed an id a fixture already used.
+    nextId: activity.length + 1,
   };
 }
 

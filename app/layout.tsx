@@ -1,5 +1,6 @@
 ﻿import type { Metadata, Viewport } from 'next'
 import { Space_Grotesk, Instrument_Sans, Geist, Geist_Mono, IBM_Plex_Sans, IBM_Plex_Mono } from 'next/font/google'
+import { CANONICAL_ORIGIN } from '@/lib/routing/public-origin'
 import './globals.css'
 
 const spaceGrotesk = Space_Grotesk({
@@ -26,7 +27,9 @@ const ibmPlexSans = IBM_Plex_Sans({ subsets: ['latin'], weight: ['400', '500', '
 const ibmPlexMono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-ibm-plex-mono', display: 'swap' })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://codeoutfitters.com'),
+  // The client-facing origin of this release, so every relative OG/twitter image
+  // and canonical link resolves to the domain the site is actually served on.
+  metadataBase: new URL(CANONICAL_ORIGIN),
   title: 'CodeOutfitters — AI Automation for Small Businesses',
   description:
     'AI automation for US small businesses. We build WhatsApp bots, AI chatbots, email workflows, and custom automation. 7-day setup, zero code required.',

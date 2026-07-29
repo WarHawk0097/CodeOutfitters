@@ -3,6 +3,7 @@ import { http, HttpResponse } from "msw";
 import { LEADS_PAGE_SIZE, LeadsPatchRequestSchema, pageCountOf, type Lead } from "@command-center/contracts";
 import { countAwaitingFirstContact, countNewThisWeek, generateLeads } from "../fixtures/generate-leads";
 import { getDemoState } from "../../lib/demo/store";
+import { leadIdsWithoutNextAction } from "../../lib/tasks/model";
 
 // Deterministic synthetic mock data for development and testing. Not canonical customer data.
 //
@@ -104,6 +105,20 @@ export function selectLeads(
   params: URLSearchParams,
 ): { page: Lead[]; matched: Lead[]; matchedWithoutOwner: Lead[]; pageNumber: number; pageSize: number } {
   let matched = [...rows];
+
+  // The derived operational view, applied first because it is a question about the whole
+  // dataset. `leadIdsWithoutNextAction` is the same function the Overview counts with, and
+  // the tasks it reads are the same store this handler already reads lead overrides from,
+  // so the card's number and this list's total are the same number by construction.
+  if (params.get("view") === "no-next-action") {
+    const uncovered = new Set(
+      leadIdsWithoutNextAction(
+        getDemoState().tasks,
+        matched.map((r) => r.id),
+      ),
+    );
+    matched = matched.filter((r) => uncovered.has(r.id));
+  }
 
   const status = params.get("status");
   if (status) matched = matched.filter((r) => r.status === status);

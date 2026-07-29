@@ -4,7 +4,7 @@
 // dead link. The shell's control surface lives in shell-nav.tsx; these tests lock
 // the honest-disable posture in place.
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { IMPLEMENTED_ROUTES } from "./shell-nav";
 
@@ -13,17 +13,30 @@ const src = readFileSync(`${here}shell-nav.tsx`, "utf8");
 
 describe("dashboard interaction audit (tests 23-32)", () => {
   // 23
-  it("exactly the ten built routes are treated as implemented", () => {
-    expect(IMPLEMENTED_ROUTES.size).toBe(10);
+  it("exactly the fourteen built routes are treated as implemented", () => {
+    // Fourteen since the Client Access panel and the public proposal route landed. The number
+    // is asserted on purpose: a route added to this set without a page behind it is exactly
+    // the failure this file exists to catch.
+    expect(IMPLEMENTED_ROUTES.size).toBe(14);
     expect(IMPLEMENTED_ROUTES.has("/dashboard")).toBe(true);
+    expect(IMPLEMENTED_ROUTES.has("/dashboard/my-work")).toBe(true);
     expect(IMPLEMENTED_ROUTES.has("/dashboard/settings")).toBe(true);
   });
 
   // 24
   it("unbuilt routes stay disabled/hidden and are never stubbed to fake completion", () => {
-    // Later-phase deep routes must NOT appear in the implemented set.
-    expect(IMPLEMENTED_ROUTES.has("/dashboard/proposals/[proposalId]/activity")).toBe(false);
-    expect(IMPLEMENTED_ROUTES.has("/proposal/[secureToken]")).toBe(false);
+    // The proposal activity route moved into the implemented set because a page was built
+    // for it; it is asserted with the file that backs it so the two cannot drift.
+    expect(IMPLEMENTED_ROUTES.has("/dashboard/proposals/[proposalId]/activity")).toBe(true);
+    expect(
+      existsSync(`${here}proposals/[proposalId]/activity/page.tsx`),
+    ).toBe(true);
+    // Same rule for the two routes this release added: each is in the set only because the
+    // file behind it exists.
+    expect(IMPLEMENTED_ROUTES.has("/dashboard/proposals/[proposalId]/access")).toBe(true);
+    expect(existsSync(`${here}proposals/[proposalId]/access/page.tsx`)).toBe(true);
+    expect(IMPLEMENTED_ROUTES.has("/proposal/[secureToken]")).toBe(true);
+    expect(existsSync(`${here}../proposal/[secureToken]/page.tsx`)).toBe(true);
   });
 
   // 25

@@ -4,6 +4,7 @@
 // Everything writes to the local demo store. Inviting a member records a Pending row and marks
 // it a demo invite — no invitation email is sent. Removing a member reassigns every record
 // they owned to Unassigned, so no route is left pointing at a member who no longer exists.
+import { BTN_DANGER, ROW_ACTION_ICON_QUIET } from "@/lib/command-center/ui/control-system";
 import { useCallback, useMemo, useState } from "react";
 import { inviteTeamMember, removeTeamMember, updateTeamMember } from "../../../lib/demo/actions";
 import type { TeamMember, TeamRole, TeamStatus, Tone } from "../../../lib/demo/types";
@@ -15,6 +16,7 @@ import { Dialog, DialogCancelButton, DialogSubmitButton } from "../../../compone
 import { SelectField, TextField } from "../../../components/demo/field";
 import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
 import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton } from "../../../components/demo/toolbar";
+import { getTeamRoleDisplayLabel } from "../../../lib/identity/current-user";
 
 const ROLES: TeamRole[] = ["Administrator", "Sales"];
 const STATUSES: TeamStatus[] = ["Active", "Pending", "Inactive"];
@@ -87,7 +89,7 @@ export function TeamScreen() {
         width={220}
         items={rowMenu}
         onSelect={(id) => (id === "edit" ? setEditId(member.id) : setRemoveId(member.id))}
-        className="px-1 leading-none text-cc-icon-muted hover:text-cc-t2"
+        className={ROW_ACTION_ICON_QUIET}
       />
     );
 
@@ -103,7 +105,7 @@ export function TeamScreen() {
             {menu}
           </div>
           <div className="mt-2 flex items-center gap-3 text-[10.5px] text-cc-t3">
-            <span>{member.role}</span>
+            <span>{getTeamRoleDisplayLabel(member.role)}</span>
             {statusChip}
             <span>{member.lastActive}</span>
           </div>
@@ -118,7 +120,7 @@ export function TeamScreen() {
           <div className="truncate text-[13px] font-semibold text-cc-ink">{member.name}</div>
           <div className="truncate text-[11.5px] text-cc-t3">{member.email}</div>
         </div>
-        <span className="w-[110px] flex-shrink-0 text-[12px] text-cc-t2">{member.role}</span>
+        <span className="w-[110px] flex-shrink-0 text-[12px] text-cc-t2">{getTeamRoleDisplayLabel(member.role)}</span>
         <span className="w-[80px] flex-shrink-0">{statusChip}</span>
         <span className="w-[110px] flex-shrink-0 font-cc-mono text-[10.5px] text-cc-t3">{member.lastActive}</span>
         {menu}
@@ -134,7 +136,9 @@ export function TeamScreen() {
 
       <RouteToolbar>
         <SearchInput value={q} onChange={setQ} label="Search team by name or email" />
-        <FilterMenu label="Role" allLabel="All roles" value={roleFilter} options={ROLES.map((r) => ({ id: r, label: r }))} onChange={setRoleFilter} />
+        {/* The option id stays the stored role, so the filter still compares against the
+            permission value; only the word in the menu is the display label. */}
+        <FilterMenu label="Role" allLabel="All roles" value={roleFilter} options={ROLES.map((r) => ({ id: r, label: getTeamRoleDisplayLabel(r) }))} onChange={setRoleFilter} />
         <FilterMenu label="Status" allLabel="Any status" value={statusFilter} options={STATUSES.map((s) => ({ id: s, label: s }))} onChange={setStatusFilter} />
         {filtersApplied ? (
           <ToolbarButton
@@ -214,7 +218,7 @@ export function TeamScreen() {
                   setAnnouncement(`${removing.name} removed — owned records reassigned to Unassigned.`);
                   setRemoveId(null);
                 }}
-                className="rounded-cc-control bg-cc-red-ink px-3 py-1.5 text-[12.5px] font-semibold text-white"
+                className={BTN_DANGER}
               >
                 Remove member
               </button>
@@ -274,7 +278,9 @@ function TeamFormDialog({
       >
         <TextField label="Name" value={draft.name} error={errors.name} onChange={(name) => patch({ name })} />
         <TextField label="Email" type="email" value={draft.email} error={errors.email} onChange={(email) => patch({ email })} />
-        <SelectField label="Role" value={draft.role} onChange={(role) => patch({ role: role as TeamRole })} options={ROLES.map((r) => ({ value: r, label: r }))} />
+        {/* Same split in the form: the option value written to the member is the stored
+            role, the label is what the person choosing it reads. */}
+        <SelectField label="Role" value={draft.role} onChange={(role) => patch({ role: role as TeamRole })} options={ROLES.map((r) => ({ value: r, label: getTeamRoleDisplayLabel(r) }))} />
         {showStatus ? (
           <SelectField label="Status" value={draft.status} onChange={(s) => patch({ status: s as TeamStatus })} options={STATUSES.map((s) => ({ value: s, label: s }))} />
         ) : null}

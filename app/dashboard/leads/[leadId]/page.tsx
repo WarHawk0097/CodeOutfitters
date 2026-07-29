@@ -1,3 +1,4 @@
+import { ROW_ACTION_DISABLED, ROW_ACTION_PRIMARY } from "@/lib/command-center/ui/control-system";
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, Download, FileWarning, Paperclip } from 'lucide-react'
@@ -8,6 +9,8 @@ import {
   resolveLeadAttachments,
 } from '@/lib/command-center/data'
 import { isDemoMode } from '@/lib/command-center/mode'
+import { NextActionCard } from '@/components/dashboard/next-action-card'
+import { LeadActivity } from './lead-activity'
 import { isDownloadable } from '@/lib/dashboard/validation'
 
 export const metadata = { title: 'Lead — Command Center' }
@@ -75,6 +78,24 @@ export default async function LeadDetailPage({
           ))}
       </dl>
 
+      {/* What happens next on this lead. Client island: the task record lives in the demo
+          store, while everything above it is server-resolved. */}
+      <div className="mb-8">
+        <NextActionCard
+          kind="lead"
+          recordId={leadId}
+          recordLabel={`${name} · ${String(lead.business_name ?? 'No company')}`}
+          leadId={leadId}
+        />
+      </div>
+
+      {/* Lead 360. Client island for the same reason as the card above: the history is the
+          demo store in demo mode, and in live mode it reports that no activity provider is
+          connected rather than showing history this workspace never produced. */}
+      <div className="mb-8">
+        <LeadActivity leadId={leadId} live={!demo} />
+      </div>
+
       {typeof lead.workflow_description === 'string' && lead.workflow_description && (
         <div className="mb-8">
           <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cc-t3">
@@ -138,7 +159,7 @@ function AttachmentRow({
       </div>
       {demo ? (
         <span
-          className="inline-flex max-w-[14rem] flex-shrink-0 items-center gap-1.5 rounded-cc-control border border-cc-line px-3 py-2 text-right text-xs font-medium text-cc-t3"
+          className={`max-w-[14rem] text-right ${ROW_ACTION_DISABLED}`}
           title="Available when the production data service is connected."
         >
           <FileWarning className="h-3.5 w-3.5 flex-shrink-0" />
@@ -147,14 +168,14 @@ function AttachmentRow({
       ) : downloadable ? (
         <a
           href={`/api/dashboard/attachments/${a.id}/download`}
-          className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-cc-control bg-cc-green px-3 py-2 text-xs font-semibold text-white transition-transform active:scale-[0.98]"
+          className={ROW_ACTION_PRIMARY}
         >
           <Download className="h-3.5 w-3.5" />
           Download
         </a>
       ) : (
         <span
-          className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-cc-control border border-cc-line px-3 py-2 text-xs font-medium text-cc-t3"
+          className={ROW_ACTION_DISABLED}
           title="This file is not available for download."
         >
           <FileWarning className="h-3.5 w-3.5" />

@@ -3,6 +3,15 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowRight, CheckCircle } from 'lucide-react'
 
+// Inlined at build time, so this is a constant for the life of the bundle: either
+// the deployment has a Worker to post to or it has none. When it has none the form
+// is not rendered at all — an enabled field that is guaranteed to fail is worse
+// than an honest notice.
+const WORKER_URL = process.env.NEXT_PUBLIC_FORMS_WORKER_URL
+
+export const NEWSLETTER_UNAVAILABLE_NOTICE =
+  'Newsletter signup is temporarily unavailable. Email hello@codeoutfitters.com and we will add you to the list.'
+
 export function Newsletter() {
   const [email, setEmail] = useState('')
   const [honeypot, setHoneypot] = useState('')
@@ -18,10 +27,9 @@ export function Newsletter() {
     // Worker which adds the per-form secret header server-side and
     // forwards to the correct n8n webhook URL. The Worker is the
     // source of truth for the per-form routing and secret header.
-    const workerUrl = process.env.NEXT_PUBLIC_FORMS_WORKER_URL
-    if (!workerUrl) { setStatus('error'); return }
+    if (!WORKER_URL) { setStatus('error'); return }
     try {
-      const res = await fetch(workerUrl.replace(/\/+$/, '') + '/', {
+      const res = await fetch(WORKER_URL.replace(/\/+$/, '') + '/', {
         method: 'POST',
         credentials: 'omit',
         headers: { 'Content-Type': 'application/json' },
@@ -52,9 +60,13 @@ export function Newsletter() {
           </p>
 
           {status === 'error' && (
-            <p className="text-red-500 text-sm mb-4">Something went wrong. Email us at hello@codeoutfitters.com</p>
+            <p role="alert" className="text-red-500 text-sm mb-4">Something went wrong. Email us at hello@codeoutfitters.com</p>
           )}
-          {status === 'success' ? (
+          {!WORKER_URL ? (
+            <p role="status" className="text-[#6B6155] text-sm max-w-md mx-auto">
+              {NEWSLETTER_UNAVAILABLE_NOTICE}
+            </p>
+          ) : status === 'success' ? (
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -86,6 +98,7 @@ export function Newsletter() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="your@email.com"
+                required
                 maxLength={100}
                 className="flex-1 bg-white border border-[rgba(42,107,90,0.15)] rounded-xl px-4 py-3 text-sm text-[#1C1612] placeholder-[#9B9088] outline-none focus:border-[#2A6B5A] focus:ring-2 focus:ring-[#2A6B5A]/10 transition-all duration-200"
               />
@@ -102,9 +115,11 @@ export function Newsletter() {
               </button>
             </form>
           )}
-          <p className="text-xs text-[#9B9088] mt-4">
-            No spam. Unsubscribe anytime.
-          </p>
+          {WORKER_URL && (
+            <p className="text-xs text-[#9B9088] mt-4">
+              No spam. Unsubscribe anytime.
+            </p>
+          )}
         </motion.div>
       </div>
     </section>

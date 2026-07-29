@@ -8,7 +8,18 @@
 // due state lives on this screen.
 //
 // Nothing is emailed and no reminder is sent. A follow-up is a local task record.
-import { useCallback, useMemo, useState } from "react";
+import {
+  BTN_PRIMARY,
+  BTN_SECONDARY,
+  CONTROL_DISABLED_STATE,
+  ROW_ACTION,
+  ROW_ACTION_ICON_QUIET,
+  ROW_ACTION_PRIMARY,
+  ROW_ACTION_QUIET,
+  SEGMENT,
+  SEGMENT_ACTIVE,
+} from "@/lib/command-center/ui/control-system";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   completeFollowUp,
   createFollowUp,
@@ -25,8 +36,14 @@ import { MenuButton, type MenuItem } from "../../../components/demo/menu";
 import { Dialog, DialogCancelButton, DialogSubmitButton } from "../../../components/demo/dialog";
 import { SelectField, TextAreaField, TextField } from "../../../components/demo/field";
 import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
-import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton } from "../../../components/demo/toolbar";
+import { NextActionCard } from "../../../components/dashboard/next-action-card";
+import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton, ToolbarDivider } from "../../../components/demo/toolbar";
+import { SavedViewsBar } from "../../../components/command-center/saved-views";
+import { useListView, useQueryParam } from "../../../components/command-center/use-view-query";
+import { COMMAND_CREATE_PARAM } from "../../../lib/search/commands";
 import { longDate } from "../appointments/date-utils";
+import { RecordActivity } from "@/components/dashboard/activity-ui";
+import { eventsFor, type ActivityEvent } from "@/lib/activity/model";
 
 // C-D12 342-353 draws OVERDUE (red), DUE TODAY (amber) and the queue; the four states the
 // switch offers each get a tone from the canonical palette by the same grammar the rest of
@@ -55,10 +72,8 @@ const VIEW_LABEL: Record<FollowUpsView, string> = {
 const PRIORITIES = ["High", "Medium", "Low"] as const;
 const PRIORITY_TONE: Record<FollowUp["priority"], Tone> = { High: "red", Medium: "amber", Low: "neutral" };
 
-const PRIMARY_ACTION =
-  "rounded-cc-control bg-cc-green px-[11px] py-[5px] text-[11.5px] font-semibold text-white";
-const SECONDARY_ACTION =
-  "rounded-cc-control border border-cc-line-strong px-[11px] py-[5px] text-[11.5px] font-semibold text-cc-t-table hover:border-cc-green-border hover:text-cc-green-ink";
+const PRIMARY_ACTION = ROW_ACTION_PRIMARY;
+const SECONDARY_ACTION = ROW_ACTION;
 
 type FollowUpDraft = {
   name: string;
@@ -76,10 +91,13 @@ export function FollowUpsScreen() {
   const { state, status, error, retry } = useDemoQuery();
   const breakpoint = useBreakpoint();
 
-  const [view, setView] = useState<FollowUpsView>("OVERDUE");
-  const [q, setQ] = useState("");
-  const [ownerFilter, setOwnerFilter] = useState<string | null>(null);
-  const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
+  // Filters live in the URL: same door for a Saved View, a search result and a shared link.
+  const { filters, sort, publish, set } = useListView("followUps");
+  const view = (filters.view ?? "OVERDUE") as FollowUpsView;
+  const setView = useCallback((next: FollowUpsView) => set("view", next), [set]);
+  const q = filters.q ?? "";
+  const ownerFilter = filters.owner === "" ? null : (filters.owner ?? null);
+  const priorityFilter = filters.priority === "" ? null : (filters.priority ?? null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const [detailId, setDetailId] = useState<string | null>(null);
@@ -89,6 +107,12 @@ export function FollowUpsScreen() {
   const [createOpen, setCreateOpen] = useState(false);
   const [bulkSnooze, setBulkSnooze] = useState(false);
   const [announcement, setAnnouncement] = useState("");
+
+  // "Create follow-up" in the command palette arrives with `?new=1`.
+  const createRequested = useQueryParam(COMMAND_CREATE_PARAM) === "1";
+  useEffect(() => {
+    if (createRequested) setCreateOpen(true);
+  }, [createRequested]);
 
   const ownerName = useCallback(
     (id: string) => (id === "unassigned" ? "Unassigned" : (state.team.find((m) => m.id === id)?.name ?? id)),
@@ -228,7 +252,7 @@ export function FollowUpsScreen() {
         width={220}
         items={rowMenu(followUp)}
         onSelect={(id) => onMenuSelect(followUp, id)}
-        className="px-1 leading-none text-cc-icon-muted hover:text-cc-t2"
+        className={ROW_ACTION_ICON_QUIET}
       />
     );
 
@@ -345,8 +369,8 @@ export function FollowUpsScreen() {
             }}
             className={
               candidate === view
-                ? "rounded-cc-control bg-cc-ink-strong px-[11px] py-[7px] text-[11.5px] font-semibold text-white"
-                : "rounded-cc-control px-[11px] py-[7px] text-[11.5px] font-semibold text-cc-t2 hover:bg-cc-secondary"
+                ? SEGMENT_ACTIVE
+                : SEGMENT
             }
           >
             {VIEW_LABEL[candidate]} · {countFor(candidate)}
@@ -355,20 +379,18 @@ export function FollowUpsScreen() {
       </div>
 
       <RouteToolbar>
-        <SearchInput value={q} onChange={setQ} label="Search follow-ups by name, company, type or suggestion" />
-        <FilterMenu label="Owner" allLabel="All owners" value={ownerFilter} options={ownerOptions} onChange={setOwnerFilter} />
-        <FilterMenu label="Priority" allLabel="Any priority" value={priorityFilter} options={priorityOptions} onChange={setPriorityFilter} />
+        <SearchInput value={q} onChange={(value) => set("q", value)} label="Search follow-ups by name, company, type or suggestion" />
+        <FilterMenu label="Owner" allLabel="All owners" value={ownerFilter} options={ownerOptions} onChange={(value) => set("owner", value)} />
+        <FilterMenu label="Priority" allLabel="Any priority" value={priorityFilter} options={priorityOptions} onChange={(value) => set("priority", value)} />
         {filtersApplied ? (
           <ToolbarButton
             label="Clear filters"
-            onClick={() => {
-              setQ("");
-              setOwnerFilter(null);
-              setPriorityFilter(null);
-            }}
+            onClick={() => publish({ ...filters, q: "", owner: "", priority: "" }, sort)}
           />
         ) : null}
         <ToolbarButton label="New follow-up" tone="primary" onClick={() => setCreateOpen(true)} />
+        <ToolbarDivider />
+        <SavedViewsBar scope="followUps" filters={filters} sort={sort} onApply={publish} />
       </RouteToolbar>
 
       {/* Bulk action bar — appears only when at least one visible row is selected, so it is
@@ -383,21 +405,21 @@ export function FollowUpsScreen() {
               type="button"
               onClick={onBulkComplete}
               disabled={view === "COMPLETED"}
-              className="rounded-cc-control bg-cc-green px-3 py-1.5 text-[12px] font-semibold text-white disabled:opacity-40"
+              className={`${BTN_PRIMARY} ${CONTROL_DISABLED_STATE}`}
             >
               Complete selected
             </button>
             <button
               type="button"
               onClick={() => setBulkSnooze(true)}
-              className="rounded-cc-control border border-cc-line-strong bg-cc-surface px-3 py-1.5 text-[12px] font-semibold text-cc-t-table"
+              className={ROW_ACTION}
             >
               Snooze selected
             </button>
             <button
               type="button"
               onClick={clearSelection}
-              className="rounded-cc-control px-3 py-1.5 text-[12px] font-semibold text-cc-t2 hover:bg-cc-secondary"
+              className={ROW_ACTION_QUIET}
             >
               Clear selection
             </button>
@@ -436,7 +458,7 @@ export function FollowUpsScreen() {
         <FollowUpDetailDialog
           followUp={detail}
           ownerName={ownerName(detail.ownerId)}
-          activity={state.activity.filter((entry) => entry.subjectId === detail.id)}
+          activity={eventsFor(state.activity, "followUp", detail.id)}
           onClose={() => setDetailId(null)}
           onEdit={() => {
             setDetailId(null);
@@ -573,7 +595,7 @@ function FollowUpDetailDialog({
 }: {
   followUp: FollowUp;
   ownerName: string;
-  activity: readonly { id: string; message: string }[];
+  activity: readonly ActivityEvent[];
   onClose: () => void;
   onEdit: () => void;
   onComplete: () => void;
@@ -591,7 +613,7 @@ function FollowUpDetailDialog({
           <button
             type="button"
             onClick={onEdit}
-            className="rounded-cc-control border border-cc-line-strong bg-cc-surface px-3 py-1.5 text-[12.5px] font-semibold text-cc-t-table"
+            className={BTN_SECONDARY}
           >
             Edit follow-up
           </button>
@@ -599,7 +621,7 @@ function FollowUpDetailDialog({
             type="button"
             onClick={onComplete}
             disabled={followUp.state === "COMPLETED"}
-            className="rounded-cc-control bg-cc-green px-3 py-1.5 text-[12.5px] font-semibold text-white disabled:opacity-40"
+            className={`${BTN_PRIMARY} ${CONTROL_DISABLED_STATE}`}
           >
             Mark complete
           </button>
@@ -623,18 +645,20 @@ function FollowUpDetailDialog({
       <p className="mt-3 border-t border-cc-line pt-3 text-[12.5px] leading-[1.5] text-cc-t-table">
         {followUp.suggestion}
       </p>
-      <h3 className="mt-4 font-cc-mono text-[10px] tracking-[.06em] text-cc-t3">ACTIVITY HISTORY</h3>
-      {activity.length === 0 ? (
-        <p className="mt-1 text-[11.5px] text-cc-t3">No demo activity recorded for this follow-up yet.</p>
-      ) : (
-        <ul className="mt-1 space-y-1">
-          {activity.map((entry) => (
-            <li key={entry.id} className="text-[11.5px] text-cc-t-table">
-              {entry.message}
-            </li>
-          ))}
-        </ul>
-      )}
+      {/* The follow-up says when we touch this lead again; the task says what we actually
+          have to do. Both live on the same record. */}
+      <div className="mt-3">
+        <NextActionCard
+          kind="followUp"
+          recordId={followUp.id}
+          recordLabel={`${followUp.name} · ${followUp.company}`}
+          leadId={followUp.leadId}
+        />
+      </div>
+      <RecordActivity
+        events={activity}
+        emptyLabel="No demo activity recorded for this follow-up yet."
+      />
     </Dialog>
   );
 }

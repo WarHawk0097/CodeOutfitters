@@ -19,6 +19,7 @@
 // aggregate a real count over the dataset rather than a hard-coded string. They are dated
 // older than all six in-window seed rows, so a descending createdAt sort still leads with
 // the six the canonical frame shows. See REFERENCE_NOW below for the full definition.
+import { CURRENT_USER } from "../../lib/identity/current-user";
 import { isQualifiedStatus, LeadStatusSchema, type Lead, type LeadStatus } from "@command-center/contracts";
 import { getCommandCenterMode } from "@/lib/command-center/mode";
 import { LEAD_FIXTURES } from "./leads";
@@ -65,7 +66,7 @@ const SERVICE_PAGES: Record<string, string> = {
 };
 const OWNERS = [
   { owner: "user-001", ownerName: "Priya Nair" },
-  { owner: "user-002", ownerName: "Marc Rivera" },
+  { owner: CURRENT_USER.id, ownerName: CURRENT_USER.name },
   { owner: "unassigned", ownerName: "Unassigned" },
 ];
 const APPOINTMENT_STATUSES = [

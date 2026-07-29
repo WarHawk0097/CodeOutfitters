@@ -45,13 +45,21 @@ export async function getDashboardContext(): Promise<DashboardContext | null> {
   }
 }
 
-// Guard for dashboard server components: redirect unauthenticated users to
-// login (the middleware also does this; this is defense in depth for direct
-// server renders and for users with no membership).
+// Guard for dashboard server components: unauthenticated users go to login (the
+// middleware also does this; this is defense in depth for direct server renders).
+// An authenticated user with no active membership goes to /access-pending —
+// sending them back to /login would loop, and admitting them would mean
+// "authenticated equals authorized", which this app never does.
 export async function requireDashboardContext(returnTo: string): Promise<DashboardContext> {
   const ctx = await getDashboardContext()
-  if (!ctx) redirect(`/login?returnTo=${encodeURIComponent(returnTo)}`)
-  return ctx
+  if (ctx) return ctx
+
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (user) redirect('/access-pending')
+  redirect(`/login?returnTo=${encodeURIComponent(returnTo)}`)
 }
 
 export type LeadListItem = {

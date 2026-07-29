@@ -1,9 +1,8 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { readFileSync } from "node:fs";
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest";
 import { fileURLToPath } from "node:url";
 import { randomUUID, createHash } from "node:crypto";
-import { PGlite } from "@electric-sql/pglite";
-import { citext } from "@electric-sql/pglite/contrib/citext";
+import type { PGlite } from "@electric-sql/pglite";
+import { openTestDatabase, resetSchema } from "@/test/pglite-schema";
 
 // Work Order E — real-database proof of atomic, single-use attachment
 // association (spec §9 atomicity, §11 tokens). Loads BOTH the base backend
@@ -95,11 +94,17 @@ async function seedAttachment(opts: {
   return { rawToken, attachmentId };
 }
 
-beforeEach(async () => {
-  db = new PGlite({ extensions: { citext } });
-  await db.exec("create role anon; create role authenticated; create role service_role;");
-  for (const path of MIGRATIONS) await db.exec(readFileSync(path, "utf8"));
+beforeAll(async () => {
+  db = await openTestDatabase();
+}, 60_000);
+
+afterAll(async () => {
+  await db.close();
 });
+
+beforeEach(async () => {
+  await resetSchema(db, { migrations: MIGRATIONS });
+}, 60_000);
 
 describe("WO-E attachment association", () => {
   it("associates a completed, unexpired token atomically and consumes it once", async () => {
