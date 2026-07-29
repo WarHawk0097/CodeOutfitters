@@ -16,6 +16,7 @@ import {
   setProposalState,
   updateProposal,
 } from "../../../lib/demo/actions";
+import Link from "next/link";
 import { LEAD_DIRECTORY } from "../../../lib/demo/seed";
 import type { Proposal, ProposalState, Tone } from "../../../lib/demo/types";
 import { useDemoQuery } from "../../../components/demo/use-demo-query";
@@ -497,6 +498,13 @@ function ProposalDetailDialog({
       footer={
         <>
           <DialogCancelButton onClick={onClose} label="Close" />
+          {/* A real route, not a placeholder: publishing and client links live behind it. */}
+          <Link
+            href={`/dashboard/proposals/${proposal.id}/access`}
+            className="rounded-cc-control border border-cc-line-strong bg-cc-surface px-3 py-1.5 text-[12.5px] font-semibold text-cc-t-table"
+          >
+            Client access
+          </Link>
           <button
             type="button"
             onClick={onPreview}

@@ -13,11 +13,11 @@ const src = readFileSync(`${here}shell-nav.tsx`, "utf8");
 
 describe("dashboard interaction audit (tests 23-32)", () => {
   // 23
-  it("exactly the twelve built routes are treated as implemented", () => {
-    // Twelve since the proposal activity route landed. The number is asserted on purpose: a
-    // route added to this set without a page behind it is exactly the failure this file
-    // exists to catch.
-    expect(IMPLEMENTED_ROUTES.size).toBe(12);
+  it("exactly the fourteen built routes are treated as implemented", () => {
+    // Fourteen since the Client Access panel and the public proposal route landed. The number
+    // is asserted on purpose: a route added to this set without a page behind it is exactly
+    // the failure this file exists to catch.
+    expect(IMPLEMENTED_ROUTES.size).toBe(14);
     expect(IMPLEMENTED_ROUTES.has("/dashboard")).toBe(true);
     expect(IMPLEMENTED_ROUTES.has("/dashboard/my-work")).toBe(true);
     expect(IMPLEMENTED_ROUTES.has("/dashboard/settings")).toBe(true);
@@ -31,9 +31,12 @@ describe("dashboard interaction audit (tests 23-32)", () => {
     expect(
       existsSync(`${here}proposals/[proposalId]/activity/page.tsx`),
     ).toBe(true);
-    // The secure client proposal route is NOT built. Nothing may link to it, and no button
-    // may be enabled that leads to it.
-    expect(IMPLEMENTED_ROUTES.has("/proposal/[secureToken]")).toBe(false);
+    // Same rule for the two routes this release added: each is in the set only because the
+    // file behind it exists.
+    expect(IMPLEMENTED_ROUTES.has("/dashboard/proposals/[proposalId]/access")).toBe(true);
+    expect(existsSync(`${here}proposals/[proposalId]/access/page.tsx`)).toBe(true);
+    expect(IMPLEMENTED_ROUTES.has("/proposal/[secureToken]")).toBe(true);
+    expect(existsSync(`${here}../proposal/[secureToken]/page.tsx`)).toBe(true);
   });
 
   // 25

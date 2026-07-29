@@ -7,13 +7,14 @@
 // nothing to compare and a rendered "change summary" would be invented text with a
 // confident layout around it.
 //
-// It also does not report client behaviour. Whether a client opened, accepted or declined
-// this proposal is not observable until there is a secure client proposal route, so the
-// screen says that instead of implying silence means nothing happened.
+// It DOES now report client behaviour — opens, questions, comments, acceptance and decline —
+// because the secure client proposal route observes those events rather than assuming them.
+// What it still cannot report is a certified electronic signature, and it says so rather than
+// letting an acceptance line be read as one.
 import Link from "next/link";
 import { useMemo } from "react";
 import { ArrowLeft } from "lucide-react";
-import { CLIENT_ACTIVITY_UNAVAILABLE, eventsFor } from "@/lib/activity/model";
+import { SIGNATURE_ACTIVITY_UNAVAILABLE, eventsFor } from "@/lib/activity/model";
 import { ActivityPanel } from "@/components/dashboard/activity-panel";
 import { DEMO_TODAY } from "@/lib/demo/seed";
 import { useDemoState } from "@/lib/demo/store";
@@ -71,7 +72,7 @@ export function ProposalActivityView({
       />
 
       <p className="mt-4 rounded-cc-card border border-cc-line bg-cc-secondary p-3 text-[11.5px] leading-relaxed text-cc-t2">
-        {CLIENT_ACTIVITY_UNAVAILABLE}
+        {SIGNATURE_ACTIVITY_UNAVAILABLE}
       </p>
     </div>
   );

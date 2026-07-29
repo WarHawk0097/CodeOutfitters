@@ -250,6 +250,10 @@ export const IMPLEMENTED_ROUTES: ReadonlySet<string> = new Set([
   "/dashboard/follow-ups",
   "/dashboard/proposals",
   "/dashboard/proposals/[proposalId]/activity",
+  "/dashboard/proposals/[proposalId]/access",
+  // Not a dashboard route: the public, unauthenticated proposal page. It is listed here for
+  // the same reason as everything else — so a link to it is a link to something that exists.
+  "/proposal/[secureToken]",
   "/dashboard/email-activity",
   "/dashboard/team",
   "/dashboard/settings",
