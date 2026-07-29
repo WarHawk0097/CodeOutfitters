@@ -5,6 +5,12 @@
 //
 // No provider is connected. Compose, reply and retry write a local record and mark it as a
 // demo send — no message is delivered to any address, and no Gmail or other mailbox is read.
+import {
+  BTN_PRIMARY,
+  BTN_SECONDARY,
+  ROW_ACTION,
+  ROW_ACTION_ICON_QUIET,
+} from "@/lib/command-center/ui/control-system";
 import { useCallback, useMemo, useState } from "react";
 import { retryEmail, sendEmail, setEmailArchived, setEmailRead } from "../../../lib/demo/actions";
 import { LEAD_DIRECTORY } from "../../../lib/demo/seed";
@@ -16,7 +22,7 @@ import { MenuButton, type MenuItem } from "../../../components/demo/menu";
 import { Dialog, DialogCancelButton, DialogSubmitButton } from "../../../components/demo/dialog";
 import { SelectField, TextAreaField, TextField } from "../../../components/demo/field";
 import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
-import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton } from "../../../components/demo/toolbar";
+import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton, ToolbarDivider } from "../../../components/demo/toolbar";
 import { SavedViewsBar } from "../../../components/command-center/saved-views";
 import { useListView } from "../../../components/command-center/use-view-query";
 
@@ -41,8 +47,7 @@ const READ_OPTIONS = [
 
 const PAGE_SIZE = 4;
 
-const SECONDARY_ACTION =
-  "rounded-cc-control border border-cc-line-strong px-[11px] py-[5px] text-[11.5px] font-semibold text-cc-t-table hover:border-cc-green-border hover:text-cc-green-ink";
+const SECONDARY_ACTION = ROW_ACTION;
 
 type ComposeDraft = { leadId: string; to: string; leadName: string; subject: string; body: string };
 
@@ -147,7 +152,7 @@ export function EmailActivityScreen() {
         width={240}
         items={rowMenu(email)}
         onSelect={(id) => onMenuSelect(email, id)}
-        className="px-1 leading-none text-cc-icon-muted hover:text-cc-t2"
+        className={ROW_ACTION_ICON_QUIET}
       />
     );
     const dirMark = email.direction === "inbound" ? "↓ In" : "↑ Out";
@@ -232,9 +237,9 @@ export function EmailActivityScreen() {
           />
         ) : null}
         <ToolbarButton label="Compose" tone="primary" onClick={() => startCompose()} />
+        <ToolbarDivider />
+        <SavedViewsBar scope="emailActivity" filters={filters} sort={sort} onApply={publish} />
       </RouteToolbar>
-
-      <SavedViewsBar scope="emailActivity" filters={filters} sort={sort} onApply={publish} />
 
       {rows.length === 0 ? (
         <RouteEmpty
@@ -265,7 +270,7 @@ export function EmailActivityScreen() {
           <button
             type="button"
             onClick={() => setVisible((v) => v + PAGE_SIZE)}
-            className="rounded-cc-control border border-cc-line-strong bg-cc-surface px-4 py-2 text-[12px] font-semibold text-cc-t-table hover:border-cc-green-border hover:text-cc-green-ink"
+            className={BTN_SECONDARY}
           >
             Load more · {rows.length - visible} remaining
           </button>
@@ -343,13 +348,13 @@ function EmailThreadDialog({
       footer={
         <>
           <DialogCancelButton onClick={onClose} label="Close" />
-          <button type="button" onClick={onToggleRead} className="rounded-cc-control border border-cc-line-strong bg-cc-surface px-3 py-1.5 text-[12.5px] font-semibold text-cc-t-table">
+          <button type="button" onClick={onToggleRead} className={BTN_SECONDARY}>
             {email.read ? "Mark unread" : "Mark read"}
           </button>
-          <button type="button" onClick={onArchive} className="rounded-cc-control border border-cc-line-strong bg-cc-surface px-3 py-1.5 text-[12.5px] font-semibold text-cc-t-table">
+          <button type="button" onClick={onArchive} className={BTN_SECONDARY}>
             {email.archived ? "Restore" : "Archive"}
           </button>
-          <button type="button" onClick={onReply} className="rounded-cc-control bg-cc-green px-3 py-1.5 text-[12.5px] font-semibold text-white">
+          <button type="button" onClick={onReply} className={BTN_PRIMARY}>
             Reply (demo)
           </button>
         </>

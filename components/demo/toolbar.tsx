@@ -4,14 +4,67 @@
 // The canonical frames draw a search field as an icon plus placeholder with no visible
 // label (C-D05 143, C-D01 42). That is kept, and the accessible name is supplied by
 // aria-label rather than by adding a caption the design does not have.
+//
+// Every control here is assembled from lib/command-center/ui/control-system.ts, so the
+// search field, the filter triggers, "Reset demo tasks" and the Saved View group are one
+// height, one radius and one padding scale instead of the 30/34/36px mixture the owner
+// photographed. The route order is fixed by RouteToolbar's callers and asserted in
+// app/dashboard/visual-system.test.ts: search, filters, reset/secondary, Saved Views.
 import type { ReactNode } from "react";
+import {
+  BTN_PRIMARY,
+  BTN_SECONDARY,
+  BTN_SELECT,
+  BTN_DISABLED,
+  DISABLED_REASON,
+  TOOLBAR_DIVIDER,
+  TOOLBAR_GROUP,
+  TOOLBAR_ROW,
+  TOOLBAR_SEARCH,
+  TOOLBAR_STATUS,
+  VARIANT_SELECTED,
+} from "../../lib/command-center/ui/control-system";
 import { MenuButton, type MenuItem } from "./menu";
 
+/** One toolbar row per route. Groups wrap as units; nothing overflows sideways. */
 export function RouteToolbar({ children }: { children: ReactNode }) {
+  return <div className={TOOLBAR_ROW}>{children}</div>;
+}
+
+/** A related cluster inside the toolbar — the filters, or the Saved View controls. */
+export function ToolbarGroup({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return <div className={`${TOOLBAR_GROUP} ${className}`}>{children}</div>;
+}
+
+/** Rule between two toolbar groups. Decorative, so it disappears once the row wraps. */
+export function ToolbarDivider() {
+  return <span aria-hidden="true" className={TOOLBAR_DIVIDER} />;
+}
+
+/**
+ * Informational copy in a toolbar. A `span`, never a button: "Saved in this browser." is
+ * a statement about where the data went, and styling it like the controls beside it made
+ * the owner read it as an action.
+ */
+export function ToolbarStatus({
+  children,
+  id,
+  live = false,
+}: {
+  children: ReactNode;
+  id?: string;
+  live?: boolean;
+}) {
   return (
-    <div className="mb-3 flex flex-wrap items-center gap-2 rounded-cc-card border border-cc-line bg-cc-surface px-3 py-2.5">
+    <span id={id} role={live ? "status" : undefined} aria-live={live ? "polite" : undefined} className={TOOLBAR_STATUS}>
       {children}
-    </div>
+    </span>
   );
 }
 
@@ -27,8 +80,8 @@ export function SearchInput({
   placeholder?: string;
 }) {
   return (
-    <span className="flex h-9 min-w-[180px] flex-1 items-center gap-[9px] rounded-cc-control border border-cc-line bg-cc-secondary px-3">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true" className="text-cc-t3">
+    <span className={TOOLBAR_SEARCH}>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true" className="shrink-0 text-cc-t2">
         <circle cx="11" cy="11" r="7" />
         <path d="m21 21-4.3-4.3" />
       </svg>
@@ -38,20 +91,17 @@ export function SearchInput({
         aria-label={label}
         placeholder={placeholder}
         onChange={(event) => onChange(event.target.value)}
-        className="min-w-0 flex-1 bg-transparent text-[13px] text-cc-ink outline-none placeholder:text-cc-t3"
+        className="min-w-0 flex-1 bg-transparent text-[12.5px] text-cc-ink outline-none placeholder:text-cc-t3"
       />
     </span>
   );
 }
 
-const FILTER_CLASS =
-  "rounded-cc-control border border-cc-line-strong bg-cc-surface px-[11px] py-[7px] text-[12px] font-semibold text-cc-t-table";
-
-const FILTER_ACTIVE_CLASS =
-  "rounded-cc-control border border-cc-green-border bg-cc-green-tint px-[11px] py-[7px] text-[12px] font-semibold text-cc-green-ink";
-
 /** A single-select filter. `null` is the "all" option, which is always present so an
- *  applied filter can always be removed — a filter with no way back is a dead end. */
+ *  applied filter can always be removed — a filter with no way back is a dead end.
+ *
+ *  The selected value is rendered at full ink strength. It previously shared its colour
+ *  with the placeholder, which made an applied filter unreadable as an applied filter. */
 export function FilterMenu({
   label,
   value,
@@ -77,35 +127,55 @@ export function FilterMenu({
   ];
   return (
     <MenuButton
-      label={`${selected ? selected.label : allLabel} ▾`}
+      label={selected ? selected.label : allLabel}
       ariaLabel={`${label}: ${selected ? selected.label : allLabel}`}
       items={items}
       onSelect={(id) => onChange(id === "__all__" ? null : id)}
-      className={value ? FILTER_ACTIVE_CLASS : FILTER_CLASS}
+      chevron
+      className={value ? `${BTN_SELECT} ${VARIANT_SELECTED}` : BTN_SELECT}
     />
   );
 }
 
+/**
+ * A toolbar action. `tone` picks the variant; an enabled button never borrows the
+ * disabled foreground, which is why "Reset demo tasks" no longer looks switched off.
+ *
+ * A disabled toolbar action must say why: `disabledReason` is rendered as adjacent copy
+ * and wired through aria-describedby, so the reason reaches a screen reader too.
+ */
 export function ToolbarButton({
   label,
   onClick,
-  tone = "plain",
+  tone = "secondary",
+  disabled = false,
+  disabledReason,
 }: {
   label: string;
   onClick: () => void;
-  tone?: "plain" | "primary";
+  tone?: "secondary" | "primary";
+  disabled?: boolean;
+  disabledReason?: string;
 }) {
-  return (
+  const reasonId = disabled && disabledReason ? `toolbar-reason-${label.replace(/[^a-zA-Z]+/g, "-").toLowerCase()}` : undefined;
+  const button = (
     <button
       type="button"
       onClick={onClick}
-      className={
-        tone === "primary"
-          ? "rounded-cc-control bg-cc-green px-[13px] py-2 text-[12.5px] font-semibold text-white"
-          : FILTER_CLASS
-      }
+      disabled={disabled}
+      aria-describedby={reasonId}
+      className={disabled ? BTN_DISABLED : tone === "primary" ? BTN_PRIMARY : BTN_SECONDARY}
     >
       {label}
     </button>
+  );
+  if (!reasonId) return button;
+  return (
+    <span className={TOOLBAR_GROUP}>
+      {button}
+      <span id={reasonId} className={DISABLED_REASON}>
+        {disabledReason}
+      </span>
+    </span>
   );
 }

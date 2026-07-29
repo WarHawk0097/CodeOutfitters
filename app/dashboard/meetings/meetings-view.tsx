@@ -10,6 +10,14 @@
 // No provider is connected. Every meeting carries an empty joinUrl, the readiness panel
 // reports REQUIRES PROVIDER exactly as M-D01 466-468 draws it, and no transcript text
 // exists to show — the UI says that instead of implying a recording is available.
+import {
+  BTN_PRIMARY,
+  BTN_SECONDARY,
+  ROW_ACTION,
+  ROW_ACTION_ICON_QUIET,
+  SEGMENT,
+  SEGMENT_ACTIVE,
+} from "@/lib/command-center/ui/control-system";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   cancelMeeting,
@@ -29,7 +37,7 @@ import { MenuButton, type MenuItem } from "../../../components/demo/menu";
 import { Dialog, DialogCancelButton, DialogSubmitButton } from "../../../components/demo/dialog";
 import { SelectField, TextAreaField, TextField } from "../../../components/demo/field";
 import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
-import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton } from "../../../components/demo/toolbar";
+import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton, ToolbarDivider } from "../../../components/demo/toolbar";
 import { SavedViewsBar } from "../../../components/command-center/saved-views";
 import { useListView, useQueryParam } from "../../../components/command-center/use-view-query";
 import { COMMAND_CREATE_PARAM } from "../../../lib/search/commands";
@@ -97,8 +105,7 @@ const PINNED_QUESTIONS: readonly string[] = [
   "Decision — Who signs off, and by when do you want a decision?",
 ];
 
-const ACTION_CLASS =
-  "rounded-cc-control border border-cc-line-strong px-[11px] py-[5px] text-[11.5px] font-semibold text-cc-green-ink hover:border-cc-green-border";
+const ACTION_CLASS = ROW_ACTION;
 
 type MeetingDraft = {
   name: string;
@@ -298,7 +305,7 @@ export function MeetingsScreen() {
         width={250}
         items={rowMenu(meeting)}
         onSelect={(id) => onMenuSelect(meeting, id)}
-        className="px-1 leading-none text-cc-icon-muted hover:text-cc-t2"
+        className={ROW_ACTION_ICON_QUIET}
       />
     );
     const actions = actionsFor(meeting);
@@ -425,8 +432,8 @@ export function MeetingsScreen() {
             }}
             className={
               candidate === activeTab
-                ? "rounded-cc-control bg-cc-ink-strong px-[11px] py-[7px] text-[11.5px] font-semibold text-white"
-                : "rounded-cc-control px-[11px] py-[7px] text-[11.5px] font-semibold text-cc-t2 hover:bg-cc-secondary"
+                ? SEGMENT_ACTIVE
+                : SEGMENT
             }
           >
             {viewLabel(candidate)}
@@ -466,9 +473,9 @@ export function MeetingsScreen() {
           />
         ) : null}
         <ToolbarButton label="New meeting" tone="primary" onClick={() => setCreateOpen(true)} />
+        <ToolbarDivider />
+        <SavedViewsBar scope="meetings" filters={filters} sort={sort} onApply={publish} />
       </RouteToolbar>
-
-      <SavedViewsBar scope="meetings" filters={filters} sort={sort} onApply={publish} />
 
       <div id="meetings-panel" role="tabpanel" aria-labelledby={`meetings-tab-${view}`}>
         {rows.length === 0 ? (
@@ -688,14 +695,14 @@ function MeetingDetailDialog({
           <button
             type="button"
             onClick={onEdit}
-            className="rounded-cc-control border border-cc-line-strong bg-cc-surface px-3 py-1.5 text-[12.5px] font-semibold text-cc-t-table"
+            className={BTN_SECONDARY}
           >
             Edit meeting
           </button>
           <button
             type="button"
             onClick={onComplete}
-            className="rounded-cc-control bg-cc-green px-3 py-1.5 text-[12.5px] font-semibold text-white"
+            className={BTN_PRIMARY}
           >
             Mark complete
           </button>
@@ -750,7 +757,7 @@ function PrepareDialog({ meeting, onClose, onJoin }: { meeting: Meeting; onClose
           <button
             type="button"
             onClick={onJoin}
-            className="rounded-cc-control bg-cc-green px-3 py-1.5 text-[12.5px] font-semibold text-white"
+            className={BTN_PRIMARY}
           >
             Open live workspace
           </button>

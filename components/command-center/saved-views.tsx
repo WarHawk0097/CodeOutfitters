@@ -56,14 +56,41 @@ import {
   SHARED_VIEWS_UNAVAILABLE_REASON,
 } from "../../lib/views/provider";
 import { DEMO_CURRENT_USER_ID } from "../../lib/demo/seed";
+import {
+  BTN_DISABLED,
+  BTN_ICON,
+  BTN_SECONDARY,
+  BTN_SELECT,
+  DISABLED_REASON,
+  TOOLBAR_STATUS,
+  TOOLBAR_STATUS_DIRTY,
+  VARIANT_SELECTED,
+} from "../../lib/command-center/ui/control-system";
+import { ToolbarGroup, ToolbarStatus } from "../demo/toolbar";
 
 const NO_VIEW = "__none__";
 
-const CONTROL_CLASS =
-  "rounded-cc-control border border-cc-line-strong bg-cc-surface px-[11px] py-[7px] text-[12px] font-semibold text-cc-t-table";
+// The group's four parts, in the order the owner's brief fixes them: selector, manage,
+// save, status. Every one of them is a shared control-system token, so the Saved View
+// group is the same height and the same voice as the search field and the filters it now
+// sits beside — it used to be five same-looking buttons at a height nothing else in the
+// toolbar shared, which is what "excessive size, weak hierarchy" described.
+//
+// The selector is capped rather than left to grow: a 60-character view name would
+// otherwise push the whole toolbar sideways.
+const SELECTOR_CLASS = `${BTN_SELECT} max-w-[220px]`;
+const SELECTOR_ACTIVE_CLASS = `${BTN_SELECT} ${VARIANT_SELECTED} max-w-[220px]`;
 
-const ACTIVE_CONTROL_CLASS =
-  "rounded-cc-control border border-cc-green-border bg-cc-green-tint px-[11px] py-[7px] text-[12px] font-semibold text-cc-green-ink";
+/** Management trigger. Icon-only, so its accessible name is the whole label. */
+function ManageIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <circle cx="3.25" cy="8" r="1.3" />
+      <circle cx="8" cy="8" r="1.3" />
+      <circle cx="12.75" cy="8" r="1.3" />
+    </svg>
+  );
+}
 
 /**
  * Browser-local Saved View state for one list.
@@ -140,21 +167,33 @@ export function SavedViewsBar({
   const dirty = selected !== null && isDirty(scope, selected, filters, sort);
   const unsavedWithoutView = selected === null && !isDefaultState(scope, filters, sort);
 
+  // "Save view" is enabled exactly when saving would produce something that does not
+  // already exist. Both of the two ways it can be pointless get their own sentence,
+  // because "disabled" on its own is the state the owner reported as indistinguishable
+  // from a live control.
+  const savable = dirty || unsavedWithoutView;
+  const saveDisabledReason =
+    selected === null
+      ? "Search, filter or sort this list first — there is nothing to save yet."
+      : `“${selected.name}” already matches the filters and sort applied.`;
+
   if (plane.kind !== "demo") {
     return (
-      <span className="flex items-center gap-2">
+      <ToolbarGroup>
+        {/* Really disabled, and it looks it: the muted surface and weak border of
+            CONTROL_DISABLED, not an enabled control wearing reduced opacity. */}
         <button
           type="button"
           disabled
           aria-describedby={`saved-views-unavailable-${scope}`}
-          className={`${CONTROL_CLASS} cursor-not-allowed opacity-60`}
+          className={BTN_DISABLED}
         >
           Saved views
         </button>
-        <span id={`saved-views-unavailable-${scope}`} className="max-w-[420px] text-[11px] text-cc-t3">
+        <span id={`saved-views-unavailable-${scope}`} className={`max-w-[420px] ${DISABLED_REASON}`}>
           {SAVED_VIEWS_PROVIDER_REQUIRED_TITLE}. {SAVED_VIEWS_PROVIDER_REQUIRED_REASON}
         </span>
-      </span>
+      </ToolbarGroup>
     );
   }
 
@@ -168,28 +207,47 @@ export function SavedViewsBar({
     })),
   ];
 
-  const manageItems: MenuItem[] = selected === null
-    ? [{ id: "noop", label: "Select a view to manage it", disabled: true }]
-    : [
-        {
-          id: "rename",
-          label: "Rename",
-          disabled: selected.ownership.kind === "builtIn",
-        },
-        { id: "duplicate", label: "Duplicate" },
-        {
-          id: "delete",
-          label: "Delete",
-          disabled: selected.ownership.kind === "builtIn",
-        },
-        {
-          id: "default",
-          label:
-            state.defaults[scope] === selected.id
-              ? "Stop opening with this view"
-              : "Open this list with this view",
-        },
-      ];
+  // Update / Revert / Clear filters used to be three more buttons in the bar, appearing and
+  // disappearing as the filters changed — a row that changes width as you type is why the
+  // group read as "excessive size, weak hierarchy". They are management operations on a
+  // view, so they live in the management menu with the rest of them. The bar itself keeps a
+  // fixed shape: selector, manage, save, status.
+  const dirtyItems: MenuItem[] = [
+    ...(dirty && selected !== null && selected.ownership.kind !== "builtIn"
+      ? [{ id: "update", label: "Update view", detail: "overwrites" } as MenuItem]
+      : []),
+    ...(dirty || unsavedWithoutView
+      ? [{ id: "save-as", label: "Save as new view" } as MenuItem]
+      : []),
+    ...(dirty ? [{ id: "revert", label: "Revert" } as MenuItem] : []),
+    ...(unsavedWithoutView ? [{ id: "clear", label: "Clear filters" } as MenuItem] : []),
+  ];
+
+  const manageItems: MenuItem[] = [
+    ...dirtyItems,
+    ...(selected === null
+      ? [{ id: "noop", label: "Select a view to rename, duplicate or delete it", disabled: true } as MenuItem]
+      : [
+          {
+            id: "rename",
+            label: "Rename",
+            disabled: selected.ownership.kind === "builtIn",
+          },
+          { id: "duplicate", label: "Duplicate" },
+          {
+            id: "delete",
+            label: "Delete",
+            disabled: selected.ownership.kind === "builtIn",
+          },
+          {
+            id: "default",
+            label:
+              state.defaults[scope] === selected.id
+                ? "Stop opening with this view"
+                : "Open this list with this view",
+          },
+        ]),
+  ];
 
   const applyView = (view: SavedView | null) => {
     setSelectedId(view?.id ?? null);
@@ -201,7 +259,25 @@ export function SavedViewsBar({
     }
   };
 
+  const updateSelected = () => {
+    if (selected === null) return;
+    const updated: SavedView = { ...selected, filters, sort };
+    const result = saveView(state, updated, { replace: true });
+    if (!result.ok) {
+      setNotice(result.problem);
+      return;
+    }
+    commit(result.state);
+    setNotice(`Updated “${selected.name}”.`);
+  };
+
   const onManage = (id: string) => {
+    // The dirty-state operations run whether or not a view is selected — "Clear filters"
+    // exists precisely for the no-view case — so they are handled above the guard.
+    if (id === "update") return updateSelected();
+    if (id === "save-as") return setSaving(true);
+    if (id === "revert") return applyView(selected);
+    if (id === "clear") return applyView(null);
     if (selected === null) return;
     if (id === "rename") {
       setRenaming(selected);
@@ -235,18 +311,24 @@ export function SavedViewsBar({
   };
 
   return (
-    <span className="flex flex-wrap items-center gap-2">
+    <ToolbarGroup>
+      {/* SELECTOR. "No saved view" rather than "No view": the list is never viewless, it is
+          the *saved view* that is unset, and the shorter label read as a broken state. */}
       <MenuButton
-        label={`${selected?.name ?? "No view"} ▾`}
+        label={selected?.name ?? "No saved view"}
         ariaLabel={`Saved view for ${descriptor.label}: ${selected?.name ?? "no view"}`}
         items={selectorItems}
         onSelect={(id) => applyView(id === NO_VIEW ? null : (findView(state, id) ?? null))}
-        className={selected ? ACTIVE_CONTROL_CLASS : CONTROL_CLASS}
+        className={selected ? SELECTOR_ACTIVE_CLASS : SELECTOR_CLASS}
         width={260}
+        chevron
+        truncate
       />
 
+      {/* MANAGE. Icon-only and square, so it reads as the group's overflow rather than a
+          fourth peer button. Its accessible name is the whole label — "⋯" was not one. */}
       <MenuButton
-        label="⋯"
+        label={<ManageIcon />}
         ariaLabel={
           selected === null
             ? "Manage saved views — select a view first"
@@ -254,57 +336,39 @@ export function SavedViewsBar({
         }
         items={manageItems}
         onSelect={onManage}
-        className={CONTROL_CLASS}
+        className={BTN_ICON}
         align="right"
-        width={260}
+        width={280}
       />
 
-      {dirty || unsavedWithoutView ? (
-        <>
-          {/* Textual, not a coloured dot. A state a person has to have been told the meaning of
-              is not a state that has been communicated. */}
-          <span className="text-[11.5px] font-semibold text-cc-amber-ink">Unsaved changes</span>
-          {dirty && selected !== null && selected.ownership.kind !== "builtIn" ? (
-            <button
-              type="button"
-              className={CONTROL_CLASS}
-              onClick={() => {
-                const updated: SavedView = { ...selected, filters, sort };
-                const result = saveView(state, updated, { replace: true });
-                if (!result.ok) {
-                  setNotice(result.problem);
-                  return;
-                }
-                commit(result.state);
-                setNotice(`Updated “${selected.name}”.`);
-              }}
-            >
-              Update view
-            </button>
-          ) : null}
-          <button type="button" className={CONTROL_CLASS} onClick={() => setSaving(true)}>
-            Save as new view
-          </button>
-          {selected !== null ? (
-            <button type="button" className={CONTROL_CLASS} onClick={() => applyView(selected)}>
-              Revert
-            </button>
-          ) : (
-            <button type="button" className={CONTROL_CLASS} onClick={() => applyView(null)}>
-              Clear filters
-            </button>
-          )}
-        </>
-      ) : (
-        <button type="button" className={CONTROL_CLASS} onClick={() => setSaving(true)}>
-          Save view
-        </button>
+      {/* SAVE. One action, always in the same place. Disabled only when there is genuinely
+          nothing to save, and then it says which of the two reasons applies. */}
+      <button
+        type="button"
+        disabled={!savable}
+        aria-describedby={savable ? undefined : `saved-views-save-reason-${scope}`}
+        className={savable ? BTN_SECONDARY : BTN_DISABLED}
+        onClick={() => setSaving(true)}
+      >
+        Save view
+      </button>
+      {savable ? null : (
+        <span id={`saved-views-save-reason-${scope}`} className={DISABLED_REASON}>
+          {saveDisabledReason}
+        </span>
       )}
 
-      <span className="text-[11px] text-cc-t3">{SAVED_VIEWS_LOCAL_NOTICE}</span>
+      {/* DIRTY STATE. Words, not a coloured dot: a state a person has to have been told the
+          meaning of is not a state that has been communicated. */}
+      {dirty || unsavedWithoutView ? (
+        <span className={TOOLBAR_STATUS_DIRTY}>Unsaved changes</span>
+      ) : null}
+
+      {/* STATUS. Where the views went. Not a control, and never styled as one. */}
+      <ToolbarStatus>{SAVED_VIEWS_LOCAL_NOTICE}</ToolbarStatus>
 
       {notice ? (
-        <span role="status" aria-live="polite" className="text-[11px] text-cc-t3">
+        <span role="status" aria-live="polite" className={TOOLBAR_STATUS}>
           {notice}
         </span>
       ) : null}
@@ -374,7 +438,7 @@ export function SavedViewsBar({
           </p>
         </form>
       </Dialog>
-    </span>
+    </ToolbarGroup>
   );
 }
 

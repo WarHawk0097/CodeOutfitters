@@ -9,6 +9,13 @@
 //
 // Nothing is emailed. "Mark sent" records a demo send; no proposal is delivered to a real
 // address and the preview/download is generated locally in the browser.
+import {
+  BTN_DANGER,
+  BTN_PRIMARY,
+  BTN_SECONDARY,
+  ROW_ACTION,
+  ROW_ACTION_ICON_QUIET,
+} from "@/lib/command-center/ui/control-system";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   createProposal,
@@ -27,7 +34,7 @@ import { MenuButton, type MenuItem } from "../../../components/demo/menu";
 import { Dialog, DialogCancelButton, DialogSubmitButton } from "../../../components/demo/dialog";
 import { SelectField, TextField } from "../../../components/demo/field";
 import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
-import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton } from "../../../components/demo/toolbar";
+import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton, ToolbarDivider } from "../../../components/demo/toolbar";
 import { SavedViewsBar } from "../../../components/command-center/saved-views";
 import { useListView, useQueryParam } from "../../../components/command-center/use-view-query";
 import { COMMAND_CREATE_PARAM } from "../../../lib/search/commands";
@@ -71,8 +78,7 @@ const VALUE_BUCKETS = [
 
 const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 
-const SECONDARY_ACTION =
-  "rounded-cc-control border border-cc-line-strong px-[11px] py-[5px] text-[11.5px] font-semibold text-cc-t-table hover:border-cc-green-border hover:text-cc-green-ink";
+const SECONDARY_ACTION = ROW_ACTION;
 
 type ProposalDraft = {
   client: string;
@@ -243,7 +249,7 @@ export function ProposalsScreen() {
         width={280}
         items={rowMenu(proposal)}
         onSelect={(id) => onMenuSelect(proposal, id)}
-        className="px-1 leading-none text-cc-icon-muted hover:text-cc-t2"
+        className={ROW_ACTION_ICON_QUIET}
       />
     );
 
@@ -338,6 +344,8 @@ export function ProposalsScreen() {
           />
         ) : null}
         <ToolbarButton label="New proposal" tone="primary" onClick={() => setCreateOpen(true)} />
+        <ToolbarDivider />
+        <SavedViewsBar scope="proposals" filters={filters} sort={sort} onApply={publish} />
       </RouteToolbar>
 
       {/* Says which question produced this list, and clears back to every proposal. */}
@@ -358,8 +366,6 @@ export function ProposalsScreen() {
           </button>
         </div>
       ) : null}
-
-      <SavedViewsBar scope="proposals" filters={filters} sort={sort} onApply={publish} />
 
       {rows.length === 0 ? (
         <RouteEmpty
@@ -474,7 +480,7 @@ export function ProposalsScreen() {
               <button
                 type="button"
                 onClick={() => onDownload(previewing)}
-                className="rounded-cc-control bg-cc-green px-3 py-1.5 text-[12.5px] font-semibold text-white"
+                className={BTN_PRIMARY}
               >
                 Download (.txt)
               </button>
@@ -537,21 +543,21 @@ function ProposalDetailDialog({
           {/* A real route, not a placeholder: publishing and client links live behind it. */}
           <Link
             href={`/dashboard/proposals/${proposal.id}/access`}
-            className="rounded-cc-control border border-cc-line-strong bg-cc-surface px-3 py-1.5 text-[12.5px] font-semibold text-cc-t-table"
+            className={BTN_SECONDARY}
           >
             Client access
           </Link>
           <button
             type="button"
             onClick={onPreview}
-            className="rounded-cc-control border border-cc-line-strong bg-cc-surface px-3 py-1.5 text-[12.5px] font-semibold text-cc-t-table"
+            className={BTN_SECONDARY}
           >
             Preview
           </button>
           <button
             type="button"
             onClick={onEdit}
-            className="rounded-cc-control bg-cc-green px-3 py-1.5 text-[12.5px] font-semibold text-white"
+            className={BTN_PRIMARY}
           >
             Edit proposal
           </button>
@@ -629,11 +635,7 @@ function ConfirmStateDialog({
           <button
             type="button"
             onClick={onConfirm}
-            className={
-              c.tone === "red"
-                ? "rounded-cc-control bg-cc-red-ink px-3 py-1.5 text-[12.5px] font-semibold text-white"
-                : "rounded-cc-control bg-cc-green px-3 py-1.5 text-[12.5px] font-semibold text-white"
-            }
+            className={c.tone === "red" ? BTN_DANGER : BTN_PRIMARY}
           >
             {c.label}
           </button>

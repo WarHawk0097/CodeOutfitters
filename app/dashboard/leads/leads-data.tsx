@@ -7,6 +7,8 @@
 // This component owns the leads QUERY. Every filter, search term, sort and page
 // number is sent to the API and answered against the whole dataset, so a filter
 // narrows 128 records rather than the ten currently on screen.
+import { BTN_PRIMARY } from "@/lib/command-center/ui/control-system";
+import { RouteToolbar } from "../../../components/demo/toolbar";
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { LeadsTable, type LeadsQuery } from "@command-center/ui";
@@ -235,7 +237,7 @@ export function LeadsData() {
         <button
           type="button"
           onClick={() => setAttempt((n) => n + 1)}
-          className="mt-3 rounded-cc-control bg-cc-green px-3 py-1.5 text-[12.5px] font-semibold text-white"
+          className={`mt-3 ${BTN_PRIMARY}`}
         >
           Retry
         </button>
@@ -251,9 +253,9 @@ export function LeadsData() {
 
   return (
     <>
-    <div className="mb-2">
+    <RouteToolbar>
       <SavedViewsBar scope="leads" filters={filters} sort={sort} onApply={publish} />
-    </div>
+    </RouteToolbar>
     {/* The derived view names itself and offers the way back to the full list. The count
         is the server's total for the derived set, not the length of the page on screen. */}
     {leadsView === "no-next-action" ? (

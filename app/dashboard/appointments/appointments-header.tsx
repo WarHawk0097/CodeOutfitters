@@ -5,6 +5,7 @@
 //
 // The switch is a real tablist, not three styled spans: it changes what the body renders,
 // so it has to be operable from the keyboard and report its selected state.
+import { BTN_SELECT } from "@/lib/command-center/ui/control-system";
 import { MenuButton } from "../../../components/demo/menu";
 import { useDemoState } from "../../../lib/demo/store";
 import { DEMO_TODAY } from "../../../lib/demo/seed";
@@ -70,7 +71,7 @@ export function AppointmentsMobileView() {
   const { view, setView } = useAppointmentsView();
   return (
     <MenuButton
-      label={`${VIEW_LABELS[view]} ▾`}
+      label={VIEW_LABELS[view]}
       ariaLabel={`Appointment view: ${VIEW_LABELS[view]}`}
       align="right"
       width={180}
@@ -80,7 +81,8 @@ export function AppointmentsMobileView() {
         selected: candidate === view,
       }))}
       onSelect={(id) => setView(id as AppointmentsView)}
-      className="text-[11.5px] text-cc-t2"
+      chevron
+      className={BTN_SELECT}
     />
   );
 }

@@ -8,6 +8,17 @@
 // due state lives on this screen.
 //
 // Nothing is emailed and no reminder is sent. A follow-up is a local task record.
+import {
+  BTN_PRIMARY,
+  BTN_SECONDARY,
+  CONTROL_DISABLED_STATE,
+  ROW_ACTION,
+  ROW_ACTION_ICON_QUIET,
+  ROW_ACTION_PRIMARY,
+  ROW_ACTION_QUIET,
+  SEGMENT,
+  SEGMENT_ACTIVE,
+} from "@/lib/command-center/ui/control-system";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   completeFollowUp,
@@ -26,7 +37,7 @@ import { Dialog, DialogCancelButton, DialogSubmitButton } from "../../../compone
 import { SelectField, TextAreaField, TextField } from "../../../components/demo/field";
 import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
 import { NextActionCard } from "../../../components/dashboard/next-action-card";
-import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton } from "../../../components/demo/toolbar";
+import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton, ToolbarDivider } from "../../../components/demo/toolbar";
 import { SavedViewsBar } from "../../../components/command-center/saved-views";
 import { useListView, useQueryParam } from "../../../components/command-center/use-view-query";
 import { COMMAND_CREATE_PARAM } from "../../../lib/search/commands";
@@ -61,10 +72,8 @@ const VIEW_LABEL: Record<FollowUpsView, string> = {
 const PRIORITIES = ["High", "Medium", "Low"] as const;
 const PRIORITY_TONE: Record<FollowUp["priority"], Tone> = { High: "red", Medium: "amber", Low: "neutral" };
 
-const PRIMARY_ACTION =
-  "rounded-cc-control bg-cc-green px-[11px] py-[5px] text-[11.5px] font-semibold text-white";
-const SECONDARY_ACTION =
-  "rounded-cc-control border border-cc-line-strong px-[11px] py-[5px] text-[11.5px] font-semibold text-cc-t-table hover:border-cc-green-border hover:text-cc-green-ink";
+const PRIMARY_ACTION = ROW_ACTION_PRIMARY;
+const SECONDARY_ACTION = ROW_ACTION;
 
 type FollowUpDraft = {
   name: string;
@@ -243,7 +252,7 @@ export function FollowUpsScreen() {
         width={220}
         items={rowMenu(followUp)}
         onSelect={(id) => onMenuSelect(followUp, id)}
-        className="px-1 leading-none text-cc-icon-muted hover:text-cc-t2"
+        className={ROW_ACTION_ICON_QUIET}
       />
     );
 
@@ -360,8 +369,8 @@ export function FollowUpsScreen() {
             }}
             className={
               candidate === view
-                ? "rounded-cc-control bg-cc-ink-strong px-[11px] py-[7px] text-[11.5px] font-semibold text-white"
-                : "rounded-cc-control px-[11px] py-[7px] text-[11.5px] font-semibold text-cc-t2 hover:bg-cc-secondary"
+                ? SEGMENT_ACTIVE
+                : SEGMENT
             }
           >
             {VIEW_LABEL[candidate]} · {countFor(candidate)}
@@ -380,9 +389,9 @@ export function FollowUpsScreen() {
           />
         ) : null}
         <ToolbarButton label="New follow-up" tone="primary" onClick={() => setCreateOpen(true)} />
+        <ToolbarDivider />
+        <SavedViewsBar scope="followUps" filters={filters} sort={sort} onApply={publish} />
       </RouteToolbar>
-
-      <SavedViewsBar scope="followUps" filters={filters} sort={sort} onApply={publish} />
 
       {/* Bulk action bar — appears only when at least one visible row is selected, so it is
           never an enabled control with nothing to act on. */}
@@ -396,21 +405,21 @@ export function FollowUpsScreen() {
               type="button"
               onClick={onBulkComplete}
               disabled={view === "COMPLETED"}
-              className="rounded-cc-control bg-cc-green px-3 py-1.5 text-[12px] font-semibold text-white disabled:opacity-40"
+              className={`${BTN_PRIMARY} ${CONTROL_DISABLED_STATE}`}
             >
               Complete selected
             </button>
             <button
               type="button"
               onClick={() => setBulkSnooze(true)}
-              className="rounded-cc-control border border-cc-line-strong bg-cc-surface px-3 py-1.5 text-[12px] font-semibold text-cc-t-table"
+              className={ROW_ACTION}
             >
               Snooze selected
             </button>
             <button
               type="button"
               onClick={clearSelection}
-              className="rounded-cc-control px-3 py-1.5 text-[12px] font-semibold text-cc-t2 hover:bg-cc-secondary"
+              className={ROW_ACTION_QUIET}
             >
               Clear selection
             </button>
@@ -604,7 +613,7 @@ function FollowUpDetailDialog({
           <button
             type="button"
             onClick={onEdit}
-            className="rounded-cc-control border border-cc-line-strong bg-cc-surface px-3 py-1.5 text-[12.5px] font-semibold text-cc-t-table"
+            className={BTN_SECONDARY}
           >
             Edit follow-up
           </button>
@@ -612,7 +621,7 @@ function FollowUpDetailDialog({
             type="button"
             onClick={onComplete}
             disabled={followUp.state === "COMPLETED"}
-            className="rounded-cc-control bg-cc-green px-3 py-1.5 text-[12.5px] font-semibold text-white disabled:opacity-40"
+            className={`${BTN_PRIMARY} ${CONTROL_DISABLED_STATE}`}
           >
             Mark complete
           </button>

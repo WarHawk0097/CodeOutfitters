@@ -13,6 +13,15 @@
 // (T-03 926, MO-03 1097) and is also the keyboard path, which is why MO-03 1099 states
 // "MOVE MENU = DRAG ALTERNATIVE (NO DRAG REQUIRED)". Both call the same mutation, so a
 // card cannot end up in a different place depending on how it was moved.
+import {
+  BTN_PRIMARY,
+  CARD_ROW_ACTION,
+  CONTROL_DISABLED_STATE,
+  ROW_ACTION,
+  ROW_ACTION_ICON,
+  ROW_ACTION_ICON_QUIET,
+  VARIANT_SELECTED,
+} from "@/lib/command-center/ui/control-system";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   createOpportunity,
@@ -28,7 +37,7 @@ import { MenuButton, type MenuItem } from "../../../components/demo/menu";
 import { Dialog, DialogCancelButton, DialogSubmitButton } from "../../../components/demo/dialog";
 import { SelectField, TextAreaField, TextField } from "../../../components/demo/field";
 import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
-import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton } from "../../../components/demo/toolbar";
+import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton, ToolbarDivider } from "../../../components/demo/toolbar";
 import { SavedViewsBar } from "../../../components/command-center/saved-views";
 import { useListView, useQueryParam } from "../../../components/command-center/use-view-query";
 import { COMMAND_CREATE_PARAM } from "../../../lib/search/commands";
@@ -299,7 +308,7 @@ export function PipelineBoard() {
                 else if (id === "edit") setEditId(card.id);
                 else performMove(card.id, id as PipelineStage);
               }}
-              className="px-1 leading-none text-cc-icon-muted hover:text-cc-t2"
+              className={ROW_ACTION_ICON_QUIET}
             />
           </span>
         </div>
@@ -314,29 +323,31 @@ export function PipelineBoard() {
             <button
               type="button"
               onClick={() => setDetailId(card.id)}
-              className="flex-1 rounded-cc-control border border-cc-line-strong py-[9px] text-center text-[11.5px] font-semibold text-cc-t-table"
+              className={`flex-1 ${ROW_ACTION}`}
             >
               Open
             </button>
             <MenuButton
-              label="Move to stage ▾"
+              label="Move to stage"
               ariaLabel={`Move ${card.name} to another stage`}
               align="right"
               items={stageMenuItems(card)}
               onSelect={(id) => performMove(card.id, id as PipelineStage)}
-              className="flex-1 rounded-cc-control border border-cc-green-border bg-cc-green-tint py-[9px] text-center text-[11.5px] font-semibold text-cc-green-ink"
+              chevron
+              className={`flex-1 ${ROW_ACTION} ${VARIANT_SELECTED}`}
             />
           </div>
         ) : form === "tablet" ? (
           <div className="mt-[10px] flex items-center justify-between gap-2 rounded-cc-control bg-cc-secondary px-[9px] py-[7px]">
             <span className="min-w-0 truncate text-[11px] text-cc-t2">{ownerName(card.ownerId)}</span>
             <MenuButton
-              label="Move to stage ▾"
+              label="Move to stage"
               ariaLabel={`Move ${card.name} to another stage`}
               align="right"
               items={stageMenuItems(card)}
               onSelect={(id) => performMove(card.id, id as PipelineStage)}
-              className="flex-shrink-0 text-[11px] font-semibold text-cc-green-ink"
+              chevron
+              className={CARD_ROW_ACTION}
             />
           </div>
         ) : (
@@ -445,9 +456,9 @@ export function PipelineBoard() {
           />
         ) : null}
         <ToolbarButton label="New opportunity" tone="primary" onClick={() => setCreateOpen(true)} />
+        <ToolbarDivider />
+        <SavedViewsBar scope="pipeline" filters={filters} sort={sort} onApply={publish} />
       </RouteToolbar>
-
-      <SavedViewsBar scope="pipeline" filters={filters} sort={sort} onApply={publish} />
 
       {window_.breakpoint === "mobile" ? (
         <>
@@ -459,7 +470,7 @@ export function PipelineBoard() {
                 onClick={() => window_.step(-1)}
                 disabled={!window_.canPrev}
                 aria-label="Previous stage"
-                className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-cc-control border border-cc-line-strong text-cc-t2 disabled:opacity-40"
+                className={`${ROW_ACTION_ICON} ${CONTROL_DISABLED_STATE}`}
               >
                 <span aria-hidden="true">‹</span>
               </button>
@@ -483,7 +494,7 @@ export function PipelineBoard() {
                 onClick={() => window_.step(1)}
                 disabled={!window_.canNext}
                 aria-label="Next stage"
-                className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-cc-control border border-cc-t-table text-cc-ink disabled:opacity-40"
+                className={`${ROW_ACTION_ICON} ${CONTROL_DISABLED_STATE}`}
               >
                 <span aria-hidden="true">›</span>
               </button>
@@ -668,7 +679,7 @@ function OpportunityDetailDialog({
           <button
             type="button"
             onClick={onEdit}
-            className="rounded-cc-control bg-cc-green px-3 py-1.5 text-[12.5px] font-semibold text-white"
+            className={BTN_PRIMARY}
           >
             Edit opportunity
           </button>

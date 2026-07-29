@@ -9,6 +9,7 @@
 // nowhere else — the copy on every form and every confirmation says exactly that. In live
 // mode this screen renders a provider-required state instead of falling back to the demo
 // store, because one person's browser is not a workspace's task list.
+import { SEGMENT, SEGMENT_ACTIVE } from "@/lib/command-center/ui/control-system";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createTask, resetDemoTasks } from "../../../lib/demo/actions";
 import { DEMO_CURRENT_USER_ID, DEMO_TODAY } from "../../../lib/demo/seed";
@@ -38,7 +39,7 @@ import { useDemoQuery } from "../../../components/demo/use-demo-query";
 import { Dialog, DialogCancelButton } from "../../../components/demo/dialog";
 import { SelectField, TextAreaField, TextField } from "../../../components/demo/field";
 import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
-import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton } from "../../../components/demo/toolbar";
+import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton, ToolbarDivider } from "../../../components/demo/toolbar";
 import {
   DEMO_TASK_SAVE_NOTICE,
   TaskRow,
@@ -203,8 +204,8 @@ export function MyWorkScreen() {
             }}
             className={
               candidate === view
-                ? "rounded-cc-control bg-cc-ink-strong px-[11px] py-[7px] text-[11.5px] font-semibold text-white"
-                : "rounded-cc-control px-[11px] py-[7px] text-[11.5px] font-semibold text-cc-t2 hover:bg-cc-secondary"
+                ? SEGMENT_ACTIVE
+                : SEGMENT
             }
           >
             {TASK_VIEW_LABELS[candidate]} · {counts[candidate]}
@@ -224,9 +225,9 @@ export function MyWorkScreen() {
         ) : null}
         <ToolbarButton label="Reset demo tasks" onClick={() => setResetOpen(true)} />
         <ToolbarButton label="New task" tone="primary" onClick={() => setCreateOpen(true)} />
+        <ToolbarDivider />
+        <SavedViewsBar scope="myWork" filters={filters} sort={sort} onApply={publish} />
       </RouteToolbar>
-
-      <SavedViewsBar scope="myWork" filters={filters} sort={sort} onApply={publish} />
 
       <div id="my-work-panel" role="tabpanel" aria-labelledby={`my-work-tab-${view}`}>
         {rows.length === 0 ? (
