@@ -1,9 +1,8 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { readFileSync } from "node:fs";
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest";
 import { fileURLToPath } from "node:url";
 import { randomUUID } from "node:crypto";
-import { PGlite } from "@electric-sql/pglite";
-import { citext } from "@electric-sql/pglite/contrib/citext";
+import type { PGlite } from "@electric-sql/pglite";
+import { openTestDatabase, resetSchema } from "@/test/pglite-schema";
 
 // Real-database proof of the activity migration (tests 150-159).
 //
@@ -81,14 +80,19 @@ const insertEvent = `
   values ($1, 'task_completed', 'task', 'task', 'task-1', 'Send recap', 'Task completed')
   returning id, actor_id, occurred_at`;
 
-// A fresh in-memory database per test for full isolation. Booting PGlite and applying four
+// A fresh schema per test for full isolation, on one connection per file. Applying four
 // migrations takes longer than the 10s default hook timeout when the suite runs in parallel,
 // so the budget is stated rather than left to flake.
+beforeAll(async () => {
+  db = await openTestDatabase();
+}, 60_000);
+
+afterAll(async () => {
+  await db.close();
+});
+
 beforeEach(async () => {
-  db = new PGlite({ extensions: { citext } });
-  await db.exec("create role anon; create role authenticated; create role service_role;");
-  await db.exec(AUTH_STUB);
-  for (const path of MIGRATIONS) await db.exec(readFileSync(path, "utf8"));
+  await resetSchema(db, { migrations: MIGRATIONS, authStub: AUTH_STUB });
 }, 60_000);
 
 describe("activity migration — workspace isolation and server-derived identity (tests 150-159)", () => {

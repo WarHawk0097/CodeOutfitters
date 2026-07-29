@@ -1,9 +1,8 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { readFileSync } from "node:fs";
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest";
 import { fileURLToPath } from "node:url";
 import { randomUUID } from "node:crypto";
-import { PGlite } from "@electric-sql/pglite";
-import { citext } from "@electric-sql/pglite/contrib/citext";
+import type { PGlite } from "@electric-sql/pglite";
+import { openTestDatabase, resetSchema } from "@/test/pglite-schema";
 
 // Real-database proof of the controlled owner bootstrap (Phase 11, tests 24-35).
 // Asserting on the SQL text would prove nothing about behaviour, so this loads
@@ -79,12 +78,17 @@ async function memberships(): Promise<number> {
   return r.rows[0]!.n;
 }
 
-beforeEach(async () => {
-  db = new PGlite({ extensions: { citext } });
-  await db.exec("create role anon; create role authenticated; create role service_role;");
-  await db.exec(AUTH_STUB);
-  for (const path of MIGRATIONS) await db.exec(readFileSync(path, "utf8"));
+beforeAll(async () => {
+  db = await openTestDatabase();
+}, 60_000);
+
+afterAll(async () => {
+  await db.close();
 });
+
+beforeEach(async () => {
+  await resetSchema(db, { migrations: MIGRATIONS, authStub: AUTH_STUB });
+}, 60_000);
 
 describe("owner bootstrap — seed", () => {
   it("arms exactly one allowlist entry for the CodeOutfitters workspace", async () => {

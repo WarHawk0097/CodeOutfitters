@@ -1,9 +1,8 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { readFileSync } from "node:fs";
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest";
 import { fileURLToPath } from "node:url";
 import { randomUUID } from "node:crypto";
-import { PGlite } from "@electric-sql/pglite";
-import { citext } from "@electric-sql/pglite/contrib/citext";
+import type { PGlite } from "@electric-sql/pglite";
+import { openTestDatabase, resetSchema } from "@/test/pglite-schema";
 
 // Real-database atomicity proof (owner C: "A mocked sequence of repository calls
 // is not sufficient proof of transaction atomicity"). Loads the ACTUAL
@@ -46,14 +45,18 @@ async function submit(p: object, fingerprint: string) {
   return r.rows[0]!.result;
 }
 
-beforeEach(async () => {
-  // Fresh in-memory database per test for full isolation.
-  db = new PGlite({ extensions: { citext } });
-  // Supabase roles the migration's GRANT/REVOKE reference. They do not exist in
-  // a bare Postgres, so create them before applying the migration UNMODIFIED.
-  await db.exec("create role anon; create role authenticated; create role service_role;");
-  await db.exec(readFileSync(MIGRATION, "utf8"));
+beforeAll(async () => {
+  db = await openTestDatabase();
+}, 60_000);
+
+afterAll(async () => {
+  await db.close();
 });
+
+// A fresh schema per test for full isolation; the migration is applied UNMODIFIED each time.
+beforeEach(async () => {
+  await resetSchema(db, { migrations: [MIGRATION] });
+}, 60_000);
 
 describe("submit_inquiry — atomic persistence", () => {
   it("creates a new lead with server-owned defaults and queued emails", async () => {

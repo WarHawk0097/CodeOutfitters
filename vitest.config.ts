@@ -24,6 +24,10 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["lib/**/*.test.ts", "app/**/*.test.ts", "mocks/**/*.test.ts"],
+    // Five *.pglite.test.ts suites hold an embedded Postgres each — a WASM heap the worker
+    // does not hand back. Run enough of them at once and the process dies with "Fatal
+    // process out of memory", which reports no failing test and names no file.
+    poolOptions: { forks: { maxForks: 2 } },
     // Integration tests (real Docker Supabase + ClamAV) run only via
     // vitest.integration.config.ts — never in the fast unit sweep.
     exclude: [
