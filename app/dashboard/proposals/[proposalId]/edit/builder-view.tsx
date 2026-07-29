@@ -607,12 +607,15 @@ function AiAssistTab() {
   const reasonId = useId();
   return (
     <div>
-      <div className="flex flex-wrap gap-1.5" aria-describedby={reasonId}>
+      <div className="flex flex-wrap gap-1.5">
         {["Rewrite", "Shorten", "Make executive", "Clarify scope"].map((label) => (
+          // The reason is described on each button, not on the group: aria-describedby does
+          // not inherit, so on the container it is announced for nothing.
           <button
             key={label}
             type="button"
             disabled
+            aria-describedby={reasonId}
             className="cursor-not-allowed rounded-cc-control border border-cc-line px-2.5 py-1 text-[10.5px] font-semibold text-cc-t3"
           >
             {label}

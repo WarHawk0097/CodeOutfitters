@@ -17,7 +17,7 @@
 // yet, so it says so rather than showing demo publications, which would put another
 // workspace's client document on a real workspace's screen.
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { ArrowLeft, Copy, Link2, Send, ShieldOff } from "lucide-react";
 import { DEMO_NOW } from "@/lib/demo/seed";
 import { useDemoState } from "@/lib/demo/store";
@@ -101,6 +101,7 @@ export function ProposalAccessView({
   const responses = useMemo(() => responsesForProposal(state, proposalId), [state, proposalId]);
   const current = publications.find((publication) => publication.status === "published") ?? null;
   const blockedReason = proposal ? buildProposalDetail(proposal).blockedReason : null;
+  const blockedReasonId = useId();
 
   const plane = resolveSecureProposalPlane(live);
 
@@ -168,12 +169,15 @@ export function ProposalAccessView({
                 <button
                   type="button"
                   disabled
+                  aria-describedby={blockedReasonId}
                   className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-cc-control border border-cc-line bg-cc-secondary px-3 py-1.5 text-[12px] text-cc-t3"
                 >
                   <Send className="h-3.5 w-3.5" />
                   Publish for client access
                 </button>
-                <p className="mt-2 text-[11.5px] leading-relaxed text-cc-t2">{blockedReason}</p>
+                <p id={blockedReasonId} className="mt-2 text-[11.5px] leading-relaxed text-cc-t2">
+                  {blockedReason}
+                </p>
               </div>
             ) : (
               <button

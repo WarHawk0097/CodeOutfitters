@@ -268,6 +268,7 @@ function SummaryPanel({ meeting, noteId }: { meeting: Meeting; noteId: string })
 // ready transcript; a record with none keeps the open control disabled and never dead-links.
 export function TranscriptPanel({ meeting }: { meeting: Meeting }) {
   const hasTranscript = meeting.transcript.trim() !== "" && meeting.transcript.trim() !== "—";
+  const noTranscriptId = useId();
   return (
     <div>
       <h2 className="font-cc-mono text-[10.5px] font-bold tracking-[.08em] text-cc-t-header">
@@ -289,13 +290,21 @@ export function TranscriptPanel({ meeting }: { meeting: Meeting }) {
           Open full transcript
         </Link>
       ) : (
-        <button
-          type="button"
-          disabled
-          className="mt-3 cursor-not-allowed rounded-cc-control border border-cc-line px-3 py-1.5 text-[12px] font-semibold text-cc-t3"
-        >
-          Open full transcript
-        </button>
+        // Disabled AND explained: a control that refuses a click without saying why is
+        // indistinguishable from a broken one.
+        <>
+          <button
+            type="button"
+            disabled
+            aria-describedby={noTranscriptId}
+            className="mt-3 cursor-not-allowed rounded-cc-control border border-cc-line px-3 py-1.5 text-[12px] font-semibold text-cc-t3"
+          >
+            Open full transcript
+          </button>
+          <p id={noTranscriptId} className="mt-2 text-[11.5px] text-cc-t3">
+            There is no transcript for this meeting, so there is nothing to open.
+          </p>
+        </>
       )}
     </div>
   );
