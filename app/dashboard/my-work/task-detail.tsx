@@ -9,6 +9,8 @@ import { useMemo, useState, type ReactNode } from "react";
 import { completeTask, reassignTask, reopenTask, setTaskWaiting, updateTask } from "../../../lib/demo/actions";
 import type { Task, TaskPriority, TeamMember } from "../../../lib/demo/types";
 import { relationHref, TASK_PRIORITIES, TASK_RELATION_LABELS } from "../../../lib/tasks/model";
+import type { ActivityEvent } from "../../../lib/activity/model";
+import { RecordActivity } from "../../../components/dashboard/activity-ui";
 import { SelectField, TextAreaField, TextField } from "../../../components/demo/field";
 import {
   DEMO_TASK_SAVE_NOTICE,
@@ -35,12 +37,16 @@ export function TaskDetailBody({
   task,
   today,
   team,
+  activity,
   onAnnounce,
   showOpenLink = false,
 }: {
   task: Task;
   today: string;
   team: readonly TeamMember[];
+  /** This task's own recorded history. Passed in rather than read here so the dialog and the
+   *  task route stay one component with one data source. */
+  activity: readonly ActivityEvent[];
   onAnnounce: (message: string) => void;
   /** The dialog offers a link to the task's own route; that route does not link to itself. */
   showOpenLink?: boolean;
@@ -241,6 +247,11 @@ export function TaskDetailBody({
           </Link>
         ) : null}
       </div>
+
+      <RecordActivity
+        events={activity}
+        emptyLabel="Nothing has been recorded against this task yet."
+      />
     </div>
   );
 }

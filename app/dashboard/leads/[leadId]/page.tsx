@@ -9,6 +9,7 @@ import {
 } from '@/lib/command-center/data'
 import { isDemoMode } from '@/lib/command-center/mode'
 import { NextActionCard } from '@/components/dashboard/next-action-card'
+import { LeadActivity } from './lead-activity'
 import { isDownloadable } from '@/lib/dashboard/validation'
 
 export const metadata = { title: 'Lead — Command Center' }
@@ -85,6 +86,13 @@ export default async function LeadDetailPage({
           recordLabel={`${name} · ${String(lead.business_name ?? 'No company')}`}
           leadId={leadId}
         />
+      </div>
+
+      {/* Lead 360. Client island for the same reason as the card above: the history is the
+          demo store in demo mode, and in live mode it reports that no activity provider is
+          connected rather than showing history this workspace never produced. */}
+      <div className="mb-8">
+        <LeadActivity leadId={leadId} live={!demo} />
       </div>
 
       {typeof lead.workflow_description === 'string' && lead.workflow_description && (

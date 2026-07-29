@@ -27,6 +27,8 @@ import { useDemoQuery } from "../../../../../components/demo/use-demo-query";
 import { TONE_INK } from "../../../../../components/demo/tone";
 import { RouteEmpty, RouteError, RouteLoading } from "../../../../../components/demo/route-states";
 import { NextActionCard } from "../../../../../components/dashboard/next-action-card";
+import { eventsFor } from "../../../../../lib/activity/model";
+import { RecordActivity } from "../../../../../components/dashboard/activity-ui";
 
 // M-D12 575: the review tab strip. Every tab is a safe local switch; the tabs whose
 // canonical content is provider-generated report REQUIRES PROVIDER instead of prose.
@@ -95,6 +97,10 @@ export function ReviewView({ meetingId }: { meetingId: string }) {
           recordId={meeting.id}
           recordLabel={`${meeting.name} · ${meeting.company}`}
           leadId={meeting.leadId}
+        />
+        <RecordActivity
+          events={eventsFor(state.activity, "meeting", meeting.id)}
+          emptyLabel="Nothing has been recorded against this meeting yet."
         />
       </div>
     </div>

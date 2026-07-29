@@ -11,6 +11,7 @@ import {
 import { useCommandCenterConfig } from "../../../../components/command-center/mode-provider";
 import { useDemoQuery } from "../../../../components/demo/use-demo-query";
 import { RouteEmpty, RouteError, RouteLoading } from "../../../../components/demo/route-states";
+import { eventsFor } from "../../../../lib/activity/model";
 import { TaskDetailBody } from "../task-detail";
 
 function BackLink() {
@@ -70,7 +71,13 @@ export function TaskPageView({ taskId }: { taskId: string }) {
       <BackLink />
       <h1 className="mb-3 text-xl font-semibold tracking-tight text-cc-ink-strong">{task.title}</h1>
       <div className="rounded-cc-card border border-cc-line bg-cc-surface p-4 xl:p-5">
-        <TaskDetailBody task={task} today={DEMO_TODAY} team={state.team} onAnnounce={announce} />
+        <TaskDetailBody
+          task={task}
+          today={DEMO_TODAY}
+          team={state.team}
+          activity={eventsFor(state.activity, "task", task.id)}
+          onAnnounce={announce}
+        />
       </div>
     </div>
   );

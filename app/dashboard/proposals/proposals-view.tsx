@@ -535,6 +535,7 @@ function ProposalDetailDialog({
       <RecordActivity
         events={activity}
         emptyLabel="No demo activity recorded for this proposal yet."
+        moreHref={`/dashboard/proposals/${proposal.id}/activity`}
       />
     </Dialog>
   );

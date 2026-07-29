@@ -249,6 +249,7 @@ export const IMPLEMENTED_ROUTES: ReadonlySet<string> = new Set([
   "/dashboard/meetings",
   "/dashboard/follow-ups",
   "/dashboard/proposals",
+  "/dashboard/proposals/[proposalId]/activity",
   "/dashboard/email-activity",
   "/dashboard/team",
   "/dashboard/settings",

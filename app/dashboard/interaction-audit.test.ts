@@ -4,7 +4,7 @@
 // dead link. The shell's control surface lives in shell-nav.tsx; these tests lock
 // the honest-disable posture in place.
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { IMPLEMENTED_ROUTES } from "./shell-nav";
 
@@ -13,10 +13,11 @@ const src = readFileSync(`${here}shell-nav.tsx`, "utf8");
 
 describe("dashboard interaction audit (tests 23-32)", () => {
   // 23
-  it("exactly the eleven built routes are treated as implemented", () => {
-    // Eleven since My Work landed. The number is asserted on purpose: a route added to
-    // this set without a page behind it is exactly the failure this file exists to catch.
-    expect(IMPLEMENTED_ROUTES.size).toBe(11);
+  it("exactly the twelve built routes are treated as implemented", () => {
+    // Twelve since the proposal activity route landed. The number is asserted on purpose: a
+    // route added to this set without a page behind it is exactly the failure this file
+    // exists to catch.
+    expect(IMPLEMENTED_ROUTES.size).toBe(12);
     expect(IMPLEMENTED_ROUTES.has("/dashboard")).toBe(true);
     expect(IMPLEMENTED_ROUTES.has("/dashboard/my-work")).toBe(true);
     expect(IMPLEMENTED_ROUTES.has("/dashboard/settings")).toBe(true);
@@ -24,8 +25,14 @@ describe("dashboard interaction audit (tests 23-32)", () => {
 
   // 24
   it("unbuilt routes stay disabled/hidden and are never stubbed to fake completion", () => {
-    // Later-phase deep routes must NOT appear in the implemented set.
-    expect(IMPLEMENTED_ROUTES.has("/dashboard/proposals/[proposalId]/activity")).toBe(false);
+    // The proposal activity route moved into the implemented set because a page was built
+    // for it; it is asserted with the file that backs it so the two cannot drift.
+    expect(IMPLEMENTED_ROUTES.has("/dashboard/proposals/[proposalId]/activity")).toBe(true);
+    expect(
+      existsSync(`${here}proposals/[proposalId]/activity/page.tsx`),
+    ).toBe(true);
+    // The secure client proposal route is NOT built. Nothing may link to it, and no button
+    // may be enabled that leads to it.
     expect(IMPLEMENTED_ROUTES.has("/proposal/[secureToken]")).toBe(false);
   });
 

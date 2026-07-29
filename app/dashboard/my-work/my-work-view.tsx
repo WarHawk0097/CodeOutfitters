@@ -43,6 +43,7 @@ import {
   TASK_PRIMARY_ACTION,
   TASK_SECONDARY_ACTION,
 } from "../../../components/dashboard/task-ui";
+import { eventsFor } from "../../../lib/activity/model";
 import { TaskDetailBody } from "./task-detail";
 
 /** A `?view=` value the Overview and the sidebar can link to. Anything else falls back to
@@ -260,6 +261,7 @@ export function MyWorkScreen() {
             task={openTask}
             today={DEMO_TODAY}
             team={state.team}
+            activity={eventsFor(state.activity, "task", openTask.id)}
             onAnnounce={announce}
             showOpenLink
           />
