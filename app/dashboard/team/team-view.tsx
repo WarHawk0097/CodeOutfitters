@@ -15,6 +15,7 @@ import { Dialog, DialogCancelButton, DialogSubmitButton } from "../../../compone
 import { SelectField, TextField } from "../../../components/demo/field";
 import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
 import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton } from "../../../components/demo/toolbar";
+import { getTeamRoleDisplayLabel } from "../../../lib/identity/current-user";
 
 const ROLES: TeamRole[] = ["Administrator", "Sales"];
 const STATUSES: TeamStatus[] = ["Active", "Pending", "Inactive"];
@@ -103,7 +104,7 @@ export function TeamScreen() {
             {menu}
           </div>
           <div className="mt-2 flex items-center gap-3 text-[10.5px] text-cc-t3">
-            <span>{member.role}</span>
+            <span>{getTeamRoleDisplayLabel(member.role)}</span>
             {statusChip}
             <span>{member.lastActive}</span>
           </div>
@@ -118,7 +119,7 @@ export function TeamScreen() {
           <div className="truncate text-[13px] font-semibold text-cc-ink">{member.name}</div>
           <div className="truncate text-[11.5px] text-cc-t3">{member.email}</div>
         </div>
-        <span className="w-[110px] flex-shrink-0 text-[12px] text-cc-t2">{member.role}</span>
+        <span className="w-[110px] flex-shrink-0 text-[12px] text-cc-t2">{getTeamRoleDisplayLabel(member.role)}</span>
         <span className="w-[80px] flex-shrink-0">{statusChip}</span>
         <span className="w-[110px] flex-shrink-0 font-cc-mono text-[10.5px] text-cc-t3">{member.lastActive}</span>
         {menu}
@@ -134,7 +135,9 @@ export function TeamScreen() {
 
       <RouteToolbar>
         <SearchInput value={q} onChange={setQ} label="Search team by name or email" />
-        <FilterMenu label="Role" allLabel="All roles" value={roleFilter} options={ROLES.map((r) => ({ id: r, label: r }))} onChange={setRoleFilter} />
+        {/* The option id stays the stored role, so the filter still compares against the
+            permission value; only the word in the menu is the display label. */}
+        <FilterMenu label="Role" allLabel="All roles" value={roleFilter} options={ROLES.map((r) => ({ id: r, label: getTeamRoleDisplayLabel(r) }))} onChange={setRoleFilter} />
         <FilterMenu label="Status" allLabel="Any status" value={statusFilter} options={STATUSES.map((s) => ({ id: s, label: s }))} onChange={setStatusFilter} />
         {filtersApplied ? (
           <ToolbarButton
@@ -274,7 +277,9 @@ function TeamFormDialog({
       >
         <TextField label="Name" value={draft.name} error={errors.name} onChange={(name) => patch({ name })} />
         <TextField label="Email" type="email" value={draft.email} error={errors.email} onChange={(email) => patch({ email })} />
-        <SelectField label="Role" value={draft.role} onChange={(role) => patch({ role: role as TeamRole })} options={ROLES.map((r) => ({ value: r, label: r }))} />
+        {/* Same split in the form: the option value written to the member is the stored
+            role, the label is what the person choosing it reads. */}
+        <SelectField label="Role" value={draft.role} onChange={(role) => patch({ role: role as TeamRole })} options={ROLES.map((r) => ({ value: r, label: getTeamRoleDisplayLabel(r) }))} />
         {showStatus ? (
           <SelectField label="Status" value={draft.status} onChange={(s) => patch({ status: s as TeamStatus })} options={STATUSES.map((s) => ({ value: s, label: s }))} />
         ) : null}

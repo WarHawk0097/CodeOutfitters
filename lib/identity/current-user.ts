@@ -30,12 +30,29 @@ export const CURRENT_USER = {
 } as const;
 
 /**
+ * Internal role → the word the product uses for it, for every surface a person reads.
+ *
+ * This is a display mapping and nothing else. The stored value stays `TeamRole`
+ * "Administrator": the Role filter still filters on it, the invite and edit forms still
+ * write it, `member.role === "Administrator"` still decides what the account may do, and
+ * the migrations still describe it. Only the word on screen changes.
+ *
+ * A role with no entry here is already named the way the product names it.
+ */
+const ROLE_DISPLAY_LABELS: Readonly<Record<string, string>> = {
+  Administrator: CURRENT_USER.displayRole,
+};
+
+export function getTeamRoleDisplayLabel(role: string): string {
+  return ROLE_DISPLAY_LABELS[role] ?? role;
+}
+
+/**
  * The label to show for a member's role.
  *
- * Only the signed-in user gets the account-level display role; every other member is
- * described by their permission, because on the Team directory the role column IS the
- * permission model and must keep the same vocabulary as the Role filter beside it.
+ * The signed-in user's own account surfaces and the Team directory now answer this the
+ * same way, so the sidebar footer and the row for that same person cannot disagree.
  */
 export function displayRoleFor(userId: string, role: string): string {
-  return userId === CURRENT_USER.id ? CURRENT_USER.displayRole : role;
+  return userId === CURRENT_USER.id ? CURRENT_USER.displayRole : getTeamRoleDisplayLabel(role);
 }

@@ -46,6 +46,7 @@ import {
   TASK_SECONDARY_ACTION,
 } from "../../../components/dashboard/task-ui";
 import { eventsFor } from "../../../lib/activity/model";
+import { getTeamRoleDisplayLabel } from "../../../lib/identity/current-user";
 import { TaskDetailBody } from "./task-detail";
 
 /** A `?view=` value the Overview and the sidebar can link to. Anything else falls back to
@@ -313,7 +314,10 @@ export function MyWorkScreen() {
             label="Owner"
             value={newOwner}
             onChange={setNewOwner}
-            options={state.team.map((member) => ({ value: member.id, label: `${member.name} · ${member.role}` }))}
+            options={state.team.map((member) => ({
+              value: member.id,
+              label: `${member.name} · ${getTeamRoleDisplayLabel(member.role)}`,
+            }))}
           />
           <TextField
             label="Due date"

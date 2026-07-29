@@ -11,6 +11,7 @@ import type { Task, TaskPriority, TeamMember } from "../../../lib/demo/types";
 import { relationHref, TASK_PRIORITIES, TASK_RELATION_LABELS } from "../../../lib/tasks/model";
 import type { ActivityEvent } from "../../../lib/activity/model";
 import { RecordActivity } from "../../../components/dashboard/activity-ui";
+import { getTeamRoleDisplayLabel } from "../../../lib/identity/current-user";
 import { SelectField, TextAreaField, TextField } from "../../../components/demo/field";
 import {
   DEMO_TASK_SAVE_NOTICE,
@@ -61,7 +62,11 @@ export function TaskDetailBody({
   const [waitingError, setWaitingError] = useState("");
 
   const ownerOptions = useMemo(
-    () => team.map((member) => ({ value: member.id, label: `${member.name} · ${member.role}` })),
+    () =>
+      team.map((member) => ({
+        value: member.id,
+        label: `${member.name} · ${getTeamRoleDisplayLabel(member.role)}`,
+      })),
     [team],
   );
   const href = relationHref(task.relation);
