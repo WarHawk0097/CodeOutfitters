@@ -173,12 +173,24 @@ describe("my work surfaces (tests 58-70)", () => {
     expect(overviewSrc).toContain("<TodaysWorkLive variant=");
     expect(overviewSrc).not.toContain("TODAYS_WORK_OPEN_COUNT");
     expect(operationsSrc).toContain("openCount={String(attention.length)}");
-    expect(operationsSrc).toContain('href="/dashboard/my-work?view=today"');
+    // The card's own header control is the link to the queue, and it is the only one:
+    // the duplicate "Open in My Work" link that used to sit under the card is gone.
+    expect(operationsSrc).toContain('const TODAY_QUEUE_HREF = "/dashboard/my-work?view=today"');
+    expect(operationsSrc).toContain("queueHref={TODAY_QUEUE_HREF}");
+    expect(operationsSrc).not.toContain("Open in My Work");
   });
 
   // 70
   it("every operations drill-down points at a route that exists, and nothing is a dead link", () => {
-    const hrefs = [...operationsSrc.matchAll(/href="(\/[^"]*)"/g)].map((match) => match[1]!);
+    // Destinations are declared as named constants and per-row template literals, so both
+    // forms are collected — a literal href left inline would be caught by the first pattern.
+    const hrefs = [
+      ...[...operationsSrc.matchAll(/href="(\/[^"]*)"/g)].map((match) => match[1]!),
+      ...[...operationsSrc.matchAll(/_HREF = "(\/[^"]*)"/g)].map((match) => match[1]!),
+      ...[...operationsSrc.matchAll(/href: `(\/[^`]*)`/g)].map((match) =>
+        match[1]!.replace(/\$\{[^}]*\}/g, "id"),
+      ),
+    ];
     expect(hrefs.length).toBeGreaterThan(0);
     for (const href of hrefs) {
       const path = href.split("?")[0]!;
