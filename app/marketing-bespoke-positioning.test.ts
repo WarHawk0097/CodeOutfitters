@@ -21,11 +21,14 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
+  DESKTOP_VISUAL_HEIGHT,
+  DESKTOP_VISUAL_WIDTH,
   FEATURED_PROJECT,
+  MOBILE_VISUAL_HEIGHT,
+  MOBILE_VISUAL_WIDTH,
   SELECTED_WORK,
-  SELECTED_WORK_IMAGE_HEIGHT,
-  SELECTED_WORK_IMAGE_WIDTH,
   SUPPORTING_PROJECTS,
+  type ProjectImageAsset,
 } from "@/lib/marketing/selected-work";
 import { PRIMARY_SERVICES, SUPPORTING_SERVICE } from "@/lib/marketing/services";
 
@@ -247,49 +250,107 @@ describe("selected work data", () => {
 });
 
 describe("selected work assets", () => {
-  it("declares one shared intrinsic size for every card image", () => {
-    expect(SELECTED_WORK_IMAGE_WIDTH).toBe(1280);
-    expect(SELECTED_WORK_IMAGE_HEIGHT).toBe(800);
-    expect(selectedWorkComponent).toContain("width={SELECTED_WORK_IMAGE_WIDTH}");
-    expect(selectedWorkComponent).toContain("height={SELECTED_WORK_IMAGE_HEIGHT}");
-    expect(selectedWorkComponent).toContain("from 'next/image'");
+  /** Every asset a card can render, desktop first, with the project it belongs to. */
+  const assets: (ProjectImageAsset & { id: string; slot: "desktop" | "mobile" })[] = SELECTED_WORK.flatMap((project) => [
+    { ...project.visual.desktop, id: project.id, slot: "desktop" as const },
+    ...(project.visual.mobile ? [{ ...project.visual.mobile, id: project.id, slot: "mobile" as const }] : []),
+  ]);
+
+  const bytesOf = (asset: ProjectImageAsset) => readFileSync(join(repo, "public", asset.src));
+
+  it("declares the two intrinsic capture sizes the art direction is built on", () => {
+    expect([DESKTOP_VISUAL_WIDTH, DESKTOP_VISUAL_HEIGHT]).toEqual([1280, 800]);
+    expect([MOBILE_VISUAL_WIDTH, MOBILE_VISUAL_HEIGHT]).toEqual([390, 844]);
+    // 1.6 desktop, portrait mobile: a phone capture is never the desktop one scaled.
+    expect(DESKTOP_VISUAL_WIDTH / DESKTOP_VISUAL_HEIGHT).toBeCloseTo(1.6, 3);
+    expect(MOBILE_VISUAL_WIDTH / MOBILE_VISUAL_HEIGHT).toBeLessThan(1);
   });
 
-  it("ships every image locally, as WebP under 250 KB", () => {
-    for (const project of SELECTED_WORK) {
-      expect(project.image, project.id).toMatch(/^\/images\/selected-work\/[a-z0-9-]+\.webp$/);
-      const file = join(repo, "public", project.image);
-      expect(existsSync(file), project.image).toBe(true);
-      expect(statSync(file).size, project.image).toBeLessThanOrEqual(250 * 1024);
+  it("ships every asset locally, as WebP inside its byte ceiling", () => {
+    expect(assets.length).toBeGreaterThanOrEqual(SELECTED_WORK.length);
+    for (const asset of assets) {
+      const where = `${asset.id}:${asset.slot}`;
+      expect(asset.src, where).toMatch(/^\/images\/selected-work\/[a-z0-9-]+\.webp$/);
+      const file = join(repo, "public", asset.src);
+      expect(existsSync(file), where).toBe(true);
+      // Desktop 250 KB, mobile 200 KB: the ceilings the portfolio budget is set at.
+      const ceiling = (asset.slot === "desktop" ? 250 : 200) * 1024;
+      expect(statSync(file).size, where).toBeLessThanOrEqual(ceiling);
     }
   });
 
-  it("publishes VoiceDesk as a sanitized banner with no link and no client identifier", () => {
+  it("carries no metadata and matches the dimensions it declares", () => {
+    for (const asset of assets) {
+      const where = `${asset.id}:${asset.slot}`;
+      const bytes = bytesOf(asset);
+      expect(bytes.subarray(0, 4).toString("latin1"), where).toBe("RIFF");
+      expect(bytes.subarray(8, 12).toString("latin1"), where).toBe("WEBP");
+      // Lossy still image: no animation container, so no frame can smuggle extra pixels.
+      expect(bytes.subarray(12, 16).toString("latin1"), where).toBe("VP8 ");
+
+      // The lossy VP8 keyframe header carries the real dimensions in bytes 26..30,
+      // so a mislabelled asset (a desktop file sold as the mobile one) fails here.
+      const width = bytes.readUInt16LE(26) & 0x3fff;
+      const height = bytes.readUInt16LE(28) & 0x3fff;
+      expect([width, height], where).toEqual([asset.width, asset.height]);
+
+      const latin = bytes.toString("latin1");
+      for (const chunk of ["EXIF", "XMP ", "ICCP", "ANIM"]) {
+        expect(latin.includes(chunk), `${where} ${chunk}`).toBe(false);
+      }
+      // Metadata chunks are the only way capture provenance (source URL, local path,
+      // device, location) could travel inside a lossy WebP, and there are none above.
+      // Pixel sanitisation itself is checked by rendered review, not by byte search.
+    }
+  });
+
+  it("gives the two public product sites a real desktop and a real mobile capture", () => {
+    for (const id of ["sp-photo-station", "pro-photo-systems"]) {
+      const project = SELECTED_WORK.find((entry) => entry.id === id)!;
+      expect(project.visual.type, id).toBe("responsive-screenshots");
+      expect(project.visual.desktop.kind, id).toBe("screenshot");
+      expect(project.visual.mobile?.kind, id).toBe("screenshot");
+      expect(project.visual.desktop.src, id).toBe(`/images/selected-work/${id}-desktop.webp`);
+      expect(project.visual.mobile?.src, id).toBe(`/images/selected-work/${id}-mobile.webp`);
+      // Distinct files: the mobile card must never be the desktop capture rescaled.
+      expect(project.visual.mobile?.src, id).not.toBe(project.visual.desktop.src);
+      expect(project.visual.mobile?.height, id).toBeGreaterThan(project.visual.mobile!.width);
+    }
+  });
+
+  it("publishes VoiceDesk sanitized, link-free, and never as a fabricated mobile product view", () => {
     const project = SELECTED_WORK.find((entry) => entry.id === "voicedesk")!;
-    expect(project.visualType).toBe("sanitized-screenshot");
-    expect(project.image).toBe("/images/selected-work/voicedesk.webp");
+    expect(project.visual.type).toBe("sanitized-responsive-screenshots");
+    expect(project.visual.desktop.src).toBe("/images/selected-work/voicedesk-desktop.webp");
+    expect(project.visual.desktop.kind).toBe("sanitized-screenshot");
+    // No owner-provided mobile capture of the private console exists, so the phone
+    // slot holds the branded graphic — never an invented or rescaled dashboard.
+    expect(project.visual.mobile?.src).toBe("/images/selected-work/voicedesk-mobile.webp");
+    expect(project.visual.mobile?.kind).toBe("branded-fallback");
     expect(project.url).toBeNull();
+    expect(project.domain).toBeNull();
     expect(project.externalLinkLabel).toBeNull();
+    expect(project.accessNote).toBe("Private operational application. No public demonstration environment.");
+  });
 
-    const banner = readFileSync(join(repo, "public", project.image));
-    // WebP container, still-image only, and no metadata sidecar chunks.
-    expect(banner.subarray(0, 4).toString("latin1")).toBe("RIFF");
-    expect(banner.subarray(8, 12).toString("latin1")).toBe("WEBP");
-    expect(banner.subarray(12, 16).toString("latin1")).toBe("VP8 ");
-    expect(banner.length).toBeLessThanOrEqual(250 * 1024);
+  it("keeps Endurance Pics and DamageMetric on honest branded graphics", () => {
+    const endurance = SELECTED_WORK.find((entry) => entry.id === "endurance-pics")!;
+    expect(endurance.visual.type).toBe("branded-fallback");
+    expect(endurance.visual.desktop.kind).toBe("branded-fallback");
+    // The public host still does not serve a site, so there is nothing to capture.
+    expect(endurance.visual.mobile).toBeNull();
+    expect(endurance.url).toBeNull();
+    expect(endurance.accessNote).toBe("Public site not reachable at time of publishing.");
 
-    // Lossy VP8 keyframe header carries the dimensions in bytes 26..30.
-    const width = banner.readUInt16LE(26) & 0x3fff;
-    const height = banner.readUInt16LE(28) & 0x3fff;
-    expect([width, height]).toEqual([SELECTED_WORK_IMAGE_WIDTH, SELECTED_WORK_IMAGE_HEIGHT]);
-
-    const bytes = banner.toString("latin1");
-    for (const chunk of ["EXIF", "XMP ", "ICCP", "ANIM"]) {
-      expect(bytes.includes(chunk), chunk).toBe(false);
-    }
-    // Metadata chunks are the only way capture provenance (source URL, local path,
-    // device, location) could travel inside a lossy WebP, and there are none above.
-    // The pixel sanitisation itself is checked by rendered review, not by byte search.
+    const damageMetric = SELECTED_WORK.find((entry) => entry.id === "damagemetric-ai")!;
+    expect(damageMetric.visual.type).toBe("branded-fallback");
+    expect(damageMetric.visual.desktop.kind).toBe("branded-fallback");
+    // A launching-soon holding page must not be published as the application.
+    expect(damageMetric.visual.mobile).toBeNull();
+    expect(damageMetric.category).toMatch(/^Pre-launch/);
+    expect(damageMetric.accessNote).toMatch(/^Pre-launch\. The public site is a holding page/);
+    expect(damageMetric.externalLinkLabel).toBe("Visit project site");
+    expect(damageMetric.externalLinkLabel).not.toMatch(/live application/i);
   });
 
   it("tracks no raw capture of the private VoiceDesk console", () => {
@@ -301,9 +362,9 @@ describe("selected work assets", () => {
 
   it("describes fallback graphics as CodeOutfitters graphics, never as product screenshots", () => {
     for (const project of SELECTED_WORK) {
-      if (project.visualType === "screenshot") {
+      if (project.visual.type === "responsive-screenshots") {
         expect(project.imageAlt, project.id).toMatch(/public product website/);
-      } else if (project.visualType === "sanitized-screenshot") {
+      } else if (project.visual.type === "sanitized-responsive-screenshots") {
         // A private application's own interface, so the alt text must say the client
         // detail is gone and must never imply a public or reachable product site.
         expect(project.imageAlt, project.id).toMatch(/client details removed/);
@@ -316,6 +377,69 @@ describe("selected work assets", () => {
     expect(SELECTED_WORK.find((project) => project.id === "sp-photo-station")!.imageAlt).toBe(
       "SP Photo Station public product website",
     );
+  });
+});
+
+describe("responsive portfolio art direction", () => {
+  const responsiveImage = read("components/selected-work/responsive-project-image.tsx");
+
+  it("switches assets in markup, so the browser downloads exactly one of them", () => {
+    expect(responsiveImage).toContain("getImageProps");
+    expect(responsiveImage).toContain("<picture");
+    expect(responsiveImage).toContain("<source");
+    expect(responsiveImage).toContain("media={MOBILE_VISUAL_MEDIA}");
+    // One <img>: a second, CSS-hidden image would make every card fetch both files.
+    expect(responsiveImage.match(/<img\b/g) ?? []).toHaveLength(1);
+    expect(responsiveImage.match(/<picture\b/g) ?? []).toHaveLength(1);
+    expect(responsiveImage.match(/<source\b/g) ?? []).toHaveLength(1);
+  });
+
+  it("resolves the breakpoint without client JavaScript", () => {
+    expect(responsiveImage).toContain("export const MOBILE_VISUAL_MEDIA = '(max-width: 767px)'");
+    expect(responsiveImage).not.toMatch(/innerWidth|matchMedia|useState|useEffect|'use client'/);
+    // Tablet is not a third case: anything from 768px up takes the desktop asset.
+    expect(responsiveImage).not.toMatch(/min-width:\s*(?!768)/);
+  });
+
+  it("passes only source, width and height into the image props", () => {
+    // Spreading the asset wholesale leaked `kind` into the rendered markup once.
+    expect(responsiveImage).toContain("const sourceOf = ({ src, width, height }: ProjectImageAsset)");
+    expect(responsiveImage).not.toMatch(/\.\.\.visual\.(desktop|mobile)\b/);
+  });
+
+  it("keeps one alt string, lazy loading and a reserved box per viewport", () => {
+    expect(responsiveImage.match(/alt=\{/g) ?? []).toHaveLength(1);
+    expect(responsiveImage).toContain("loading: priority ? ('eager' as const) : ('lazy' as const)");
+    expect(responsiveImage).toContain("--sw-desktop-aspect");
+    expect(responsiveImage).toContain("--sw-mobile-aspect");
+    expect(responsiveImage).toContain("width={mobile.width}");
+    expect(responsiveImage).toContain("height={mobile.height}");
+    // The card reserves the viewport's own ratio before the image decodes.
+    expect(selectedWorkComponent).toMatch(/aspect-ratio:var\(--sw-desktop-aspect/);
+    expect(selectedWorkComponent).toMatch(/@media\(max-width:767px\)\{\.sw-visual img\{aspect-ratio:var\(--sw-mobile-aspect/);
+  });
+
+  it("renders both public surfaces through the one shared component", () => {
+    expect(selectedWorkComponent).toContain("ResponsiveProjectImage");
+    expect(selectedWorkComponent).not.toMatch(/from 'next\/image'/);
+    // /case-studies renders the same ProjectCard, so rendering cannot diverge.
+    expect(caseStudies).toContain("ProjectCard");
+    expect(caseStudies).not.toContain("<img");
+    expect(caseStudies).not.toMatch(/getImageProps|<picture/);
+  });
+
+  it("serves every portfolio asset from this origin, with no remote or runtime source", () => {
+    for (const [path, source] of publicSurfaceSources) {
+      // The suite itself names the banned services, so it is not its own subject.
+      if (path.endsWith(".test.ts") || !/selected-work/.test(source)) continue;
+      expect(source, path).not.toMatch(/https?:\/\/[^\s"'`]*\/images\/selected-work/i);
+      expect(source, path).not.toMatch(/screenshotapi|browserless|screenshotone|urlbox|thum\.io|s-shot|htmlcsstoimage/i);
+    }
+    for (const source of [responsiveImage, read("lib/marketing/selected-work.ts")]) {
+      expect(source).not.toMatch(/<iframe/i);
+      expect(source).not.toMatch(/\bfetch\(|\baxios\b/);
+      expect(source).not.toMatch(/src=\{?["'`]https?:/);
+    }
   });
 });
 
