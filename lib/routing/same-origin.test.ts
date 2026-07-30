@@ -73,10 +73,18 @@ describe("one production origin", () => {
     expect(CANONICAL_ORIGIN).toBe("https://codeoutfitters.vercel.app");
   });
 
+  // One owner-approved exception: the public VoiceDesk application linked from
+  // /case-studies is a third-party product, not a CodeOutfitters deployment.
+  // Only these two exact strings are exempt; every CodeOutfitters hostname, and
+  // every other `.vercel.app` host, still fails these tests.
+  const APPROVED_EXTERNAL = ["https://voicedesk-ebon.vercel.app/dashboard", "voicedesk-ebon.vercel.app"];
+  const withoutApprovedExternal = (src: string) =>
+    APPROVED_EXTERNAL.reduce((text, approved) => text.split(approved).join(""), src);
+
   it("no other product source references a Vercel deployment hostname", () => {
     const offenders = productSources
       .filter(({ path }) => path !== ORIGIN_MODULE)
-      .filter(({ src }) => /[\w-]+\.vercel\.app/.test(src))
+      .filter(({ src }) => /[\w-]+\.vercel\.app/.test(withoutApprovedExternal(src)))
       .map(({ path }) => path);
     expect(offenders).toEqual([]);
   });
@@ -90,7 +98,7 @@ describe("one production origin", () => {
 
   it("no product source hardcodes an absolute URL for /login or /dashboard", () => {
     const offenders = productSources
-      .filter(({ src }) => /https?:\/\/[^\s"'`]*\/(login|dashboard)\b/.test(src))
+      .filter(({ src }) => /https?:\/\/[^\s"'`]*\/(login|dashboard)\b/.test(withoutApprovedExternal(src)))
       .map(({ path }) => path);
     expect(offenders).toEqual([]);
   });

@@ -8,8 +8,8 @@
 //   1. Every official file — homepage, shared layout, header, footer, the other
 //      public pages, the dashboard — is byte-identical to production.
 //   2. `/case-studies` presents only owner-approved facts, links only public
-//      URLs, ships only local WebP assets, and presents VoiceDesk as text with
-//      no image element, no media container and no external link at any width.
+//      URLs, ships only local WebP assets, and links VoiceDesk only at the
+//      owner-approved public alias, with sanitized responsive imagery.
 //
 // Tests are numbered so a failure names the guarantee it broke.
 import { describe, expect, it } from 'vitest'
@@ -45,6 +45,12 @@ const ALLOWED_DIFFERENCES = [
   'app/(public)/case-studies/page.tsx',
   'app/(public)/case-studies/case-studies-page-client.tsx',
   'app/case-studies-official-baseline.test.ts',
+  'app/case-studies-voicedesk-visuals.test.ts',
+  // Origin guards that now carry an exact-string exemption for the owner-approved
+  // public VoiceDesk application URL. No product source changed with them.
+  'app/dashboard/interaction-identity-repair.test.ts',
+  'app/proposal/public-surface.test.ts',
+  'lib/routing/same-origin.test.ts',
   'components/case-studies/case-study-project-card.tsx',
   'components/case-studies/responsive-project-image.tsx',
   'lib/marketing/case-studies-projects.ts',
@@ -54,6 +60,8 @@ const ALLOWED_DIFFERENCES = [
   'public/images/selected-work/pro-photo-systems-mobile.webp',
   'public/images/selected-work/sp-photo-station-desktop.webp',
   'public/images/selected-work/sp-photo-station-mobile.webp',
+  'public/images/selected-work/voicedesk-desktop.webp',
+  'public/images/selected-work/voicedesk-mobile.webp',
 ]
 
 /** Files that must match production byte for byte, grouped by the surface they own. */
@@ -226,9 +234,9 @@ describe('selected work data', () => {
 })
 
 // ---------------------------------------------------------------------------
-// 30–37: VoiceDesk is a private application presented as text only.
+// 30–37: VoiceDesk is published only at the owner-approved public alias.
 // ---------------------------------------------------------------------------
-describe('VoiceDesk stays text-only and private', () => {
+describe('VoiceDesk stays on the approved public alias', () => {
   it('30: keeps the approved project name', () => {
     expect(project('voicedesk').name).toBe('CodeOutfitters VoiceDesk')
   })
@@ -239,38 +247,42 @@ describe('VoiceDesk stays text-only and private', () => {
     )
   })
 
-  it('32: states the private access note', () => {
-    expect(project('voicedesk').accessNote).toBe(
-      'Private operational application. No public demonstration environment.',
+  it('32: states the public access note', () => {
+    expect(project('voicedesk').accessNote).toBe('Public demonstration application.')
+  })
+
+  it('33: publishes the approved public URL and domain', () => {
+    const entry = project('voicedesk')
+    expect(entry.url).toBe('https://voicedesk-ebon.vercel.app/dashboard')
+    expect(entry.domain).toBe('voicedesk-ebon.vercel.app')
+  })
+
+  it('34: renders the approved external link and is publicly accessible', () => {
+    const entry = project('voicedesk')
+    expect(entry.externalLinkLabel).toBe('View VoiceDesk')
+    expect(entry.publiclyAccessible).toBe(true)
+  })
+
+  it('35: carries sanitized responsive imagery and alt text', () => {
+    const entry = project('voicedesk')
+    expect(entry.visual?.desktop.kind).toBe('sanitized-screenshot')
+    expect(entry.visual?.mobile?.kind).toBe('sanitized-screenshot')
+    expect(entry.imageAlt).toBe(
+      'VoiceDesk call-operations dashboard showing calls, lead workflow and booking management',
     )
   })
 
-  it('33: publishes no URL and no domain', () => {
-    const entry = project('voicedesk')
-    expect(entry.url).toBeNull()
-    expect(entry.domain).toBeNull()
-  })
-
-  it('34: renders no external link and is not publicly accessible', () => {
-    const entry = project('voicedesk')
-    expect(entry.externalLinkLabel).toBeNull()
-    expect(entry.publiclyAccessible).toBe(false)
-  })
-
-  it('35: carries no visual and no alt text at any viewport', () => {
-    const entry = project('voicedesk')
-    expect(entry.visual).toBeNull()
-    expect(entry.imageAlt).toBeNull()
-  })
-
-  it('36: ships no VoiceDesk asset in the repository', () => {
+  it('36: ships only the two approved VoiceDesk assets', () => {
     const assets = git('ls-files', 'public').split('\n').filter(Boolean)
-    expect(assets.filter((path) => /voicedesk/i.test(path))).toEqual([])
+    expect(assets.filter((path) => /voicedesk/i.test(path)).sort()).toEqual([
+      'public/images/selected-work/voicedesk-desktop.webp',
+      'public/images/selected-work/voicedesk-mobile.webp',
+    ])
   })
 
-  it('37: references no VoiceDesk image file anywhere in source', () => {
+  it('37: references no raw VoiceDesk capture anywhere in source', () => {
     for (const path of trackedSources) {
-      expect(/voicedesk[\w-]*\.(webp|png|jpe?g|avif|svg)/i.test(read(path)), path).toBe(false)
+      expect(/voicedesk[\w-]*\.(png|jpe?g|avif|svg)/i.test(read(path)), path).toBe(false)
     }
   })
 })
@@ -348,9 +360,9 @@ describe('project assets', () => {
     }
   })
 
-  it('43: phone-width captures exist only for the two publicly reachable product sites', () => {
+  it('43: phone-width captures exist only for the publicly reachable products', () => {
     const withMobile = CASE_STUDY_PROJECTS.filter((entry) => entry.visual?.mobile).map((entry) => entry.id)
-    expect(withMobile).toEqual(['sp-photo-station', 'pro-photo-systems'])
+    expect(withMobile).toEqual(['sp-photo-station', 'pro-photo-systems', 'voicedesk'])
   })
 
   it('44: desktop assets declare 1280x800 and phone assets 390x844', () => {
@@ -363,7 +375,7 @@ describe('project assets', () => {
     }
   })
 
-  it('45: the tracked selected-work directory holds exactly the six approved files', () => {
+  it('45: the tracked selected-work directory holds exactly the eight approved files', () => {
     expect(git('ls-files', 'public/images/selected-work').split('\n').filter(Boolean)).toEqual([
       'public/images/selected-work/damagemetric-ai.webp',
       'public/images/selected-work/endurance-pics.webp',
@@ -371,6 +383,8 @@ describe('project assets', () => {
       'public/images/selected-work/pro-photo-systems-mobile.webp',
       'public/images/selected-work/sp-photo-station-desktop.webp',
       'public/images/selected-work/sp-photo-station-mobile.webp',
+      'public/images/selected-work/voicedesk-desktop.webp',
+      'public/images/selected-work/voicedesk-mobile.webp',
     ])
   })
 })
@@ -437,6 +451,7 @@ describe('rendering and isolation', () => {
       'components/case-studies/responsive-project-image.tsx',
       'lib/marketing/case-studies-projects.ts',
       'app/case-studies-official-baseline.test.ts',
+      'app/case-studies-voicedesk-visuals.test.ts',
     ]
     for (const path of trackedSources) {
       if (own.includes(path)) continue
