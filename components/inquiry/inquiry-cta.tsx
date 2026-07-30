@@ -14,7 +14,7 @@ import { CompactInquiryForm, type ContextFieldKey } from './compact-inquiry-form
 import { openInquiryPopup, type InquiryPopupContext } from './workflow-audit-popup'
 
 export function InquiryPopupTrigger({
-  label = 'Get a free workflow audit',
+  label = 'Discuss your application',
   className,
   context,
 }: {
@@ -48,9 +48,9 @@ export function ContextualInquiryCta({
   selectedIndustry,
   selectedService,
   sourceSection,
-  descriptionLabel = 'What would you like to automate?',
+  descriptionLabel = 'What would you like built?',
   descriptionPlaceholder = 'Tell us where the manual work is.',
-  submitLabel = 'Get my free workflow audit',
+  submitLabel = 'Send project details',
   contextKey,
   contextLabel,
   contextPlaceholder,
@@ -84,7 +84,7 @@ export function ContextualInquiryCta({
   return (
     <section className="mx-auto max-w-2xl rounded-3xl border border-[var(--brand-border)] bg-[var(--brand-surface)] p-6 shadow-sm sm:p-8">
       <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--brand-green-ink)]">
-        Free workflow audit
+        Project enquiry
       </p>
       <h2 className="font-display text-2xl font-semibold leading-tight text-[var(--brand-text)]">
         {heading}

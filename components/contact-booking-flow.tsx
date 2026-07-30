@@ -29,22 +29,20 @@ interface ProjectDetails {
 }
 
 const AUTOMATION_CATEGORIES = [
-  { value: 'whatsapp', label: 'WhatsApp lead automation' },
-  { value: 'email', label: 'Email workflows' },
-  { value: 'support', label: 'Support chat / AI chatbot' },
-  { value: 'booking', label: 'Booking & scheduling' },
-  { value: 'invoice', label: 'Invoice / order automation' },
-  { value: 'custom', label: 'Something custom' },
+  { value: 'applications', label: 'Bespoke web application' },
+  { value: 'platforms', label: 'Business platform or portal' },
+  { value: 'automation', label: 'Workflow automation and integrations' },
+  { value: 'modernization', label: 'Product modernization or rebuild' },
+  { value: 'strategy', label: 'Strategy, UX or architecture' },
   { value: 'unsure', label: 'Not sure yet' },
 ]
 
 const CATEGORY_LABELS: Record<string, string> = {
-  whatsapp: 'WhatsApp lead automation',
-  email: 'Email workflows',
-  support: 'Support chat / AI chatbot',
-  booking: 'Booking & scheduling',
-  invoice: 'Invoice / order automation',
-  custom: 'Something custom',
+  applications: 'Bespoke web application',
+  platforms: 'Business platform or portal',
+  automation: 'Workflow automation and integrations',
+  modernization: 'Product modernization or rebuild',
+  strategy: 'Strategy, UX or architecture',
   unsure: 'Not sure yet',
 }
 

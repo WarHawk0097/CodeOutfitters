@@ -287,7 +287,7 @@ export function WorkflowAuditPopup() {
 
         <div className="mb-5" data-stagger>
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--brand-green-ink)]">
-            Free workflow audit
+            Project enquiry
           </p>
           <h2
             id="workflow-audit-heading"
@@ -311,7 +311,7 @@ export function WorkflowAuditPopup() {
               context?.descriptionPlaceholder ??
               'e.g. Every new lead from our site has to be copied into the CRM by hand.'
             }
-            submitLabel={context?.submitLabel ?? 'Get my free workflow audit'}
+            submitLabel={context?.submitLabel ?? 'Send project details'}
             contextKey={context?.contextKey}
             contextLabel={context?.contextLabel}
             contextPlaceholder={context?.contextPlaceholder}

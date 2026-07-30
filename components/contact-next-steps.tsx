@@ -4,9 +4,9 @@ import { useScrollReveal } from '@/hooks/useScrollReveal'
 import { PhoneCall, ClipboardList, FileText } from 'lucide-react'
 
 const steps = [
-  { icon: PhoneCall, title: 'Discovery call', desc: 'A short call to map your current workflow and where time is being lost.' },
-  { icon: ClipboardList, title: 'Free workflow audit', desc: 'We identify your top automation opportunities at no cost, no obligation.' },
-  { icon: FileText, title: 'Fixed proposal', desc: 'A clear scope, timeline, and quote — no generic packages, no surprise costs.' },
+  { icon: PhoneCall, title: 'Discovery call', desc: 'A short call to work through how the operation runs today and what the software has to carry.' },
+  { icon: ClipboardList, title: 'Workflow review', desc: 'We map the workflows, roles and records an application would have to cover — at no cost, no obligation.' },
+  { icon: FileText, title: 'Written scope', desc: 'A clear scope, dates and quote before any build starts — no generic packages, no surprise costs.' },
 ]
 
 const trustChips = ['No spam, ever', 'No obligation', 'Response within 4 hours', 'You own everything we build']

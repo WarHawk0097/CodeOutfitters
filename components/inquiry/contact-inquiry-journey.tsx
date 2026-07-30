@@ -30,7 +30,7 @@ export function ContactInquiryJourney() {
       ) : (
         <div className="flex flex-col items-center gap-3 text-center">
           <p className="text-sm text-[var(--brand-muted)]">
-            Want to save a step? Book your free 30-minute discovery call now — optional,
+            Want to save a step? Book a 30-minute discovery call now — optional,
             your request is already received.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">

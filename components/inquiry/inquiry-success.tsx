@@ -35,11 +35,11 @@ export function InquirySuccess({
         <CheckCircle className="h-6 w-6 text-[var(--brand-green)]" />
       </span>
       <h3 className={`font-display font-semibold text-[var(--brand-text)] ${compact ? 'text-lg' : 'text-2xl'}`}>
-        Your workflow audit request is in.
+        Your project details are in.
       </h3>
       <p className="max-w-sm text-sm leading-relaxed text-[var(--brand-muted)]">
-        We read every submission ourselves. You will hear back with what is worth
-        automating and what is not, usually within one business day.
+        We read every submission ourselves. You will hear back with an honest view of what is worth
+        building first and what is not, usually within one business day.
       </p>
 
       {showAppointment ? (
