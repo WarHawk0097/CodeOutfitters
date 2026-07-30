@@ -1,11 +1,7 @@
 import { Hero } from '@/components/hero'
-import { StatsStrip } from '@/components/stats-strip'
-import { ToolsMarquee } from '@/components/tools-marquee'
-import { ServicesBento } from '@/components/services-bento'
+import { Capabilities } from '@/components/capabilities'
 import { ProcessPreview } from '@/components/process-preview'
-import { ROICalculator } from '@/components/roi-calculator'
-import { CaseStudiesPreview } from '@/components/case-studies-preview'
-import { Testimonials } from '@/components/testimonials'
+import { SelectedWork } from '@/components/selected-work'
 import { FAQ } from '@/components/faq'
 import { CTABanner } from '@/components/cta-banner'
 
@@ -13,13 +9,9 @@ export default function HomePage() {
   return (
     <>
       <Hero />
-      <StatsStrip />
-      <ToolsMarquee />
-      <ServicesBento />
+      <Capabilities />
       <ProcessPreview />
-      <ROICalculator />
-      <CaseStudiesPreview />
-      <Testimonials />
+      <SelectedWork />
       <FAQ />
       <CTABanner />
     </>

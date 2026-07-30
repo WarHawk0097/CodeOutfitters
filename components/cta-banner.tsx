@@ -61,7 +61,7 @@ export function CTABanner() {
                 wordBreak: 'normal',
               }}
             >
-              Book a <span style={{ whiteSpace: 'nowrap' }}>Discovery Call</span>
+              Discuss your <span style={{ whiteSpace: 'nowrap' }}>application</span>
             </h2>
 
             <p
@@ -72,15 +72,15 @@ export function CTABanner() {
                 maxWidth: '440px',
               }}
             >
-              30 minutes. No sales pressure. We map your biggest time drains and show you exactly what
-              automation looks like for your business — free.
+              Tell us how the operation runs today and where the current software stops. We will tell you
+              honestly what a bespoke application would have to do — and whether it is the right answer.
             </p>
 
             <div className="cta-chip-row-v7" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
               {[
-                { label: 'Free audit included' },
-                { label: 'No long contracts' },
-                { label: '30-day support' },
+                { label: 'Scope agreed in writing' },
+                { label: 'You own the application' },
+                { label: 'Support after launch' },
               ].map((item) => (
                 <span
                   key={item.label}
@@ -126,14 +126,14 @@ export function CTABanner() {
                 textTransform: 'uppercase',
               }}
             >
-              What you get in 30 minutes
+              What the first conversation covers
             </span>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '11px' }}>
               {[
-                'A map of your biggest time drains',
-                'An honest automation-fit assessment',
-                'A fixed quote — before we build anything',
+                'The workflows the application would have to carry',
+                'An honest view of what to build first — and what to leave out',
+                'A written scope before any build begins',
               ].map((text) => (
                 <span
                   key={text}
@@ -175,7 +175,7 @@ export function CTABanner() {
                 overflow: 'hidden',
               }}
             >
-              <span style={{ whiteSpace: 'nowrap' }}>Book Free Discovery Call</span>
+              <span style={{ whiteSpace: 'nowrap' }}>Discuss your application</span>
               <ArrowRight className="w-[15px] h-[15px] flex-shrink-0" />
             </Link>
 
@@ -198,7 +198,7 @@ export function CTABanner() {
                   flexShrink: 0,
                 }}
               />
-              3 build slots left for July
+              Currently taking on new application projects
             </span>
           </div>
         </div>

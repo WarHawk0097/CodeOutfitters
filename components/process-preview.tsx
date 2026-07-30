@@ -4,10 +4,10 @@ import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
 
 const steps = [
-  { day: 'Day 1', title: 'Discovery Call', body: '30 minutes — we map your exact workflow, find your biggest time drains, and tell you honestly whether automation fits.' },
-  { day: 'Day 2–3', title: 'Custom Scope', body: 'We design the automation architecture for your exact tools, then send a clear scope with timeline and cost before we start.' },
-  { day: 'Day 4–6', title: 'We Build It', body: 'We handle every technical detail — integrations, hosting, testing. You just review and approve before anything goes live.' },
-  { day: 'Day 7 · Live', title: 'You Save Time', body: 'Ongoing support included. We monitor your automations, fix issues fast, and optimize as your business grows.' },
+  { phase: 'Phase 01', title: 'Discovery', body: 'We work through the operation as it runs today — the workflows, the roles, the records and the handoffs the software will have to carry.' },
+  { phase: 'Phase 02', title: 'Scope and design', body: 'We design the data model, the roles and the application surfaces, then agree a written scope before any code is written.' },
+  { phase: 'Phase 03', title: 'Build and review', body: 'The application is built in reviewable stages, so you use each part and give feedback while the next one is in progress.' },
+  { phase: 'Phase 04', title: 'Launch and support', body: 'We deploy, hand over documentation and the application you own, then stay available as the operation changes around it.' },
 ]
 
 export function ProcessPreview() {
@@ -18,9 +18,9 @@ export function ProcessPreview() {
     <section ref={ref} className="hp-process">
       <div className="hp-section-inner">
         <header className="hp-section-head">
-          <div className="hp-kicker"><i />02 · How it works<i /></div>
-          <h2>From Discovery to <span>Deployed in 7 Days</span></h2>
-          <p>A streamlined process designed to minimize your time investment while maximizing results.</p>
+          <div className="hp-kicker"><i />How we work<i /></div>
+          <h2>From a mapped workflow to <span>a running application</span></h2>
+          <p>Every project runs through the same four phases, with a written scope agreed before the build starts.</p>
         </header>
         <div className="hp-timeline" data-process-timeline>
           <div className="hp-spine"><motion.span data-process-fill initial={{ scaleY: 0 }} animate={{ scaleY: visible ? 1 : 0 }} transition={{ duration: 1.9, ease: [0.16, 1, 0.3, 1] }} /></div>
@@ -30,7 +30,7 @@ export function ProcessPreview() {
                 {index === 3 ? <><b>DAY 7</b><small>LIVE</small></> : <b>{index + 1}</b>}
               </div>
               <article className={`hp-step-card ${index % 2 ? 'is-right' : 'is-left'} ${index === 3 ? 'is-final' : ''}`}>
-                <span className={`hp-step-day ${index === 3 ? 'is-live' : ''}`}>{step.day}</span>
+                <span className={`hp-step-day ${index === 3 ? 'is-live' : ''}`}>{step.phase}</span>
                 <h3>{step.title}</h3>
                 <p>{step.body}</p>
               </article>
