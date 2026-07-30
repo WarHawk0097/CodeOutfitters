@@ -208,7 +208,7 @@ export function CompactInquiryForm({
         error={errors.consent?.privacyAccepted?.message}
       >
         I agree to the{' '}
-        <Link href="/privacy" className="text-[var(--brand-green)] underline">
+        <Link href="/privacy" className="text-[var(--brand-green-ink)] underline">
           privacy policy
         </Link>
         .
@@ -224,7 +224,7 @@ export function CompactInquiryForm({
       <button
         type="submit"
         disabled={submitting}
-        className="mt-1 inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--brand-green)] px-6 py-3.5 text-sm font-semibold text-white transition-transform duration-150 hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-1 inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--brand-green-solid)] px-6 py-3.5 text-sm font-semibold text-white transition-transform duration-150 hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
       >
         {submitting ? (
           <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />

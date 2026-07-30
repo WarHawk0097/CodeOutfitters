@@ -297,7 +297,7 @@ export function LeadFlowSummaryMobile() {
     <div className={`${CARD} px-[13px] py-2.5`}>
       <div className="flex justify-between">
         <span className="text-[11.5px] font-semibold text-cc-ink">Lead Flow</span>
-        <span className="text-[10px] font-semibold text-cc-green">Expand ▾</span>
+        <span className="text-[10px] font-semibold text-cc-green-ink">Expand ▾</span>
       </div>
       <div className="mt-[3px] text-[10.5px] text-cc-t2">
         34 received · 26 contacted · 12 won ·{" "}

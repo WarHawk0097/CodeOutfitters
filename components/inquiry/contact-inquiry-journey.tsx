@@ -37,7 +37,7 @@ export function ContactInquiryJourney() {
             <button
               type="button"
               onClick={() => setBookingState('booking')}
-              className="inline-flex items-center gap-2 rounded-xl bg-[var(--brand-green)] px-6 py-3 text-sm font-semibold text-white transition-transform duration-150 hover:-translate-y-px"
+              className="inline-flex items-center gap-2 rounded-xl bg-[var(--brand-green-solid)] px-6 py-3 text-sm font-semibold text-white transition-transform duration-150 hover:-translate-y-px"
             >
               <Calendar className="h-4 w-4" />
               Book a discovery call

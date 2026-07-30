@@ -285,7 +285,8 @@ export function ContactBookingFlow(_props: ContactBookingFlowProps) {
       let bg = '#fff', color = '#0A120E', border = '#E5DCCB'
       if (avail === 'unavailable') { bg = '#F2ECE0'; color = '#B8B0A0'; border = 'transparent' }
       if (isToday_) { bg = '#EAF6EF'; border = '#9AD9BC' }
-      if (isSel) { bg = '#128A54'; color = '#fff'; border = '#128A54' }
+      // v1.0.1: white on #128A54 measured 3.63:1. The filled-action token is 5.37:1.
+      if (isSel) { bg = 'var(--brand-green-solid)'; color = '#fff'; border = 'var(--brand-green-solid)' }
 
       let dot = 'transparent', dotBorder = 'none'
       if (avail === 'available') dot = isSel ? '#fff' : '#2BD483'
@@ -365,7 +366,7 @@ export function ContactBookingFlow(_props: ContactBookingFlowProps) {
 
       let bg = '#FDFBF6', border = '#E5DCCB', color = '#0A120E', sub = '30 min', subColor = '#8A857B', textDecoration = 'none'
       if (taken) { bg = '#F2ECE0'; border = 'transparent'; color = '#B0A896'; sub = 'Booked'; subColor = '#B0A896'; textDecoration = 'line-through' }
-      if (isSel) { bg = '#EAF6EF'; border = '#17A063'; color = '#0A452B'; sub = 'Selected'; subColor = '#128A54' }
+      if (isSel) { bg = '#EAF6EF'; border = '#17A063'; color = '#0A452B'; sub = 'Selected'; subColor = 'var(--brand-green-ink)' }
 
       return {
         id, time: timeLabel, sub, selected: isSel, disabled: taken,
@@ -774,7 +775,7 @@ export function ContactBookingFlow(_props: ContactBookingFlowProps) {
                                   </span>
                                   <span style={{ font: "400 12px 'Instrument Sans',sans-serif", color: '#8A857B' }}>{(o.city ? o.city + ' · ' : '') + offsetLabel(o.v)}</span>
                                 </span>
-                                <span style={sel ? { color: '#128A54', font: "700 13px sans-serif", flexShrink: 0 } : { visibility: 'hidden', flexShrink: 0 }}>✓</span>
+                                <span style={sel ? { color: 'var(--brand-green-ink)', font: "700 13px sans-serif", flexShrink: 0 } : { visibility: 'hidden', flexShrink: 0 }}>✓</span>
                               </li>
                             )
                           })}
@@ -868,7 +869,7 @@ export function ContactBookingFlow(_props: ContactBookingFlowProps) {
                       }}>
                         <span style={{
                           flexShrink: 0, width: '40px', height: '40px', borderRadius: '10px',
-                          background: '#128A54', color: '#fff',
+                          background: 'var(--brand-green-solid)', color: '#fff',
                           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                           font: "700 10px 'Instrument Sans',sans-serif", lineHeight: 1.1,
                         }}>

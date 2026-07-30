@@ -28,7 +28,7 @@ export default async function ForgotPasswordPage({
           </p>
           <Link
             href="/dashboard"
-            className="mt-6 block w-full rounded-md bg-[var(--brand-green,#0A7C4A)] px-4 py-2 text-center text-sm font-semibold text-white transition-transform active:scale-[0.98]"
+            className="mt-6 block w-full rounded-md bg-[var(--brand-green-solid,#0E7A4E)] px-4 py-2 text-center text-sm font-semibold text-white transition-transform active:scale-[0.98]"
           >
             Open Command Center
           </Link>
@@ -51,7 +51,7 @@ export default async function ForgotPasswordPage({
             </p>
             <Link
               href="/login"
-              className="mt-6 block w-full rounded-md bg-[var(--brand-green,#0A7C4A)] px-4 py-2 text-center text-sm font-semibold text-white transition-transform active:scale-[0.98]"
+              className="mt-6 block w-full rounded-md bg-[var(--brand-green-solid,#0E7A4E)] px-4 py-2 text-center text-sm font-semibold text-white transition-transform active:scale-[0.98]"
             >
               Back to sign in
             </Link>
@@ -73,12 +73,12 @@ export default async function ForgotPasswordPage({
                   type="email"
                   autoComplete="email"
                   required
-                  className="mt-1 block w-full rounded-md border border-black/15 px-3 py-2 text-sm outline-none focus:border-[var(--brand-green,#0A7C4A)] focus:ring-2 focus:ring-[var(--brand-green,#0A7C4A)]/30"
+                  className="mt-1 block w-full rounded-md border border-black/15 px-3 py-2 text-sm outline-none focus:border-[var(--brand-focus,#0E7A4E)] focus:ring-2 focus:ring-[var(--brand-focus,#0E7A4E)]/30"
                 />
               </div>
               <button
                 type="submit"
-                className="w-full rounded-md bg-[var(--brand-green,#0A7C4A)] px-4 py-2 text-sm font-semibold text-white transition-transform active:scale-[0.98]"
+                className="w-full rounded-md bg-[var(--brand-green-solid,#0E7A4E)] px-4 py-2 text-sm font-semibold text-white transition-transform active:scale-[0.98]"
               >
                 Send reset link
               </button>

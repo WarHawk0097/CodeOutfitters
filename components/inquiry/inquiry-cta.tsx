@@ -30,7 +30,7 @@ export function InquiryPopupTrigger({
       onClick={() => openInquiryPopup(context)}
       className={
         className ??
-        'inline-flex items-center gap-2 rounded-xl bg-[var(--brand-green)] px-6 py-3.5 text-sm font-semibold text-white transition-transform duration-150 hover:-translate-y-px'
+        'inline-flex items-center gap-2 rounded-xl bg-[var(--brand-green-solid)] px-6 py-3.5 text-sm font-semibold text-white transition-transform duration-150 hover:-translate-y-px'
       }
     >
       {label}
@@ -83,7 +83,7 @@ export function ContextualInquiryCta({
 
   return (
     <section className="mx-auto max-w-2xl rounded-3xl border border-[var(--brand-border)] bg-[var(--brand-surface)] p-6 shadow-sm sm:p-8">
-      <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--brand-green)]">
+      <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--brand-green-ink)]">
         Free workflow audit
       </p>
       <h2 className="font-display text-2xl font-semibold leading-tight text-[var(--brand-text)]">

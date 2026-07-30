@@ -46,7 +46,7 @@ export function InquirySuccess({
         <a
           href={appointment.url}
           onClick={() => trackInquiryEvent('appointment_started', { formVariant, sourcePage })}
-          className="mt-2 inline-flex items-center gap-2 rounded-xl bg-[var(--brand-green)] px-6 py-3 text-sm font-semibold text-white transition-transform duration-150 hover:-translate-y-px"
+          className="mt-2 inline-flex items-center gap-2 rounded-xl bg-[var(--brand-green-solid)] px-6 py-3 text-sm font-semibold text-white transition-transform duration-150 hover:-translate-y-px"
         >
           <Calendar className="h-4 w-4" />
           Book your discovery call
