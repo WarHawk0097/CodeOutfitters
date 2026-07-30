@@ -11,9 +11,11 @@ Canonical production origin: **https://codeoutfitters.vercel.app**
 | Vercel project | `codeoutfitters` (`prj_D8Z0xzQF8OWA0bsz0PGx7A8vYhrX`) |
 | Contrast commit | `275fdcd` — `fix(a11y): raise interactive brand contrast to WCAG AA` |
 | Test commit | `d62651d` — `test(a11y): protect the public and dashboard contrast ratios` |
-| Patch document commit | this commit — `docs(release): prepare the Core v1.0.1 contrast patch` |
-| Main merge SHA | _recorded in Phase 11_ |
-| Production deployment | _recorded in Phase 11_ |
+| Patch document commit | `14f0ad0` — `docs(release): prepare the Core v1.0.1 contrast patch` |
+| Residual fix commit | `a9f1ebe` — `fix(a11y): raise residual enabled-control contrast to AA` |
+| Main merge SHA | `12f3c20960e3d109a472338082c0f6fbfabffc22` |
+| Final main SHA (tagged `core-v1.0.1`) | `a9f1ebed3adf1ea68514479bd9d0e05b3808b07a` |
+| Production deployment | `dpl_4s3LUgVVeAa44svzFvYEXFkq1tu4` (READY) |
 | Rollback deployment | `dpl_Ap844xwzPdZTEvdUUEd48FRL8aUi` (the deployment production served before this patch) |
 | Feature changes | NONE |
 | Migrations applied | NO |
@@ -147,7 +149,7 @@ in `app/dashboard/palette-contrast.test.ts`.
 
 | Gate | Command | Result |
 | --- | --- | --- |
-| Unit + component suite | `npx vitest run --exclude "**/*.pglite.test.ts"` | `Test Files 57 passed (57)`, `Tests 1048 passed (1048)` |
+| Unit + component suite | `npx vitest run --exclude "**/*.pglite.test.ts"` | `Test Files 63 passed (63)`, `Tests 1144 passed (1144)` (at `a9f1ebe`) |
 | Serial PGlite suites | `npm run test:pglite:serial` | `PGLITE_SERIAL_RESULT: PASS`, `PGLITE_SUITES_FAILED: 0`, `PGLITE_OOM: NO` |
 | Types | `npx tsc --noEmit` | clean |
 | Production build | `npx next build` | `✓ Compiled successfully in 4.8s` |
@@ -156,26 +158,91 @@ in `app/dashboard/palette-contrast.test.ts`.
 
 New and extended contrast coverage:
 
-- `app/brand-contrast.test.ts` — 20 tests: public token roles, the reported
-  patterns at their source, and the role-conflation sweeps.
-- `app/dashboard/palette-contrast.test.ts` — 79 tests: the light appearance as
+- `app/brand-contrast.test.ts` — 23 tests: public token roles, the reported
+  patterns at their source, the role-conflation sweeps, a guard against painting
+  a status *fill* token as text, and the composited contact reach-card labels.
+- `app/dashboard/palette-contrast.test.ts` — 94 tests: the light appearance as
   before, plus the dark appearance for all six palettes (green text on every dark
-  surface and on its own tint, white label on the fill, status ink, focus ring).
+  surface and on its own tint, white label on the fill, status ink, focus ring),
+  `--cc-body-t3` against every light and dark surface, and a per-rail sidebar
+  sweep over all five rails (text, muted, heading on background/surface/hover;
+  active text on the active fill; badge text on the badge fill; focus ring).
 - `app/dashboard/visual-system.test.ts` — adds the mirror sweep: no green text
   painted with the accent fill token on any dashboard surface.
 
-## Production deployment
+## Residual defects found by rendered production QA
 
-_Recorded in Phase 11, after the merge to `main` and production QA._
+The token audit in Phases 1–4 could only see brand green. Rendered QA on the
+merge-SHA deployment surfaced four more enabled-control text failures that were
+not green at all. Each was fixed at the token that owns the role, not at the call
+site, and each edit carries an inline comment with the old value and its measured
+ratio.
+
+| Site | Before | After | Root cause |
+| --- | --- | --- | --- |
+| Tertiary body text on light surfaces | `--cc-body-t3: #7d8375` — 3.20:1 | `#64695e` — ≥4.63:1 on all 31 light surfaces (worst: the warm-sand lane `#efe8d7`) | one tertiary token tuned against white only |
+| `warm-ink` rail muted text on hover | `#928c7c` — 4.48:1 | `#948e7f` — 4.60:1 | rail hover fill is lighter than the rail background |
+| `graphite` rail muted text on hover | `#888d93` — 3.69:1 | `#9b9fa4` — 4.64:1 | same |
+| `light-ivory` rail muted / heading on hover | `#7d8375` — 3.18:1 / `#6b7c6f` — 3.60:1 | `#63675c` — 4.71:1 / `#5c6b5f` — 4.58:1 | same |
+| Overview "DUE TODAY" tag | `TONE_BASE` (`--cc-amber`) — 3.65:1 on white | `TONE_INK` (`--cc-amber-ink` `#7d5514`) — 6.60:1 | a *fill* tone spent as text |
+| Contact reach-card sub-label and eyebrow | `rgba(245,240,232,.5)` — 4.30:1 | `.72` — 7.24:1 at rest, 6.73:1 on hover | alpha tuned by eye |
+
+`--cc-body-t3` stays weaker than `--cc-text-muted` on the same surface, so
+disabled and de-emphasised text still read as de-emphasised; that ordering is
+asserted, not assumed. `TodaysWorkItem` now carries `color` (the inset rail and
+the mobile dot, a fill) and `ink` (the same tone as text) as two fields, because
+they are two roles.
+
+## Production deployment
 
 | Field | Value |
 | --- | --- |
-| Main merge SHA | _pending_ |
-| Deployment ID | _pending_ |
-| Deployment SHA | _pending_ |
-| State | _pending_ |
-| Timestamp | _pending_ |
+| Main merge SHA | `12f3c20960e3d109a472338082c0f6fbfabffc22` |
+| Merge-SHA deployment | `dpl_6q5H6weaie87u5dUf5NAjfYbLZ6r` (READY) |
+| Final main SHA | `a9f1ebed3adf1ea68514479bd9d0e05b3808b07a` |
+| Deployment ID | `dpl_4s3LUgVVeAa44svzFvYEXFkq1tu4` |
+| Deployment SHA | `a9f1ebed3adf1ea68514479bd9d0e05b3808b07a` |
+| State | `READY` (`readyState: READY`, region `iad1`) |
+| Timestamp | created `1785376759903`, ready `1785376834065` |
+| Canonical host | `https://codeoutfitters.vercel.app` |
 | Rollback deployment | `dpl_Ap844xwzPdZTEvdUUEd48FRL8aUi` |
+
+## Rendered production QA (Phase 9)
+
+26 static routes probed inside a viewport-sized iframe at `1440×900`,
+`1366×768`, `768×1024`, `390×844` and `375×812` against
+`https://codeoutfitters.vercel.app`.
+
+| Counter | Result |
+| --- | --- |
+| `CONSOLE_ERRORS` | 0 |
+| `PAGE_ERRORS` | 0 |
+| `HYDRATION_ERRORS` | 0 |
+| `UNEXPECTED_FAILED_REQUESTS` | 0 |
+| `HORIZONTAL_OVERFLOW` | 0 |
+| `CARD_OVERLAPS` | 0 |
+| `LOW_CONTRAST_ENABLED_CONTROLS` | 0 (excluding the WCAG 1.4.3 logotype below) |
+| `AMBIGUOUS_DISABLED_STATES` | 0 |
+| `INERT_CONTROLS` | 0 |
+| `DEAD_LINKS` | 0 |
+| `MALFORMED_URLS` | 0 |
+| `PREVIEW_HOST_LEAKS` | 0 |
+| `SUPABASE_REQUESTS_IN_DEMO` | 0 |
+
+Measured ratios for the five reported patterns, identical at all five viewports:
+
+| Pattern | Before | After |
+| --- | --- | --- |
+| Homepage FAQ "Contact Support" | 3.36:1 | **5.37:1** |
+| Workflow-audit CTA (`/services`, `/industries`, `/security`) | 3.36:1 | **5.37:1** |
+| Privacy-policy link on those routes | 3.36:1 | **5.37:1** |
+| `/dashboard` "Open …" attention links (all five) | 3.36:1 | **5.37:1** |
+| `/login` "Forgot password" | 3.93:1 | **4.82:1** |
+
+Rendered sidebar minima on production, all five rails, background / surface /
+hover: `forest` 4.59:1, `warm-ink` 4.60:1, `graphite` 4.64:1,
+`midnight-emerald` 4.93:1, `light-ivory` 4.58:1. Rendered `--cc-body-t3` minimum
+across all six palettes in both appearances: 5.18:1.
 
 ## Rollback
 
@@ -209,9 +276,14 @@ change to the approved marketing palette rather than a control repair:
 | `/`, `/services`, `/case-studies`, `/about`, `/contact` | uppercase section kickers, `#128A54` on ivory | 3.93:1 | 4.5:1 |
 | `/`, `/services` | badges and captions inside the illustrated product mock-ups | 3.92–3.95:1 | 4.5:1 |
 | `/proposal/[secureToken]` | the `pp-logo` wordmark, `#17A063` | 3.36:1 | exempt (logotype) |
+| every marketing route at ≤390 px | the header wordmark "Outfitters", `rgb(23,160,99)` on `rgb(247,242,234)` | 3.02:1 | exempt (logotype, WCAG 1.4.3) |
+| `/` story carousel | the 8×8 px position dots, `rgba(255,255,255,.25)` / active `rgb(43,212,131)` | ~2.3:1 | 3:1 (non-text, 1.4.11) |
 
-Every one of these is static text, not an interactive control, so none of them
-appears in the enabled-control counters below. Fixing them means darkening
+Every one of these is either static text or a non-text indicator, not enabled
+control text, so none of them appears in the enabled-control counters. The
+carousel dots are the one item that is a real (pre-existing, v1.0.0) 1.4.11
+failure rather than an aesthetic one; they are labelled only by `aria-label`, so
+the state is still available to assistive technology. Fixing them means darkening
 `#128A54` to `#0E7A4E` across roughly 40 sites in eight marketing components,
 which changes how the approved design looks. It needs owner sign-off and should
 be its own versioned change.
