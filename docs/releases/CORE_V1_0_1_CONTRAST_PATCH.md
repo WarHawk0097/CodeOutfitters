@@ -14,7 +14,8 @@ Canonical production origin: **https://codeoutfitters.vercel.app**
 | Patch document commit | `14f0ad0` — `docs(release): prepare the Core v1.0.1 contrast patch` |
 | Residual fix commit | `a9f1ebe` — `fix(a11y): raise residual enabled-control contrast to AA` |
 | Main merge SHA | `12f3c20960e3d109a472338082c0f6fbfabffc22` |
-| Final main SHA (tagged `core-v1.0.1`) | `a9f1ebed3adf1ea68514479bd9d0e05b3808b07a` |
+| Final code SHA | `a9f1ebed3adf1ea68514479bd9d0e05b3808b07a` |
+| `core-v1.0.1` tag target | the last release-record commit on top of `a9f1ebe` — documentation only, no code delta |
 | Production deployment | `dpl_4s3LUgVVeAa44svzFvYEXFkq1tu4` (READY) |
 | Rollback deployment | `dpl_Ap844xwzPdZTEvdUUEd48FRL8aUi` (the deployment production served before this patch) |
 | Feature changes | NONE |
