@@ -75,6 +75,7 @@ function taskToWorkItem(task: Task, meta: string): TodaysWorkItem {
     meta,
     tag: dueLabel(task, DEMO_TODAY).toUpperCase(),
     color: TONE_BASE[dueTone(task, DEMO_TODAY)],
+    ink: TONE_INK[dueTone(task, DEMO_TODAY)],
     cta: "Open",
     href: `/dashboard/my-work/${task.id}`,
     actionLabel: `Open task: ${task.title}`,

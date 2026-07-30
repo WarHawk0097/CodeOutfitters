@@ -323,7 +323,7 @@ html[data-motion='reduced'] { scroll-behavior: auto; }
   --cc-body-soft: var(--cc-surface-muted);
   --cc-body-ink: var(--cc-text);
   --cc-body-t2: var(--cc-text-muted);
-  --cc-body-t3: #7d8375;
+  --cc-body-t3: #64695e; /* v1.0.1: was #7d8375 — 3.20:1 on the warm-sand lane */
 
   --cc-green: var(--cc-accent);
   --cc-green-ink: var(--cc-accent-hover);
@@ -817,7 +817,7 @@ html[data-motion='reduced'] { scroll-behavior: auto; }
   --cc-sidebar-surface: #24201a;
   --cc-sidebar-border: #332d24;
   --cc-sidebar-text: #c2bba9;
-  --cc-sidebar-muted: #928c7c;
+  --cc-sidebar-muted: #948e7f; /* v1.0.1: was #928c7c — 4.48:1 on the rail hover */
   --cc-sidebar-heading: #9c9a7c;
   --cc-sidebar-hover: #2b261e;
   --cc-sidebar-active-bg: #3a3427;
@@ -834,7 +834,7 @@ html[data-motion='reduced'] { scroll-behavior: auto; }
   --cc-sidebar-surface: #2b2f35;
   --cc-sidebar-border: #383d44;
   --cc-sidebar-text: #b6babf;
-  --cc-sidebar-muted: #888d93;
+  --cc-sidebar-muted: #9b9fa4; /* v1.0.1: was #888d93 — 3.69:1 on the rail hover */
   --cc-sidebar-heading: #8dab9a;
   --cc-sidebar-hover: #30353c;
   --cc-sidebar-active-bg: #31473b;
@@ -869,8 +869,8 @@ html[data-motion='reduced'] { scroll-behavior: auto; }
   --cc-sidebar-surface: #f2ece0;
   --cc-sidebar-border: #e3d9c6;
   --cc-sidebar-text: #4a5248;
-  --cc-sidebar-muted: #7d8375;
-  --cc-sidebar-heading: #6b7c6f;
+  --cc-sidebar-muted: #63675c; /* v1.0.1: was #7d8375 — 3.18:1 on the rail hover */
+  --cc-sidebar-heading: #5c6b5f; /* v1.0.1: was #6b7c6f — 3.60:1 on the rail hover */
   --cc-sidebar-hover: #eee7d9;
   --cc-sidebar-active-bg: #e2f0e7;
   --cc-sidebar-active-text: #0a120e;

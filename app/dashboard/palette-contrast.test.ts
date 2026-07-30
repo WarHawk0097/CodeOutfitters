@@ -193,17 +193,28 @@ describe("dashboard palette contrast", () => {
         expect(ratio(ring, get("--cc-surface-muted"))).toBeGreaterThanOrEqual(AA_LARGE);
       });
 
-      it("keeps the disabled and placeholder foregrounds weaker than enabled ink", () => {
-        // Not an AA assertion — a deliberate inequality. `--cc-body-t3` is the
-        // placeholder and the disabled label; it must sit clearly below the secondary
-        // foreground it appears next to, or an enabled control and a disabled one become
-        // the same control at a glance.
+      it("keeps the tertiary foreground weaker than enabled ink but still at AA", () => {
+        // `--cc-body-t3` is the placeholder, the disabled label AND every tertiary
+        // sub-label on these cards. The last of those three is live text, so v1.0.1
+        // moved it to AA: it measured 3.20:1 on the warm-sand lane, which the rendered
+        // QA caught as the search placeholder and the row sub-labels.
+        //
+        // The inequality below survives the move and is the other half of the same
+        // defect: a disabled control that reads as strongly as an enabled one is
+        // indistinguishable from it at a glance.
+        const tertiary = get("--cc-body-t3");
+        for (const surface of [
+          "--cc-surface",
+          "--cc-surface-muted",
+          "--cc-surface-raised",
+          "--cc-page-bg",
+          "--cc-lane",
+          "--cc-accent-soft",
+        ]) {
+          expect(ratio(tertiary, get(surface)), surface).toBeGreaterThanOrEqual(AA);
+        }
         const surface = get("--cc-surface");
-        const placeholder = ratio(get("--cc-body-t3"), surface);
-        const secondary = ratio(get("--cc-text-muted"), surface);
-        expect(placeholder).toBeLessThan(secondary);
-        // Still legible enough to read the reason a control is unavailable.
-        expect(placeholder).toBeGreaterThanOrEqual(AA_LARGE);
+        expect(ratio(tertiary, surface)).toBeLessThan(ratio(get("--cc-text-muted"), surface));
       });
     });
   }
@@ -221,11 +232,12 @@ describe("dashboard palette contrast, dark appearance", () => {
     const get = (name: string) => appearanceToken(name, selector, DARK);
 
     describe(palette, () => {
-      it("reads body, secondary and table ink at AA on every dark surface", () => {
+      it("reads body, secondary, table and tertiary ink at AA on every dark surface", () => {
         for (const surface of ["--cc-surface", "--cc-surface-muted", "--cc-surface-raised"]) {
           expect(ratio(get("--cc-text"), get(surface)), surface).toBeGreaterThanOrEqual(AA);
           expect(ratio(get("--cc-text-muted"), get(surface)), surface).toBeGreaterThanOrEqual(AA);
           expect(ratio(get("--cc-t-table"), get(surface)), surface).toBeGreaterThanOrEqual(AA);
+          expect(ratio(get("--cc-body-t3"), get(surface)), surface).toBeGreaterThanOrEqual(AA);
         }
       });
 
@@ -262,6 +274,46 @@ describe("dashboard palette contrast, dark appearance", () => {
         expect(ratio(ring, get("--cc-surface"))).toBeGreaterThanOrEqual(AA_LARGE);
         expect(ratio(ring, get("--cc-surface-muted"))).toBeGreaterThanOrEqual(AA_LARGE);
       });
+    });
+  }
+});
+
+// The rail is a third axis: it keeps its own five colour sets, independent of palette and
+// appearance, so a foreground that is too pale there is invisible in whichever rail the
+// owner picked and nowhere else. v1.0.1 found three that were: the graphite rail's muted
+// text at 3.69:1, and both of the light-ivory rail's weaker foregrounds at 3.18/3.60:1.
+const SIDEBARS = ["forest", "warm-ink", "graphite", "midnight-emerald", "light-ivory"] as const;
+
+describe("dashboard sidebar contrast", () => {
+  for (const rail of SIDEBARS) {
+    const selector = `[data-cc-sidebar='${rail}']`;
+    const get = (name: string) => token(name, selector);
+
+    it(`${rail} reads every rail foreground at AA on the rail's own surfaces`, () => {
+      // A nav item is a link, its count is text beside that link and a section heading
+      // labels both — every one of them is live text on one of these three fills.
+      for (const fill of ["--cc-sidebar-bg", "--cc-sidebar-surface", "--cc-sidebar-hover"]) {
+        for (const ink of ["--cc-sidebar-text", "--cc-sidebar-muted", "--cc-sidebar-heading"]) {
+          expect(ratio(get(ink), get(fill)), `${ink} on ${fill}`).toBeGreaterThanOrEqual(AA);
+        }
+      }
+    });
+
+    it(`${rail} reads the active item and its badge at AA on their own fills`, () => {
+      expect(
+        ratio(get("--cc-sidebar-active-text"), get("--cc-sidebar-active-bg")),
+        "active item",
+      ).toBeGreaterThanOrEqual(AA);
+      expect(
+        ratio(get("--cc-sidebar-badge-text"), get("--cc-sidebar-badge-bg")),
+        "badge",
+      ).toBeGreaterThanOrEqual(AA);
+    });
+
+    it(`${rail} keeps its focus ring visible against the rail`, () => {
+      expect(ratio(get("--cc-sidebar-focus"), get("--cc-sidebar-bg"))).toBeGreaterThanOrEqual(
+        AA_LARGE,
+      );
     });
   }
 });

@@ -116,6 +116,7 @@ const TASK_ITEM: TodaysWorkItem = {
   meta: "Northwind Logistics · overdue since yesterday",
   tag: "OVERDUE",
   color: "#B4553F",
+  ink: "#8A2318",
   cta: "Open",
   href: "/dashboard/my-work/task-014",
   actionLabel: "Open task: Send Ruben Ortega revised scope summary",

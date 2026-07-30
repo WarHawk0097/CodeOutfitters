@@ -285,4 +285,56 @@ describe("token roles are not conflated", () => {
       expect(src, path).not.toMatch(/href="#"/);
     }
   });
+
+  it("never paints a status tone as text through its fill entry", () => {
+    // TONE_BASE is the solid square/dot; TONE_INK is the same tone as text. The overview
+    // "DUE TODAY" tag took the fill entry and measured 3.65:1 on white — the amber twin of
+    // the green defect this release exists to fix.
+    for (const { path, src } of sources) {
+      expect(src, path).not.toMatch(/style=\{\{[^}]*\bcolor:\s*TONE_BASE\[/);
+      // Same defect one indirection later: a `color` field holding the fill tone, spent as
+      // the text colour of the label beside the fill.
+      expect(src, path).not.toMatch(/style=\{\{\s*color:\s*\w+\.color\s*\}\}/);
+    }
+  });
+});
+
+// The contact page's "other ways to reach us" cards write their own CSS with alpha
+// foregrounds rather than tokens, so the token sweep above cannot see them: the rendered QA
+// measured the card sub-labels at 4.30:1 on the dark panel. Composite and check them.
+describe("contact reach cards", () => {
+  const contact = read("app/(public)/contact/contact-page-client.tsx");
+  /** Alpha composite: `foreground` at `alpha` over an opaque `background`. */
+  const overlay = (foreground: string, alpha: number, background: string) => {
+    const channel = (hex: string, i: number) => parseInt(hex.slice(1 + i * 2, 3 + i * 2), 16);
+    const mixed = [0, 1, 2].map((i) =>
+      Math.round(channel(foreground, i) * alpha + channel(background, i) * (1 - alpha)),
+    );
+    return `#${mixed.map((v) => v.toString(16).padStart(2, "0")).join("")}`;
+  };
+
+  const PANEL = "#0E241A";
+  const IVORY = "#F5F0E8";
+  /** The card is a white wash over the panel; its hover step raises the wash to .08. */
+  const CARD = overlay("#FFFFFF", 0.05, PANEL);
+  const CARD_HOVER = overlay("#FFFFFF", 0.08, PANEL);
+
+  const alphaOf = (rule: string) => {
+    const block = contact.match(new RegExp(`${rule}\\{[^}]*\\}`))?.[0];
+    if (!block) throw new Error(`missing rule: ${rule}`);
+    const alpha = block.match(/color:rgba\(245,240,232,(\.\d+|1)\)/);
+    if (!alpha) throw new Error(`no ivory alpha foreground in: ${rule}`);
+    return Number(alpha[1]);
+  };
+
+  it("reads the card sub-label at AA at rest and on hover", () => {
+    const alpha = alphaOf("\\.con-reach a small");
+    expect(ratio(overlay(IVORY, alpha, CARD), CARD)).toBeGreaterThanOrEqual(AA);
+    expect(ratio(overlay(IVORY, alpha, CARD_HOVER), CARD_HOVER)).toBeGreaterThanOrEqual(AA);
+  });
+
+  it("reads the section eyebrow at AA on the panel", () => {
+    const alpha = alphaOf("\\.con-reach>div>strong");
+    expect(ratio(overlay(IVORY, alpha, PANEL), PANEL)).toBeGreaterThanOrEqual(AA);
+  });
 });

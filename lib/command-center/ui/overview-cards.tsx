@@ -38,7 +38,11 @@ export type TodaysWorkItem = {
   title: string;
   meta: string;
   tag: string;
+  /** The row's due-state tone as a fill: the inset rail and the mobile dot. */
   color: string;
+  /** The same tone as text. v1.0.1: --cc-amber measured 3.65:1 on white as a label, so the
+   *  fill tone and the text tone are two roles and two tokens, never one. */
+  ink: string;
   /** The visible label on the row's action — "Open". */
   cta: string;
   /** Where the row's action goes. Required: a row with no destination is a row whose
@@ -353,7 +357,7 @@ export function TodaysWorkCard({
               </span>
               <span
                 className="shrink-0 font-cc-mono text-[8.5px] font-semibold"
-                style={{ color: w.color }}
+                style={{ color: w.ink }}
               >
                 {w.tag}
               </span>
@@ -389,7 +393,7 @@ export function TodaysWorkCard({
             </span>
             <span
               className="shrink-0 font-cc-mono text-[9px] font-semibold"
-              style={{ color: w.color }}
+              style={{ color: w.ink }}
             >
               {w.tag}
             </span>
@@ -431,7 +435,7 @@ export function TodaysWorkCard({
           </div>
           <span
             className="shrink-0 font-cc-mono text-[10px] font-semibold tracking-[.08em]"
-            style={{ color: w.color }}
+            style={{ color: w.ink }}
           >
             {w.tag}
           </span>
