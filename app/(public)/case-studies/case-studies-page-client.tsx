@@ -2,15 +2,17 @@
 
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
-import { ProjectCard, SelectedWorkStyles } from '@/components/selected-work'
+import { CaseStudyCardStyles, CaseStudyProjectCard } from '@/components/case-studies/case-study-project-card'
+import { SelectedWorkStyles } from '@/components/selected-work'
 import { SELECTED_WORK } from '@/lib/marketing/selected-work'
 
 /**
  * The public portfolio page. Projects and applications — not outcome case
  * studies: no results, revenue, timelines, team sizes, technology stacks or
  * testimonials, and nothing about a project its owner has not approved for
- * publication. Cards come from the shared `SELECTED_WORK` data and the shared
- * `ProjectCard`, so link and access rules cannot diverge from the homepage.
+ * publication. Cards read the shared `SELECTED_WORK` data, so link and access
+ * rules cannot diverge from the homepage; only the images differ, because this
+ * page — and only this page — shows the art-directed visuals.
  */
 export function CaseStudiesPageClient() {
   return (
@@ -28,7 +30,7 @@ export function CaseStudiesPageClient() {
         <h2>Projects and applications</h2>
         <div className="cs-list">
           {SELECTED_WORK.map((project) => (
-            <ProjectCard key={project.id} project={project} />
+            <CaseStudyProjectCard key={project.id} project={project} />
           ))}
         </div>
       </section>
@@ -42,6 +44,7 @@ export function CaseStudiesPageClient() {
       </section>
 
       <SelectedWorkStyles />
+      <CaseStudyCardStyles />
       <style>{`
         .cs-page{background:#F7F2EA;color:#0A120E;overflow-x:hidden}
         .cs-page *{box-sizing:border-box;min-width:0}
