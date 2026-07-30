@@ -425,4 +425,15 @@ describe("segmented view toggles", () => {
       expect(src, path).not.toMatch(/bg-cc-green(?![-\w])[^"`]*text-white/);
     }
   });
+
+  it("writes no green text with the accent fill token on any dashboard surface", () => {
+    // The other half of the same conflation, and the v1.0.1 defect: --cc-green is a fill,
+    // 3.4:1 as text on the card surface. Green *text* is --cc-green-ink, which is AA on
+    // every surface in every palette (app/dashboard/palette-contrast.test.ts).
+    for (const { path, src } of surfaces) {
+      // Line comments are stripped: naming the wrong utility in order to explain why it is
+      // wrong is how the rule is documented at its own call sites.
+      expect(src.replace(/^\s*\/\/.*$/gm, ""), path).not.toMatch(/text-cc-green(?![-\w])/);
+    }
+  });
 });

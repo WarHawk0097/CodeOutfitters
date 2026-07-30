@@ -62,6 +62,42 @@ function token(name: string, selector: string, seen = new Set<string>()): string
   return raw;
 }
 
+/** Reads a token as it resolves under an appearance: the appearance block wins over the
+ *  palette block for anything it restates, exactly as the cascade does (both selectors
+ *  have the same specificity and the appearance block is written later). */
+function appearanceToken(name: string, selector: string, appearance: string): string {
+  const read = (block: string) => block.match(new RegExp(`${name}:\\s*([^;]+);`))?.[1].trim();
+  const raw =
+    read(blockFor(appearance)) ??
+    read(blockFor(selector)) ??
+    read(blockFor(DEFAULT_SELECTOR));
+  if (!raw) throw new Error(`missing token ${name} for ${selector} under ${appearance}`);
+  // The indirection is followed under the appearance too — a layer-2 alias like
+  // --cc-green-tint: var(--cc-accent-soft) must land on the dark --cc-accent-soft, not the
+  // light one, which is what the browser resolves it to.
+  const indirect = raw.match(/^var\((--[a-z0-9-]+)\)$/);
+  if (indirect) return appearanceToken(indirect[1], selector, appearance);
+  return resolveMix(raw, selector, appearance);
+}
+
+/** `color-mix(in srgb, <colour> <p>%, <colour>)` — the only mix form the token layer uses.
+ *  Interpolating in gamma-encoded sRGB is what the browser does for `in srgb`. */
+function resolveMix(value: string, selector: string, appearance: string): string {
+  const mix = value.match(
+    /^color-mix\(in srgb,\s*(.+?)\s+([\d.]+)%,\s*(.+?)\s*\)$/,
+  );
+  if (!mix) return value;
+  const colour = (part: string) => {
+    const indirect = part.match(/^var\((--[a-z0-9-]+)\)$/);
+    return indirect ? appearanceToken(indirect[1], selector, appearance) : part;
+  };
+  const weight = Number(mix[2]) / 100;
+  const a = rgb(colour(mix[1]));
+  const b = rgb(colour(mix[3]));
+  const channel = (i: number) => Math.round(a[i] * weight + b[i] * (1 - weight));
+  return `#${[0, 1, 2].map((i) => channel(i).toString(16).padStart(2, "0")).join("")}`;
+}
+
 function rgb(hex: string): [number, number, number] {
   const value = hex.trim();
   if (!/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(value)) {
@@ -168,6 +204,63 @@ describe("dashboard palette contrast", () => {
         expect(placeholder).toBeLessThan(secondary);
         // Still legible enough to read the reason a control is unavailable.
         expect(placeholder).toBeGreaterThanOrEqual(AA_LARGE);
+      });
+    });
+  }
+});
+
+// The dark appearance is a second set of surfaces under the same palettes, so every pair
+// above has a dark twin. It is checked separately because one token — green *text* — has
+// to move the other way in the dark: --cc-green-ink is the accent one step darker, which
+// is 2.4-3.2:1 on the dark canvas. The dark block lifts it toward white instead.
+const DARK = "[data-cc-appearance='dark']";
+
+describe("dashboard palette contrast, dark appearance", () => {
+  for (const palette of Object.keys(SELECTORS)) {
+    const selector = SELECTORS[palette];
+    const get = (name: string) => appearanceToken(name, selector, DARK);
+
+    describe(palette, () => {
+      it("reads body, secondary and table ink at AA on every dark surface", () => {
+        for (const surface of ["--cc-surface", "--cc-surface-muted", "--cc-surface-raised"]) {
+          expect(ratio(get("--cc-text"), get(surface)), surface).toBeGreaterThanOrEqual(AA);
+          expect(ratio(get("--cc-text-muted"), get(surface)), surface).toBeGreaterThanOrEqual(AA);
+          expect(ratio(get("--cc-t-table"), get(surface)), surface).toBeGreaterThanOrEqual(AA);
+        }
+      });
+
+      it("reads green text at AA on every dark surface and on its own tint", () => {
+        const ink = get("--cc-green-ink");
+        for (const surface of [
+          "--cc-page-bg",
+          "--cc-surface",
+          "--cc-surface-muted",
+          "--cc-surface-raised",
+          "--cc-lane",
+          "--cc-green-tint",
+        ]) {
+          expect(ratio(ink, get(surface)), surface).toBeGreaterThanOrEqual(AA);
+        }
+      });
+
+      it("keeps the primary label at AA on the primary fill in the dark", () => {
+        // The fill is a background under a white label and therefore stays dark.
+        expect(ratio("#ffffff", get("--cc-green-solid"))).toBeGreaterThanOrEqual(AA);
+        expect(ratio("#ffffff", get("--cc-green-press"))).toBeGreaterThanOrEqual(AA);
+      });
+
+      it("reads status ink at AA on the dark surface and on its own tint", () => {
+        for (const tone of ["red", "amber", "blue"] as const) {
+          const ink = get(`--cc-${tone}-ink`);
+          expect(ratio(ink, get("--cc-surface")), `${tone} on surface`).toBeGreaterThanOrEqual(AA);
+          expect(ratio(ink, get(`--cc-${tone}-tint`)), `${tone} on tint`).toBeGreaterThanOrEqual(AA);
+        }
+      });
+
+      it("keeps the focus ring visible against the dark surfaces", () => {
+        const ring = get("--cc-accent");
+        expect(ratio(ring, get("--cc-surface"))).toBeGreaterThanOrEqual(AA_LARGE);
+        expect(ratio(ring, get("--cc-surface-muted"))).toBeGreaterThanOrEqual(AA_LARGE);
       });
     });
   }
