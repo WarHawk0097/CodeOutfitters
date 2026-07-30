@@ -322,7 +322,7 @@ export function WorkflowAuditPopup() {
         <button
           type="button"
           onClick={() => closePopup(true)}
-          className="mt-3 w-full text-center text-xs font-medium text-[var(--brand-placeholder)] hover:text-[var(--brand-muted)]"
+          className="mt-3 w-full text-center text-xs font-medium text-[var(--brand-muted)] hover:text-[var(--brand-text)]"
         >
           Not right now
         </button>

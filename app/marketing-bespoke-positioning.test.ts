@@ -415,6 +415,24 @@ describe("selected work accessibility", () => {
     expect(contrast("#0E2A1D", "#F6F1E4")).toBeGreaterThanOrEqual(4.5);
   });
 
+  it("keeps the public enquiry controls off the sub-AA foregrounds", () => {
+    // Rendered QA of the preview measured gold #D9B36A at 1.98:1 and
+    // --brand-placeholder #8A857B at 3.29:1, both on enabled controls. Neither
+    // token may dress an enabled control's label.
+    const upload = read("components/inquiry/inquiry-file-upload.tsx");
+    expect(upload).toContain("text-[var(--brand-green-ink)]");
+    expect(upload).not.toContain("font-semibold text-[var(--brand-accent)]");
+    const popup = read("components/inquiry/workflow-audit-popup.tsx");
+    expect(popup).toContain('text-xs font-medium text-[var(--brand-muted)]');
+    expect(popup).not.toContain("text-xs font-medium text-[var(--brand-placeholder)]");
+  });
+
+  it("lets the contact reach sub-labels wrap instead of truncating", () => {
+    // "How discovery leads to a written scope" needed 221px in a 189px box, so the
+    // ellipsis was eating the sentence at every viewport.
+    expect(contact).not.toContain(".con-reach a small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap");
+  });
+
   it("uses a valid heading hierarchy on the portfolio page", () => {
     // h1 in the hero, h2 for the list section and the CTA, h3 per project card.
     expect(caseStudies.match(/<h1>/g) ?? []).toHaveLength(1);

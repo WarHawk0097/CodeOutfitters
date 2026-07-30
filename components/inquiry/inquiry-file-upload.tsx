@@ -307,7 +307,7 @@ export function InquiryFileUpload({
             type="button"
             disabled={full}
             onClick={() => inputRef.current?.click()}
-            className="font-semibold text-[var(--brand-accent)] underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:no-underline"
+            className="font-semibold text-[var(--brand-green-ink)] underline-offset-2 hover:underline hover:text-[var(--brand-green-ink-hover)] disabled:cursor-not-allowed disabled:no-underline"
           >
             Choose files
           </button>{' '}
