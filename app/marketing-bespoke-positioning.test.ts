@@ -264,10 +264,50 @@ describe("selected work assets", () => {
     }
   });
 
+  it("publishes VoiceDesk as a sanitized banner with no link and no client identifier", () => {
+    const project = SELECTED_WORK.find((entry) => entry.id === "voicedesk")!;
+    expect(project.visualType).toBe("sanitized-screenshot");
+    expect(project.image).toBe("/images/selected-work/voicedesk.webp");
+    expect(project.url).toBeNull();
+    expect(project.externalLinkLabel).toBeNull();
+
+    const banner = readFileSync(join(repo, "public", project.image));
+    // WebP container, still-image only, and no metadata sidecar chunks.
+    expect(banner.subarray(0, 4).toString("latin1")).toBe("RIFF");
+    expect(banner.subarray(8, 12).toString("latin1")).toBe("WEBP");
+    expect(banner.subarray(12, 16).toString("latin1")).toBe("VP8 ");
+    expect(banner.length).toBeLessThanOrEqual(250 * 1024);
+
+    // Lossy VP8 keyframe header carries the dimensions in bytes 26..30.
+    const width = banner.readUInt16LE(26) & 0x3fff;
+    const height = banner.readUInt16LE(28) & 0x3fff;
+    expect([width, height]).toEqual([SELECTED_WORK_IMAGE_WIDTH, SELECTED_WORK_IMAGE_HEIGHT]);
+
+    const bytes = banner.toString("latin1");
+    for (const chunk of ["EXIF", "XMP ", "ICCP", "ANIM"]) {
+      expect(bytes.includes(chunk), chunk).toBe(false);
+    }
+    // Metadata chunks are the only way capture provenance (source URL, local path,
+    // device, location) could travel inside a lossy WebP, and there are none above.
+    // The pixel sanitisation itself is checked by rendered review, not by byte search.
+  });
+
+  it("tracks no raw capture of the private VoiceDesk console", () => {
+    // Pre-existing design uploads carry their own screencapture names; only a VoiceDesk
+    // capture is forbidden, in any raster format, anywhere in the tree.
+    expect(trackedFiles.filter((path) => /screencapture.*voicedesk|voicedesk.*screencapture/i.test(path))).toEqual([]);
+    expect(trackedFiles.filter((path) => /selected-work\/.*\.(png|jpe?g)$/i.test(path))).toEqual([]);
+  });
+
   it("describes fallback graphics as CodeOutfitters graphics, never as product screenshots", () => {
     for (const project of SELECTED_WORK) {
       if (project.visualType === "screenshot") {
         expect(project.imageAlt, project.id).toMatch(/public product website/);
+      } else if (project.visualType === "sanitized-screenshot") {
+        // A private application's own interface, so the alt text must say the client
+        // detail is gone and must never imply a public or reachable product site.
+        expect(project.imageAlt, project.id).toMatch(/client details removed/);
+        expect(project.imageAlt, project.id).not.toMatch(/public product website|live|demo/i);
       } else {
         expect(project.imageAlt, project.id).toMatch(/^CodeOutfitters presentation graphic for /);
         expect(project.imageAlt, project.id).not.toMatch(/screenshot|dashboard/i);

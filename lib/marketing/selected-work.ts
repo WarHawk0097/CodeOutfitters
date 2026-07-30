@@ -35,7 +35,12 @@ export type SelectedWorkProject = {
   externalLinkLabel: string | null
   /** Quiet status line shown when a project has no public link. */
   accessNote: string | null
-  visualType: 'screenshot' | 'branded-fallback'
+  /**
+   * `screenshot` is a capture of a publicly reachable product site.
+   * `sanitized-screenshot` is an owner-supplied capture of a private application,
+   * published only after every client identifier was removed from the pixels.
+   */
+  visualType: 'screenshot' | 'sanitized-screenshot' | 'branded-fallback'
 }
 
 export const SELECTED_WORK_IMAGE_WIDTH = 1280
@@ -114,7 +119,7 @@ export const SELECTED_WORK: readonly SelectedWorkProject[] = [
   },
   {
     id: 'voicedesk',
-    name: 'VoiceDesk',
+    name: 'CodeOutfitters VoiceDesk',
     url: null,
     domain: null,
     summary:
@@ -122,12 +127,16 @@ export const SELECTED_WORK: readonly SelectedWorkProject[] = [
     category: 'Voice call-operations application',
     tags: ['Bespoke web application', 'Call operations', 'Lead workflow', 'Dashboard'],
     image: '/images/selected-work/voicedesk.webp',
-    imageAlt: 'CodeOutfitters presentation graphic for VoiceDesk',
+    // Owner-supplied capture of the operator console. Published only after the
+    // workspace name, the account identity and the avatar initials were painted out,
+    // and cropped above the recent-call and upcoming-booking rows, so no name, phone
+    // number, appointment type or call record survives in the banner.
+    imageAlt: 'VoiceDesk call-operations interface with client details removed',
     featured: false,
     publiclyAccessible: false,
     externalLinkLabel: null,
     accessNote: 'Private operational application. No public demonstration environment.',
-    visualType: 'branded-fallback',
+    visualType: 'sanitized-screenshot',
   },
 ]
 
