@@ -165,10 +165,10 @@ export function TimezoneSelector({ value, onChange, id }: TimezoneSelectorProps)
         .tz-empty{padding:16px;text-align:center;font:400 13px 'Instrument Sans';color:#8A857B}
         .tz-option{width:100%;display:flex;align-items:center;gap:8px;padding:10px 12px;border:0;background:transparent;cursor:pointer;text-align:left;font:400 14px 'Instrument Sans';color:#0A120E;transition:background .15s}
         .tz-option:hover,.tz-option.highlighted{background:#F5F0EB}
-        .tz-option.selected{background:#E8F5F1;color:#128A54;font-weight:600}
+        .tz-option.selected{background:#E8F5F1;color:var(--brand-green-ink);font-weight:600}
         .tz-option-label{flex:1}
         .tz-option-meta{font-size:12px;color:#8A857B}
-        .tz-option.selected .tz-option-meta{color:#128A54}
+        .tz-option.selected .tz-option-meta{color:var(--brand-green-ink)}
       `}</style>
     </div>
   )

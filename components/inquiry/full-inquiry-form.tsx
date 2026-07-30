@@ -208,7 +208,7 @@ export function FullInquiryForm({
           <ReviewSummary values={getValues()} attachments={completedFiles} />
           <InquiryCheckbox id="contact-privacy" registration={register('consent.privacyAccepted')} error={errors.consent?.privacyAccepted?.message}>
             I agree to the{' '}
-            <Link href="/privacy" className="text-[var(--brand-green)] underline">
+            <Link href="/privacy" className="text-[var(--brand-green-ink)] underline">
               privacy policy
             </Link>
             .
@@ -230,7 +230,7 @@ export function FullInquiryForm({
         )}
 
         {isReview ? (
-          <button type="submit" disabled={submitting} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--brand-green)] px-6 py-3 text-sm font-semibold text-white transition-transform duration-150 hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-60">
+          <button type="submit" disabled={submitting} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--brand-green-solid)] px-6 py-3 text-sm font-semibold text-white transition-transform duration-150 hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-60">
             {submitting ? (
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
             ) : (
@@ -241,7 +241,7 @@ export function FullInquiryForm({
             )}
           </button>
         ) : (
-          <button type="button" onClick={goNext} className="inline-flex items-center gap-2 rounded-xl bg-[var(--brand-green)] px-6 py-3 text-sm font-semibold text-white transition-transform duration-150 hover:-translate-y-px">
+          <button type="button" onClick={goNext} className="inline-flex items-center gap-2 rounded-xl bg-[var(--brand-green-solid)] px-6 py-3 text-sm font-semibold text-white transition-transform duration-150 hover:-translate-y-px">
             Continue
             <ArrowRight className="h-4 w-4" />
           </button>

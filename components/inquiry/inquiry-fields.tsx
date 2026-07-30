@@ -10,7 +10,7 @@ import { type UseFormRegisterReturn } from 'react-hook-form'
 const inputClass =
   'w-full min-h-12 rounded-xl bg-white border px-4 py-3 text-sm text-[var(--brand-text)] ' +
   'placeholder-[var(--brand-placeholder)] outline-none transition-all duration-200 ' +
-  'focus:border-[var(--brand-green)] focus:ring-2 focus:ring-[var(--brand-green)]/15'
+  'focus:border-[var(--brand-focus)] focus:ring-2 focus:ring-[var(--brand-focus)]/15'
 
 function borderClass(hasError: boolean): string {
   return hasError ? 'border-red-400' : 'border-[var(--brand-border)]'
@@ -32,7 +32,7 @@ function Label({ id, label, required }: { id: string; label: string; required?: 
     >
       {label}
       {required && (
-        <span className="text-[var(--brand-green)] ml-0.5" aria-hidden="true">
+        <span className="text-[var(--brand-green-ink)] ml-0.5" aria-hidden="true">
           *
         </span>
       )}
@@ -235,7 +235,7 @@ export function InquiryCheckbox({ id, registration, error, children }: ConsentPr
           type="checkbox"
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? `${id}-error` : undefined}
-          className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--brand-green)]"
+          className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--brand-green-solid)]"
           {...registration}
         />
         <span className="text-xs leading-relaxed text-[var(--brand-muted)]">{children}</span>

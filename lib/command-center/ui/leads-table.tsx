@@ -1004,7 +1004,7 @@ export function LeadsTable({
               <span className={`truncate text-[11px] ${NEXT_STEP_TONE[nextStepText(lead)] ?? "text-cc-t-table"}`}>
                 {nextStepText(lead)}
               </span>
-              <span aria-hidden="true" className="shrink-0 text-[11px] font-semibold text-cc-green">
+              <span aria-hidden="true" className="shrink-0 text-[11px] font-semibold text-cc-green-ink">
                 Open ›
               </span>
             </div>

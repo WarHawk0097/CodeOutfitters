@@ -286,7 +286,7 @@ export function WorkflowAuditPopup() {
         </button>
 
         <div className="mb-5" data-stagger>
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--brand-green)]">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--brand-green-ink)]">
             Free workflow audit
           </p>
           <h2

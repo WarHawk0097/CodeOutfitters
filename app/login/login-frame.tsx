@@ -63,16 +63,16 @@ export function LoginFrame({ children }: { children: ReactNode }) {
 .login-title{margin:0;font:600 clamp(26px,4vw,32px)/1.15 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.02em}
 .login-subtitle{margin:8px 0 0;font:400 15px/1.5 'Instrument Sans',sans-serif;color:#4A5248}
 .login-alert{margin:18px 0 0;font:500 14px/1.45 'Instrument Sans',sans-serif;color:#8A2318;background:#FBECE9;border:1px solid rgba(138,35,24,.22);border-radius:10px;padding:11px 14px}
-.login-status{margin:0;font:500 14px 'Instrument Sans',sans-serif;color:#128A54}
+.login-status{margin:0;font:500 14px 'Instrument Sans',sans-serif;color:var(--brand-green-ink)}
 .login-status:empty{display:none}
 .login-form{display:flex;flex-direction:column;gap:16px;margin-top:22px}
 .login-field{display:flex;flex-direction:column;gap:6px}
 .login-label-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
 .login-label{font:600 14px 'Instrument Sans',sans-serif;color:#0A120E}
-.login-forgot{font:500 13px 'Instrument Sans',sans-serif;color:#128A54;text-decoration:none}
+.login-forgot{font:500 13px 'Instrument Sans',sans-serif;color:var(--brand-green-ink);text-decoration:none}
 .login-forgot:hover{text-decoration:underline}
 .login-input{width:100%;font:400 15px 'Instrument Sans',sans-serif;color:#0A120E;background:#FFFDF8;border:1px solid #C9BEA8;border-radius:10px;padding:11px 14px;outline:none;transition:.15s}
-.login-input:focus{border-color:#17A063;box-shadow:0 0 0 3px rgba(23,160,99,.18)}
+.login-input:focus{border-color:var(--brand-focus);box-shadow:0 0 0 3px rgba(14,122,78,.18)}
 .login-input[aria-invalid='true']{border-color:#8A2318}
 .login-field-error{margin:0;font:500 13px 'Instrument Sans',sans-serif;color:#8A2318}
 .login-password{position:relative;display:flex;align-items:center}
@@ -81,7 +81,7 @@ export function LoginFrame({ children }: { children: ReactNode }) {
 .login-reveal:hover{color:#0A120E}
 .login-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .login-submit{margin-top:2px;width:100%;font:600 15px 'Instrument Sans',sans-serif;color:#F7F2EA;background:#0E2A1D;border:0;border-radius:10px;padding:13px 18px;cursor:pointer;transition:.15s}
-.login-submit:hover:not(:disabled){background:#17A063}
+.login-submit:hover:not(:disabled){background:var(--brand-green-solid)}
 .login-submit:disabled{opacity:.6;cursor:not-allowed}
 
 .login-divider{display:flex;align-items:center;gap:12px;margin:22px 0}

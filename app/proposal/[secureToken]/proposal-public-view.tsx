@@ -425,12 +425,12 @@ function ResponseForm({ token }: { token: string }) {
         .pp-respond label { display: block; margin: 14px 0 6px; font-size: 13.5px; font-weight: 600; }
         .pp-respond input[type='text'], .pp-respond textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--brand-border); border-radius: 10px; background: var(--brand-surface-2); font: inherit; font-size: 14.5px; }
         .pp-respond textarea { resize: vertical; }
-        .pp-respond input:focus-visible, .pp-respond textarea:focus-visible, .pp-tabs button:focus-visible, .pp-submit:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 2px; }
+        .pp-respond input:focus-visible, .pp-respond textarea:focus-visible, .pp-tabs button:focus-visible, .pp-submit:focus-visible { outline: 2px solid var(--brand-focus); outline-offset: 2px; }
         .pp-check { display: flex; align-items: flex-start; gap: 10px; margin: 14px 0 0; }
         .pp-check input { margin-top: 3px; }
         .pp-check label { margin: 0; font-weight: 400; font-size: 14px; line-height: 1.5; }
         .pp-err { margin: 6px 0 0; font-size: 13px; color: #9B1C1C; }
-        .pp-submit { margin: 20px 0 0; padding: 11px 22px; border: none; border-radius: 999px; background: var(--brand-primary); color: #fff; font: inherit; font-size: 14.5px; font-weight: 600; cursor: pointer; }
+        .pp-submit { margin: 20px 0 0; padding: 11px 22px; border: none; border-radius: 999px; background: var(--brand-green-solid); color: #fff; font: inherit; font-size: 14.5px; font-weight: 600; cursor: pointer; }
         .pp-status { margin: 14px 0 0; font-size: 13.5px; line-height: 1.6; color: var(--brand-muted); min-height: 1.6em; }
       `}</style>
     </section>

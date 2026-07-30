@@ -139,7 +139,7 @@ function MobileSummary({ activeCount, phases }: { activeCount: string; phases: P
     <div className={`${CARD} px-[13px] py-2.5`}>
       <div className="flex justify-between">
         <span className="text-[11.5px] font-semibold text-cc-ink">Pipeline Journey</span>
-        <span className="text-[10px] font-semibold text-cc-green">Statuses ▾</span>
+        <span className="text-[10px] font-semibold text-cc-green-ink">Statuses ▾</span>
       </div>
       <div className="mt-[3px] text-[10.5px] text-cc-t2">
         {activeCount} active

@@ -454,7 +454,7 @@ export function MeetingsScreen() {
           <button
             type="button"
             onClick={() => setView("upcoming")}
-            className="ml-auto text-[11.5px] font-semibold text-cc-green underline decoration-cc-line underline-offset-2 hover:decoration-cc-green"
+            className="ml-auto text-[11.5px] font-semibold text-cc-green-ink underline decoration-cc-line underline-offset-2 hover:decoration-cc-green"
           >
             Clear filter
           </button>
