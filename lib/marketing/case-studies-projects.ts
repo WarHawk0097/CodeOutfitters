@@ -13,10 +13,11 @@
  * - `url` is `null` for any application without a public URL that is
  *   appropriate for a public visitor. A null url renders as plain status text,
  *   never as an anchor.
- * - VoiceDesk is a private operational application. Its owner-supplied route is
- *   an unauthenticated dashboard holding phone-number-shaped records, so it is
- *   deliberately absent from this module and must never be added to project
- *   data, metadata, structured data, the sitemap or alt text.
+ * - VoiceDesk is linked only at the owner-approved public alias, which serves the
+ *   application without authentication and without a share token. No other
+ *   VoiceDesk host may be linked, and its imagery is sanitized before publishing:
+ *   workspace, caller, lead and booking values are replaced with neutral demo
+ *   values in the page before capture, never edited back in afterwards.
  * - Pro Photo Systems publishes on the `www` host; the apex domain does not
  *   resolve, so the apex form must never be linked.
  * - Every image is a local, same-origin WebP under `/images/selected-work/`.
@@ -30,8 +31,11 @@
  * What an image actually is, so a card can never imply more than the pixels show.
  * - `screenshot`: a capture of a publicly reachable product site.
  * - `branded-fallback`: a CodeOutfitters presentation graphic, not a product view.
+ * - `sanitized-screenshot`: a genuine capture of an application whose workspace,
+ *   contact and record values were replaced with neutral demo values in the page
+ *   before the capture. Layout, navigation and hierarchy are untouched.
  */
-export type CaseStudyImageKind = 'screenshot' | 'branded-fallback'
+export type CaseStudyImageKind = 'screenshot' | 'branded-fallback' | 'sanitized-screenshot'
 
 export type CaseStudyImageAsset = {
   /** Local, same-origin path. Never an absolute or remote URL. */
@@ -81,11 +85,11 @@ const desktopAsset = (src: string, kind: CaseStudyImageKind = 'screenshot'): Cas
   kind,
 })
 
-const mobileAsset = (src: string): CaseStudyImageAsset => ({
+const mobileAsset = (src: string, kind: CaseStudyImageKind = 'screenshot'): CaseStudyImageAsset => ({
   src,
   width: MOBILE_VISUAL_WIDTH,
   height: MOBILE_VISUAL_HEIGHT,
-  kind: 'screenshot',
+  kind,
 })
 
 export const CASE_STUDY_PROJECTS: readonly CaseStudyProject[] = [
@@ -168,18 +172,22 @@ export const CASE_STUDY_PROJECTS: readonly CaseStudyProject[] = [
   {
     id: 'voicedesk',
     name: 'CodeOutfitters VoiceDesk',
-    url: null,
-    domain: null,
+    url: 'https://voicedesk-ebon.vercel.app/dashboard',
+    domain: 'voicedesk-ebon.vercel.app',
     summary:
       'A bespoke call-operations application bringing dialing, call outcomes, lead workflow and booking management into one operator dashboard.',
     category: 'Voice call-operations application',
     tags: ['Bespoke web application', 'Call operations', 'Lead workflow', 'Dashboard'],
-    externalLinkLabel: null,
-    accessNote: 'Private operational application. No public demonstration environment.',
-    publiclyAccessible: false,
-    // Text-only, by owner decision. No desktop capture, no phone capture, no
-    // branded stand-in and no empty media box: the card renders as text.
-    visual: null,
-    imageAlt: null,
+    externalLinkLabel: 'View VoiceDesk',
+    accessNote: 'Public demonstration application.',
+    publiclyAccessible: true,
+    // Both captures are genuine views of the public alias above, sanitized in the
+    // page before capture: workspace, caller, lead and booking values are neutral
+    // demo values, and layout, navigation and hierarchy are untouched.
+    visual: {
+      desktop: desktopAsset('/images/selected-work/voicedesk-desktop.webp', 'sanitized-screenshot'),
+      mobile: mobileAsset('/images/selected-work/voicedesk-mobile.webp', 'sanitized-screenshot'),
+    },
+    imageAlt: 'VoiceDesk call-operations dashboard showing calls, lead workflow and booking management',
   },
 ]
