@@ -434,19 +434,19 @@ describe("sign-in repair — rendered screen facts (27-30)", () => {
   });
 
   // 30
-  it("the public header keeps Sign in immediately before Book a Call, 12px apart", () => {
+  it("the public header keeps Sign in immediately before the primary CTA, 12px apart", () => {
     const navbar = readFileSync(`${repo}components/navbar.tsx`, "utf8");
     const group = navbar.slice(
       navbar.indexOf('className="site-nav-actions"'),
       navbar.indexOf("site-nav-toggle"),
     );
     expect(group.indexOf('href="/login"')).toBeGreaterThan(-1);
-    expect(group.indexOf('href="/login"')).toBeLessThan(group.indexOf("Book a Call"));
+    expect(group.indexOf('href="/login"')).toBeLessThan(group.indexOf("Discuss application"));
     expect(navbar).toContain(".site-nav-actions{display:flex;align-items:center;gap:12px");
     expect(navbar).not.toContain(".site-nav-actions{display:flex;justify-content:space-between");
     // Mobile drawer keeps the same order.
     const drawer = navbar.slice(navbar.indexOf("site-mobile-links"));
-    expect(drawer.indexOf("Sign in")).toBeLessThan(drawer.indexOf("Book a Call"));
+    expect(drawer.indexOf("Sign in")).toBeLessThan(drawer.indexOf("Discuss application"));
   });
 
   // 31

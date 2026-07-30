@@ -40,8 +40,8 @@ describe("regression guards (tests 45-50)", () => {
   });
 
   // 49
-  it("keeps the public Book a Call CTA to /contact", () => {
-    expect(navbarSrc).toContain("Book a Call");
+  it("keeps the public header CTA pointing at /contact", () => {
+    expect(navbarSrc).toContain("Discuss application");
     expect(navbarSrc).toContain('href="/contact"');
   });
 
