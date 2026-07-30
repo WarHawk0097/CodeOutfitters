@@ -1,10 +1,12 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, ArrowUpRight } from 'lucide-react'
-import { ResponsiveProjectImage } from '@/components/selected-work/responsive-project-image'
 import {
   FEATURED_PROJECT,
+  SELECTED_WORK_IMAGE_HEIGHT,
+  SELECTED_WORK_IMAGE_WIDTH,
   SUPPORTING_PROJECTS,
   type SelectedWorkProject,
 } from '@/lib/marketing/selected-work'
@@ -31,9 +33,11 @@ function ExternalProjectLink({ project }: { project: SelectedWorkProject }) {
 function ProjectVisual({ project, featured }: { project: SelectedWorkProject; featured: boolean }) {
   return (
     <div className="sw-visual">
-      <ResponsiveProjectImage
-        visual={project.visual}
+      <Image
+        src={project.image}
         alt={project.imageAlt}
+        width={SELECTED_WORK_IMAGE_WIDTH}
+        height={SELECTED_WORK_IMAGE_HEIGHT}
         sizes={featured ? '(max-width:900px) 92vw, 560px' : '(max-width:820px) 92vw, 420px'}
         priority={false}
       />
@@ -117,9 +121,7 @@ export function SelectedWorkStyles() {
       .sw-card.is-featured{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);align-items:stretch}
       .sw-visual{position:relative;background:#0E241A;border-bottom:1px solid rgba(13,58,49,.12)}
       .sw-card.is-featured .sw-visual{border-bottom:0;border-right:1px solid rgba(13,58,49,.12)}
-      .sw-picture{display:block}
-      .sw-visual img{display:block;width:100%;height:auto;aspect-ratio:var(--sw-desktop-aspect,16/10);object-fit:cover;object-position:top center}
-      @media(max-width:767px){.sw-visual img{aspect-ratio:var(--sw-mobile-aspect,16/10)}}
+      .sw-visual img{display:block;width:100%;height:auto;aspect-ratio:16/10;object-fit:cover;object-position:top center}
       .sw-body{display:flex;flex-direction:column;gap:11px;padding:clamp(20px,2.4vw,28px)}
       .sw-category{font:700 11px 'Instrument Sans',sans-serif;letter-spacing:.14em;color:#0E7A4E;text-transform:uppercase}
       .sw-name{margin:0;font:600 clamp(20px,2.2vw,24px)/1.22 'Space Grotesk',sans-serif;color:#0A120E;letter-spacing:-.01em}
