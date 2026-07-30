@@ -11,13 +11,16 @@ const organizationSchema = {
   '@context': 'https://schema.org',
   '@type': 'ProfessionalService',
   name: 'CodeOutfitters',
-  description: 'AI automation agency for US small businesses',
+  // Factual only: what CodeOutfitters does. No reviews, no ratings, and no claim
+  // to operate the applications it designed and built for clients.
+  description:
+    'CodeOutfitters designs and builds bespoke web applications, business platforms and portals, workflow integrations and product modernization.',
   // Structured data points at the client-facing origin, the same one the canonical
   // metadata and the sitemap use. The email address below is contact detail, not a URL.
   url: CANONICAL_ORIGIN,
   email: 'hello@codeoutfitters.com',
   areaServed: 'US',
-  serviceType: 'AI Automation',
+  serviceType: 'Bespoke web application development',
   priceRange: 'Custom quote',
 }
 

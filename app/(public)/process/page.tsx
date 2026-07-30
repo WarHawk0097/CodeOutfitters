@@ -9,20 +9,20 @@ import { useScrollReveal } from '@/hooks/useScrollReveal'
 import { InquiryPopupTrigger } from '@/components/inquiry/inquiry-cta'
 
 const steps = [
-  { badge: 'Step 1', title: 'Discovery Call', text: 'A free 30-minute call where we map how the work happens today and find your biggest time drains.' },
-  { badge: 'Step 2', title: 'Workflow Audit', text: 'We dig into your actual tools and steps — no assumptions — to understand exactly what needs to connect to what.' },
-  { badge: 'Step 3', title: 'Fixed-Scope Proposal', text: 'You receive a clear, written proposal — exact deliverables, timeline, and cost. No packages, no guessing.' },
-  { badge: 'Step 4', title: 'Build Phase', text: 'We build against the approved scope, integrating with the tools you already use — you get progress updates, not surprises.' },
-  { badge: 'Step 5', title: 'Testing & Handoff', text: 'We test against real scenarios before anything goes live, then hand off with documentation your team can actually use.' },
-  { badge: '30-Day Support', title: 'Live & Supported', text: '30 days of support included after launch — we monitor, fix, and fine-tune as your team gets used to the new system.' },
+  { badge: 'Step 1', title: 'Discovery Call', text: 'A 30-minute call where we work through how the operation runs today, who does what, and which records the software has to hold.' },
+  { badge: 'Step 2', title: 'Workflow Review', text: 'We map the workflows, roles and systems of record involved — no assumptions — so we know exactly what the application has to connect to.' },
+  { badge: 'Step 3', title: 'Written Scope', text: 'You receive a clear, written scope — exact deliverables, dates and cost. No packages, no guessing.' },
+  { badge: 'Step 4', title: 'Build Phase', text: 'We build against the approved scope in reviewable stages, integrating with the systems you already run — you get progress you can use, not surprises.' },
+  { badge: 'Step 5', title: 'Testing & Handoff', text: 'We test against real scenarios before anything goes live, then hand over the application, its source and documentation your team can actually use.' },
+  { badge: 'After Launch', title: 'Live & Supported', text: 'Support after launch, and later phases scoped separately when the operation changes around the application.' },
 ]
 
 const faqs = [
-  { q: "Why isn't there a pricing page?", a: 'Because two businesses rarely need the same build. We scope every project after a discovery call and workflow audit, so your quote reflects your actual tools and volume — not a generic tier.' },
-  { q: 'How long does discovery take?', a: 'Just one 30-minute call. We come prepared with questions about your current workflow and walk away with enough to scope a proposal.' },
-  { q: 'When do I find out the cost?', a: 'After the workflow audit, in your fixed-scope proposal — before any build work starts. No surprise invoices later.' },
-  { q: "What happens if I don't want to move forward after discovery?", a: "Nothing — there's no obligation. The call and audit are free, and it's common for us to tell people automation isn't the right fit yet." },
-  { q: 'What does the 30-day support window include?', a: 'We monitor your automations, fix issues fast, and make small adjustments as your team gets used to the new system.' },
+  { q: "Why isn't there a pricing page?", a: 'Because two businesses rarely need the same application. We scope every project after a discovery call and a workflow review, so your quote reflects the work the software actually has to carry — not a generic tier.' },
+  { q: 'How long does discovery take?', a: 'Usually one 30-minute call to start. We come prepared with questions about how the work happens today and leave with enough to draft a scope.' },
+  { q: 'When do I find out the cost?', a: 'In the written scope, before any build work starts. No surprise invoices later.' },
+  { q: "What happens if I don't want to move forward after discovery?", a: "Nothing — there's no obligation. The call and the review are free, and it's common for us to tell people a bespoke application isn't the right answer yet." },
+  { q: 'What does support after launch include?', a: 'We stay available for fixes and small adjustments while your team settles into the application, and scope later phases separately when you want them.' },
 ]
 
 function Heading({ eyebrow, children }: { eyebrow?: string; children: React.ReactNode }) {
@@ -82,8 +82,8 @@ export default function ProcessPage() {
     </div></section>
 
     <section className="pro-cta" ref={ctaRef}><div className="pro-cta-wrap"><div className="pro-cta-panel" data-reveal>
-      <div className="pro-cta-copy"><strong>Ready for step one?</strong><h2>Book Your <span>Discovery Call</span></h2><p>No commitment, no pricing pitch — just an honest look at whether automation is worth it for you right now.</p><div>{['Free audit included', 'No long contracts', '30-day support'].map(item => <span key={item}><b>✓</b>{item}</span>)}</div><InquiryPopupTrigger label="Or get a free workflow audit" className="inline-flex items-center gap-2 rounded-[11px] border border-[rgba(245,240,232,.25)] px-5 py-3 text-[14px] font-semibold text-[#F5F0E8] no-underline transition-colors hover:bg-white/5" /></div>
-      <div className="pro-cta-action"><strong>What you get in 30 minutes</strong><div>{['A map of your biggest time drains', 'Which workflow to automate first', 'A fixed quote — before we build anything'].map(item => <span key={item}><b>✓</b>{item}</span>)}</div><Link href="/contact" className="cta-action-btn cta-sweep">Book Free Discovery Call <img src="/assets/icon-arrow-right.svg" alt="" /></Link></div>
+      <div className="pro-cta-copy"><strong>Ready for step one?</strong><h2>Discuss your <span>application</span></h2><p>No commitment, no pricing pitch — just an honest look at what a bespoke application would have to do, and whether it is the right answer right now.</p><div>{['Scope agreed in writing', 'You own the application', 'Support after launch'].map(item => <span key={item}><b>✓</b>{item}</span>)}</div><InquiryPopupTrigger label="Or send project details" className="inline-flex items-center gap-2 rounded-[11px] border border-[rgba(245,240,232,.25)] px-5 py-3 text-[14px] font-semibold text-[#F5F0E8] no-underline transition-colors hover:bg-white/5" /></div>
+      <div className="pro-cta-action"><strong>What the first conversation covers</strong><div>{['The workflows the application has to carry', 'What to build first — and what to leave out', 'A written scope before any build begins'].map(item => <span key={item}><b>✓</b>{item}</span>)}</div><Link href="/contact" className="cta-action-btn cta-sweep">Discuss your application <img src="/assets/icon-arrow-right.svg" alt="" /></Link></div>
     </div></div></section>
 
     <style>{`

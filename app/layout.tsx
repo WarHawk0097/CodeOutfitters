@@ -30,10 +30,11 @@ export const metadata: Metadata = {
   // The client-facing origin of this release, so every relative OG/twitter image
   // and canonical link resolves to the domain the site is actually served on.
   metadataBase: new URL(CANONICAL_ORIGIN),
-  title: 'CodeOutfitters — AI Automation for Small Businesses',
+  title: 'CodeOutfitters — Bespoke Web Application Development',
   description:
-    'AI automation for US small businesses. We build WhatsApp bots, AI chatbots, email workflows, and custom automation. 7-day setup, zero code required.',
-  keywords: 'AI automation, small business automation, WhatsApp bot, chatbot, workflow automation, no-code',
+    'CodeOutfitters designs and builds bespoke web applications: operations platforms, client and staff portals, dashboards and workflow systems for businesses that have outgrown off-the-shelf software.',
+  keywords:
+    'bespoke web application development, custom web application, business platform, client portal, internal tools, workflow automation, software modernization',
   authors: [{ name: 'CodeOutfitters' }],
   icons: {
     icon: '/favicon.svg',
@@ -41,8 +42,8 @@ export const metadata: Metadata = {
     apple: '/favicon.svg',
   },
   openGraph: {
-    title: 'CodeOutfitters — AI Automation Agency',
-    description: "We automate the work you shouldn't be doing.",
+    title: 'CodeOutfitters — Bespoke Web Application Development',
+    description: 'Web applications built around how a business actually works.',
     type: 'website',
     images: [{ url: '/hero-fallback.jpg', width: 1200, height: 630 }],
   },

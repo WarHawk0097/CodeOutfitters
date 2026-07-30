@@ -14,7 +14,7 @@ const industries = [
   { name: 'E-commerce / Retail', icon: 'icon-database-stack.svg', bg: ['#EAF6EF', '#DCF0E5'], problems: 'Order and invoice entry done by hand, support inbox flooded with the same order questions.', examples: ['Order-to-invoice sync', 'Order status auto-replies', 'Returns triage'], tools: 'Shopify, QuickBooks, Stripe, Zendesk' },
   { name: 'Professional Services', icon: 'icon-edit-square.svg', bg: ['#F8EFDD', '#F0E2C4'], problems: 'Client onboarding scattered across email, proposals and invoices tracked in spreadsheets.', examples: ['Client onboarding sequences', 'Proposal-to-invoice handoff', 'Status update emails'], tools: 'Gmail/Outlook, Notion, QuickBooks, DocuSign' },
   { name: 'Education / Training', icon: 'icon-check-square.svg', bg: ['#E8EDE9', '#DBE3DC'], problems: 'Enrollment questions answered one-by-one, cohort reminders sent manually, certificates issued by hand.', examples: ['Enrollment chat answers', 'Cohort reminder sequences', 'Certificate delivery'], tools: 'Kajabi, Teachable, Mailchimp, Google Sheets' },
-  { name: 'Local Service Businesses', icon: 'icon-orchestrate.svg', bg: ['#EAF6EF', '#DCF0E5'], problems: 'Booking requests come in on five different channels and get lost between them.', examples: ['Unified booking intake', 'Review request automation', 'No-show follow-up'], tools: 'WhatsApp, Instagram DMs, Google Business, Calendly' },
+  { name: 'Local Service Businesses', icon: 'icon-orchestrate.svg', bg: ['#EAF6EF', '#DCF0E5'], problems: 'Booking requests come in on five different channels and get lost between them.', examples: ['Unified booking intake', 'Review request automation', 'No-show follow-up'], tools: 'Booking systems, Google Business, Calendly, WhatsApp' },
 ]
 
 const needs = [
@@ -33,15 +33,15 @@ const workflows = [
 const stats = [
   { num: '7', label: 'Industries served' },
   { num: '120+', label: 'Systems shipped' },
-  { num: '7 days', label: 'Typical build time' },
+  { num: 'Phase 01', label: 'Every project starts with discovery' },
   { num: '30 days', label: 'Support included' },
 ]
 
 const faqs = [
-  { q: "What if my industry isn't listed?", a: "Most automation we build isn't industry-specific software — it's the workflow underneath it (intake, scheduling, follow-up, back office). If you run a business with repetitive manual work, we can very likely help." },
-  { q: 'Do you need industry-specific software experience?', a: 'We learn your existing tools during discovery rather than forcing you onto new software. Most builds connect to what you already use.' },
-  { q: 'How is pricing decided per industry?', a: "There's no fixed package by industry — every build gets a fixed quote and timeline after a discovery call and workflow audit, based on the actual scope." },
-  { q: 'Can one system serve multiple industries at once (e.g. multi-location)?', a: 'Yes — we regularly build systems that flex across locations or service lines within the same business.' },
+  { q: "What if my industry isn't listed?", a: "Most applications we build are not industry-specific products — they are built around the workflow underneath (intake, scheduling, fulfilment, back office). If your operation has outgrown its current software, we can very likely help." },
+  { q: 'Do you need industry-specific software experience?', a: 'We learn your existing tools and terminology during discovery rather than forcing you onto new software. Most applications we build connect to the systems you already run.' },
+  { q: 'How is pricing decided per industry?', a: "There's no fixed package by industry — every project is quoted with dates after a discovery call and a workflow review, based on the written scope." },
+  { q: 'Can one system serve multiple industries at once (e.g. multi-location)?', a: 'Yes — we regularly build applications that flex across locations, service lines or brands within the same business, with roles and permissions to match.' },
 ]
 
 function SectionHeading({ eyebrow, title }: { eyebrow?: string; title: string }) {
@@ -64,9 +64,9 @@ function IndustryCard({ industry, onPick }: { industry: typeof industries[number
   return <article className="ind-card" data-reveal style={style} onPointerMove={spotlight} onPointerEnter={glowOn} onPointerLeave={glowOff}>
     <div className="ind-card-title"><span className="ind-icon"><img src={`/assets/${industry.icon}`} alt="" /></span><h3>{industry.name}</h3></div>
     <div className="ind-copy"><strong>Common problems</strong><p>{industry.problems}</p></div>
-    <div className="ind-copy"><strong>What we automate</strong><div className="ind-chips">{industry.examples.map(example => <span key={example}>{example}</span>)}</div></div>
+    <div className="ind-copy"><strong>What we build</strong><div className="ind-chips">{industry.examples.map(example => <span key={example}>{example}</span>)}</div></div>
     <div className="ind-copy"><strong>Tools we connect to</strong><p className="ind-tools">{industry.tools}</p></div>
-    <button type="button" onClick={() => onPick(industry.name)}>Talk about {industry.name} automation <img src="/assets/icon-arrow-right.svg" alt="" /></button>
+    <button type="button" onClick={() => onPick(industry.name)}>Talk about {industry.name} applications <img src="/assets/icon-arrow-right.svg" alt="" /></button>
   </article>
 }
 
@@ -111,7 +111,7 @@ export default function IndustriesPage() {
       </div>
     </section>
 
-    <section id="industries-inquiry" className="ind-inquiry"><div className="ind-section-inner"><ContextualInquiryCta formVariant="industries_compact" pageName="Industries" sourceSection="industries-inline" selectedIndustry={selectedIndustry} contextKey="selectedIndustry" contextLabel="Which industry are you in?" contextPlaceholder="e.g. Home Services / HVAC" heading="Tell us where your workflow gets stuck." description="Every business runs on the same handful of manual steps. Describe yours and we will tell you which one is worth automating first." descriptionLabel="Where does the manual work pile up?" descriptionPlaceholder="e.g. booking, follow-ups, and invoicing are all done by hand." submitLabel="Get my free workflow audit" /></div></section>
+    <section id="industries-inquiry" className="ind-inquiry"><div className="ind-section-inner"><ContextualInquiryCta formVariant="industries_compact" pageName="Industries" sourceSection="industries-inline" selectedIndustry={selectedIndustry} contextKey="selectedIndustry" contextLabel="Which industry are you in?" contextPlaceholder="e.g. Home Services / HVAC" heading="Tell us where the current software stops." description="Describe how the operation runs today and we will tell you what an application would have to cover — and what is worth building first." descriptionLabel="Where does the manual work pile up?" descriptionPlaceholder="e.g. booking, follow-ups, and invoicing are all done by hand." submitLabel="Send project details" /></div></section>
 
     <section className="ind-proof" ref={proofRef}><div>{stats.map(stat => <article key={stat.label} data-reveal><b>{stat.num}</b><span>{stat.label}</span></article>)}</div></section>
 
@@ -132,8 +132,8 @@ export default function IndustriesPage() {
 
     <section className="ind-cta" ref={ctaRef}>
       <div className="ind-cta-wrap"><div className="ind-cta-panel" data-reveal>
-        <div className="ind-cta-copy"><strong>Don&apos;t see your industry?</strong><h2>We probably still <span>fit anyway.</span></h2><p>Most of what we build isn&apos;t industry-specific software — it&apos;s the workflow underneath it. Tell us how work happens today.</p><div>{['Free audit included', 'No long contracts', '30-day support'].map(item => <span key={item}><b>✓</b>{item}</span>)}</div></div>
-        <div className="ind-cta-action"><strong>What you get in 30 minutes</strong><div>{['A map of your biggest time drains', 'Which workflow to automate first', 'A fixed quote — before we build anything'].map(item => <span key={item}><b>✓</b>{item}</span>)}</div><Link href="/contact" className="cta-action-btn cta-sweep">Book Free Discovery Call <img src="/assets/icon-arrow-right.svg" alt="" /></Link></div>
+        <div className="ind-cta-copy"><strong>Don&apos;t see your industry?</strong><h2>We probably still <span>fit anyway.</span></h2><p>Most of what we build isn&apos;t industry-specific software — it&apos;s an application shaped around the workflow underneath. Tell us how work happens today.</p><div>{['Scope agreed in writing', 'You own the application', 'Support after launch'].map(item => <span key={item}><b>✓</b>{item}</span>)}</div></div>
+        <div className="ind-cta-action"><strong>What the first conversation covers</strong><div>{['The workflows the application has to carry', 'What to build first — and what to leave out', 'A written scope before any build begins'].map(item => <span key={item}><b>✓</b>{item}</span>)}</div><Link href="/contact" className="cta-action-btn cta-sweep">Discuss your application <img src="/assets/icon-arrow-right.svg" alt="" /></Link></div>
       </div></div>
     </section>
 

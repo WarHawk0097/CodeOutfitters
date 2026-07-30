@@ -13,9 +13,9 @@ export function AnnouncementBar() {
       style={{ background: '#0E2A1D', height: '44px' }}
     >
       <span className="flex items-center">
-        Free workflow audit with every discovery call this July.
+        Currently taking on new bespoke web application projects.
         <Link href="/contact#cta" className="underline underline-offset-2 ml-1 font-semibold hover:no-underline">
-          Book yours →
+          Start a conversation →
         </Link>
       </span>
     </div>

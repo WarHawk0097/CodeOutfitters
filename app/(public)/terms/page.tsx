@@ -8,11 +8,11 @@ export default function TermsPage() {
         <div className="prose prose-sm text-[#6B6155] space-y-4">
           <p>Last updated: May 2026</p>
           <h2 className="text-[#1C1612] font-semibold text-lg mt-8">Service Description</h2>
-          <p>CodeOutfitters LLC provides AI automation services for US small businesses. Each engagement is defined by a scope of work agreed upon before delivery.</p>
+          <p>CodeOutfitters LLC provides bespoke web application development services, including business platforms and portals, workflow integrations and product modernization. Each engagement is defined by a scope of work agreed upon before delivery.</p>
           <h2 className="text-[#1C1612] font-semibold text-lg mt-8">Payment</h2>
           <p>Each engagement is quoted as a one-time setup fee unless otherwise specified. Ongoing support plans are billed monthly. All prices are in USD. Payment is due before work begins.</p>
           <h2 className="text-[#1C1612] font-semibold text-lg mt-8">Delivery</h2>
-          <p>7-day delivery is guaranteed in writing for standard scoped projects. Complex multi-system builds may take up to 14 days — we disclose this upfront.</p>
+          <p>Delivery dates are set in the written scope agreed before a project starts. Where a project runs in phases, each phase carries its own dates in that scope.</p>
           <h2 className="text-[#1C1612] font-semibold text-lg mt-8">Ownership</h2>
           <p>You own 100% of every workflow, credential, and connection built during your engagement. No proprietary lock-in. You can cancel anytime.</p>
           <h2 className="text-[#1C1612] font-semibold text-lg mt-8">Limitation of Liability</h2>

@@ -21,8 +21,8 @@ const values = [
   },
   {
     icon: Zap,
-    title: 'Speed Without Shortcuts',
-    description: '7-day delivery is our promise, not a marketing line. We\'ve built a process that moves fast without cutting corners on reliability.',
+    title: 'Shipped In Stages',
+    description: 'Scope and dates are agreed in writing before a build starts, then the application ships in reviewable stages instead of one long silence.',
   },
 ]
 
