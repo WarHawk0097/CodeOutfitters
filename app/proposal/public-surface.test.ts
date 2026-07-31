@@ -224,8 +224,16 @@ describe("the internal Client Access panel (tests 258-262)", () => {
 describe("what no file in the tree may contain (tests 263-266)", () => {
   // 263
   it("no source file hardcodes a deployment hostname", () => {
+    // One owner-approved exception: the public VoiceDesk application linked from
+    // /case-studies is a third-party product, not a CodeOutfitters deployment.
+    // Only these two exact strings are exempt; every CodeOutfitters hostname,
+    // and every other `.vercel.app` host, still fails this test.
+    const approvedExternal = ["https://voicedesk-ebon.vercel.app/dashboard", "voicedesk-ebon.vercel.app"];
     for (const file of sourceFiles()) {
-      const src = readFileSync(file, "utf8");
+      const src = approvedExternal.reduce(
+        (text, approved) => text.split(approved).join(""),
+        readFileSync(file, "utf8"),
+      );
       // lib/routing/public-origin.ts declares the canonical origin every other file
       // imports; it is the single exception, and only for the hostname.
       const isOriginModule = file.replace(/\\/g, "/").endsWith("lib/routing/public-origin.ts");

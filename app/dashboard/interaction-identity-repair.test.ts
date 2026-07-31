@@ -622,8 +622,15 @@ describe("canonical routing (52-63)", () => {
     const banned = /codeoutfitters\.vercel\.app|\.vercel\.app|vercel\.sh|localhost:\d+|127\.0\.0\.1/;
     // lib/routing/public-origin.ts is the one module allowed to name the canonical
     // origin; every other file must still route through the constant it exports.
+    // One owner-approved exception: the public VoiceDesk application linked from
+    // /case-studies is a third-party product, not a CodeOutfitters deployment.
+    // Only these two exact strings are exempt; every CodeOutfitters hostname, and
+    // every other banned host, still fails this test.
+    const approvedExternal = ["https://voicedesk-ebon.vercel.app/dashboard", "voicedesk-ebon.vercel.app"];
     const offenders = PRODUCT_SOURCES.filter(
-      ([f, src]) => f !== "lib/routing/public-origin.ts" && banned.test(src),
+      ([f, src]) =>
+        f !== "lib/routing/public-origin.ts" &&
+        banned.test(approvedExternal.reduce((text, approved) => text.split(approved).join(""), src)),
     ).map(([f]) => f);
     expect(offenders).toEqual([]);
   });
