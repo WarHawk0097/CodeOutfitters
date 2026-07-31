@@ -21,7 +21,10 @@ import { AppointmentsMobileView, AppointmentsSubtitle, AppointmentsViewTabs } fr
 // and is wired from LeadsData rather than hard-coded here.
 // The trailing meeting clause is desktop-only: C-D01 41 has it, T-01 858 ends
 // the line at "4 items need attention".
-const PAGE_META: Record<string, { title: string; subtitle?: ReactNode }> = {
+// Exported for the same reason as IMPLEMENTED_ROUTES below: the header copy for a
+// route is part of the shell's contract, and a test that has to render the whole
+// client header to read one title is a test nobody writes.
+export const PAGE_META: Record<string, { title: string; subtitle?: ReactNode }> = {
   "/dashboard": {
     title: "Overview",
     subtitle: (
@@ -58,6 +61,14 @@ const PAGE_META: Record<string, { title: string; subtitle?: ReactNode }> = {
   "/dashboard/team": { title: "Team" },
   // The settings form owns its own section index, so the header carries the title only.
   "/dashboard/settings": { title: "Settings" },
+  // The subtitle is the scope of the screen, not a feature boast: this assistant
+  // answers questions and reaches no record. Naming the provider or the model here
+  // would put an implementation detail in the page furniture, where it would be
+  // wrong the day either changes.
+  "/dashboard/ai": {
+    title: "Copilot",
+    subtitle: "A read-only assistant. It answers questions and changes no business records.",
+  },
 };
 
 // C-D01 42 (desktop) / T-01 858 (tablet). The desktop header carries a search
@@ -245,6 +256,7 @@ export const IMPLEMENTED_ROUTES: ReadonlySet<string> = new Set([
   "/dashboard/email-activity",
   "/dashboard/team",
   "/dashboard/settings",
+  "/dashboard/ai",
 ]);
 
 // The accessible explanation a gated row carries. Announced as the row's

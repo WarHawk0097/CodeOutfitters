@@ -157,12 +157,50 @@ describe('official production parity', () => {
     'app/login/login-frame.tsx',
     'app/login/credentials.ts',
   ])
-  unchanged('15: the dashboard shell and theme are unchanged', [
+  // The dashboard shell divides in two, and this guard used to miss the seam.
+  //
+  // Three of its files are finished frontend: the layout, the theme and the
+  // Overview page. Nothing about a later feature has any business editing them,
+  // so they stay byte-identical to production and this test still says so.
+  //
+  // `app/dashboard/shell-nav.tsx` is not that kind of file. It is the dashboard's
+  // route registry and header-copy map — the one file that must gain a line every
+  // time a route behind it is built. Measured against the working tree, freezing
+  // it byte-for-byte did not protect production; it froze the registry, so no
+  // dashboard route could ever be registered again. That is the same defect
+  // a72517d corrected for the release-scope guards: a claim about what a 2025
+  // release did, accidentally written as a claim about what the branch may
+  // contain today.
+  //
+  // Its historical half is asserted below over the release range, where the answer
+  // is fixed forever. Its current half — the nav contract, the route registry, the
+  // header copy, the gated-link posture — is asserted behaviourally in
+  // app/dashboard/shell-contract.test.ts, which catches a regression this byte
+  // lock never could: a renamed label, a rerouted destination, a preview URL or an
+  // unregistered route all pass a byte comparison the moment anyone updates it.
+  unchanged('15: the dashboard layout, theme and Overview are unchanged', [
     'app/dashboard/layout.tsx',
-    'app/dashboard/shell-nav.tsx',
     'app/dashboard/theme.tsx',
     'app/dashboard/(overview)/page.tsx',
   ])
+
+  it('15a: the approved release changed no dashboard shell file, including the nav registry', () => {
+    // Both revisions are named, so this is a statement about two immutable commits
+    // and has one answer forever. A route registered on a later branch cannot make
+    // it true or false, which is exactly the property the working-tree form lacked.
+    const released = changedPathsBetween(OFFICIAL_PRODUCTION_SHA, APPROVED_RELEASE_SHA)
+    for (const path of [
+      'app/dashboard/layout.tsx',
+      'app/dashboard/shell-nav.tsx',
+      'app/dashboard/theme.tsx',
+      'app/dashboard/(overview)/page.tsx',
+    ]) {
+      expect(released, path).not.toContain(path)
+    }
+    // And the shell is protected surface, so had the release touched it, test 55
+    // would have named it rather than letting it through unlisted.
+    expect(isProtectedReleasePath('app/dashboard/shell-nav.tsx', productionFiles)).toBe(true)
+  })
 })
 
 // ---------------------------------------------------------------------------

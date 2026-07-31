@@ -13,14 +13,17 @@ const src = readFileSync(`${here}shell-nav.tsx`, "utf8");
 
 describe("dashboard interaction audit (tests 23-32)", () => {
   // 23
-  it("exactly the fourteen built routes are treated as implemented", () => {
-    // Fourteen since the Client Access panel and the public proposal route landed. The number
-    // is asserted on purpose: a route added to this set without a page behind it is exactly
-    // the failure this file exists to catch.
-    expect(IMPLEMENTED_ROUTES.size).toBe(14);
+  it("exactly the fifteen built routes are treated as implemented", () => {
+    // Fifteen since the Copilot screen landed. The number is asserted on purpose: a route
+    // added to this set without a page behind it is exactly the failure this file exists
+    // to catch. The count alone is the weak half of that, though — it says a route was
+    // added without saying anything was built — so the page-behind-every-route check
+    // lives in shell-contract.test.ts and this stays the deliberate-change tripwire.
+    expect(IMPLEMENTED_ROUTES.size).toBe(15);
     expect(IMPLEMENTED_ROUTES.has("/dashboard")).toBe(true);
     expect(IMPLEMENTED_ROUTES.has("/dashboard/my-work")).toBe(true);
     expect(IMPLEMENTED_ROUTES.has("/dashboard/settings")).toBe(true);
+    expect(IMPLEMENTED_ROUTES.has("/dashboard/ai")).toBe(true);
   });
 
   // 24
