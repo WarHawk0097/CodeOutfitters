@@ -37,6 +37,8 @@ import { POST } from "./route";
 const state = vi.hoisted(() => ({
   identity: undefined as unknown as CopilotSubjectResult,
   overrides: {} as Partial<OrchestratorDependencies>,
+  /** How many times the route reached the composition root. */
+  compositions: 0,
 }));
 
 // A factory mock: the real module imports the Supabase SSR client, which needs a
@@ -54,7 +56,10 @@ vi.mock("@/lib/ai/server/create-copilot-orchestrator", async (importOriginal) =>
     ...actual,
     createCopilotOrchestrator: (
       options: import("@/lib/ai/server/create-copilot-orchestrator").CopilotOrchestratorOptions,
-    ) => actual.createCopilotOrchestrator({ ...options, overrides: { ...state.overrides } }),
+    ) => {
+      state.compositions += 1;
+      return actual.createCopilotOrchestrator({ ...options, overrides: { ...state.overrides } });
+    },
   };
 });
 
@@ -199,6 +204,7 @@ function sequentialIds(): () => string {
 
 beforeEach(() => {
   state.identity = signedIn(USER_A);
+  state.compositions = 0;
   // A generous per-test bucket: the shared, process-wide limiter would otherwise
   // carry a count between unrelated tests.
   state.overrides = {
@@ -394,6 +400,39 @@ describe("POST /api/ai/copilot — streaming", () => {
     expect(response.headers.get("x-accel-buffering")).toBe("no");
     expect(response.headers.get("x-correlation-id")).toMatch(/^[0-9a-f-]{36}$/);
     await response.body?.cancel();
+  });
+
+  it("answers a failure raised before the first event with a status, not a stream", async () => {
+    // The turn opens its span before its own `try`, so a telemetry fault is the
+    // one thing that rejects the first `next()` instead of arriving as an event.
+    // Whatever the cause, the response has not started yet and a code is still
+    // owed — the branch under test is the guarded `await events.next()`.
+    const sink: string[] = [];
+    state.overrides.telemetry = {
+      ...recordingTelemetry(sink),
+      tracer: {
+        startSpan(): never {
+          throw new Error("provider secret sk-live-should-not-leak");
+        },
+      },
+    };
+
+    const response = await POST(post({ message: "hello" }));
+    const raw = await response.text();
+    const body = JSON.parse(raw) as ErrorBody;
+
+    expect(response.status).toBe(503);
+    expect(response.headers.get("content-type")).toBe("application/json");
+    expect(response.headers.get("x-correlation-id")).toMatch(/^[0-9a-f-]{36}$/);
+    expect(body.ok).toBe(false);
+    expect(body.error.code).toBe("unavailable");
+    expect(body.error.message).toBe("The assistant is not available.");
+    // Distinct from the misconfiguration 503, which is decided before the run.
+    expect(body.error.code).not.toBe("configuration");
+    expect(raw).not.toContain("provider secret");
+    expect(raw).not.toContain("sk-live");
+    expect(raw).not.toContain("    at ");
+    expect(sink.join("\n")).not.toContain("sk-live");
   });
 
   it("emits start, text and a terminal finish, then closes", async () => {
@@ -631,5 +670,71 @@ describe("POST /api/ai/copilot — conversations", () => {
     expect(response.status).toBe(404);
     expect(body.error.message).toBe("Not found.");
     expect(body.error.code).toBe("ai/cancelled");
+  });
+});
+
+describe("POST /api/ai/copilot — trust boundary", () => {
+  it("rejects every gated request before the assistant is composed", async () => {
+    // The statuses themselves are covered above; what is asserted here is the
+    // order. A request that fails a gate must not have reached the composition
+    // root, because composing is what picks up a credential and a provider.
+    const cases: [label: string, request: () => Request, status: number][] = [
+      ["an unsupported content type", () => post({ message: "hi" }, { contentType: "text/plain" }), 415],
+      [
+        "a body over the size limit",
+        () => post({ message: "hi" }, { headers: { "content-length": String(80 * 1024) } }),
+        413,
+      ],
+      ["malformed JSON", () => post(undefined, { raw: "{ not json" }), 400],
+      ["a missing message", () => post({}), 422],
+      ["an empty message", () => post({ message: "   " }), 422],
+      ["a protected field", () => post({ message: "hi", workspaceId: "another-tenant" }), 422],
+    ];
+
+    let providerCalls = 0;
+    state.overrides.providers = registryWith(
+      fakeProvider(async function* () {
+        providerCalls += 1;
+        yield FINISH;
+      }),
+    );
+
+    for (const [label, build, status] of cases) {
+      const response = await POST(build());
+
+      expect(response.status, label).toBe(status);
+      // A status, not the beginning of a stream.
+      expect(response.headers.get("content-type"), label).toBe("application/json");
+      expect(state.compositions, label).toBe(0);
+      expect(providerCalls, label).toBe(0);
+    }
+  });
+
+  it("attributes the turn to the session's identity, never the body's", async () => {
+    const conversations = new InMemoryConversationStore();
+    const rateLimiter = new RecordingRateLimiter(10, 60_000);
+    state.overrides.conversations = conversations;
+    state.overrides.rateLimiter = rateLimiter;
+
+    await events(await POST(post({ message: "What can this workspace do?" })));
+
+    // The record the assistant wrote carries the ids the server resolved, which
+    // is what makes the store's own workspace-and-user scoping find it.
+    const owned = await conversations.list(USER_A.workspaceId, USER_A.userId);
+    expect(owned).toHaveLength(1);
+    expect(owned[0]?.workspaceId).toBe(USER_A.workspaceId);
+    expect(owned[0]?.userId).toBe(USER_A.userId);
+    expect(rateLimiter.keys).toEqual([`${USER_A.workspaceId}:${USER_A.userId}`]);
+
+    // The only way a body could name an identity is a field the schema refuses,
+    // so the substitution never gets far enough to be attributed to anyone.
+    const spoofed = await POST(
+      post({ message: "hi", userId: USER_B.userId, workspaceId: "another-tenant" }),
+    );
+
+    expect(spoofed.status).toBe(422);
+    expect(await conversations.list("another-tenant", USER_B.userId)).toHaveLength(0);
+    expect(await conversations.list(USER_A.workspaceId, USER_B.userId)).toHaveLength(0);
+    expect(rateLimiter.keys).toEqual([`${USER_A.workspaceId}:${USER_A.userId}`]);
   });
 });
