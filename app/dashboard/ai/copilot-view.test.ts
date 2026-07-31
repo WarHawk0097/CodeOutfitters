@@ -483,9 +483,15 @@ describe("Copilot security boundaries", () => {
 describe("Copilot accessibility", () => {
   const html = renderToStaticMarkup(createElement(CopilotScreen));
 
-  it("gives the screen a heading and the conversation a name", () => {
-    expect(html).toMatch(/<h2[^>]*>Copilot<\/h2>/);
+  it("names each region once, and never repeats the route's own heading", () => {
+    // The shell renders <h1>Copilot</h1> for this route. The screen used to repeat
+    // it in an <h2> directly underneath, which read as two headings for one thing;
+    // the only <h2> now names the panel that needed one.
+    expect(html).toMatch(/<h2[^>]*>Conversations<\/h2>/);
+    expect(html.match(/<h2/g)).toHaveLength(1);
+    expect(html).not.toMatch(/<h[1-6][^>]*>Copilot<\/h[1-6]>/);
     expect(html).toContain('aria-label="Conversation"');
+    expect(html).toContain('aria-label="Conversation history"');
   });
 
   it("announces state changes politely, not every token", () => {

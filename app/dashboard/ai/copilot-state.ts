@@ -6,8 +6,14 @@
 // the transitions can be tested without a DOM: this repo's route tests run in the
 // node environment, so anything worth asserting has to be a function.
 //
-// No message is stored anywhere but in this object. There is no local storage, no
-// server-side history in this slice, and a reload starts a new conversation.
+// Saved conversations live alongside the open turn, because they are the same
+// screen: picking one out of the list replaces the transcript and hands the
+// composer a conversation id to continue from. The list and the transcript load
+// independently and fail independently — a history that will not load must not
+// stop anyone typing.
+//
+// Nothing is stored in the browser. What survives a reload survives because the
+// server has it; this object is rebuilt empty every time the page mounts.
 
 /** Mirrors `MAX_MESSAGE_LENGTH` in `lib/ai/server/copilot-request.ts`. */
 export const MAX_MESSAGE_LENGTH = 4_000;
@@ -29,21 +35,50 @@ export type CopilotMessage = {
   text: string;
 };
 
+/**
+ * One row of the history list.
+ *
+ * Two fields, because two is all the panel draws. The endpoint also returns
+ * timestamps and a message count; they are dropped at the edge rather than
+ * carried here, so there is nothing extra for a later change to start rendering.
+ * The id is a selector, never something the interface shows.
+ */
+export type CopilotConversation = {
+  id: string;
+  title: string;
+};
+
+/** Whether the list of saved conversations has arrived. */
+export type HistoryStatus = "idle" | "loading" | "ready" | "error";
+
+/** Whether a chosen conversation's transcript has arrived. */
+export type TranscriptStatus = "idle" | "loading" | "error";
+
 export type CopilotState = {
   status: CopilotStatus;
   messages: readonly CopilotMessage[];
   /** The assistant message currently being written into, if a turn is open. */
   streamingId: string | null;
   /**
-   * The server's id for this conversation, learned from the `start` event and
-   * held in memory only. Never minted here — a client-invented id would be a
-   * claim about server state that no server made.
+   * The server's id for this conversation, learned from the `start` event or from
+   * opening a saved one, and held in memory only. Never minted here — a
+   * client-invented id would be a claim about server state that no server made.
+   *
+   * Doubles as the guard against a slow transcript overwriting a newer choice:
+   * a response is only applied while it still names the conversation on screen.
    */
   conversationId: string | null;
   /** Already safe for display. Codes are mapped to copy on the way in. */
   error: string | null;
   /** Monotonic, so message keys stay unique across a clear. */
   turn: number;
+  /** Newest first, as the endpoint returned them. Never re-sorted here. */
+  conversations: readonly CopilotConversation[];
+  historyStatus: HistoryStatus;
+  /** Safe copy for a list that would not load. Never blocks the composer. */
+  historyError: string | null;
+  transcriptStatus: TranscriptStatus;
+  transcriptError: string | null;
 };
 
 export const INITIAL_COPILOT_STATE: CopilotState = {
@@ -53,6 +88,11 @@ export const INITIAL_COPILOT_STATE: CopilotState = {
   conversationId: null,
   error: null,
   turn: 0,
+  conversations: [],
+  historyStatus: "idle",
+  historyError: null,
+  transcriptStatus: "idle",
+  transcriptError: null,
 };
 
 export type CopilotAction =
@@ -62,7 +102,13 @@ export type CopilotAction =
   | { type: "finish" }
   | { type: "error"; code: string }
   | { type: "cancel" }
-  | { type: "clear" };
+  | { type: "clear" }
+  | { type: "history_loading" }
+  | { type: "history_loaded"; conversations: readonly CopilotConversation[] }
+  | { type: "history_error"; code: string }
+  | { type: "open"; conversationId: string }
+  | { type: "opened"; conversationId: string; messages: readonly CopilotMessage[] }
+  | { type: "open_error"; conversationId: string; code: string };
 
 /**
  * User-facing copy for every failure this screen can reach.
@@ -81,9 +127,13 @@ const ERROR_COPY: Readonly<Record<string, string>> = {
   "ai/permission": "The assistant isn't allowed to do that.",
   "ai/configuration": "The assistant is unavailable right now. Try again shortly.",
   unavailable: "The assistant is unavailable right now. Try again shortly.",
+  configuration: "The assistant is unavailable right now. Try again shortly.",
   "ai/provider": "The assistant couldn't finish that response. Try again.",
   "ai/timeout": "The assistant took too long to respond. Try again.",
   "ai/cancelled": "That conversation is no longer available. Start a new one.",
+  // Deleted, never created, or somebody else's — the endpoint answers all three
+  // the same way, so the copy has to fit all three without guessing which.
+  not_found: "That conversation is no longer available.",
 };
 
 const GENERIC_ERROR = "Something went wrong. Try again.";
@@ -166,9 +216,71 @@ export function copilotReducer(state: CopilotState, action: CopilotAction): Copi
       };
 
     case "clear":
-      // The turn counter survives so a new message can never reuse a key. Nothing
-      // is deleted server-side; this drops the local view of the conversation.
-      return { ...INITIAL_COPILOT_STATE, turn: state.turn };
+      // Starting fresh. The turn counter survives so a new message can never
+      // reuse a key, and the history list survives because it describes the
+      // account rather than the conversation being left. Nothing is deleted
+      // server-side; this drops the local view and forgets the id, which is what
+      // makes the next message start a new conversation.
+      return {
+        ...INITIAL_COPILOT_STATE,
+        turn: state.turn,
+        conversations: state.conversations,
+        historyStatus: state.historyStatus,
+        historyError: state.historyError,
+      };
+
+    case "history_loading":
+      return { ...state, historyStatus: "loading", historyError: null };
+
+    case "history_loaded":
+      return {
+        ...state,
+        historyStatus: "ready",
+        historyError: null,
+        conversations: action.conversations,
+      };
+
+    case "history_error":
+      // The list is the only thing that failed. Status, messages and the composer
+      // are untouched on purpose.
+      return { ...state, historyStatus: "error", historyError: errorMessage(action.code) };
+
+    case "open":
+      // The transcript is emptied immediately rather than left showing the
+      // previous conversation under the new one's name.
+      return {
+        ...state,
+        status: "idle",
+        messages: [],
+        streamingId: null,
+        conversationId: action.conversationId,
+        error: null,
+        transcriptStatus: "loading",
+        transcriptError: null,
+      };
+
+    case "opened":
+      // Stale answers are dropped by name. Two clicks in flight at once resolve in
+      // whatever order the network decides, and only the one still on screen may
+      // write to it — `conversationId` changes on every open and on every clear,
+      // so it is the identity of the current choice.
+      if (action.conversationId !== state.conversationId) return state;
+      return {
+        ...state,
+        status: "idle",
+        transcriptStatus: "idle",
+        transcriptError: null,
+        messages: action.messages,
+      };
+
+    case "open_error":
+      if (action.conversationId !== state.conversationId) return state;
+      return {
+        ...state,
+        transcriptStatus: "error",
+        transcriptError: errorMessage(action.code),
+        messages: [],
+      };
   }
 }
 
@@ -176,10 +288,20 @@ export function isBusy(state: CopilotState): boolean {
   return state.status === "submitting" || state.status === "streaming";
 }
 
-/** Whether the composer's current contents may be sent. */
+/**
+ * Whether the composer's current contents may be sent.
+ *
+ * A transcript still loading blocks it: the id is already set, so a message sent
+ * now would be appended to a conversation whose earlier turns are not on screen.
+ */
 export function canSend(state: CopilotState, draft: string): boolean {
   const text = draft.trim();
-  return !isBusy(state) && text.length > 0 && text.length <= MAX_MESSAGE_LENGTH;
+  return (
+    !isBusy(state) &&
+    state.transcriptStatus !== "loading" &&
+    text.length > 0 &&
+    text.length <= MAX_MESSAGE_LENGTH
+  );
 }
 
 /**
@@ -203,6 +325,10 @@ export function shouldSendOnKey(event: {
  * on every frame, so the transcript is not the live region — this is.
  */
 export function statusAnnouncement(state: CopilotState): string {
+  // Opening a saved conversation replaces everything below it, so it is announced
+  // ahead of whatever the previous turn ended as.
+  if (state.transcriptStatus === "loading") return "Opening conversation.";
+  if (state.transcriptStatus === "error") return state.transcriptError ?? GENERIC_ERROR;
   switch (state.status) {
     case "submitting":
       return "Sending your message.";
