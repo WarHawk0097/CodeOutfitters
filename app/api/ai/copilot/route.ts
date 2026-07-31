@@ -107,7 +107,10 @@ export async function POST(request: Request): Promise<Response> {
 
   let events: AsyncGenerator<AIStreamEvent, void, undefined>;
   try {
-    const orchestrator = createCopilotOrchestrator({ correlationId });
+    // Awaited because composition now resolves the request's own conversation
+    // store. Which database that is stays behind the composition root; a failure
+    // to build one lands in the same 503 as any other misconfiguration.
+    const orchestrator = await createCopilotOrchestrator({ correlationId });
     events = orchestrator.run({
       subject: identity.subject,
       workspaceName: identity.workspaceName,

@@ -10,20 +10,24 @@
 // the database.
 //
 // Lifetime notes, because they are load-bearing rather than incidental:
-//   - The conversation store, the memory system and the rate limiter are held
-//     per process. They have to be, or a conversation id would not survive the
-//     next request and a rate limit would reset on every one.
+//   - The conversation store is built per request, around the Supabase client the
+//     request's own cookies authenticate. It has to be: a client held per process
+//     would outlive the session that authorised it, which is the one way a store
+//     like this leaks between users. Durability comes from Postgres instead.
+//   - The memory system and the rate limiter are held per process, or a rate limit
+//     would reset on every call.
 //   - Per process also means per instance. Nothing here is shared between
 //     serverless instances and nothing survives a redeploy. See the limits noted
 //     on `sharedRateLimiter` below.
 
 import "server-only";
 import { randomUUID } from "node:crypto";
+import { SupabaseConversationStore } from "@/lib/ai/conversation/supabase-store";
+import { createClient } from "@/lib/supabase/server";
 import {
   ConfigurationError,
   CORE_PROMPTS,
   DefaultPlanner,
-  InMemoryConversationStore,
   InMemoryRateLimiter,
   Orchestrator,
   PromptRegistry,
@@ -36,6 +40,7 @@ import {
   nullKnowledgeSource,
   type AIConfig,
   type AIEnvironment,
+  type ConversationStore,
   type Logger,
   type LogLevel,
   type Metrics,
@@ -118,9 +123,8 @@ export function copilotTelemetry(correlationId: string): Telemetry {
   return { logger, tracer, metrics };
 }
 
-// Per-process state. Held here rather than per request so a conversation id and a
-// rate-limit window mean something across two calls from the same browser.
-const conversations = new InMemoryConversationStore();
+// Per-process state. Held here rather than per request so a rate-limit window
+// means something across two calls from the same browser.
 const memory = createInMemoryMemorySystem();
 /** No tool is registered, and the checker denies every capability regardless. */
 const tools = new ToolRegistry(denyAllPermissionChecker);
@@ -154,9 +158,28 @@ export type CopilotOrchestratorOptions = {
   overrides?: Partial<OrchestratorDependencies>;
 };
 
-export function createCopilotOrchestrator(options: CopilotOrchestratorOptions): Orchestrator {
+/**
+ * The persistent conversation store for one request.
+ *
+ * Built here rather than in the route so the handler never learns which database
+ * the assistant remembers into. `createClient` is the same authenticated SSR
+ * client the dashboard pages use, so RLS is the boundary and no service-role key
+ * is involved. If the environment cannot produce one it throws, and the route
+ * answers 503 — there is deliberately no in-memory fallback, because a fallback
+ * would mean a production turn quietly forgetting itself.
+ */
+export async function createRequestConversationStore(): Promise<ConversationStore> {
+  return new SupabaseConversationStore(await createClient());
+}
+
+export async function createCopilotOrchestrator(
+  options: CopilotOrchestratorOptions,
+): Promise<Orchestrator> {
   const config = options.overrides?.config ?? getAIConfig();
   assertUsableProvider(config);
+  // An injected store short-circuits the Supabase client entirely, so a test never
+  // needs a request context and production never gets a test double.
+  const conversations = options.overrides?.conversations ?? (await createRequestConversationStore());
 
   return new Orchestrator({
     config,
