@@ -26,9 +26,13 @@ import {
   MOBILE_VISUAL_WIDTH,
   type CaseStudyProject,
 } from '@/lib/marketing/case-studies-projects'
+import { isProtectedReleasePath, isPublicSurfacePath } from '@/test/release-guards'
 
 /** The exact frontend deployed to production; the only baseline for this branch. */
 const OFFICIAL_PRODUCTION_SHA = 'cbe980b6499ac56581d8f3d70234f0bff5fc68d0'
+
+/** The approved case-study release, tag `core-v1.1.0`; the frozen scope below. */
+const APPROVED_RELEASE_SHA = '5af9184774c87948132cd39fa48cc01336a94418'
 
 /** This file, excluded from the scans that must quote the strings they forbid. */
 const OWN_PATH = 'app/case-studies-official-baseline.test.ts'
@@ -63,6 +67,21 @@ const ALLOWED_DIFFERENCES = [
   'public/images/selected-work/voicedesk-desktop.webp',
   'public/images/selected-work/voicedesk-mobile.webp',
 ]
+
+/**
+ * Every file production served, so an edit to any of them edits the live site.
+ * Read from an immutable commit, not from a branch or a remote.
+ */
+const productionFiles = new Set(
+  git('ls-tree', '-r', '--name-only', OFFICIAL_PRODUCTION_SHA).split('\n').filter(Boolean),
+)
+
+/** Paths changed since production that the release guards actually speak for. */
+const protectedChangesSince = (...range: string[]) =>
+  git('diff', '--name-only', ...range)
+    .split('\n')
+    .filter(Boolean)
+    .filter((path) => isProtectedReleasePath(path, productionFiles))
 
 /** Files that must match production byte for byte, grouped by the surface they own. */
 const unchanged = (label: string, paths: string[]) =>
@@ -467,8 +486,63 @@ describe('rendering and isolation', () => {
     expect(pageSource).toContain('<CaseStudyProjectCard key={project.id} project={project} />')
   })
 
-  it('55: this branch differs from official production only by the approved files', () => {
-    const changed = git('diff', '--name-only', OFFICIAL_PRODUCTION_SHA).split('\n').filter(Boolean)
+  // The scope is the production surface, not the repository. Freezing the whole
+  // repository against a 2025 commit would mean no server-side module could ever
+  // be added again, which is a claim this release never made and cannot keep.
+  it('55: no protected surface differs from official production outside the approved files', () => {
+    const changed = protectedChangesSince(OFFICIAL_PRODUCTION_SHA)
     expect(changed.filter((path) => !ALLOWED_DIFFERENCES.includes(path))).toEqual([])
+  })
+
+  it('56: the approved release itself touched exactly the approved files', () => {
+    const released = git('diff', '--name-only', OFFICIAL_PRODUCTION_SHA, APPROVED_RELEASE_SHA)
+      .split('\n')
+      .filter(Boolean)
+    expect(released).toEqual([...ALLOWED_DIFFERENCES].sort())
+  })
+
+  it('57: every approved file is protected surface, so the allowlist means something', () => {
+    for (const path of ALLOWED_DIFFERENCES) {
+      expect(isProtectedReleasePath(path, productionFiles), path).toBe(true)
+    }
+  })
+})
+
+describe('protected release surface', () => {
+  it('58: an edit to a public route is in scope, and so is a new one', () => {
+    expect(isProtectedReleasePath('app/(public)/services/page.tsx', productionFiles)).toBe(true)
+    expect(isProtectedReleasePath('app/(public)/pricing/page.tsx', productionFiles)).toBe(true)
+    expect(isProtectedReleasePath('app/api/assistant/route.ts', productionFiles)).toBe(true)
+    expect(isProtectedReleasePath('components/navbar.tsx', productionFiles)).toBe(true)
+  })
+
+  it('59: an unapproved served asset is in scope', () => {
+    expect(
+      isProtectedReleasePath('public/images/selected-work/unapproved-capture.png', productionFiles),
+    ).toBe(true)
+  })
+
+  it('60: a migration is in scope wherever it lives', () => {
+    expect(isProtectedReleasePath('supabase/migrations/0001_add_table.sql', productionFiles)).toBe(
+      true,
+    )
+    expect(isProtectedReleasePath('lib/db/migrations/0002_backfill.sql', productionFiles)).toBe(true)
+  })
+
+  it('61: a server-side module no visitor reaches is out of scope', () => {
+    expect(isProtectedReleasePath('lib/example/module.ts', productionFiles)).toBe(false)
+    expect(isProtectedReleasePath('scripts/one-off.ts', productionFiles)).toBe(false)
+  })
+
+  it('62: an existing production file stays in scope wherever it lives', () => {
+    expect(isProtectedReleasePath('package.json', productionFiles)).toBe(true)
+    expect(isProtectedReleasePath('next.config.mjs', productionFiles)).toBe(true)
+    expect(isProtectedReleasePath('middleware.ts', productionFiles)).toBe(true)
+  })
+
+  it('63: scoping reads the same on Windows and on Unix separators', () => {
+    expect(isPublicSurfacePath('app\\(public)\\about\\page.tsx')).toBe(true)
+    expect(isPublicSurfacePath('public\\images\\selected-work\\voicedesk-desktop.webp')).toBe(true)
+    expect(isPublicSurfacePath('lib\\example\\module.ts')).toBe(false)
   })
 })
