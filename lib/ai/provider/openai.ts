@@ -5,7 +5,12 @@
 // the abstraction would not be doing its job.
 
 import { OpenAICompatibleProvider } from "./openai-compatible";
-import type { AIProvider, ProviderCapabilities, ProviderCredentials } from "./types";
+import type {
+  AIProvider,
+  ProviderCapabilities,
+  ProviderCredentials,
+  ProviderRuntimeOptions,
+} from "./types";
 
 export const OPENAI_CAPABILITIES: ProviderCapabilities = {
   streaming: true,
@@ -18,14 +23,14 @@ export const OPENAI_CAPABILITIES: ProviderCapabilities = {
 
 export function createOpenAIProvider(
   credentials: ProviderCredentials,
-  fetchImpl?: typeof fetch,
+  runtime?: ProviderRuntimeOptions,
 ): AIProvider {
   return new OpenAICompatibleProvider({
     id: "openai",
     credentials,
     capabilities: OPENAI_CAPABILITIES,
     authHeaders: ({ apiKey }) => ({ Authorization: `Bearer ${apiKey}` }),
-    ...(fetchImpl ? { fetchImpl } : {}),
+    ...(runtime ? { runtime } : {}),
   });
 }
 

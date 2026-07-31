@@ -68,7 +68,7 @@ export class MockProvider implements AIProvider {
 
   async generate(request: ProviderRequest, signal?: AbortSignal): Promise<ProviderResponse> {
     const model = resolveDescriptor(request.model);
-    assertSupported(request, model, this.capabilities, false);
+    assertSupported(request, model, this.capabilities, false, this.id);
     signal?.throwIfAborted();
 
     this.requests.push(request);
@@ -89,7 +89,7 @@ export class MockProvider implements AIProvider {
 
   async *stream(request: ProviderRequest, signal?: AbortSignal): AsyncIterable<AIStreamEvent> {
     const model = resolveDescriptor(request.model);
-    assertSupported(request, model, this.capabilities, true);
+    assertSupported(request, model, this.capabilities, true, this.id);
 
     this.requests.push(request);
     const turn = this.nextTurn(request);

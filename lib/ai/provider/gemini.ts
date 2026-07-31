@@ -8,7 +8,12 @@
 // be written — no caller above `AIProvider` would change.
 
 import { OpenAICompatibleProvider } from "./openai-compatible";
-import type { AIProvider, ProviderCapabilities, ProviderCredentials } from "./types";
+import type {
+  AIProvider,
+  ProviderCapabilities,
+  ProviderCredentials,
+  ProviderRuntimeOptions,
+} from "./types";
 
 export const GEMINI_CAPABILITIES: ProviderCapabilities = {
   streaming: true,
@@ -23,14 +28,14 @@ export const GEMINI_CAPABILITIES: ProviderCapabilities = {
 
 export function createGeminiProvider(
   credentials: ProviderCredentials,
-  fetchImpl?: typeof fetch,
+  runtime?: ProviderRuntimeOptions,
 ): AIProvider {
   return new OpenAICompatibleProvider({
     id: "gemini",
     credentials,
     capabilities: GEMINI_CAPABILITIES,
     authHeaders: ({ apiKey }) => ({ Authorization: `Bearer ${apiKey}` }),
-    ...(fetchImpl ? { fetchImpl } : {}),
+    ...(runtime ? { runtime } : {}),
   });
 }
 

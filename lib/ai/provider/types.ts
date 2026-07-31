@@ -73,11 +73,32 @@ export type ProviderRequest = {
   toolChoice?: ToolChoice;
   responseFormat?: ResponseFormat;
   /**
-   * Escape hatch for vendor-specific fields. Opaque above the transport, and
-   * never populated from client input.
+   * Vendor-specific fields, sanitised by the transport before they reach the wire.
+   *
+   * Treated as untrusted regardless of where it came from. The fields above are
+   * the pipeline's to decide, so a key that would restate one of them is dropped
+   * rather than honoured — see `sanitizeProviderOptions`.
    */
-  providerOptions?: Readonly<Record<string, unknown>>;
+  providerOptions?: ProviderOptions;
 };
+
+/**
+ * What a vendor option is allowed to be.
+ *
+ * Deliberately not `unknown`: a value that cannot be enumerated cannot be
+ * checked, and an unenumerable value is how a protected field gets smuggled back
+ * in one nesting level down. Everything a vendor actually takes is JSON, so JSON
+ * is what this describes.
+ */
+export type ProviderOptionValue =
+  | string
+  | number
+  | boolean
+  | null
+  | readonly ProviderOptionValue[]
+  | { readonly [key: string]: ProviderOptionValue };
+
+export type ProviderOptions = Readonly<Record<string, ProviderOptionValue>>;
 
 export type ProviderResponse = {
   /** Provider-assigned response id, where one exists. Used for correlation. */
@@ -131,5 +152,26 @@ export type ProviderCredentials = {
   apiVersion?: string;
 };
 
+/**
+ * Everything a transport needs that is not a credential.
+ *
+ * One object rather than a growing positional tail, because every factory has to
+ * accept it and a positional `fetchImpl` is the kind of parameter that gets
+ * passed by accident.
+ */
+export type ProviderRuntimeOptions = {
+  /** Per-attempt deadline. Retries are counted against attempts, not this. */
+  requestTimeoutMs?: number;
+  /** Retries after the first attempt, for retryable failures only. */
+  maxRetries?: number;
+  /** Injected in tests. Defaults to the global `fetch`. */
+  fetchImpl?: typeof fetch;
+  /** Injected in tests so backoff arithmetic runs without real delay. */
+  sleep?: (ms: number) => Promise<void>;
+};
+
 /** A provider module's default export shape. Keeps lazy imports type-checked. */
-export type ProviderFactory = (credentials: ProviderCredentials) => AIProvider;
+export type ProviderFactory = (
+  credentials: ProviderCredentials,
+  options?: ProviderRuntimeOptions,
+) => AIProvider;

@@ -7,7 +7,12 @@
 
 import { ConfigurationError } from "../errors";
 import { OpenAICompatibleProvider } from "./openai-compatible";
-import type { AIProvider, ProviderCapabilities, ProviderCredentials } from "./types";
+import type {
+  AIProvider,
+  ProviderCapabilities,
+  ProviderCredentials,
+  ProviderRuntimeOptions,
+} from "./types";
 
 export const AZURE_OPENAI_CAPABILITIES: ProviderCapabilities = {
   streaming: true,
@@ -20,7 +25,7 @@ export const AZURE_OPENAI_CAPABILITIES: ProviderCapabilities = {
 
 export function createAzureOpenAIProvider(
   credentials: ProviderCredentials,
-  fetchImpl?: typeof fetch,
+  runtime?: ProviderRuntimeOptions,
 ): AIProvider {
   if (!credentials.apiVersion) {
     throw new ConfigurationError("AZURE_OPENAI_API_VERSION is required for the azure-openai provider");
@@ -33,7 +38,7 @@ export function createAzureOpenAIProvider(
     authHeaders: ({ apiKey }) => ({ "api-key": apiKey }),
     completionsUrl: ({ baseUrl, apiVersion }) =>
       `${baseUrl}/chat/completions?api-version=${apiVersion}`,
-    ...(fetchImpl ? { fetchImpl } : {}),
+    ...(runtime ? { runtime } : {}),
   });
 }
 

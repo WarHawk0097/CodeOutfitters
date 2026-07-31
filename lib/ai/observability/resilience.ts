@@ -60,19 +60,41 @@ export async function withRetry<T>(
 }
 
 /**
- * Applies a deadline to a promise, and cancels the work underneath it.
+ * A running request deadline.
  *
- * The returned signal is passed into the operation so that a timeout aborts the
- * in-flight request rather than merely abandoning it — otherwise a slow provider
- * call keeps a socket and its tokens alive after the caller has given up.
+ * Separate from `withTimeout` because a streamed response outlives the call that
+ * started it: the generator that reads the body needs the same signal, and needs
+ * to decide for itself when the deadline stops applying. Everything else about
+ * the two is identical, and `withTimeout` is written in terms of this.
  */
-export async function withTimeout<T>(
-  timeoutMs: number,
-  operation: (signal: AbortSignal) => Promise<T>,
-  outerSignal?: AbortSignal,
-): Promise<T> {
+export type Deadline = {
+  /** Passed to `fetch`. Aborts when the caller aborts or the deadline expires. */
+  readonly signal: AbortSignal;
+  /** True once this deadline, rather than the caller, aborted the work. */
+  expired(): boolean;
+  /** Releases the timer and the listener. Idempotent, and safe in a `finally`. */
+  release(): void;
+  /**
+   * Re-types a failure this deadline caused.
+   *
+   * An aborted `fetch` reports `AbortError` whoever aborted it, so the caller
+   * cannot tell a timeout from a cancellation without asking the deadline. A
+   * failure it did not cause is returned untouched.
+   */
+  toError(cause: unknown): unknown;
+};
+
+/**
+ * Starts a deadline, and cancels the work underneath it when it expires.
+ *
+ * The signal is what makes this a deadline rather than a stopwatch: a timeout
+ * aborts the in-flight request instead of merely abandoning it, so a slow
+ * provider stops holding a socket and its tokens the moment the caller gives up.
+ */
+export function startDeadline(timeoutMs: number, outerSignal?: AbortSignal): Deadline {
   const controller = new AbortController();
   let timedOut = false;
+  let released = false;
 
   const timer = setTimeout(() => {
     timedOut = true;
@@ -80,16 +102,37 @@ export async function withTimeout<T>(
   }, timeoutMs);
 
   const forwardAbort = (): void => controller.abort();
-  outerSignal?.addEventListener("abort", forwardAbort, { once: true });
+  // An already-aborted caller must not wait for an event that has been and gone.
+  if (outerSignal?.aborted) controller.abort();
+  else outerSignal?.addEventListener("abort", forwardAbort, { once: true });
 
+  return {
+    signal: controller.signal,
+    expired: () => timedOut,
+    release: () => {
+      if (released) return;
+      released = true;
+      clearTimeout(timer);
+      outerSignal?.removeEventListener("abort", forwardAbort);
+    },
+    toError: (cause) =>
+      timedOut ? new TimeoutError(timeoutMs, `Operation exceeded ${timeoutMs}ms`, { cause }) : cause,
+  };
+}
+
+/** Applies a deadline to a single promise. The whole-operation form of `startDeadline`. */
+export async function withTimeout<T>(
+  timeoutMs: number,
+  operation: (signal: AbortSignal) => Promise<T>,
+  outerSignal?: AbortSignal,
+): Promise<T> {
+  const deadline = startDeadline(timeoutMs, outerSignal);
   try {
-    return await operation(controller.signal);
+    return await operation(deadline.signal);
   } catch (error) {
-    if (timedOut) throw new TimeoutError(timeoutMs, `Operation exceeded ${timeoutMs}ms`, { cause: error });
-    throw error;
+    throw deadline.toError(error);
   } finally {
-    clearTimeout(timer);
-    outerSignal?.removeEventListener("abort", forwardAbort);
+    deadline.release();
   }
 }
 
@@ -101,6 +144,15 @@ export async function withTimeout<T>(
  * site changing. Stated plainly because a per-instance limiter that is mistaken
  * for a global one is worse than none.
  */
+/**
+ * When a new key finds the map this big, expired windows are swept first.
+ *
+ * A threshold rather than a timer: nothing else in this module runs on a
+ * schedule, and a sweep on a request that was going to allocate anyway is cheaper
+ * than an interval that keeps the process awake.
+ */
+const MAX_TRACKED_KEYS = 10_000;
+
 export class InMemoryRateLimiter {
   private readonly hits = new Map<string, { count: number; resetAt: number }>();
 
@@ -116,6 +168,11 @@ export class InMemoryRateLimiter {
     const entry = this.hits.get(key);
 
     if (!entry || timestamp >= entry.resetAt) {
+      // Only a new key can grow the map, so that is the only place growth needs
+      // checking. Without this, one entry per subject ever seen is retained for
+      // the lifetime of the process — a slow leak that a rate limiter, of all
+      // things, should not be the source of.
+      if (!entry && this.hits.size >= MAX_TRACKED_KEYS) this.prune();
       this.hits.set(key, { count: 1, resetAt: timestamp + this.windowMs });
       return;
     }
@@ -128,7 +185,7 @@ export class InMemoryRateLimiter {
     entry.count += 1;
   }
 
-  /** Drops expired windows. Called opportunistically; nothing depends on it running. */
+  /** Drops expired windows. Called from `consume` when the map is large, and safe to call at any time. */
   prune(): void {
     const timestamp = this.now();
     for (const [key, entry] of this.hits) {

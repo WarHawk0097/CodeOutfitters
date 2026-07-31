@@ -7,7 +7,12 @@
 // `credentials.headers` and are merged by the shared transport.
 
 import { OpenAICompatibleProvider } from "./openai-compatible";
-import type { AIProvider, ProviderCapabilities, ProviderCredentials } from "./types";
+import type {
+  AIProvider,
+  ProviderCapabilities,
+  ProviderCredentials,
+  ProviderRuntimeOptions,
+} from "./types";
 
 export const OPENROUTER_CAPABILITIES: ProviderCapabilities = {
   streaming: true,
@@ -20,14 +25,14 @@ export const OPENROUTER_CAPABILITIES: ProviderCapabilities = {
 
 export function createOpenRouterProvider(
   credentials: ProviderCredentials,
-  fetchImpl?: typeof fetch,
+  runtime?: ProviderRuntimeOptions,
 ): AIProvider {
   return new OpenAICompatibleProvider({
     id: "openrouter",
     credentials,
     capabilities: OPENROUTER_CAPABILITIES,
     authHeaders: ({ apiKey }) => ({ Authorization: `Bearer ${apiKey}` }),
-    ...(fetchImpl ? { fetchImpl } : {}),
+    ...(runtime ? { runtime } : {}),
   });
 }
 

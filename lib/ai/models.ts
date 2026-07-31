@@ -146,7 +146,13 @@ export const MODEL_CATALOG: readonly ModelDescriptor[] = [
 
 const BY_ID = new Map(MODEL_CATALOG.map((model) => [model.id, model]));
 
-/** Undefined for unknown ids — callers that require a model use `requireModel`. */
+/**
+ * Undefined for unknown ids.
+ *
+ * Callers that need a descriptor rather than a maybe use `resolveDescriptor` in
+ * `provider/dispatch`, or `resolveModel` in `config`; both turn the undefined
+ * into a `ConfigurationError` naming the id.
+ */
 export function findModel(id: string): ModelDescriptor | undefined {
   return BY_ID.get(id);
 }

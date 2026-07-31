@@ -63,7 +63,14 @@ export class ProviderRegistry {
     const factory = await load();
     // Credentials are resolved here and captured by the instance; they are never
     // returned to the caller and never stored on the registry.
-    const provider = factory(this.resolveCredentials(id));
+    //
+    // The timeout and retry budget are handed over at the same time, so a
+    // transport never reads configuration for itself and every provider inherits
+    // one policy rather than its own defaults.
+    const provider = factory(this.resolveCredentials(id), {
+      requestTimeoutMs: this.config.requestTimeoutMs,
+      maxRetries: this.config.maxRetries,
+    });
     this.instances.set(id, provider);
     return provider;
   }

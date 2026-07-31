@@ -9,10 +9,11 @@
 // The class is exported so the thin factories can extend behaviour where a vendor
 // genuinely diverges, without any of that leaking above `AIProvider`.
 
-import { ProviderError, RateLimitError, toAIError } from "../errors";
+import { ProviderError } from "../errors";
 import type { AIStreamEvent } from "../streaming/events";
 import { iterateStream, parseSSE, SSE_DONE } from "../streaming/sse";
 import { assertSupported, costOf, resolveDescriptor } from "./dispatch";
+import { connect, OPENAI_PROTECTED_FIELDS, sanitizeProviderOptions } from "./transport";
 import type {
   AIMessage,
   ContentPart,
@@ -27,6 +28,7 @@ import type {
   ProviderCredentials,
   ProviderRequest,
   ProviderResponse,
+  ProviderRuntimeOptions,
   ToolSchema,
 } from "./types";
 
@@ -41,29 +43,36 @@ export type OpenAICompatibleOptions = {
   authHeaders: (credentials: ProviderCredentials) => Record<string, string>;
   /** Azure appends `?api-version=`; everyone else uses the plain path. */
   completionsUrl?: (credentials: ProviderCredentials) => string;
-  /** Injected in tests. Defaults to the platform `fetch`. */
-  fetchImpl?: typeof fetch;
+  /** Timeout, retry budget and the injected `fetch`. Defaults in `transport.ts`. */
+  runtime?: ProviderRuntimeOptions;
 };
 
 export class OpenAICompatibleProvider implements AIProvider {
   readonly id: ProviderId;
   readonly capabilities: ProviderCapabilities;
 
-  private readonly fetchImpl: typeof fetch;
+  private readonly runtime: ProviderRuntimeOptions;
 
   constructor(private readonly options: OpenAICompatibleOptions) {
     this.id = options.id;
     this.capabilities = options.capabilities;
-    this.fetchImpl = options.fetchImpl ?? fetch;
+    this.runtime = options.runtime ?? {};
   }
 
   async generate(request: ProviderRequest, signal?: AbortSignal): Promise<ProviderResponse> {
     const model = resolveDescriptor(request.model);
-    assertSupported(request, model, this.capabilities, false);
+    assertSupported(request, model, this.capabilities, false, this.id);
 
     const startedAt = Date.now();
-    const response = await this.post(this.buildBody(request, model.wireName, false), signal);
-    const payload = (await response.json()) as ChatCompletion;
+    const { response, deadline } = await this.connect(request, model.wireName, false, signal);
+    let payload: ChatCompletion;
+    try {
+      payload = (await response.json()) as ChatCompletion;
+    } finally {
+      // The deadline covers reading the body too, so it is only released once
+      // the body is in hand.
+      deadline.release();
+    }
 
     const choice = payload.choices?.[0];
     const message = choice?.message;
@@ -91,11 +100,12 @@ export class OpenAICompatibleProvider implements AIProvider {
 
   async *stream(request: ProviderRequest, signal?: AbortSignal): AsyncIterable<AIStreamEvent> {
     const model = resolveDescriptor(request.model);
-    assertSupported(request, model, this.capabilities, true);
+    assertSupported(request, model, this.capabilities, true, this.id);
 
     const startedAt = Date.now();
-    const response = await this.post(this.buildBody(request, model.wireName, true), signal);
+    const { response, deadline } = await this.connect(request, model.wireName, true, signal);
     if (!response.body) {
+      deadline.release();
       throw new ProviderError(this.id, "The provider returned a streaming response with no body");
     }
 
@@ -114,53 +124,68 @@ export class OpenAICompatibleProvider implements AIProvider {
     let usage: TokenUsage = { inputTokens: 0, outputTokens: 0 };
     let finishReason: FinishReason = "stop";
 
-    for await (const frame of parseSSE(iterateStream(response.body))) {
-      if (frame.data === SSE_DONE) break;
+    // Everything past this point is one attempt with no second chance: the caller
+    // already has a `start` event, so a mid-body failure propagates rather than
+    // being retried. The deadline is released whichever way the loop ends,
+    // including a consumer that abandons the generator early.
+    try {
+      for await (const frame of parseSSE(iterateStream(response.body))) {
+        if (frame.data === SSE_DONE) break;
 
-      let chunk: ChatCompletionChunk;
-      try {
-        chunk = JSON.parse(frame.data) as ChatCompletionChunk;
-      } catch {
-        // A malformed frame is a framing bug, not a model output. Skipping it is
-        // preferable to failing a stream that is otherwise well-formed.
-        continue;
+        let chunk: ChatCompletionChunk;
+        try {
+          chunk = JSON.parse(frame.data) as ChatCompletionChunk;
+        } catch {
+          // A malformed frame is a framing bug, not a model output. Skipping it is
+          // preferable to failing a stream that is otherwise well-formed.
+          continue;
+        }
+
+        if (chunk.usage) usage = mapUsage(chunk.usage);
+
+        const choice = chunk.choices?.[0];
+        if (!choice) continue;
+        if (choice.finish_reason) finishReason = mapFinishReason(choice.finish_reason);
+
+        const delta = choice.delta;
+        if (delta?.reasoning_content) {
+          yield { type: "reasoning-delta", text: delta.reasoning_content };
+        }
+        if (delta?.content) {
+          yield { type: "text-delta", text: delta.content };
+        }
+
+        for (const call of delta?.tool_calls ?? []) {
+          const existing = pending.get(call.index) ?? { id: "", name: "", arguments: "" };
+          pending.set(call.index, {
+            id: call.id ?? existing.id,
+            name: call.function?.name ?? existing.name,
+            arguments: existing.arguments + (call.function?.arguments ?? ""),
+          });
+        }
       }
 
-      if (chunk.usage) usage = mapUsage(chunk.usage);
-
-      const choice = chunk.choices?.[0];
-      if (!choice) continue;
-      if (choice.finish_reason) finishReason = mapFinishReason(choice.finish_reason);
-
-      const delta = choice.delta;
-      if (delta?.reasoning_content) {
-        yield { type: "reasoning-delta", text: delta.reasoning_content };
-      }
-      if (delta?.content) {
-        yield { type: "text-delta", text: delta.content };
+      for (const call of pending.values()) {
+        yield {
+          type: "tool-call",
+          toolCall: { id: call.id, name: call.name, arguments: call.arguments },
+        };
       }
 
-      for (const call of delta?.tool_calls ?? []) {
-        const existing = pending.get(call.index) ?? { id: "", name: "", arguments: "" };
-        pending.set(call.index, {
-          id: call.id ?? existing.id,
-          name: call.function?.name ?? existing.name,
-          arguments: existing.arguments + (call.function?.arguments ?? ""),
-        });
-      }
+      yield {
+        type: "finish",
+        finishReason: pending.size > 0 ? "tool_calls" : finishReason,
+        usage,
+        costUsd: costOf(model, usage),
+        latencyMs: Date.now() - startedAt,
+      };
+    } catch (error) {
+      // An abort reads as `AbortError` whoever caused it; only the deadline knows
+      // whether the caller cancelled or the request ran out of time.
+      throw deadline.toError(error);
+    } finally {
+      deadline.release();
     }
-
-    for (const call of pending.values()) {
-      yield { type: "tool-call", toolCall: { id: call.id, name: call.name, arguments: call.arguments } };
-    }
-
-    yield {
-      type: "finish",
-      finishReason: pending.size > 0 ? "tool_calls" : finishReason,
-      usage,
-      costUsd: costOf(model, usage),
-      latencyMs: Date.now() - startedAt,
-    };
   }
 
   private url(): string {
@@ -171,45 +196,30 @@ export class OpenAICompatibleProvider implements AIProvider {
   }
 
   /**
-   * Issues the request and turns a non-2xx into a typed error.
+   * Opens the request. Timeout, retry and error typing all live in `transport`.
    *
-   * The response body is read into the error message because it is the only place
-   * a vendor explains what was wrong — and it stays in `message`, server-side,
-   * never in `safeMessage`.
+   * Retries stop the instant a response exists, so `stream` is never replayed
+   * after its first token.
    */
-  private async post(body: unknown, signal?: AbortSignal): Promise<Response> {
-    let response: Response;
-    try {
-      response = await this.fetchImpl(this.url(), {
-        method: "POST",
+  private connect(
+    request: ProviderRequest,
+    wireModel: string,
+    stream: boolean,
+    signal?: AbortSignal,
+  ): ReturnType<typeof connect> {
+    return connect(
+      this.id,
+      () => ({
+        url: this.url(),
         headers: {
-          "Content-Type": "application/json",
           ...this.options.authHeaders(this.options.credentials),
           ...this.options.credentials.headers,
         },
-        body: JSON.stringify(body),
-        ...(signal ? { signal } : {}),
-      });
-    } catch (error) {
-      throw toAIError(
-        error,
-        () =>
-          new ProviderError(this.id, `Request to ${this.id} failed`, { cause: error, retryable: true }),
-      );
-    }
-
-    if (response.ok) return response;
-
-    const detail = await response.text().catch(() => "");
-    if (response.status === 429) {
-      const retryAfter = Number(response.headers.get("retry-after"));
-      throw new RateLimitError(`${this.id} rate limited: ${detail}`, {
-        ...(Number.isFinite(retryAfter) && retryAfter > 0 ? { retryAfterMs: retryAfter * 1000 } : {}),
-      });
-    }
-    throw new ProviderError(this.id, `${this.id} returned ${response.status}: ${detail}`, {
-      httpStatus: response.status,
-    });
+        body: this.buildBody(request, wireModel, stream),
+      }),
+      this.runtime,
+      signal,
+    );
   }
 
   private buildBody(request: ProviderRequest, wireModel: string, stream: boolean): Record<string, unknown> {
@@ -233,6 +243,12 @@ export class OpenAICompatibleProvider implements AIProvider {
         };
 
     return {
+      // Sanitised vendor options go first, so a field the pipeline decides
+      // overwrites whatever the caller asked for rather than the other way round.
+      // The sanitiser has already dropped the protected keys; the ordering is the
+      // second lock, and it is the one that survives someone adding a field below
+      // without remembering to add it to the list.
+      ...sanitizeProviderOptions(request.providerOptions, OPENAI_PROTECTED_FIELDS),
       model: wireModel,
       messages: request.messages.map(toWireMessage),
       stream,
@@ -247,7 +263,6 @@ export class OpenAICompatibleProvider implements AIProvider {
         ? { tools: request.tools.map(toWireTool), tool_choice: toWireToolChoice(request.toolChoice) }
         : {}),
       ...(request.responseFormat ? { response_format: toWireResponseFormat(request.responseFormat) } : {}),
-      ...(request.providerOptions ?? {}),
     };
   }
 }

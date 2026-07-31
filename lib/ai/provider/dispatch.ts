@@ -11,8 +11,17 @@
 
 import { ConfigurationError, UnsupportedCapabilityError } from "../errors";
 import { estimateCostUsd, findModel, type ModelDescriptor } from "../models";
-import { requiresVision } from "./message";
+import { requiresVision, type ProviderId } from "./message";
 import type { ProviderCapabilities, ProviderRequest } from "./types";
+
+/**
+ * Providers that legitimately serve other vendors' models.
+ *
+ * A gateway's whole purpose is to front a catalog it did not author, so a model
+ * whose `providerId` names someone else is correct there and a misconfiguration
+ * anywhere else.
+ */
+const GATEWAY_PROVIDERS: ReadonlySet<string> = new Set(["azure-openai", "openrouter"]);
 
 /** Resolves a catalog id to its descriptor, or fails naming the unknown id. */
 export function resolveDescriptor(modelId: string): ModelDescriptor {
@@ -32,7 +41,22 @@ export function assertSupported(
   model: ModelDescriptor,
   capabilities: ProviderCapabilities,
   streaming: boolean,
+  providerId?: ProviderId,
 ): void {
+  // Optional so the capability checks stay callable on their own, but every
+  // transport passes it. Without it, `AI_PROVIDER=anthropic` with
+  // `AI_DEFAULT_MODEL=gpt-5` reaches the wire and comes back as an opaque vendor
+  // 400 — the two settings are validated separately and nothing compares them.
+  if (
+    providerId !== undefined &&
+    providerId !== model.providerId &&
+    !GATEWAY_PROVIDERS.has(providerId)
+  ) {
+    throw new ConfigurationError(
+      `Model "${model.id}" belongs to ${model.providerId} and cannot be served by ${providerId}`,
+    );
+  }
+
   if (streaming && !(model.capabilities.streaming && capabilities.streaming)) {
     throw new UnsupportedCapabilityError("streaming", `${model.id} cannot stream`);
   }

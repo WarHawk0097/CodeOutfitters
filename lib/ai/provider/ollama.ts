@@ -7,7 +7,12 @@
 // promising here produces a confusing 400 instead of a clear refusal.
 
 import { OpenAICompatibleProvider } from "./openai-compatible";
-import type { AIProvider, ProviderCapabilities, ProviderCredentials } from "./types";
+import type {
+  AIProvider,
+  ProviderCapabilities,
+  ProviderCredentials,
+  ProviderRuntimeOptions,
+} from "./types";
 
 export const OLLAMA_CAPABILITIES: ProviderCapabilities = {
   streaming: true,
@@ -20,7 +25,7 @@ export const OLLAMA_CAPABILITIES: ProviderCapabilities = {
 
 export function createOllamaProvider(
   credentials: ProviderCredentials,
-  fetchImpl?: typeof fetch,
+  runtime?: ProviderRuntimeOptions,
 ): AIProvider {
   return new OpenAICompatibleProvider({
     id: "ollama",
@@ -29,7 +34,7 @@ export function createOllamaProvider(
     // A local runtime needs no credential, and sending an empty bearer token is
     // worse than sending none: some builds reject the malformed header outright.
     authHeaders: () => ({}),
-    ...(fetchImpl ? { fetchImpl } : {}),
+    ...(runtime ? { runtime } : {}),
   });
 }
 

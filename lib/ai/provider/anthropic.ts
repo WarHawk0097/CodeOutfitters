@@ -10,17 +10,19 @@
 // the two dialects served a request, which is exactly the property the task asked
 // for.
 
-import { ProviderError, RateLimitError, toAIError } from "../errors";
+import { ProviderError } from "../errors";
 import type { AIStreamEvent } from "../streaming/events";
 import { iterateStream, parseSSE } from "../streaming/sse";
 import { assertSupported, costOf, resolveDescriptor } from "./dispatch";
 import type { AIMessage, ContentPart, FinishReason, TokenUsage, ToolCall } from "./message";
+import { ANTHROPIC_PROTECTED_FIELDS, connect, sanitizeProviderOptions } from "./transport";
 import type {
   AIProvider,
   ProviderCapabilities,
   ProviderCredentials,
   ProviderRequest,
   ProviderResponse,
+  ProviderRuntimeOptions,
 } from "./types";
 
 export const ANTHROPIC_CAPABILITIES: ProviderCapabilities = {
@@ -43,22 +45,24 @@ export class AnthropicProvider implements AIProvider {
   readonly id = "anthropic" as const;
   readonly capabilities = ANTHROPIC_CAPABILITIES;
 
-  private readonly fetchImpl: typeof fetch;
-
   constructor(
     private readonly credentials: ProviderCredentials,
-    fetchImpl?: typeof fetch,
-  ) {
-    this.fetchImpl = fetchImpl ?? fetch;
-  }
+    private readonly runtime: ProviderRuntimeOptions = {},
+  ) {}
 
   async generate(request: ProviderRequest, signal?: AbortSignal): Promise<ProviderResponse> {
     const model = resolveDescriptor(request.model);
-    assertSupported(request, model, this.capabilities, false);
+    assertSupported(request, model, this.capabilities, false, this.id);
 
     const startedAt = Date.now();
-    const response = await this.post(this.buildBody(request, model.wireName, model.maxOutputTokens, false), signal);
-    const payload = (await response.json()) as AnthropicMessage;
+    const { response, deadline } = await this.connect(request, model, false, signal);
+    let payload: AnthropicMessage;
+    try {
+      payload = (await response.json()) as AnthropicMessage;
+    } finally {
+      // Reading the body is still on the clock, so the deadline outlives connect.
+      deadline.release();
+    }
 
     const content: ContentPart[] = [];
     const toolCalls: ToolCall[] = [];
@@ -91,11 +95,12 @@ export class AnthropicProvider implements AIProvider {
 
   async *stream(request: ProviderRequest, signal?: AbortSignal): AsyncIterable<AIStreamEvent> {
     const model = resolveDescriptor(request.model);
-    assertSupported(request, model, this.capabilities, true);
+    assertSupported(request, model, this.capabilities, true, this.id);
 
     const startedAt = Date.now();
-    const response = await this.post(this.buildBody(request, model.wireName, model.maxOutputTokens, true), signal);
+    const { response, deadline } = await this.connect(request, model, true, signal);
     if (!response.body) {
+      deadline.release();
       throw new ProviderError(this.id, "The provider returned a streaming response with no body");
     }
 
@@ -108,116 +113,118 @@ export class AnthropicProvider implements AIProvider {
     let finishReason: FinishReason = "stop";
     let sawToolUse = false;
 
-    for await (const frame of parseSSE(iterateStream(response.body))) {
-      let event: AnthropicStreamEvent;
-      try {
-        event = JSON.parse(frame.data) as AnthropicStreamEvent;
-      } catch {
-        continue;
-      }
+    // Past this point there is no second attempt: the caller already holds a
+    // `start` event, so a mid-stream failure propagates instead of replaying a
+    // request that has already produced tokens.
+    try {
+      for await (const frame of parseSSE(iterateStream(response.body))) {
+        let event: AnthropicStreamEvent;
+        try {
+          event = JSON.parse(frame.data) as AnthropicStreamEvent;
+        } catch {
+          continue;
+        }
 
-      switch (event.type) {
-        case "message_start":
-          usage = mapUsage(event.message?.usage);
-          break;
+        switch (event.type) {
+          case "message_start":
+            usage = mapUsage(event.message?.usage);
+            break;
 
-        case "content_block_start":
-          if (event.index !== undefined && event.content_block) {
-            blocks.set(event.index, {
-              type: event.content_block.type,
-              id: event.content_block.id ?? "",
-              name: event.content_block.name ?? "",
-              json: "",
+          case "content_block_start":
+            if (event.index !== undefined && event.content_block) {
+              blocks.set(event.index, {
+                type: event.content_block.type,
+                id: event.content_block.id ?? "",
+                name: event.content_block.name ?? "",
+                json: "",
+              });
+            }
+            break;
+
+          case "content_block_delta": {
+            const delta = event.delta;
+            if (delta?.type === "text_delta" && delta.text) {
+              yield { type: "text-delta", text: delta.text };
+            } else if (delta?.type === "thinking_delta" && delta.thinking) {
+              yield { type: "reasoning-delta", text: delta.thinking };
+            } else if (delta?.type === "input_json_delta" && event.index !== undefined) {
+              const block = blocks.get(event.index);
+              if (block) block.json += delta.partial_json ?? "";
+            }
+            break;
+          }
+
+          case "content_block_stop": {
+            const block = event.index === undefined ? undefined : blocks.get(event.index);
+            if (block?.type === "tool_use") {
+              sawToolUse = true;
+              yield {
+                type: "tool-call",
+                toolCall: { id: block.id, name: block.name, arguments: block.json || "{}" },
+              };
+            }
+            break;
+          }
+
+          case "message_delta":
+            if (event.delta?.stop_reason) finishReason = mapStopReason(event.delta.stop_reason);
+            // Output tokens are only final on this event; input tokens came with
+            // `message_start` and are preserved.
+            if (event.usage?.output_tokens !== undefined) {
+              usage = { ...usage, outputTokens: event.usage.output_tokens };
+            }
+            break;
+
+          case "error":
+            throw new ProviderError(this.id, `anthropic stream error: ${event.error?.message ?? ""}`, {
+              retryable: event.error?.type === "overloaded_error",
             });
-          }
-          break;
 
-        case "content_block_delta": {
-          const delta = event.delta;
-          if (delta?.type === "text_delta" && delta.text) {
-            yield { type: "text-delta", text: delta.text };
-          } else if (delta?.type === "thinking_delta" && delta.thinking) {
-            yield { type: "reasoning-delta", text: delta.thinking };
-          } else if (delta?.type === "input_json_delta" && event.index !== undefined) {
-            const block = blocks.get(event.index);
-            if (block) block.json += delta.partial_json ?? "";
-          }
-          break;
+          default:
+            break;
         }
-
-        case "content_block_stop": {
-          const block = event.index === undefined ? undefined : blocks.get(event.index);
-          if (block?.type === "tool_use") {
-            sawToolUse = true;
-            yield {
-              type: "tool-call",
-              toolCall: { id: block.id, name: block.name, arguments: block.json || "{}" },
-            };
-          }
-          break;
-        }
-
-        case "message_delta":
-          if (event.delta?.stop_reason) finishReason = mapStopReason(event.delta.stop_reason);
-          // Output tokens are only final on this event; input tokens came with
-          // `message_start` and are preserved.
-          if (event.usage?.output_tokens !== undefined) {
-            usage = { ...usage, outputTokens: event.usage.output_tokens };
-          }
-          break;
-
-        case "error":
-          throw new ProviderError(this.id, `anthropic stream error: ${event.error?.message ?? ""}`, {
-            retryable: event.error?.type === "overloaded_error",
-          });
-
-        default:
-          break;
       }
-    }
 
-    yield {
-      type: "finish",
-      finishReason: sawToolUse ? "tool_calls" : finishReason,
-      usage,
-      costUsd: costOf(model, usage),
-      latencyMs: Date.now() - startedAt,
-    };
+      yield {
+        type: "finish",
+        finishReason: sawToolUse ? "tool_calls" : finishReason,
+        usage,
+        costUsd: costOf(model, usage),
+        latencyMs: Date.now() - startedAt,
+      };
+    } catch (error) {
+      // Only the deadline can tell a timeout from a caller cancellation; both
+      // reach here as `AbortError`.
+      throw deadline.toError(error);
+    } finally {
+      deadline.release();
+    }
   }
 
-  private async post(body: unknown, signal?: AbortSignal): Promise<Response> {
-    let response: Response;
-    try {
-      response = await this.fetchImpl(`${this.credentials.baseUrl}/messages`, {
-        method: "POST",
+  /**
+   * Opens the request. Timeout, retry and error typing live in `transport`, so
+   * this dialect and the OpenAI-compatible one get exactly the same policy.
+   */
+  private connect(
+    request: ProviderRequest,
+    model: { wireName: string; maxOutputTokens: number },
+    stream: boolean,
+    signal?: AbortSignal,
+  ): ReturnType<typeof connect> {
+    return connect(
+      this.id,
+      () => ({
+        url: `${this.credentials.baseUrl}/messages`,
         headers: {
-          "Content-Type": "application/json",
           "x-api-key": this.credentials.apiKey,
           "anthropic-version": ANTHROPIC_VERSION,
           ...this.credentials.headers,
         },
-        body: JSON.stringify(body),
-        ...(signal ? { signal } : {}),
-      });
-    } catch (error) {
-      throw toAIError(
-        error,
-        () => new ProviderError(this.id, "Request to anthropic failed", { cause: error, retryable: true }),
-      );
-    }
-
-    if (response.ok) return response;
-
-    const detail = await response.text().catch(() => "");
-    if (response.status === 429) {
-      const retryAfter = Number(response.headers.get("retry-after"));
-      throw new RateLimitError(`anthropic rate limited: ${detail}`, {
-        ...(Number.isFinite(retryAfter) && retryAfter > 0 ? { retryAfterMs: retryAfter * 1000 } : {}),
-      });
-    }
-    throw new ProviderError(this.id, `anthropic returned ${response.status}: ${detail}`, {
-      httpStatus: response.status,
-    });
+        body: this.buildBody(request, model.wireName, model.maxOutputTokens, stream),
+      }),
+      this.runtime,
+      signal,
+    );
   }
 
   private buildBody(
@@ -237,6 +244,10 @@ export class AnthropicProvider implements AIProvider {
       .join("\n\n");
 
     return {
+      // First, so the pipeline's fields win on collision. The sanitiser has
+      // already removed the protected keys; this ordering is what keeps that true
+      // if a field is added below and the list is not updated with it.
+      ...sanitizeProviderOptions(request.providerOptions, ANTHROPIC_PROTECTED_FIELDS),
       model: wireModel,
       messages: toAnthropicMessages(request.messages),
       ...(system ? { system } : {}),
@@ -255,7 +266,6 @@ export class AnthropicProvider implements AIProvider {
             ...(request.toolChoice ? { tool_choice: toAnthropicToolChoice(request.toolChoice) } : {}),
           }
         : {}),
-      ...(request.providerOptions ?? {}),
     };
   }
 }
@@ -411,9 +421,9 @@ type AnthropicStreamEvent = {
 
 export function createAnthropicProvider(
   credentials: ProviderCredentials,
-  fetchImpl?: typeof fetch,
+  runtime?: ProviderRuntimeOptions,
 ): AIProvider {
-  return new AnthropicProvider(credentials, fetchImpl);
+  return new AnthropicProvider(credentials, runtime);
 }
 
 export default createAnthropicProvider;
