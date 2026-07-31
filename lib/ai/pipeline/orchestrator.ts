@@ -13,7 +13,14 @@
 import { CancelledError, isAIError, toAIError, AIError } from "../errors";
 import type { AIConfig } from "../config";
 import { costOf, resolveDescriptor } from "../provider/dispatch";
-import { addUsage, EMPTY_USAGE, type AIMessage, type TokenUsage, type ToolCall } from "../provider/message";
+import {
+  addUsage,
+  EMPTY_USAGE,
+  type AIMessage,
+  type FinishReason,
+  type TokenUsage,
+  type ToolCall,
+} from "../provider/message";
 import type { ProviderRegistry } from "../provider/registry";
 import type { ToolSchema } from "../provider/types";
 import type { AIStreamEvent } from "../streaming/events";
@@ -30,7 +37,7 @@ import type { MemorySystem } from "../memory/types";
 import { formatChunksForPrompt, type KnowledgeSource } from "../knowledge/types";
 import type { Telemetry } from "../observability/types";
 import { InMemoryRateLimiter } from "../observability/resilience";
-import { summarizeText } from "../observability/redaction";
+import { redactingTelemetry, summarizeText } from "../observability/redaction";
 
 export type OrchestratorDependencies = {
   config: AIConfig;
@@ -66,7 +73,21 @@ export type CopilotRequest = {
 };
 
 export class Orchestrator {
-  constructor(private readonly deps: OrchestratorDependencies) {}
+  private readonly deps: OrchestratorDependencies;
+
+  constructor(deps: OrchestratorDependencies) {
+    // The single point where telemetry is made safe. Every logger, span and
+    // metric below — including the `logger` handed to every tool — comes from
+    // here, so no call site can opt out of redaction by forgetting about it, and
+    // `config.redactPrompts` finally decides something.
+    this.deps = {
+      ...deps,
+      telemetry: redactingTelemetry(deps.telemetry, {
+        redactPrompts: deps.config.redactPrompts,
+        logLevel: deps.config.logLevel,
+      }),
+    };
+  }
 
   /**
    * Runs one turn, emitting events as they happen.
@@ -144,7 +165,13 @@ export class Orchestrator {
       const provider = await this.deps.providers.get(config.provider);
 
       let usage: TokenUsage = EMPTY_USAGE;
-      let text = "";
+      // The final answer only. Intermediate iterations are persisted as their own
+      // messages, so accumulating them here would store the same text twice.
+      let finalText = "";
+      // Reported rather than assumed. "stop" for a turn that was actually cut off
+      // at the token ceiling is a lie the caller cannot detect, and it is the one
+      // signal that tells a UI whether to offer "continue".
+      let finishReason: FinishReason = "stop";
       const maxIterations = toolStep ? toolStep.maxIterations : 1;
 
       for (let iteration = 0; iteration < maxIterations; iteration += 1) {
@@ -182,6 +209,7 @@ export class Orchestrator {
               break;
             case "finish":
               usage = addUsage(usage, event.usage);
+              finishReason = event.finishReason;
               break;
             case "error":
               yield event;
@@ -191,16 +219,24 @@ export class Orchestrator {
           }
         }
 
-        text += iterationText;
-        working = appendMessage(working, {
+        if (pendingCalls.length === 0) {
+          finalText = iterationText;
+          break;
+        }
+
+        // An intermediate turn: the model asked for tools rather than answering.
+        // It is persisted with its calls, because a conversation reloaded without
+        // them shows tool results that nothing requested — a shape several
+        // providers reject outright, and one no reader can follow.
+        const requestMessage: ConversationMessage = {
           id: this.deps.newId(),
           role: "assistant",
           content: iterationText,
           createdAt: clock().toISOString(),
-          ...(pendingCalls.length > 0 ? { toolCalls: pendingCalls } : {}),
-        });
-
-        if (pendingCalls.length === 0) break;
+          toolCalls: pendingCalls,
+        };
+        working = appendMessage(working, requestMessage);
+        await this.deps.conversations.append(conversation.id, requestMessage);
 
         for (const call of pendingCalls) {
           // A call the plan did not permit is refused here rather than executed.
@@ -229,6 +265,7 @@ export class Orchestrator {
             metadata: { toolName: call.name },
           };
           working = appendMessage(working, toolMessage);
+          await this.deps.conversations.append(conversation.id, toolMessage);
         }
       }
 
@@ -236,7 +273,7 @@ export class Orchestrator {
       const assistantMessage: ConversationMessage = {
         id: messageId,
         role: "assistant",
-        content: text,
+        content: finalText,
         createdAt: clock().toISOString(),
         metrics: {
           providerId: provider.id,
@@ -244,7 +281,7 @@ export class Orchestrator {
           usage,
           costUsd: costOf(model, usage),
           latencyMs,
-          finishReason: "stop",
+          finishReason,
         },
       };
       await this.deps.conversations.append(conversation.id, assistantMessage);
@@ -254,7 +291,7 @@ export class Orchestrator {
 
       yield {
         type: "finish",
-        finishReason: "stop",
+        finishReason,
         usage,
         costUsd: costOf(model, usage),
         latencyMs,
@@ -280,27 +317,45 @@ export class Orchestrator {
     }
   }
 
+  /**
+   * Resolves the conversation for this turn.
+   *
+   * Two rules, and they do not overlap. A request that names a conversation must
+   * name one that already exists and belongs to the subject; a request that names
+   * none gets a fresh, server-generated id.
+   *
+   * The id is never taken from the client, even for a new conversation. A
+   * conversation id is the primary key of a stored row, so accepting one lets a
+   * caller choose where their data lands: pick an id, get told it does not exist,
+   * then create it — and now two tenants are one race apart from sharing a key,
+   * or a future row can be squatted before its owner asks for it. Creation is the
+   * server's to name.
+   *
+   * Both failures raise the same error with the same text. Distinguishing "not
+   * yours" from "does not exist" would turn the endpoint into an oracle for
+   * enumerating which ids are real.
+   */
   private async loadOrCreate(request: CopilotRequest): Promise<Conversation> {
     if (request.conversationId) {
       const existing = await this.deps.conversations.get(request.conversationId);
-      if (existing) {
-        // Ownership is re-checked on every turn: a conversation id is a
-        // guessable string, and possessing one must not grant access to it.
-        if (
-          existing.workspaceId !== request.subject.workspaceId ||
-          existing.userId !== request.subject.userId
-        ) {
-          throw new CancelledError("Conversation not found");
-        }
-        return existing;
+      // Ownership is re-checked on every turn, not once at creation: a
+      // conversation id is a guessable string, and possessing one must not grant
+      // access to it.
+      if (
+        !existing ||
+        existing.workspaceId !== request.subject.workspaceId ||
+        existing.userId !== request.subject.userId
+      ) {
+        throw new CancelledError("Conversation not found");
       }
+      return existing;
     }
 
     const now = this.deps.clock().toISOString();
     return this.deps.conversations.create(
       createConversation(
         {
-          id: request.conversationId ?? this.deps.newId(),
+          id: this.deps.newId(),
           workspaceId: request.subject.workspaceId,
           userId: request.subject.userId,
         },

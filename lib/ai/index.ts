@@ -73,8 +73,11 @@ export {
   type ProviderCapabilities,
   type ProviderCredentials,
   type ProviderFactory,
+  type ProviderOptions,
+  type ProviderOptionValue,
   type ProviderRequest,
   type ProviderResponse,
+  type ProviderRuntimeOptions,
   type ResponseFormat,
   type ToolChoice,
   type ToolSchema,
@@ -82,6 +85,11 @@ export {
 
 export { ProviderRegistry } from "./provider/registry";
 export { assertSupported, costOf, resolveDescriptor } from "./provider/dispatch";
+export {
+  ANTHROPIC_PROTECTED_FIELDS,
+  OPENAI_PROTECTED_FIELDS,
+  sanitizeProviderOptions,
+} from "./provider/transport";
 
 export {
   collectStream,
@@ -192,7 +200,20 @@ export {
   type Telemetry,
   type Tracer,
 } from "./observability/types";
-export { InMemoryRateLimiter, withRetry, withTimeout } from "./observability/resilience";
-export { REDACTED, redactFields, redactSecrets, summarizeText } from "./observability/redaction";
+export {
+  InMemoryRateLimiter,
+  startDeadline,
+  withRetry,
+  withTimeout,
+  type Deadline,
+} from "./observability/resilience";
+export {
+  REDACTED,
+  redactFields,
+  redactingTelemetry,
+  redactSecrets,
+  summarizeText,
+  type RedactionPolicy,
+} from "./observability/redaction";
 
 export { Orchestrator, type CopilotRequest, type OrchestratorDependencies } from "./pipeline/orchestrator";
