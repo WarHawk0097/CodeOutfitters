@@ -22,8 +22,7 @@
 
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { SupabaseConversationStore } from "@/lib/ai/conversation/supabase-store";
-import { createClient } from "@/lib/supabase/server";
+import { createCopilotConversationStore } from "@/lib/ai/server/copilot-conversation-store";
 import {
   ConfigurationError,
   CORE_PROMPTS,
@@ -161,15 +160,13 @@ export type CopilotOrchestratorOptions = {
 /**
  * The persistent conversation store for one request.
  *
- * Built here rather than in the route so the handler never learns which database
- * the assistant remembers into. `createClient` is the same authenticated SSR
- * client the dashboard pages use, so RLS is the boundary and no service-role key
- * is involved. If the environment cannot produce one it throws, and the route
- * answers 503 — there is deliberately no in-memory fallback, because a fallback
- * would mean a production turn quietly forgetting itself.
+ * Delegated to `createCopilotConversationStore` so the turn path and the
+ * read-only history endpoints construct the same store in the same place. Kept
+ * as a named export because that is the seam this file's tests and the route's
+ * composition already refer to.
  */
 export async function createRequestConversationStore(): Promise<ConversationStore> {
-  return new SupabaseConversationStore(await createClient());
+  return createCopilotConversationStore();
 }
 
 export async function createCopilotOrchestrator(
