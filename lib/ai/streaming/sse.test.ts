@@ -185,6 +185,99 @@ describe("parseSSE", () => {
   });
 });
 
+describe("parseSSE line endings", () => {
+  const encoder = new TextEncoder();
+
+  async function framesOf(...parts: string[]): Promise<SSEFrame[]> {
+    const frames: SSEFrame[] = [];
+    for await (const frame of parseSSE(chunks(...parts.map((part) => encoder.encode(part))))) {
+      frames.push(frame);
+    }
+    return frames;
+  }
+
+  // The specification allows LF, CRLF and bare CR, and proxies rewrite between
+  // them. A parser that only splits on "\n\n" reads a CRLF stream as one frame
+  // whose every field name is prefixed with a stray CR — which is to say, no
+  // frames at all.
+  it("parses LF frames", async () => {
+    await expect(framesOf("data: one\n\ndata: two\n\n")).resolves.toEqual([
+      { data: "one" },
+      { data: "two" },
+    ]);
+  });
+
+  it("parses CRLF frames", async () => {
+    await expect(framesOf("data: one\r\n\r\ndata: two\r\n\r\n")).resolves.toEqual([
+      { data: "one" },
+      { data: "two" },
+    ]);
+  });
+
+  it("parses bare CR frames", async () => {
+    await expect(framesOf("data: one\r\rdata: two\r\r")).resolves.toEqual([
+      { data: "one" },
+      { data: "two" },
+    ]);
+  });
+
+  it("parses a stream that mixes line endings", async () => {
+    await expect(framesOf("event: a\r\ndata: one\n\r\ndata: two\r\r")).resolves.toEqual([
+      { event: "a", data: "one" },
+      { data: "two" },
+    ]);
+  });
+
+  it("handles a CRLF boundary split between the CR and the LF", async () => {
+    await expect(framesOf("data: one\r\n\r", "\ndata: two\r\n\r\n")).resolves.toEqual([
+      { data: "one" },
+      { data: "two" },
+    ]);
+  });
+
+  it("handles a chunk that ends on a CR belonging to a field's own line ending", async () => {
+    await expect(framesOf("event: a\r", "\ndata: one\r\n\r\n")).resolves.toEqual([
+      { event: "a", data: "one" },
+    ]);
+  });
+
+  it("yields a trailing CRLF frame that was never terminated", async () => {
+    await expect(framesOf("data: unterminated\r\n")).resolves.toEqual([{ data: "unterminated" }]);
+  });
+
+  it("yields a trailing frame whose stream ended on a bare CR", async () => {
+    await expect(framesOf("data: unterminated\r")).resolves.toEqual([{ data: "unterminated" }]);
+  });
+
+  it("holds a multi-byte character split across chunks in a CRLF stream", async () => {
+    const raw = encoder.encode('data: {"text":"héllo"}\r\n\r\n');
+    const split = raw.indexOf(0xc3) + 1;
+    const frames: SSEFrame[] = [];
+    for await (const frame of parseSSE(chunks(raw.slice(0, split), raw.slice(split)))) {
+      frames.push(frame);
+    }
+
+    expect(frames).toEqual([{ data: '{"text":"héllo"}' }]);
+  });
+
+  it("emits every frame when several arrive in one chunk", async () => {
+    await expect(
+      framesOf("data: one\r\n\r\ndata: two\r\n\r\ndata: three\r\n\r\n"),
+    ).resolves.toEqual([{ data: "one" }, { data: "two" }, { data: "three" }]);
+  });
+
+  it("ignores CRLF keep-alive comments", async () => {
+    await expect(framesOf(": ping\r\n\r\ndata: one\r\n\r\n")).resolves.toEqual([{ data: "one" }]);
+  });
+
+  it("joins multiple CRLF data lines without leaking the carriage returns", async () => {
+    const [frame] = await framesOf("data: one\r\ndata: two\r\n\r\n");
+
+    expect(frame?.data).toBe("one\ntwo");
+    expect(frame?.data).not.toContain("\r");
+  });
+});
+
 describe("round trip", () => {
   it("reconstructs exactly what was sent", async () => {
     const sent: AIStreamEvent[] = [

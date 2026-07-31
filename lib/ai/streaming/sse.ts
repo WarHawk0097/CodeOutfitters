@@ -91,15 +91,31 @@ export type SSEFrame = { event?: string; data: string; id?: string };
  * anywhere — mid-field, mid-UTF-8 sequence — and a line-based parser that assumes
  * otherwise drops tokens under load. `TextDecoder` in streaming mode holds
  * partial code points; the `buffer` here holds partial frames.
+ *
+ * All three line terminators the specification allows are accepted — LF, CRLF and
+ * a bare CR — by normalising to LF on the way in. A parser that only knows LF
+ * does not fail loudly against a CRLF server: it leaves a `\r` on the end of
+ * every value and silently corrupts each frame, which is how a proxy that
+ * rewrites line endings turns into a debugging session.
  */
 export async function* parseSSE(
   stream: AsyncIterable<Uint8Array>,
 ): AsyncGenerator<SSEFrame, void, undefined> {
   const decoder = new TextDecoder();
   let buffer = "";
+  // A chunk may end between the CR and the LF of one terminator, so a trailing CR
+  // is held back until the next chunk says which it was.
+  let danglingCr = false;
+
+  const append = (text: string): void => {
+    let next = danglingCr ? `\r${text}` : text;
+    danglingCr = next.endsWith("\r");
+    if (danglingCr) next = next.slice(0, -1);
+    buffer += next.replace(/\r\n?/g, "\n");
+  };
 
   for await (const chunk of stream) {
-    buffer += decoder.decode(chunk, { stream: true });
+    append(decoder.decode(chunk, { stream: true }));
 
     let boundary = buffer.indexOf("\n\n");
     while (boundary !== -1) {
@@ -110,7 +126,9 @@ export async function* parseSSE(
     }
   }
 
-  buffer += decoder.decode();
+  append(decoder.decode());
+  // A stream that ends on a bare CR still ended its last line.
+  if (danglingCr) buffer += "\n";
   const trailing = parseFrame(buffer);
   if (trailing) yield trailing;
 }
