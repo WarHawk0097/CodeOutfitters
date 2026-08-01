@@ -6,7 +6,7 @@
 -- A row is a transcript line, and the only reader is the person who wrote it.
 --
 -- Shape follows the workspace foundation in 20260727_command_center_workspaces.sql
--- and the per-user precedent in 20260801_command_center_saved_views.sql: RLS is the
+-- and the per-user precedent in 20260801000000_command_center_saved_views.sql: RLS is the
 -- boundary, membership is a row in workspace_memberships, and authorization never
 -- reads editable JWT metadata. Workspace and owner come from the authenticated
 -- session, never from a request body — see the column defaults and the WITH CHECK

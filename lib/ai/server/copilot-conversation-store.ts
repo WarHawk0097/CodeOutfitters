@@ -10,7 +10,7 @@
 // Per request, never per process: the client is authenticated by the cookies of
 // the request that asked, so a client held across requests would outlive the
 // session that authorised it. RLS is the boundary, so there is no service-role
-// key here and no scoping argument — see supabase/migrations/20260802_ai_conversations.sql.
+// key here and no scoping argument — see supabase/migrations/20260802000000_ai_conversations.sql.
 
 import "server-only";
 import { SupabaseConversationStore } from "@/lib/ai/conversation/supabase-store";

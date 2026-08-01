@@ -127,7 +127,7 @@ Procedure:
 
 ## 5. Owner bootstrap
 
-`supabase/migrations/20260729_owner_bootstrap.sql` adds:
+`supabase/migrations/20260729010000_owner_bootstrap.sql` adds:
 
 - `public.profiles` — display identity, written only by SECURITY DEFINER code.
 - `public.workspace_owner_bootstrap` — a server-controlled allowlist. RLS on, no
@@ -154,7 +154,7 @@ Do not set `COMMAND_CENTER_MODE=live` in production until every line is true:
 
 - [ ] Production Supabase project exists.
 - [ ] Work Order F schema (`20260727_command_center_workspaces.sql`) applied.
-- [ ] `20260729_owner_bootstrap.sql` applied.
+- [ ] `20260729010000_owner_bootstrap.sql` applied.
 - [ ] RLS verified against the production project.
 - [ ] Google provider works end to end.
 - [ ] Apple provider works end to end, or `AUTH_APPLE_ENABLED` is left off so the

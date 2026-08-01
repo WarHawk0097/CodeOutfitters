@@ -18,7 +18,7 @@ const MIGRATIONS = [
   "../../supabase/migrations/20260723_inquiry_backend.sql",
   "../../supabase/migrations/20260724_inquiry_attachments_upload.sql",
   "../../supabase/migrations/20260727_command_center_workspaces.sql",
-  "../../supabase/migrations/20260730_command_center_activity.sql",
+  "../../supabase/migrations/20260730000000_command_center_activity.sql",
 ].map((rel) => fileURLToPath(new URL(rel, import.meta.url)));
 
 const AUTH_STUB = `

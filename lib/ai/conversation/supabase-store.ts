@@ -2,7 +2,7 @@
 // Supabase client.
 //
 // Every statement this file issues runs as the signed-in user, under the policies
-// declared in supabase/migrations/20260802_ai_conversations.sql. There is no
+// declared in supabase/migrations/20260802000000_ai_conversations.sql. There is no
 // service-role key here and no admin client: the database decides what this store
 // can see, so a bug in the mapping below cannot widen it. That is also why `get`
 // takes no workspace or user argument — scoping one is RLS's job, and duplicating
