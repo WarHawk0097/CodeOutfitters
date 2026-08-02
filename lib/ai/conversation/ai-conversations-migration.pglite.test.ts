@@ -29,6 +29,7 @@ const MIGRATIONS = [
   "../../../supabase/migrations/20260724_inquiry_attachments_upload.sql",
   "../../../supabase/migrations/20260727_command_center_workspaces.sql",
   "../../../supabase/migrations/20260802000000_ai_conversations.sql",
+  "../../../supabase/migrations/20260802020000_harden_ai_conversation_privileges.sql",
 ].map((rel) => fileURLToPath(new URL(rel, import.meta.url)));
 
 const AUTH_STUB = `
@@ -590,7 +591,7 @@ describe("Copilot conversation migration", () => {
     expect(row?.prosecdef).toBe(true);
     // A definer-rights function without a pinned search_path is the classic way one
     // becomes a privilege-escalation primitive.
-    expect(row?.proconfig).toEqual(["search_path=public"]);
+    expect(row?.proconfig).toEqual(["search_path=pg_catalog, public"]);
     // PUBLIC revoked, the two real callers granted.
     expect(row?.acl ?? "").not.toMatch(/(^|,)=X\//);
     expect(row?.acl ?? "").toMatch(/authenticated=X\//);
