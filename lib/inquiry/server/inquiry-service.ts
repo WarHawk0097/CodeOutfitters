@@ -4,7 +4,8 @@ import type {
   InquirySubmissionResponse,
 } from "../inquiry-schema";
 import type { InquiryRepository } from "./inquiry-repository";
-import type { EmailProvider, EmailKind } from "./inquiry-email-dispatch";
+import type { EmailKind, EmailProvider, InquiryEmailRequest } from "./email/inquiry-email-provider";
+import { buildEmailIdempotencyKey, resolveInquiryEmailInternalTo } from "./email/inquiry-email-provider";
 import type { RateLimiter } from "./inquiry-rate-limit";
 import type { InquiryRequestContext } from "./inquiry-request-context";
 import { computeFingerprint } from "./inquiry-idempotency";
@@ -79,15 +80,46 @@ async function dispatchEmails(
   submissionId: string,
   deps: InquiryServiceDeps,
 ): Promise<EmailDeliveryState> {
-  const jobs: Array<{ kind: EmailKind; recipient: string }> = [
-    { kind: "visitor_confirmation", recipient: payload.workEmail },
-    { kind: "internal_notification", recipient: payload.workEmail },
+  const inquiry = {
+    firstName: payload.firstName,
+    lastName: payload.lastName,
+    workEmail: payload.workEmail,
+    businessName: payload.businessName,
+    workflowDescription: payload.workflowDescription,
+  };
+
+  // Recipient/reply-to are resolved per job, inside its own try — the internal
+  // recipient is never sourced from visitor input (bug fixed: it previously
+  // reused payload.workEmail for internal_notification too).
+  const jobs: Array<{ kind: EmailKind; build: () => InquiryEmailRequest }> = [
+    {
+      kind: "visitor_confirmation",
+      build: () => ({
+        kind: "visitor_confirmation",
+        inquiryId: submissionId,
+        recipient: payload.workEmail,
+        replyTo: resolveInquiryEmailInternalTo(),
+        idempotencyKey: buildEmailIdempotencyKey(submissionId, "visitor_confirmation"),
+        inquiry,
+      }),
+    },
+    {
+      kind: "internal_notification",
+      build: () => ({
+        kind: "internal_notification",
+        inquiryId: submissionId,
+        recipient: resolveInquiryEmailInternalTo(),
+        replyTo: payload.workEmail,
+        idempotencyKey: buildEmailIdempotencyKey(submissionId, "internal_notification"),
+        inquiry,
+      }),
+    },
   ];
 
   let anyFailed = false;
   for (const job of jobs) {
     try {
-      const { providerId } = await deps.emailProvider.send(job.kind, job.recipient);
+      const { providerId } = await deps.emailProvider.send(job.build());
       await deps.repository.markEmailEvent(submissionId, job.kind, "sent", providerId);
     } catch {
       anyFailed = true;

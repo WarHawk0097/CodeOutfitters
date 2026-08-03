@@ -79,10 +79,23 @@ Payload shape by form (preserved from the pre-Security-4 contract):
 
 See `INTEGRATION_NOTES.md` for full payload shapes. The Worker is the source of truth for the per-form routing and secret header. Owner-side n8n setup steps are in `repo-research/SECURITY_4_N8N_SECRET_NOTES.md`.
 
+## Inquiry service env vars (Next.js server, `app/api/inquiries`)
+
+These are server-only (no `NEXT_PUBLIC_*` prefix, never inlined into the browser bundle) and are consumed by `lib/inquiry/server/email/inquiry-email-provider-factory.ts`. They are **separate from, and not a replacement for**, the legacy n8n `N8N_*_WEBHOOK_URL` / `N8N_*_SECRET` vars above — those still serve the four static public forms (contact, quote, booking, newsletter); the `app/api/inquiries` route is a distinct, newer Supabase-backed service with its own email path.
+
+| Var | Required? | Scope | Purpose |
+|---|---|---|---|
+| `INQUIRY_EMAIL_PROVIDER` | yes (no silent default in any environment) | server | `"mock"` or `"resend"`. Must be set explicitly, including in local dev and tests. `"mock"` is refused in production (fail closed). |
+| `RESEND_API_KEY` | yes, when `INQUIRY_EMAIL_PROVIDER=resend` | server | Resend API key. Server-only; never logged, never returned in a response. |
+| `INQUIRY_EMAIL_FROM` | yes, when `INQUIRY_EMAIL_PROVIDER=resend` | server | Verified sender address/domain in Resend. |
+| `INQUIRY_EMAIL_INTERNAL_TO` | yes, when `INQUIRY_EMAIL_PROVIDER=resend` | server | Staff address that receives the internal notification for each inquiry. Never sourced from visitor input. |
+
+No real values are recorded here or in `.env.local.example` — set them via `.env.local` (gitignored) locally and via the hosting platform's environment-variable settings in production.
+
 ## What this app does not need
 
 - No `STRIPE_*` keys. No payment processing.
 - No `DATABASE_URL`. All DB access is via the Supabase REST API with the anon key.
 - No `JWT_SECRET` or session secret. There is no auth flow (Security 2 will add one).
-- No `SMTP_*`. Email is delegated to n8n.
+- No `SMTP_*`. The legacy public forms' email is delegated to n8n; the newer `app/api/inquiries` service (see above) uses Resend directly, not SMTP or n8n.
 - No `OPENAI_API_KEY` or other model keys. The only model is Anthropic, and it is now server-side only.

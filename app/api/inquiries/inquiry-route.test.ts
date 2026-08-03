@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { randomUUID } from "node:crypto";
 
 // Control the repository behavior without a database. The route constructs
@@ -55,6 +55,37 @@ describe("POST /api/inquiries", () => {
       status: "received" as const,
       replay: false,
     });
+    // Explicit, non-production email config for every test in this file —
+    // the route now fails closed without it (no silent mock default).
+    vi.stubEnv("INQUIRY_EMAIL_PROVIDER", "mock");
+    vi.stubEnv("INQUIRY_EMAIL_INTERNAL_TO", "staff@codeoutfitters.test");
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("does not construct MockEmailProvider directly (factory-selected only)", async () => {
+    const source = await import("node:fs/promises").then((fs) =>
+      fs.readFile(new URL("./route.ts", import.meta.url), "utf8"),
+    );
+    expect(source).not.toContain("MockEmailProvider");
+  });
+
+  it("fails closed before persistence when the email provider is misconfigured", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("INQUIRY_EMAIL_PROVIDER", "resend");
+    // RESEND_API_KEY / INQUIRY_EMAIL_FROM deliberately left unset.
+    let persisted = false;
+    state.persist = async () => {
+      persisted = true;
+      return { leadId: "lead-1", submissionId: "sub-1", status: "received" as const, replay: false };
+    };
+    const res = await POST(jsonReq(validBody()));
+    expect(res.status).toBe(503);
+    expect(persisted).toBe(false);
+    const text = await res.text();
+    expect(text).not.toContain("RESEND_API_KEY");
   });
 
   it("201 for a newly persisted inquiry", async () => {
