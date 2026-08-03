@@ -22,7 +22,7 @@ import {
   ROW_ACTION_ICON_QUIET,
   VARIANT_SELECTED,
 } from "@/lib/command-center/ui/control-system";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   createOpportunity,
   moveOpportunity,
@@ -39,8 +39,8 @@ import { SelectField, TextAreaField, TextField } from "../../../components/demo/
 import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
 import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton, ToolbarDivider } from "../../../components/demo/toolbar";
 import { SavedViewsBar } from "../../../components/command-center/saved-views";
-import { useListView, useQueryParam } from "../../../components/command-center/use-view-query";
-import { COMMAND_CREATE_PARAM } from "../../../lib/search/commands";
+import { useListView } from "../../../components/command-center/use-view-query";
+import { useCommandCreateDialog } from "../../../components/command-center/use-command-create-dialog";
 import { useStageWindow } from "./stage-window";
 import { RecordActivity } from "@/components/dashboard/activity-ui";
 import { eventsFor, type ActivityEvent } from "@/lib/activity/model";
@@ -93,13 +93,7 @@ export function PipelineBoard() {
 
   const [detailId, setDetailId] = useState<string | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
-  const [createOpen, setCreateOpen] = useState(false);
-
-  // "Add lead" in the command palette arrives with `?new=1`.
-  const createRequested = useQueryParam(COMMAND_CREATE_PARAM) === "1";
-  useEffect(() => {
-    if (createRequested) setCreateOpen(true);
-  }, [createRequested]);
+  const { open: createOpen, openCreateDialog, closeCreateDialog } = useCommandCreateDialog();
 
   const [gate, setGate] = useState<{ id: string; stage: PipelineStage } | null>(null);
   const [gateReason, setGateReason] = useState("");
@@ -455,7 +449,7 @@ export function PipelineBoard() {
             onClick={() => publish({ ...filters, q: "", owner: "", service: "", priority: "" }, sort)}
           />
         ) : null}
-        <ToolbarButton label="New opportunity" tone="primary" onClick={() => setCreateOpen(true)} />
+        <ToolbarButton label="New opportunity" tone="primary" onClick={openCreateDialog} />
         <ToolbarDivider />
         <SavedViewsBar scope="pipeline" filters={filters} sort={sort} onApply={publish} />
       </RouteToolbar>
@@ -586,7 +580,7 @@ export function PipelineBoard() {
         <CreateOpportunityDialog
           owners={ownerOptions}
           takenLeadIds={new Set(state.opportunities.map((o) => o.leadId))}
-          onClose={() => setCreateOpen(false)}
+          onClose={closeCreateDialog}
           onSubmit={(draft) => {
             const lead = LEAD_DIRECTORY.find((row) => row.id === draft.leadId);
             if (!lead) return;
@@ -604,7 +598,7 @@ export function PipelineBoard() {
               priority: draft.priority as Opportunity["priority"],
             });
             setAnnouncement(`${lead.name} added to ${STAGE_LABELS[draft.stage]}.`);
-            setCreateOpen(false);
+            closeCreateDialog();
           }}
         />
       ) : null}

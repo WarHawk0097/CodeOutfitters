@@ -19,7 +19,7 @@ import {
   SEGMENT,
   SEGMENT_ACTIVE,
 } from "@/lib/command-center/ui/control-system";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   completeFollowUp,
   createFollowUp,
@@ -39,8 +39,8 @@ import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/r
 import { NextActionCard } from "../../../components/dashboard/next-action-card";
 import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton, ToolbarDivider } from "../../../components/demo/toolbar";
 import { SavedViewsBar } from "../../../components/command-center/saved-views";
-import { useListView, useQueryParam } from "../../../components/command-center/use-view-query";
-import { COMMAND_CREATE_PARAM } from "../../../lib/search/commands";
+import { useListView } from "../../../components/command-center/use-view-query";
+import { useCommandCreateDialog } from "../../../components/command-center/use-command-create-dialog";
 import { longDate } from "../appointments/date-utils";
 import { RecordActivity } from "@/components/dashboard/activity-ui";
 import { eventsFor, type ActivityEvent } from "@/lib/activity/model";
@@ -104,15 +104,9 @@ export function FollowUpsScreen() {
   const [editId, setEditId] = useState<string | null>(null);
   const [rescheduleId, setRescheduleId] = useState<string | null>(null);
   const [snoozeId, setSnoozeId] = useState<string | null>(null);
-  const [createOpen, setCreateOpen] = useState(false);
   const [bulkSnooze, setBulkSnooze] = useState(false);
   const [announcement, setAnnouncement] = useState("");
-
-  // "Create follow-up" in the command palette arrives with `?new=1`.
-  const createRequested = useQueryParam(COMMAND_CREATE_PARAM) === "1";
-  useEffect(() => {
-    if (createRequested) setCreateOpen(true);
-  }, [createRequested]);
+  const { open: createOpen, openCreateDialog, closeCreateDialog } = useCommandCreateDialog();
 
   const ownerName = useCallback(
     (id: string) => (id === "unassigned" ? "Unassigned" : (state.team.find((m) => m.id === id)?.name ?? id)),
@@ -388,7 +382,7 @@ export function FollowUpsScreen() {
             onClick={() => publish({ ...filters, q: "", owner: "", priority: "" }, sort)}
           />
         ) : null}
-        <ToolbarButton label="New follow-up" tone="primary" onClick={() => setCreateOpen(true)} />
+        <ToolbarButton label="New follow-up" tone="primary" onClick={openCreateDialog} />
         <ToolbarDivider />
         <SavedViewsBar scope="followUps" filters={filters} sort={sort} onApply={publish} />
       </RouteToolbar>
@@ -510,7 +504,7 @@ export function FollowUpsScreen() {
       {createOpen ? (
         <CreateFollowUpDialog
           owners={ownerOptions}
-          onClose={() => setCreateOpen(false)}
+          onClose={closeCreateDialog}
           onSubmit={(leadId, draft) => {
             const lead = LEAD_DIRECTORY.find((row) => row.id === leadId);
             if (!lead) return;
@@ -530,7 +524,7 @@ export function FollowUpsScreen() {
             });
             setView(draft.state);
             setAnnouncement(`${draft.name.trim()} added to the follow-up queue.`);
-            setCreateOpen(false);
+            closeCreateDialog();
           }}
         />
       ) : null}

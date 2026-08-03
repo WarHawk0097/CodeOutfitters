@@ -10,7 +10,7 @@
 // mode this screen renders a provider-required state instead of falling back to the demo
 // store, because one person's browser is not a workspace's task list.
 import { SEGMENT, SEGMENT_ACTIVE } from "@/lib/command-center/ui/control-system";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { createTask, resetDemoTasks } from "../../../lib/demo/actions";
 import { DEMO_CURRENT_USER_ID, DEMO_TODAY } from "../../../lib/demo/seed";
 import type { Task, TaskPriority } from "../../../lib/demo/types";
@@ -33,8 +33,8 @@ import {
 } from "../../../lib/tasks/provider";
 import { useCommandCenterConfig } from "../../../components/command-center/mode-provider";
 import { SavedViewsBar } from "../../../components/command-center/saved-views";
-import { useListView, useQueryParam } from "../../../components/command-center/use-view-query";
-import { COMMAND_CREATE_PARAM } from "../../../lib/search/commands";
+import { useListView } from "../../../components/command-center/use-view-query";
+import { useCommandCreateDialog } from "../../../components/command-center/use-command-create-dialog";
 import { useDemoQuery } from "../../../components/demo/use-demo-query";
 import { Dialog, DialogCancelButton } from "../../../components/demo/dialog";
 import { SelectField, TextAreaField, TextField } from "../../../components/demo/field";
@@ -71,15 +71,7 @@ export function MyWorkScreen() {
   const setView = useCallback((next: TaskView) => set("view", next), [set]);
 
   const [openId, setOpenId] = useState<string | null>(null);
-  const [createOpen, setCreateOpen] = useState(false);
-
-  // "Create task" in the command palette opens this screen with `?new=1`. The command promises
-  // a create form; this is where that promise is kept, and without it the command would be a
-  // navigation wearing a create label.
-  const createRequested = useQueryParam(COMMAND_CREATE_PARAM) === "1";
-  useEffect(() => {
-    if (createRequested) setCreateOpen(true);
-  }, [createRequested]);
+  const { open: createOpen, openCreateDialog, closeCreateDialog } = useCommandCreateDialog();
 
   const [resetOpen, setResetOpen] = useState(false);
   const [announcement, setAnnouncement] = useState("");
@@ -156,7 +148,7 @@ export function MyWorkScreen() {
     setNewPriority("Medium");
     setNewOwner(DEMO_CURRENT_USER_ID);
     setNewTitleError("");
-    setCreateOpen(false);
+    closeCreateDialog();
     announce(`Task created. ${DEMO_TASK_SAVE_NOTICE}`);
   };
 
@@ -224,7 +216,7 @@ export function MyWorkScreen() {
           />
         ) : null}
         <ToolbarButton label="Reset demo tasks" onClick={() => setResetOpen(true)} />
-        <ToolbarButton label="New task" tone="primary" onClick={() => setCreateOpen(true)} />
+        <ToolbarButton label="New task" tone="primary" onClick={openCreateDialog} />
         <ToolbarDivider />
         <SavedViewsBar scope="myWork" filters={filters} sort={sort} onApply={publish} />
       </RouteToolbar>
@@ -288,10 +280,10 @@ export function MyWorkScreen() {
         title="New task"
         description="Title is the only required field."
         width={520}
-        onClose={() => setCreateOpen(false)}
+        onClose={closeCreateDialog}
         footer={
           <>
-            <DialogCancelButton onClick={() => setCreateOpen(false)} />
+            <DialogCancelButton onClick={closeCreateDialog} />
             <button type="button" className={TASK_PRIMARY_ACTION} onClick={submitCreate}>
               Create task
             </button>
