@@ -105,13 +105,14 @@ export function InquiryFileUpload({
   // inline parent callbacks don't retrigger it.
   const onTokensChangeRef = useRef(onTokensChange)
   const onCompletedFilesChangeRef = useRef(onCompletedFilesChange)
-  onTokensChangeRef.current = onTokensChange
-  onCompletedFilesChangeRef.current = onCompletedFilesChange
+  useEffect(() => {
+    onTokensChangeRef.current = onTokensChange
+    onCompletedFilesChangeRef.current = onCompletedFilesChange
+  })
   useEffect(() => {
     const done = items.filter((i) => i.phase === 'complete' && i.token)
     onTokensChangeRef.current?.(done.map((i) => i.token!))
     onCompletedFilesChangeRef.current?.(done.map((i) => i.name))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items])
 
   const patch = useCallback((localId: string, updater: (i: Item) => Item) => {

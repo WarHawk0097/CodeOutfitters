@@ -88,7 +88,7 @@ export function useInquiryForm<TValues extends FieldValues>(
 
   // Stable across retries so a re-submit is an idempotent replay, not a new
   // lead (spec §9.6). Regenerated only after a fresh success.
-  const submissionIdRef = useRef<string>(newSubmissionId())
+  const [submissionId, setSubmissionId] = useState<string>(newSubmissionId)
   const startedRef = useRef(false)
 
   const { formVariant, sourceInput } = options
@@ -113,7 +113,7 @@ export function useInquiryForm<TValues extends FieldValues>(
 
     const attachmentTokens = options.getAttachmentTokens?.()
     const request = buildInquiryRequest({
-      submissionId: submissionIdRef.current,
+      submissionId,
       formVariant,
       values: values as unknown as InquiryFormValues,
       source: buildSourceContext(sourceInput),
@@ -125,7 +125,7 @@ export function useInquiryForm<TValues extends FieldValues>(
     if (result.ok) {
       setResponse(result)
       setStatus('success')
-      submissionIdRef.current = newSubmissionId() // next submission is a new lead
+      setSubmissionId(newSubmissionId()) // next submission is a new lead
       trackInquiryEvent('inquiry_submit_succeeded', { formVariant, sourcePage })
       options.onSuccess?.(result)
       return
@@ -158,7 +158,7 @@ export function useInquiryForm<TValues extends FieldValues>(
     status,
     errorMessage,
     response,
-    submissionId: submissionIdRef.current,
+    submissionId,
     onSubmit,
     honeypot: {
       value: honeypotValue,
