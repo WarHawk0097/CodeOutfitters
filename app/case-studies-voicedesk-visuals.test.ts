@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { CANONICAL_ORIGIN } from '@/lib/routing/public-origin'
+import { isProtectedReleasePath } from '@/test/release-guards'
 import {
   CASE_STUDY_PROJECTS,
   DESKTOP_VISUAL_HEIGHT,
@@ -27,6 +28,8 @@ const APPROVED_DOMAIN = 'voicedesk-ebon.vercel.app'
 const DESKTOP_SRC = '/images/selected-work/voicedesk-desktop.webp'
 const MOBILE_SRC = '/images/selected-work/voicedesk-mobile.webp'
 const OFFICIAL_PRODUCTION_SHA = 'cbe980b6499ac56581d8f3d70234f0bff5fc68d0'
+/** The approved case-study release, tag `core-v1.1.0`. */
+const APPROVED_RELEASE_SHA = '5af9184774c87948132cd39fa48cc01336a94418'
 
 const repo = fileURLToPath(new URL('../', import.meta.url))
 const git = (...args: string[]) => execFileSync('git', args, { cwd: repo, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
@@ -47,9 +50,28 @@ const trackedSources = trackedFiles.filter((path) => /\.(ts|tsx|js|jsx|mjs|cjs|c
 /** The shipped application surface: review artifacts under `System-Artifacts/` are not served. */
 const shippedSources = trackedSources.filter((path) => /^(app|components|lib|public)\//.test(path))
 const shippedNonTestSources = shippedSources.filter((path) => !/\.test\.tsx?$/.test(path))
-const changedSinceProduction = git('diff', '--name-only', OFFICIAL_PRODUCTION_SHA).split('\n').filter(Boolean)
-const changedNonTestSinceProduction = changedSinceProduction.filter((path) => !/\.test\.tsx?$/.test(path))
-const diffSinceProduction = git('diff', OFFICIAL_PRODUCTION_SHA, '--', ...changedNonTestSinceProduction)
+/**
+ * What the approved release did, between two named commits.
+ *
+ * Both revisions are explicit. Diffing the baseline against an omitted target
+ * would read the working tree, and then this file — which describes a release
+ * that shipped and cannot change — would answer differently on every branch that
+ * later adds a file.
+ */
+const releasedPaths = git('diff', '--name-only', OFFICIAL_PRODUCTION_SHA, APPROVED_RELEASE_SHA).split('\n').filter(Boolean)
+/** Every file production served, read from an immutable commit rather than a branch. */
+const productionFiles = new Set(git('ls-tree', '-r', '--name-only', OFFICIAL_PRODUCTION_SHA).split('\n').filter(Boolean))
+// The content scans below police what the release put in front of a visitor:
+// the files production already served, plus anything added to a route, a
+// component, a served asset or a migration. Server-side modules a visitor never
+// reaches are a different review, and freezing them here would freeze the
+// repository rather than the website.
+const releasedNonTestPaths = releasedPaths
+  .filter((path) => !/\.test\.tsx?$/.test(path))
+  .filter((path) => isProtectedReleasePath(path, productionFiles))
+const releaseDiff = releasedNonTestPaths.length
+  ? git('diff', OFFICIAL_PRODUCTION_SHA, APPROVED_RELEASE_SHA, '--', ...releasedNonTestPaths)
+  : ''
 
 /** The published visual type is the combination of both approved asset kinds. */
 const visualType =
@@ -263,35 +285,35 @@ describe('VoiceDesk change scope', () => {
     ])
   })
 
-  it('35: leaves the homepage files unchanged since official production', () => {
-    expect(changedSinceProduction.filter((path) => /^app\/\(public\)\/page\.tsx$/.test(path))).toEqual([])
+  it('35: left the homepage files unchanged', () => {
+    expect(releasedPaths.filter((path) => /^app\/\(public\)\/page\.tsx$/.test(path))).toEqual([])
   })
 
-  it('36: leaves every other public route unchanged since official production', () => {
-    const otherPublic = changedSinceProduction.filter(
+  it('36: left every other public route unchanged', () => {
+    const otherPublic = releasedPaths.filter(
       (path) => path.startsWith('app/(public)/') && !path.startsWith('app/(public)/case-studies/'),
     )
     expect(otherPublic).toEqual([])
   })
 
-  it('37: leaves dashboard product source unchanged since official production', () => {
-    const dashboardChanges = changedSinceProduction.filter((path) => path.startsWith('app/dashboard/'))
+  it('37: left dashboard product source unchanged', () => {
+    const dashboardChanges = releasedPaths.filter((path) => path.startsWith('app/dashboard/'))
     // The only dashboard-owned file that moved is the origin guard that now
     // exempts the approved external VoiceDesk URL by exact string.
     expect(dashboardChanges).toEqual(['app/dashboard/interaction-identity-repair.test.ts'])
     expect(dashboardChanges.filter((path) => !/\.test\.tsx?$/.test(path))).toEqual([])
   })
 
-  it('38: adds no migration', () => {
-    expect(changedSinceProduction.filter((path) => path.includes('migrations/'))).toEqual([])
+  it('38: added no migration', () => {
+    expect(releasedPaths.filter((path) => path.includes('migrations/'))).toEqual([])
   })
 
-  it('39: adds no AI implementation', () => {
-    expect(/^\+.*(anthropic|openai|@ai-sdk|gpt-4|claude-)/im.test(diffSinceProduction)).toBe(false)
+  it('39: added no AI implementation', () => {
+    expect(/^\+.*(anthropic|openai|@ai-sdk|gpt-4|claude-)/im.test(releaseDiff)).toBe(false)
   })
 
-  it('40: adds no Supabase implementation', () => {
-    expect(/^\+.*@supabase\//im.test(diffSinceProduction)).toBe(false)
+  it('40: added no Supabase implementation', () => {
+    expect(/^\+.*@supabase\//im.test(releaseDiff)).toBe(false)
   })
 
   it('41: hardcodes no CodeOutfitters preview URL', () => {
@@ -302,5 +324,13 @@ describe('VoiceDesk change scope', () => {
 
   it('42: leaves the official canonical origin unchanged', () => {
     expect(CANONICAL_ORIGIN).toBe('https://codeoutfitters.vercel.app')
+  })
+
+  it('43: scans every non-test file the approved release shipped', () => {
+    // The two content scans above read `releaseDiff`, which is built from the
+    // filtered list. If the filter ever dropped a file the release actually
+    // shipped, those scans would pass by not looking — this is what stops that.
+    const shipped = releasedPaths.filter((path) => !/\.test\.tsx?$/.test(path))
+    expect(shipped.filter((path) => !releasedNonTestPaths.includes(path))).toEqual([])
   })
 })

@@ -17,7 +17,7 @@
 // yet, so it says so rather than showing demo publications, which would put another
 // workspace's client document on a real workspace's screen.
 import Link from "next/link";
-import { useId, useMemo, useState } from "react";
+import { useId, useState } from "react";
 import { ArrowLeft, Copy, Link2, Send, ShieldOff } from "lucide-react";
 import { DEMO_NOW } from "@/lib/demo/seed";
 import { useDemoState } from "@/lib/demo/store";
@@ -93,12 +93,9 @@ export function ProposalAccessView({
   const [notice, setNotice] = useState("");
 
   const proposal = state.proposals.find((candidate) => candidate.id === proposalId) ?? null;
-  const publications = useMemo(
-    () => publicationsForProposal(state, proposalId),
-    [state, proposalId],
-  );
-  const links = useMemo(() => linksForProposal(state, proposalId), [state, proposalId]);
-  const responses = useMemo(() => responsesForProposal(state, proposalId), [state, proposalId]);
+  const publications = publicationsForProposal(state, proposalId);
+  const links = linksForProposal(state, proposalId);
+  const responses = responsesForProposal(state, proposalId);
   const current = publications.find((publication) => publication.status === "published") ?? null;
   const blockedReason = proposal ? buildProposalDetail(proposal).blockedReason : null;
   const blockedReasonId = useId();

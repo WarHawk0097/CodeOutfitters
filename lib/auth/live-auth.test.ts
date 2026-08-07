@@ -462,7 +462,7 @@ describe("no browser-controlled authorization (36)", () => {
 
   it("takes the owner identity from the database allowlist, not from the request", () => {
     const migration = readFileSync(
-      `${repo}supabase/migrations/20260729_owner_bootstrap.sql`,
+      `${repo}supabase/migrations/20260729010000_owner_bootstrap.sql`,
       "utf8",
     );
     expect(migration).toContain("create or replace function public.bootstrap_initial_workspace_owner()");

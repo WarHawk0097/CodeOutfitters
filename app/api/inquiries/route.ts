@@ -1,7 +1,7 @@
 import { InquirySubmissionRequestSchema } from "@/lib/inquiry/inquiry-schema";
 import { submitInquiry } from "@/lib/inquiry/server/inquiry-service";
 import { createInquiryRepository } from "@/lib/inquiry/server/inquiry-repository-factory";
-import { MockEmailProvider } from "@/lib/inquiry/server/inquiry-email-dispatch";
+import { createInquiryEmailProvider } from "@/lib/inquiry/server/email/inquiry-email-provider-factory";
 import { ipRateLimiter, emailRateLimiter } from "@/lib/inquiry/server/inquiry-rate-limit";
 import {
   buildRequestContext,
@@ -10,6 +10,7 @@ import {
 import {
   InquiryError,
   badRequest,
+  notConfigured,
   serverError,
   validationError,
 } from "@/lib/inquiry/server/inquiry-errors";
@@ -65,11 +66,20 @@ export async function POST(req: Request): Promise<Response> {
     return errorResponse(validationError(fields), headers);
   }
 
+  // Fail closed BEFORE persistence: a broken email configuration must never
+  // silently accept an inquiry that is guaranteed to fail every email.
+  let emailProvider;
+  try {
+    emailProvider = createInquiryEmailProvider();
+  } catch {
+    return errorResponse(notConfigured(), headers);
+  }
+
   try {
     const repository = await createInquiryRepository();
     const result = await submitInquiry(parsed.data, ctx, {
       repository,
-      emailProvider: new MockEmailProvider(),
+      emailProvider,
       ipRateLimiter,
       emailRateLimiter,
     });

@@ -45,7 +45,7 @@
 --     personal data with no retention policy to govern it and no question it answers that
 --     open_count does not.
 --
---   * Any modification of 20260730_command_center_activity.sql. The one thing this release
+--   * Any modification of 20260730000000_command_center_activity.sql. The one thing this release
 --     needs from it — a way to say an event came from a client rather than a colleague — is
 --     added below as a new column with a default, so every existing row and every existing
 --     insert keeps working unchanged.
@@ -453,7 +453,7 @@ grant execute on function public.proposal_public_submit_response(
 -- ---------------------------------------------------------------------------
 -- 8. Activity: distinguishing a client from a colleague
 --
--- Additive only. 20260730_command_center_activity.sql is not modified: the column has a
+-- Additive only. 20260730000000_command_center_activity.sql is not modified: the column has a
 -- default, so every row that exists and every insert already written keeps working, and an
 -- event whose actor_id is null no longer has to mean "the system did it".
 -- ---------------------------------------------------------------------------

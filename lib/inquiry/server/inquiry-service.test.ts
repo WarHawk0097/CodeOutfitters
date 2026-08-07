@@ -1,8 +1,9 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { randomUUID } from "node:crypto";
 import { submitInquiry } from "./inquiry-service";
 import type { InquiryRepository, PersistResult, EmailEventStatus } from "./inquiry-repository";
-import { MockEmailProvider, FailingEmailProvider } from "./inquiry-email-dispatch";
+import { MockEmailProvider, FailingEmailProvider } from "./email/mock-email-provider";
+import type { EmailProvider, EmailSendResult, InquiryEmailRequest } from "./email/inquiry-email-provider";
 import type { RateLimiter } from "./inquiry-rate-limit";
 import { InquiryError, idempotencyConflict } from "./inquiry-errors";
 import { InquirySubmissionRequestSchema } from "../inquiry-schema";
@@ -11,6 +12,13 @@ import type { InquiryRequestContext } from "./inquiry-request-context";
 const ctx: InquiryRequestContext = { correlationId: "cid", ipHash: "iphash", userAgent: "ua" };
 const allow: RateLimiter = { check: () => ({ allowed: true }) };
 const deny: RateLimiter = { check: () => ({ allowed: false, retryAfterMs: 1000 }) };
+
+beforeEach(() => {
+  vi.stubEnv("INQUIRY_EMAIL_INTERNAL_TO", "staff@codeoutfitters.test");
+});
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 function payload() {
   return InquirySubmissionRequestSchema.parse({
@@ -91,6 +99,51 @@ describe("submitInquiry service", () => {
     expect(res.response.ok).toBe(true);
     expect(res.emailDelivery).toBe("delayed");
     expect(repo.emailMarks.every((m) => m.status === "failed")).toBe(true);
+  });
+
+  it("sends the internal notification to INQUIRY_EMAIL_INTERNAL_TO, never the visitor's email", async () => {
+    const repo = new FakeRepository(newResult());
+    const captured: InquiryEmailRequest[] = [];
+    const capturing: EmailProvider = {
+      async send(request): Promise<EmailSendResult> {
+        captured.push(request);
+        return { providerId: `captured_${request.kind}` };
+      },
+    };
+    await submitInquiry(payload(), ctx, {
+      repository: repo,
+      emailProvider: capturing,
+      ipRateLimiter: allow,
+      emailRateLimiter: allow,
+    });
+    const internal = captured.find((r) => r.kind === "internal_notification");
+    const visitor = captured.find((r) => r.kind === "visitor_confirmation");
+    expect(internal?.recipient).toBe("staff@codeoutfitters.test");
+    expect(internal?.replyTo).toBe("ada@example.com");
+    expect(visitor?.recipient).toBe("ada@example.com");
+    expect(visitor?.replyTo).toBe("staff@codeoutfitters.test");
+  });
+
+  it("one failed email job does not stop the other from being attempted", async () => {
+    const repo = new FakeRepository(newResult());
+    const partiallyFailing: EmailProvider = {
+      async send(request): Promise<EmailSendResult> {
+        if (request.kind === "internal_notification") throw new Error("boom");
+        return { providerId: "ok" };
+      },
+    };
+    const res = await submitInquiry(payload(), ctx, {
+      repository: repo,
+      emailProvider: partiallyFailing,
+      ipRateLimiter: allow,
+      emailRateLimiter: allow,
+    });
+    expect(res.response.ok).toBe(true);
+    expect(res.emailDelivery).toBe("delayed");
+    expect(repo.emailMarks).toEqual([
+      { type: "visitor_confirmation", status: "sent" },
+      { type: "internal_notification", status: "failed" },
+    ]);
   });
 
   it("throws 429 when rate limited (never reaches persistence)", async () => {

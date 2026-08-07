@@ -325,7 +325,7 @@ export function ContactBookingFlow(_props: ContactBookingFlowProps) {
   }, [firstDow, daysInMonth, vy, vm, todayKey, selDate, dayAvail, slotLoadTimer])
 
   /* Selected date display */
-  const selParts = selDate ? selDate.split('-').map(Number) : null
+  const selParts = useMemo(() => (selDate ? selDate.split('-').map(Number) : null), [selDate])
   const selDateObj = selParts ? new Date(selParts[0], selParts[1], selParts[2]) : null
   const selDateLabel = selDateObj ? fmtDate(selDateObj) : ''
 

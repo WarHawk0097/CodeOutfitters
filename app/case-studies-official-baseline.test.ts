@@ -26,9 +26,17 @@ import {
   MOBILE_VISUAL_WIDTH,
   type CaseStudyProject,
 } from '@/lib/marketing/case-studies-projects'
+import {
+  isProtectedReleasePath,
+  isPublicSurfacePath,
+  unauthorizedReleasePaths,
+} from '@/test/release-guards'
 
 /** The exact frontend deployed to production; the only baseline for this branch. */
 const OFFICIAL_PRODUCTION_SHA = 'cbe980b6499ac56581d8f3d70234f0bff5fc68d0'
+
+/** The approved case-study release, tag `core-v1.1.0`; the frozen scope below. */
+const APPROVED_RELEASE_SHA = '5af9184774c87948132cd39fa48cc01336a94418'
 
 /** This file, excluded from the scans that must quote the strings they forbid. */
 const OWN_PATH = 'app/case-studies-official-baseline.test.ts'
@@ -63,6 +71,31 @@ const ALLOWED_DIFFERENCES = [
   'public/images/selected-work/voicedesk-desktop.webp',
   'public/images/selected-work/voicedesk-mobile.webp',
 ]
+
+/**
+ * Every file production served, so an edit to any of them edits the live site.
+ * Read from an immutable commit, not from a branch or a remote.
+ */
+const productionFiles = new Set(
+  git('ls-tree', '-r', '--name-only', OFFICIAL_PRODUCTION_SHA).split('\n').filter(Boolean),
+)
+
+/**
+ * The paths one commit range changed. Both revisions are named.
+ *
+ * An omitted target revision means the working tree, which turns a claim about
+ * what a 2025 release did into a claim about what the branch may contain today —
+ * and then every later feature, however far from the public site, has to be
+ * re-approved by a list that was closed when the release shipped.
+ */
+const changedPathsBetween = (baseSha: string, targetSha: string) =>
+  git('diff', '--name-only', baseSha, targetSha).split('\n').filter(Boolean)
+
+/** The paths that range changed which the release guards actually speak for. */
+const protectedChangesBetween = (baseSha: string, targetSha: string) =>
+  changedPathsBetween(baseSha, targetSha).filter((path) =>
+    isProtectedReleasePath(path, productionFiles),
+  )
 
 /** Files that must match production byte for byte, grouped by the surface they own. */
 const unchanged = (label: string, paths: string[]) =>
@@ -124,12 +157,50 @@ describe('official production parity', () => {
     'app/login/login-frame.tsx',
     'app/login/credentials.ts',
   ])
-  unchanged('15: the dashboard shell and theme are unchanged', [
+  // The dashboard shell divides in two, and this guard used to miss the seam.
+  //
+  // Three of its files are finished frontend: the layout, the theme and the
+  // Overview page. Nothing about a later feature has any business editing them,
+  // so they stay byte-identical to production and this test still says so.
+  //
+  // `app/dashboard/shell-nav.tsx` is not that kind of file. It is the dashboard's
+  // route registry and header-copy map — the one file that must gain a line every
+  // time a route behind it is built. Measured against the working tree, freezing
+  // it byte-for-byte did not protect production; it froze the registry, so no
+  // dashboard route could ever be registered again. That is the same defect
+  // a72517d corrected for the release-scope guards: a claim about what a 2025
+  // release did, accidentally written as a claim about what the branch may
+  // contain today.
+  //
+  // Its historical half is asserted below over the release range, where the answer
+  // is fixed forever. Its current half — the nav contract, the route registry, the
+  // header copy, the gated-link posture — is asserted behaviourally in
+  // app/dashboard/shell-contract.test.ts, which catches a regression this byte
+  // lock never could: a renamed label, a rerouted destination, a preview URL or an
+  // unregistered route all pass a byte comparison the moment anyone updates it.
+  unchanged('15: the dashboard layout, theme and Overview are unchanged', [
     'app/dashboard/layout.tsx',
-    'app/dashboard/shell-nav.tsx',
     'app/dashboard/theme.tsx',
     'app/dashboard/(overview)/page.tsx',
   ])
+
+  it('15a: the approved release changed no dashboard shell file, including the nav registry', () => {
+    // Both revisions are named, so this is a statement about two immutable commits
+    // and has one answer forever. A route registered on a later branch cannot make
+    // it true or false, which is exactly the property the working-tree form lacked.
+    const released = changedPathsBetween(OFFICIAL_PRODUCTION_SHA, APPROVED_RELEASE_SHA)
+    for (const path of [
+      'app/dashboard/layout.tsx',
+      'app/dashboard/shell-nav.tsx',
+      'app/dashboard/theme.tsx',
+      'app/dashboard/(overview)/page.tsx',
+    ]) {
+      expect(released, path).not.toContain(path)
+    }
+    // And the shell is protected surface, so had the release touched it, test 55
+    // would have named it rather than letting it through unlisted.
+    expect(isProtectedReleasePath('app/dashboard/shell-nav.tsx', productionFiles)).toBe(true)
+  })
 })
 
 // ---------------------------------------------------------------------------
@@ -467,8 +538,102 @@ describe('rendering and isolation', () => {
     expect(pageSource).toContain('<CaseStudyProjectCard key={project.id} project={project} />')
   })
 
-  it('55: this branch differs from official production only by the approved files', () => {
-    const changed = git('diff', '--name-only', OFFICIAL_PRODUCTION_SHA).split('\n').filter(Boolean)
-    expect(changed.filter((path) => !ALLOWED_DIFFERENCES.includes(path))).toEqual([])
+  // The scope is the production surface across one historical range, not the
+  // repository as it stands. Measuring against the working tree would mean no
+  // later route or module could ever be added without being added to a list that
+  // describes a release it was not part of — a claim this release never made.
+  it('55: the approved release touched no protected surface outside the approved files', () => {
+    const changed = protectedChangesBetween(OFFICIAL_PRODUCTION_SHA, APPROVED_RELEASE_SHA)
+    expect(unauthorizedReleasePaths(changed, productionFiles, ALLOWED_DIFFERENCES)).toEqual([])
+  })
+
+  it('56: the approved release itself touched exactly the approved files', () => {
+    const released = changedPathsBetween(OFFICIAL_PRODUCTION_SHA, APPROVED_RELEASE_SHA)
+    expect(released).toEqual([...ALLOWED_DIFFERENCES].sort())
+  })
+
+  it('57: every approved file is protected surface, so the allowlist means something', () => {
+    for (const path of ALLOWED_DIFFERENCES) {
+      expect(isProtectedReleasePath(path, productionFiles), path).toBe(true)
+    }
+  })
+})
+
+describe('protected release surface', () => {
+  it('58: an edit to a public route is in scope, and so is a new one', () => {
+    expect(isProtectedReleasePath('app/(public)/services/page.tsx', productionFiles)).toBe(true)
+    expect(isProtectedReleasePath('app/(public)/pricing/page.tsx', productionFiles)).toBe(true)
+    expect(isProtectedReleasePath('app/api/assistant/route.ts', productionFiles)).toBe(true)
+    expect(isProtectedReleasePath('components/navbar.tsx', productionFiles)).toBe(true)
+  })
+
+  it('59: an unapproved served asset is in scope', () => {
+    expect(
+      isProtectedReleasePath('public/images/selected-work/unapproved-capture.png', productionFiles),
+    ).toBe(true)
+  })
+
+  it('60: a migration is in scope wherever it lives', () => {
+    expect(isProtectedReleasePath('supabase/migrations/0001_add_table.sql', productionFiles)).toBe(
+      true,
+    )
+    expect(isProtectedReleasePath('lib/db/migrations/0002_backfill.sql', productionFiles)).toBe(true)
+  })
+
+  it('61: a server-side module no visitor reaches is out of scope', () => {
+    expect(isProtectedReleasePath('lib/example/module.ts', productionFiles)).toBe(false)
+    expect(isProtectedReleasePath('scripts/one-off.ts', productionFiles)).toBe(false)
+  })
+
+  it('62: an existing production file stays in scope wherever it lives', () => {
+    expect(isProtectedReleasePath('package.json', productionFiles)).toBe(true)
+    expect(isProtectedReleasePath('next.config.mjs', productionFiles)).toBe(true)
+    expect(isProtectedReleasePath('middleware.ts', productionFiles)).toBe(true)
+  })
+
+  it('63: scoping reads the same on Windows and on Unix separators', () => {
+    expect(isPublicSurfacePath('app\\(public)\\about\\page.tsx')).toBe(true)
+    expect(isPublicSurfacePath('public\\images\\selected-work\\voicedesk-desktop.webp')).toBe(true)
+    expect(isPublicSurfacePath('lib\\example\\module.ts')).toBe(false)
+  })
+
+  // 64–67 hand the rule paths that are not in the repository. The release it
+  // judges is immutable, so the only way to show it would still catch an
+  // unapproved change is to give it one — and writing a decoy route or asset into
+  // the tree to do that would put the very thing the guards forbid on disk.
+  it('64: an unapproved public route in the release would fail the rule', () => {
+    const changed = [...ALLOWED_DIFFERENCES, 'app/(public)/pricing/page.tsx']
+    expect(unauthorizedReleasePaths(changed, productionFiles, ALLOWED_DIFFERENCES)).toEqual([
+      'app/(public)/pricing/page.tsx',
+    ])
+  })
+
+  it('65: an unapproved served asset in the release would fail the rule', () => {
+    const changed = [...ALLOWED_DIFFERENCES, 'public/private-capture.png']
+    expect(unauthorizedReleasePaths(changed, productionFiles, ALLOWED_DIFFERENCES)).toEqual([
+      'public/private-capture.png',
+    ])
+  })
+
+  it('66: a migration in the release would fail the rule', () => {
+    const changed = [...ALLOWED_DIFFERENCES, 'supabase/migrations/0003_add_ai_tables.sql']
+    expect(unauthorizedReleasePaths(changed, productionFiles, ALLOWED_DIFFERENCES)).toEqual([
+      'supabase/migrations/0003_add_ai_tables.sql',
+    ])
+  })
+
+  it('67: a route added after the release is not retroactively part of it', () => {
+    const released = changedPathsBetween(OFFICIAL_PRODUCTION_SHA, APPROVED_RELEASE_SHA)
+    const later = 'app/api/ai/copilot/route.ts'
+
+    // Whether that file exists on this branch today is not a fact about the 2025
+    // release, and the range this assertion reads cannot see it either way.
+    expect(released).not.toContain(later)
+    expect(unauthorizedReleasePaths(released, productionFiles, ALLOWED_DIFFERENCES)).toEqual([])
+    // It is still protected surface: had the release shipped it, 55 would fail.
+    expect(isProtectedReleasePath(later, productionFiles)).toBe(true)
+    expect(
+      unauthorizedReleasePaths([...released, later], productionFiles, ALLOWED_DIFFERENCES),
+    ).toEqual([later])
   })
 })

@@ -1,0 +1,141 @@
+// In-process implementations of the memory seams.
+//
+// These exist so the stack runs and is testable before any storage decision is
+// made. They are per-instance and non-durable: correct for tests and local
+// development, wrong for production, and stated as such here so nobody has to
+// discover it from behaviour.
+//
+// Keys are composed rather than nested so that tenant isolation is a property of
+// the key, not of careful lookup code.
+
+import type {
+  ConversationMemory,
+  ConversationScope,
+  LongTermMemory,
+  MemoryRecord,
+  MemorySystem,
+  SessionMemory,
+  SessionScope,
+  UserPreferences,
+  UserScope,
+  WorkspaceMemory,
+  WorkspaceScope,
+} from "./types";
+
+const conversationKey = (scope: ConversationScope): string =>
+  `${scope.workspaceId}\u0000${scope.conversationId}`;
+const sessionKey = (scope: SessionScope): string =>
+  `${scope.workspaceId}\u0000${scope.userId}\u0000${scope.sessionId}`;
+const userKey = (scope: UserScope): string => `${scope.workspaceId}\u0000${scope.userId}`;
+
+export class InMemoryConversationMemory implements ConversationMemory {
+  private readonly summaries = new Map<string, string>();
+
+  async getSummary(scope: ConversationScope): Promise<string | undefined> {
+    return this.summaries.get(conversationKey(scope));
+  }
+
+  async setSummary(scope: ConversationScope, summary: string): Promise<void> {
+    this.summaries.set(conversationKey(scope), summary);
+  }
+
+  async clear(scope: ConversationScope): Promise<void> {
+    this.summaries.delete(conversationKey(scope));
+  }
+}
+
+export class InMemorySessionMemory implements SessionMemory {
+  private readonly entries = new Map<string, { value: string; expiresAt?: number }>();
+
+  constructor(private readonly now: () => number = Date.now) {}
+
+  async get(scope: SessionScope, key: string): Promise<string | undefined> {
+    const entry = this.entries.get(`${sessionKey(scope)}\u0000${key}`);
+    if (!entry) return undefined;
+    // Expiry is checked on read rather than swept: a sweep needs a timer, and a
+    // timer in a request-scoped process is a leak waiting to happen.
+    if (entry.expiresAt !== undefined && this.now() >= entry.expiresAt) {
+      this.entries.delete(`${sessionKey(scope)}\u0000${key}`);
+      return undefined;
+    }
+    return entry.value;
+  }
+
+  async set(scope: SessionScope, key: string, value: string, ttlMs?: number): Promise<void> {
+    this.entries.set(`${sessionKey(scope)}\u0000${key}`, {
+      value,
+      ...(ttlMs === undefined ? {} : { expiresAt: this.now() + ttlMs }),
+    });
+  }
+
+  async clear(scope: SessionScope): Promise<void> {
+    const prefix = `${sessionKey(scope)}\u0000`;
+    for (const key of this.entries.keys()) {
+      if (key.startsWith(prefix)) this.entries.delete(key);
+    }
+  }
+}
+
+export class InMemoryLongTermMemory implements LongTermMemory {
+  private readonly records = new Map<string, MemoryRecord[]>();
+
+  constructor(private readonly now: () => number = Date.now) {}
+
+  async remember(scope: UserScope, record: MemoryRecord): Promise<void> {
+    const key = userKey(scope);
+    const existing = this.records.get(key) ?? [];
+    this.records.set(key, [...existing.filter((item) => item.id !== record.id), record]);
+  }
+
+  /** Newest first, expired entries omitted. `limit` bounds what reaches a prompt. */
+  async recall(scope: UserScope, limit = 20): Promise<readonly MemoryRecord[]> {
+    const timestamp = this.now();
+    return (this.records.get(userKey(scope)) ?? [])
+      .filter((record) => !record.expiresAt || Date.parse(record.expiresAt) > timestamp)
+      .slice()
+      .reverse()
+      .slice(0, limit);
+  }
+
+  async forget(scope: UserScope, id: string): Promise<void> {
+    const key = userKey(scope);
+    this.records.set(key, (this.records.get(key) ?? []).filter((record) => record.id !== id));
+  }
+}
+
+export class InMemoryUserPreferences implements UserPreferences {
+  private readonly preferences = new Map<string, Record<string, string>>();
+
+  async get(scope: UserScope): Promise<Readonly<Record<string, string>>> {
+    return this.preferences.get(userKey(scope)) ?? {};
+  }
+
+  /** Merges rather than replaces, so one setting can be changed on its own. */
+  async set(scope: UserScope, preferences: Readonly<Record<string, string>>): Promise<void> {
+    const key = userKey(scope);
+    this.preferences.set(key, { ...(this.preferences.get(key) ?? {}), ...preferences });
+  }
+}
+
+export class InMemoryWorkspaceMemory implements WorkspaceMemory {
+  private readonly records = new Map<string, readonly MemoryRecord[]>();
+
+  async get(scope: WorkspaceScope): Promise<readonly MemoryRecord[]> {
+    return this.records.get(scope.workspaceId) ?? [];
+  }
+
+  async set(scope: WorkspaceScope, records: readonly MemoryRecord[]): Promise<void> {
+    this.records.set(scope.workspaceId, records);
+  }
+}
+
+/** A complete, non-durable memory system. The default until a store is chosen. */
+export function createInMemoryMemorySystem(now: () => number = Date.now): MemorySystem {
+  return {
+    conversation: new InMemoryConversationMemory(),
+    session: new InMemorySessionMemory(now),
+    longTerm: new InMemoryLongTermMemory(now),
+    preferences: new InMemoryUserPreferences(),
+    workspace: new InMemoryWorkspaceMemory(),
+  };
+}

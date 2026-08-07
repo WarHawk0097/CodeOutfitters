@@ -112,8 +112,10 @@ describe("command palette (tests 41-52)", () => {
       // parameter and open its create dialog on arrival, or the command is a navigation
       // wearing a create label.
       const src = readFileSync(`${repo}${source}`, "utf8");
-      expect(src).toContain("COMMAND_CREATE_PARAM");
-      expect(src).toContain("setCreateOpen(true)");
+      // Routes no longer read COMMAND_CREATE_PARAM/setCreateOpen directly — they
+      // delegate to the shared hook, which is what actually reads `?new=1` and
+      // opens the dialog (see use-command-create-dialog.test.ts).
+      expect(src).toContain("useCommandCreateDialog");
     }
   });
 

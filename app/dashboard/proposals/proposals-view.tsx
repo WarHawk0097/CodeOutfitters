@@ -16,7 +16,7 @@ import {
   ROW_ACTION,
   ROW_ACTION_ICON_QUIET,
 } from "@/lib/command-center/ui/control-system";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   createProposal,
   duplicateProposal,
@@ -36,8 +36,8 @@ import { SelectField, TextField } from "../../../components/demo/field";
 import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
 import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton, ToolbarDivider } from "../../../components/demo/toolbar";
 import { SavedViewsBar } from "../../../components/command-center/saved-views";
-import { useListView, useQueryParam } from "../../../components/command-center/use-view-query";
-import { COMMAND_CREATE_PARAM } from "../../../lib/search/commands";
+import { useListView } from "../../../components/command-center/use-view-query";
+import { useCommandCreateDialog } from "../../../components/command-center/use-command-create-dialog";
 import { RecordActivity } from "@/components/dashboard/activity-ui";
 import { eventsFor, type ActivityEvent } from "@/lib/activity/model";
 
@@ -138,14 +138,8 @@ export function ProposalsScreen() {
   const [editId, setEditId] = useState<string | null>(null);
   const [previewId, setPreviewId] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<{ id: string; next: ProposalState } | null>(null);
-  const [createOpen, setCreateOpen] = useState(false);
   const [announcement, setAnnouncement] = useState("");
-
-  // "Create proposal" in the command palette arrives with `?new=1`.
-  const createRequested = useQueryParam(COMMAND_CREATE_PARAM) === "1";
-  useEffect(() => {
-    if (createRequested) setCreateOpen(true);
-  }, [createRequested]);
+  const { open: createOpen, openCreateDialog, closeCreateDialog } = useCommandCreateDialog();
 
   const ownerName = useCallback(
     (id: string) => (id === "unassigned" ? "Unassigned" : (state.team.find((m) => m.id === id)?.name ?? id)),
@@ -343,7 +337,7 @@ export function ProposalsScreen() {
             }
           />
         ) : null}
-        <ToolbarButton label="New proposal" tone="primary" onClick={() => setCreateOpen(true)} />
+        <ToolbarButton label="New proposal" tone="primary" onClick={openCreateDialog} />
         <ToolbarDivider />
         <SavedViewsBar scope="proposals" filters={filters} sort={sort} onApply={publish} />
       </RouteToolbar>
@@ -444,7 +438,7 @@ export function ProposalsScreen() {
       {createOpen ? (
         <CreateProposalDialog
           owners={ownerOptions}
-          onClose={() => setCreateOpen(false)}
+          onClose={closeCreateDialog}
           onSubmit={(leadId, draft) => {
             const lead = LEAD_DIRECTORY.find((row) => row.id === leadId);
             if (!lead) return;
@@ -462,7 +456,7 @@ export function ProposalsScreen() {
               source: draft.source.trim() || "Lead",
             });
             setAnnouncement(`${id} created for ${draft.client.trim()}.`);
-            setCreateOpen(false);
+            closeCreateDialog();
           }}
         />
       ) : null}

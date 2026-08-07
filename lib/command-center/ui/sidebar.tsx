@@ -44,6 +44,12 @@ export const OPERATIONS_NAV: NavItem[] = [
   { label: "Proposals", href: "/dashboard/proposals", icon: "proposals", badge: "3" },
   { label: "Follow-ups", href: "/dashboard/follow-ups", badge: "4" },
   { label: "Email Activity", href: "/dashboard/email-activity", badge: "2" },
+  // Operations, not Administration: the assistant is a tool the whole team uses,
+  // and Administration is admin-only. Text-only for the same reason as My Work,
+  // Follow-ups and Email Activity — the canonical rail defines exactly six icons
+  // (CANON 849-854) and inventing a seventh would change that frame. No badge:
+  // there is no count of anything waiting inside a conversation.
+  { label: "Copilot", href: "/dashboard/ai" },
 ];
 
 export const ADMINISTRATION_NAV: NavItem[] = [

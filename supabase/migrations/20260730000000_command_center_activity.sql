@@ -5,7 +5,7 @@
 -- never touches this table (or any Supabase request) at all.
 --
 -- Shape follows the workspace foundation in 20260727_command_center_workspaces.sql and the
--- task collection in 20260729_command_center_tasks.sql: RLS is the primary boundary,
+-- task collection in 20260729020000_command_center_tasks.sql: RLS is the primary boundary,
 -- membership is a row in workspace_memberships, and authorization never reads editable JWT
 -- metadata. An event is visible only inside the workspace that owns it.
 --
