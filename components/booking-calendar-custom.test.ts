@@ -19,3 +19,21 @@ describe("booking-calendar-custom duplicate-submit prevention", () => {
     expect(call).toBeGreaterThan(start);
   });
 });
+
+describe("booking-calendar-custom availability error retry", () => {
+  it("renders a retry control when slot loading fails", () => {
+    expect(src).toContain("handleRetrySlots");
+    expect(src).toContain("Retry");
+  });
+
+  it("retry bumps reloadToken, which the fetch effect depends on", () => {
+    expect(src).toContain("const [reloadToken, setReloadToken] = useState(0)");
+    expect(src).toContain("setReloadToken((t) => t + 1)");
+    expect(src).toContain("[currentMonth, reloadToken]");
+  });
+
+  it("retry is disabled while a fetch is already in flight", () => {
+    const errorBlock = src.slice(src.indexOf("slotsError && ("), src.indexOf("slotsLoading && !slotsError"));
+    expect(errorBlock).toContain("disabled={slotsLoading}");
+  });
+});

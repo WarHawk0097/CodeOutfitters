@@ -57,6 +57,7 @@ export function BookingCalendarCustom() {
   const [slots, setSlots] = useState<SlotRecord[]>([])
   const [slotsLoading, setSlotsLoading] = useState(false)
   const [slotsError, setSlotsError] = useState<string | null>(null)
+  const [reloadToken, setReloadToken] = useState(0)
 
   const today = new Date()
   const isMonthLocked =
@@ -105,7 +106,9 @@ export function BookingCalendarCustom() {
     return () => {
       cancelled = true
     }
-  }, [currentMonth])
+  }, [currentMonth, reloadToken])
+
+  const handleRetrySlots = () => setReloadToken((t) => t + 1)
 
   // Booking A: build a lookup of available dates and available times per
   // date from the slots response. A date with zero entries is fully
@@ -307,8 +310,16 @@ export function BookingCalendarCustom() {
               </div>
 
               {slotsError && (
-                <p className="text-sm text-red-500 mb-4" role="alert">
+                <p className="text-sm text-red-500 mb-4 flex items-center gap-3" role="alert">
                   Could not load availability. Please try again later.
+                  <button
+                    type="button"
+                    onClick={handleRetrySlots}
+                    disabled={slotsLoading}
+                    className="text-[#2A6B5A] font-semibold underline underline-offset-2 disabled:opacity-50"
+                  >
+                    Retry
+                  </button>
                 </p>
               )}
               {slotsLoading && !slotsError && (
