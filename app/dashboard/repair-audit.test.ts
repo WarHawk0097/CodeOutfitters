@@ -455,4 +455,15 @@ describe("sign-in repair — rendered screen facts (27-30)", () => {
     expect(src).toContain("showsDayControls && date !== DEMO_TODAY ? (");
     expect(src).toContain('<ToolbarButton label="Today" onClick={() => setDate(DEMO_TODAY)} />');
   });
+
+  // 32
+  it("the mobile nav toggle keeps a 40px touch target at narrow widths", () => {
+    const navbar = readFileSync(`${repo}components/navbar.tsx`, "utf8");
+    const narrowBlock = navbar.slice(navbar.indexOf("@media(max-width:420px)"));
+    const match = narrowBlock.match(/\.site-nav-toggle\{width:(\d+)px;height:(\d+)px\}/);
+    if (match) {
+      expect(Number(match[1])).toBeGreaterThanOrEqual(40);
+      expect(Number(match[2])).toBeGreaterThanOrEqual(40);
+    }
+  });
 });

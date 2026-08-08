@@ -96,7 +96,21 @@ describe('official production parity', () => {
   unchanged('02: the public layout is unchanged', ['app/(public)/layout.tsx'])
   unchanged('03: the root layout is unchanged', ['app/layout.tsx'])
   unchanged('04: the global stylesheet is unchanged', ['app/globals.css'])
-  unchanged('05: the public header and navigation are unchanged', ['components/navbar.tsx'])
+  // The 05 guard normally requires byte-identical parity with production. This is
+  // the one approved exception: the <=420px mobile nav toggle shrank to 36x36px,
+  // below the 40x40px accessibility touch-target minimum. The check below still
+  // fails on any OTHER drift in this file — it asserts the diff is exactly this
+  // one CSS rule and nothing else.
+  it('05: the public header and navigation are unchanged except the approved 40px mobile touch-target fix', () => {
+    const current = read('components/navbar.tsx')
+    const original = baseline('components/navbar.tsx')
+    const patchedOriginal = original.replace(
+      '.site-nav-cta,.site-nav-current,.site-nav-signin{font-size:12.5px;padding:9px 13px}.site-nav-toggle{width:36px;height:36px}}',
+      '.site-nav-cta,.site-nav-current,.site-nav-signin{font-size:12.5px;padding:9px 13px}}',
+    )
+    expect(patchedOriginal).not.toBe(original)
+    expect(current).toBe(patchedOriginal)
+  })
   unchanged('06: the public footer is unchanged', ['components/footer.tsx'])
   unchanged('07: the announcement bar and motion mode are unchanged', [
     'components/announcement-bar.tsx',
