@@ -466,4 +466,59 @@ describe("sign-in repair — rendered screen facts (27-30)", () => {
       expect(Number(match[2])).toBeGreaterThanOrEqual(40);
     }
   });
+
+  // 33
+  it("the mobile nav toggle meets the 44px minimum tap target", () => {
+    const navbar = readFileSync(`${repo}components/navbar.tsx`, "utf8");
+    const match = navbar.match(/\.site-nav-toggle\{[^}]*width:(\d+)px;height:(\d+)px/);
+    expect(match).not.toBeNull();
+    expect(Number(match![1])).toBeGreaterThanOrEqual(44);
+    expect(Number(match![2])).toBeGreaterThanOrEqual(44);
+  });
+
+  // 34
+  it("the mobile header shows only the logo and hamburger between logo and toggle", () => {
+    const navbar = readFileSync(`${repo}components/navbar.tsx`, "utf8");
+    expect(navbar).toContain(".site-nav-actions{display:none}.site-nav-toggle{display:flex}");
+    expect(navbar).toContain(".site-navbar>div{max-width:1180px;min-height:68px;margin:0 auto;padding:10px clamp(16px,3vw,32px);display:flex;align-items:center;justify-content:space-between");
+  });
+
+  // 35
+  it("the hero secondary CTA (Book a Free Call) hides on mobile but stays on desktop", () => {
+    const hero = readFileSync(`${repo}components/hero.tsx`, "utf8");
+    expect(hero).toContain('className="hp-hero-cta-secondary');
+    expect(hero).toContain("Book a Free Call");
+    expect(hero).toContain(".hp-hero-cta-secondary{display:none}");
+    // The rule only applies inside the existing mobile breakpoint, not unconditionally.
+    const rule = hero.slice(hero.indexOf("@media(max-width:900px)"), hero.indexOf("@media(max-width:520px)"));
+    expect(rule).toContain(".hp-hero-cta-secondary{display:none}");
+    expect(hero.indexOf(".hp-hero-cta-secondary{display:none}")).toBeGreaterThan(hero.indexOf("@media(max-width:900px)"));
+  });
+
+  // 36
+  it("the mobile menu has no separate Close button — the hamburger toggle doubles as the close control", () => {
+    const navbar = readFileSync(`${repo}components/navbar.tsx`, "utf8");
+    expect(navbar).not.toContain("site-mobile-close");
+    expect(navbar).not.toContain(">Close</button>");
+    // Same trigger button opens and closes the menu, and still carries the
+    // required accessibility attributes.
+    expect(navbar).toContain("className={`site-nav-toggle${open?' is-open':''}`}");
+    expect(navbar).toContain('aria-expanded={open}');
+    expect(navbar).toContain("aria-label={open?'Close menu':'Open menu'}");
+    expect(navbar).toContain("onClick={()=>setOpen(v=>!v)}");
+    // The three bars animate into an X while open instead of a static icon.
+    expect(navbar).toContain(".site-nav-toggle.is-open span:nth-child(1){transform:translateY(7px) rotate(45deg)}");
+    expect(navbar).toContain(".site-nav-toggle.is-open span:nth-child(2){opacity:0}");
+    expect(navbar).toContain(".site-nav-toggle.is-open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}");
+  });
+
+  // 37
+  it("the mobile menu keeps Sign in and a visually-distinct Book a Call chip", () => {
+    const navbar = readFileSync(`${repo}components/navbar.tsx`, "utf8");
+    const drawer = navbar.slice(navbar.indexOf("site-mobile-links"));
+    expect(drawer).toContain('href="/login"');
+    expect(drawer).toContain('className="site-mobile-cta" href="/contact"');
+    expect(drawer.indexOf('href="/login"')).toBeLessThan(drawer.indexOf('className="site-mobile-cta"'));
+    expect(navbar).toContain(".site-mobile-links a.site-mobile-cta{");
+  });
 });

@@ -129,18 +129,56 @@ describe('official production parity', () => {
   unchanged('02: the public layout is unchanged', ['app/(public)/layout.tsx'])
   unchanged('03: the root layout is unchanged', ['app/layout.tsx'])
   unchanged('04: the global stylesheet is unchanged', ['app/globals.css'])
-  // The 05 guard normally requires byte-identical parity with production. This is
-  // the one approved exception: the <=420px mobile nav toggle shrank to 36x36px,
-  // below the 40x40px accessibility touch-target minimum. The check below still
-  // fails on any OTHER drift in this file — it asserts the diff is exactly this
-  // one CSS rule and nothing else.
-  it('05: the public header and navigation are unchanged except the approved 40px mobile touch-target fix', () => {
+  // The 05 guard normally requires byte-identical parity with production. These
+  // are the two approved exceptions: the <=420px mobile nav toggle shrank to
+  // 36x36px, below the 40x40px accessibility touch-target minimum; and the
+  // <=960px mobile breakpoint hid the nav links but never hid the Sign in /
+  // Book a Call actions, leaving them visible and overflowing the header. The
+  // check below still fails on any OTHER drift in this file — it asserts the
+  // diff is exactly these two CSS rules and nothing else.
+  it('05: the public header and navigation are unchanged except the approved mobile-header fixes', () => {
     const current = read('components/navbar.tsx')
     const original = baseline('components/navbar.tsx')
-    const patchedOriginal = original.replace(
-      '.site-nav-cta,.site-nav-current,.site-nav-signin{font-size:12.5px;padding:9px 13px}.site-nav-toggle{width:36px;height:36px}}',
-      '.site-nav-cta,.site-nav-current,.site-nav-signin{font-size:12.5px;padding:9px 13px}}',
-    )
+    const patchedOriginal = original
+      .replace(
+        '.site-nav-cta,.site-nav-current,.site-nav-signin{font-size:12.5px;padding:9px 13px}.site-nav-toggle{width:36px;height:36px}}',
+        '.site-nav-cta,.site-nav-current,.site-nav-signin{font-size:12.5px;padding:9px 13px}}',
+      )
+      .replace(
+        '@media(max-width:960px){.site-links{display:none}.site-nav-toggle{display:flex}}',
+        '@media(max-width:960px){.site-links{display:none}.site-nav-actions{display:none}.site-nav-toggle{display:flex}}',
+      )
+      .replace(
+        '.site-nav-toggle{display:none;flex-direction:column;justify-content:center;align-items:center;gap:5px;width:40px;height:40px;background:transparent;border:1px solid #E5DCCB;border-radius:8px;flex-shrink:0}',
+        '.site-nav-toggle{display:none;flex-direction:column;justify-content:center;align-items:center;gap:5px;width:44px;height:44px;background:transparent;border:1px solid #E5DCCB;border-radius:8px;flex-shrink:0}',
+      )
+      // Hamburger-to-X icon: the button now doubles as the close control, so its
+      // border-radius picks up the 10px used elsewhere in the header, and the
+      // three bars animate into an X while open instead of staying static.
+      .replace(
+        `.site-nav-toggle{display:none;flex-direction:column;justify-content:center;align-items:center;gap:5px;width:44px;height:44px;background:transparent;border:1px solid #E5DCCB;border-radius:8px;flex-shrink:0}.site-nav-toggle span{display:block;width:18px;height:2px;background:#0A120E;border-radius:1px}`,
+        `.site-nav-toggle{display:none;flex-direction:column;justify-content:center;align-items:center;gap:5px;width:44px;height:44px;background:transparent;border:1px solid #E5DCCB;border-radius:10px;flex-shrink:0}.site-nav-toggle span{display:block;width:18px;height:2px;background:#0A120E;border-radius:1px;transition:transform .2s ease,opacity .2s ease}.site-nav-toggle.is-open span:nth-child(1){transform:translateY(7px) rotate(45deg)}.site-nav-toggle.is-open span:nth-child(2){opacity:0}.site-nav-toggle.is-open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}`,
+      )
+      // The separate "Close" button is removed (the hamburger/X toggle now closes
+      // the menu itself); the drawer's vertical rhythm is tightened, links get a
+      // hairline divider, and "Book a Call" gets a small accent chip instead of
+      // being visually identical to a plain nav link.
+      .replace(
+        `.site-mobile-menu{position:absolute;top:100%;left:0;right:0;z-index:60;background:#F7F2EA;border-bottom:1px solid #E5DCCB;box-shadow:0 14px 34px rgba(0,0,0,.1);padding:20px clamp(16px,4vw,32px);display:flex;flex-direction:column;gap:20px;animation:coSlideDown .25s cubic-bezier(.16,1,.3,1) both}.site-mobile-close{align-self:flex-end;font:600 14px 'Instrument Sans',sans-serif;color:#4A5248;background:transparent;border:1px solid #E5DCCB;border-radius:10px;padding:9px 16px}.site-mobile-links{display:flex;flex-direction:column;gap:22px;padding-top:12px}.site-mobile-links a,.site-mobile-links span{font:600 22px 'Space Grotesk',sans-serif;color:#0A120E;text-decoration:none}.site-mobile-links span{color:#128A54}`,
+        `.site-mobile-menu{position:absolute;top:100%;left:0;right:0;z-index:60;background:#F7F2EA;border-bottom:1px solid #E5DCCB;box-shadow:0 14px 34px rgba(0,0,0,.1);padding:8px clamp(16px,4vw,32px) 16px;display:flex;flex-direction:column;animation:coSlideDown .25s cubic-bezier(.16,1,.3,1) both}.site-mobile-links{display:flex;flex-direction:column;padding-top:4px}.site-mobile-links a,.site-mobile-links span{display:block;padding:13px 2px;font:600 19px 'Space Grotesk',sans-serif;color:#0A120E;text-decoration:none;border-bottom:1px solid rgba(229,220,203,.7)}.site-mobile-links span{color:#128A54}.site-mobile-links a:last-child,.site-mobile-links span:last-child{border-bottom:none}.site-mobile-links a.site-mobile-cta{align-self:flex-start;display:inline-flex;align-items:center;color:#128A54;background:#EAF6EF;border:1px solid rgba(18,138,84,.25);border-radius:10px;padding:11px 16px;margin-top:6px}`,
+      )
+      .replace(
+        `<button ref={triggerRef} type="button" className="site-nav-toggle" aria-expanded={open} aria-controls="site-mobile-menu" aria-label={open?'Close menu':'Open menu'} onClick={()=>setOpen(v=>!v)}><span/><span/><span/></button>`,
+        `<button ref={triggerRef} type="button" className={\`site-nav-toggle\${open?' is-open':''}\`} aria-expanded={open} aria-controls="site-mobile-menu" aria-label={open?'Close menu':'Open menu'} onClick={()=>setOpen(v=>!v)}><span/><span/><span/></button>`,
+      )
+      .replace(
+        `ref={menuRef}><button type="button" className="site-mobile-close" aria-label="Close menu" onClick={()=>{setOpen(false);triggerRef.current?.focus()}}>Close</button><div className="site-mobile-links">`,
+        `ref={menuRef}><div className="site-mobile-links">`,
+      )
+      .replace(
+        `<Link href="/contact" onClick={()=>setOpen(false)}>{pathname==='/contact'?'Contact':'Book a Call'}</Link>`,
+        `<Link className="site-mobile-cta" href="/contact" onClick={()=>setOpen(false)}>{pathname==='/contact'?'Contact':'Book a Call'}</Link>`,
+      )
     expect(patchedOriginal).not.toBe(original)
     expect(current).toBe(patchedOriginal)
   })
