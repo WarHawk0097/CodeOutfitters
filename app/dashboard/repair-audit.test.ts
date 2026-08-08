@@ -466,4 +466,32 @@ describe("sign-in repair — rendered screen facts (27-30)", () => {
       expect(Number(match[2])).toBeGreaterThanOrEqual(40);
     }
   });
+
+  // 33
+  it("the mobile nav toggle meets the 44px minimum tap target", () => {
+    const navbar = readFileSync(`${repo}components/navbar.tsx`, "utf8");
+    const match = navbar.match(/\.site-nav-toggle\{[^}]*width:(\d+)px;height:(\d+)px/);
+    expect(match).not.toBeNull();
+    expect(Number(match![1])).toBeGreaterThanOrEqual(44);
+    expect(Number(match![2])).toBeGreaterThanOrEqual(44);
+  });
+
+  // 34
+  it("the mobile header shows only the logo and hamburger between logo and toggle", () => {
+    const navbar = readFileSync(`${repo}components/navbar.tsx`, "utf8");
+    expect(navbar).toContain(".site-nav-actions{display:none}.site-nav-toggle{display:flex}");
+    expect(navbar).toContain(".site-navbar>div{max-width:1180px;min-height:68px;margin:0 auto;padding:10px clamp(16px,3vw,32px);display:flex;align-items:center;justify-content:space-between");
+  });
+
+  // 35
+  it("the hero secondary CTA (Book a Free Call) hides on mobile but stays on desktop", () => {
+    const hero = readFileSync(`${repo}components/hero.tsx`, "utf8");
+    expect(hero).toContain('className="hp-hero-cta-secondary');
+    expect(hero).toContain("Book a Free Call");
+    expect(hero).toContain(".hp-hero-cta-secondary{display:none}");
+    // The rule only applies inside the existing mobile breakpoint, not unconditionally.
+    const rule = hero.slice(hero.indexOf("@media(max-width:900px)"), hero.indexOf("@media(max-width:520px)"));
+    expect(rule).toContain(".hp-hero-cta-secondary{display:none}");
+    expect(hero.indexOf(".hp-hero-cta-secondary{display:none}")).toBeGreaterThan(hero.indexOf("@media(max-width:900px)"));
+  });
 });

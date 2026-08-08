@@ -148,6 +148,10 @@ describe('official production parity', () => {
         '@media(max-width:960px){.site-links{display:none}.site-nav-toggle{display:flex}}',
         '@media(max-width:960px){.site-links{display:none}.site-nav-actions{display:none}.site-nav-toggle{display:flex}}',
       )
+      .replace(
+        '.site-nav-toggle{display:none;flex-direction:column;justify-content:center;align-items:center;gap:5px;width:40px;height:40px;background:transparent;border:1px solid #E5DCCB;border-radius:8px;flex-shrink:0}',
+        '.site-nav-toggle{display:none;flex-direction:column;justify-content:center;align-items:center;gap:5px;width:44px;height:44px;background:transparent;border:1px solid #E5DCCB;border-radius:8px;flex-shrink:0}',
+      )
     expect(patchedOriginal).not.toBe(original)
     expect(current).toBe(patchedOriginal)
   })

@@ -59,7 +59,7 @@ export function Hero() {
               <Link href="/contact" className="cta-sweep inline-flex items-center gap-2.5 text-[15.5px] font-semibold rounded-[11px] px-7 py-3.5 whitespace-nowrap no-underline" style={{ color: '#0A120E', background: '#2BD483', boxShadow: '0 14px 34px rgba(43,212,131,.28)' }}>
                 Get a Custom Quote <ArrowRight className="w-3.5 h-3.5" />
               </Link>
-              <Link href="/contact" className="inline-flex items-center text-[15.5px] font-semibold rounded-[11px] px-6 py-3 whitespace-nowrap no-underline" style={{ color: '#F5F0E8', border: '1px solid rgba(245,240,232,.25)', background: 'transparent' }}>
+              <Link href="/contact" className="hp-hero-cta-secondary inline-flex items-center text-[15.5px] font-semibold rounded-[11px] px-6 py-3 whitespace-nowrap no-underline" style={{ color: '#F5F0E8', border: '1px solid rgba(245,240,232,.25)', background: 'transparent' }}>
                 Book a Free Call
               </Link>
             </div>
@@ -117,7 +117,7 @@ export function Hero() {
       <style>{`
         .hp-hero-inner{max-width:1180px;padding:clamp(48px,7vw,84px) clamp(20px,3vw,32px) clamp(56px,8vw,96px)}
         .hp-hero-grid{display:grid;grid-template-columns:minmax(0,1.02fr) minmax(0,.98fr);gap:clamp(32px,4vw,58px)}
-        @media(max-width:900px){.hp-hero-grid{grid-template-columns:1fr}.hp-hero-grid>div:last-child{margin-top:36px}}
+        @media(max-width:900px){.hp-hero-grid{grid-template-columns:1fr}.hp-hero-grid>div:last-child{margin-top:36px}.hp-hero-cta-secondary{display:none}}
         @media(max-width:520px){.hp-hero-inner{padding-top:42px}.hp-hero-grid>div:first-child{gap:18px}.hp-hero-grid>div:last-child{margin-top:28px}.hp-hero-grid>div:last-child>div{transform:scale(.94);transform-origin:top center}}
         .co-engine-bar{animation:coBar 1.3s linear infinite}
         @keyframes coBar{from{width:8%}to{width:100%}}
