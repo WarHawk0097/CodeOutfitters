@@ -1,14 +1,10 @@
 // The live task plane contract.
 //
 // Demo mode owns tasks in this browser (lib/demo/store.ts) and says so. Live mode does
-// NOT: a workspace's tasks belong in the database behind RLS, read and written by
-// server code with the caller's session — never by browser storage, which any user can
-// edit and which no other member can see.
-//
-// That server implementation is not part of this release. Rather than let live mode fall
-// through to the demo store — which would show one user's browser-local tasks as if they
-// were the workspace's — this module resolves to `null` and the UI renders an explicit
-// provider-required state. The interface below is what a live implementation must satisfy.
+// NOT: a workspace's tasks live in the database behind RLS, read and written by server
+// code with the caller's session (lib/tasks/server-provider.ts) — never by browser
+// storage, which any user can edit and which no other member can see. There is no
+// silent fallback to the demo store in live mode.
 import type { Task, TaskPriority, TaskRelation } from "../demo/types";
 
 /** Every call is workspace-scoped. The workspace id comes from the authenticated
@@ -45,23 +41,17 @@ export type TaskProvider = {
 export type TaskPlane =
   /** Demo mode: tasks live in this browser and every surface says so. */
   | { kind: "demo" }
-  /** Live mode with no server implementation wired: read-only, honest, no fallback. */
-  | { kind: "provider_required"; reason: string };
-
-export const TASK_PROVIDER_REQUIRED_TITLE = "Task management is not connected yet";
-
-export const TASK_PROVIDER_REQUIRED_REASON =
-  "This workspace is running in live mode. Tasks are stored in the workspace database and read with your session, so they are not available until the task service is connected. Nothing is being kept in this browser.";
+  /** Live mode: tasks live in the workspace database, read with the caller's session. */
+  | { kind: "live" };
 
 /**
  * Which plane is in force. `live` is the server-decided boolean already handed to the
  * client tree by CommandCenterConfigProvider — the mode env itself never reaches the
  * browser.
  *
- * There is deliberately no third branch: live mode never resolves to `demo`.
+ * There is deliberately no third branch: live mode never resolves to `demo`, and there
+ * is no `provider_required` plane to fall through — Tasks is live-backed.
  */
 export function resolveTaskPlane(live: boolean): TaskPlane {
-  return live
-    ? { kind: "provider_required", reason: TASK_PROVIDER_REQUIRED_REASON }
-    : { kind: "demo" };
+  return live ? { kind: "live" } : { kind: "demo" };
 }

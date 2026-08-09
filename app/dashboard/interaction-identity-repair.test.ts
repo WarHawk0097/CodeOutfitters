@@ -269,8 +269,9 @@ describe("overview interactions (1-15)", () => {
   // 14
   it("offers exactly one control to the queue, not a card control plus a spare link", () => {
     const queueLinks = [...operationsSrc.matchAll(/TODAY_QUEUE_HREF/g)].length;
-    // Once where the constant is declared, once where the card is given it.
-    expect(queueLinks).toBe(2);
+    // Once where the constant is declared, once where the demo card is given it, once where
+    // the live card is given it — one dispatcher, two variants, the same single destination.
+    expect(queueLinks).toBe(3);
   });
 
   // 15

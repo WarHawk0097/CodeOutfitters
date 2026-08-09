@@ -4,13 +4,14 @@
 // reads the same everywhere, and a tone or a due label can only be wrong in one place.
 import Link from "next/link";
 import type { ReactNode } from "react";
-import type { Task, TeamMember } from "../../lib/demo/types";
+import type { Task } from "../../lib/demo/types";
 import {
   dueLabel,
   dueTone,
   relationHref,
   TASK_PRIORITY_TONE,
   TASK_RELATION_LABELS,
+  type TaskTeamMember,
 } from "../../lib/tasks/model";
 import {
   CONTROL_FOCUS,
@@ -75,7 +76,7 @@ export function TaskRelationLink({ task }: { task: Task }) {
   );
 }
 
-export function ownerName(team: readonly TeamMember[], ownerId: string): string {
+export function ownerName(team: readonly TaskTeamMember[], ownerId: string): string {
   return team.find((member) => member.id === ownerId)?.name ?? "Unassigned";
 }
 
@@ -93,7 +94,7 @@ export function TaskRow({
 }: {
   task: Task;
   today: string;
-  team: readonly TeamMember[];
+  team: readonly TaskTeamMember[];
   onOpen?: (task: Task) => void;
   actions?: ReactNode;
   dense?: boolean;

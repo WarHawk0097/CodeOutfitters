@@ -6,15 +6,14 @@
 // inside a dialog has two focus traps and only one of them can be right.
 import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
-import { completeTask, reassignTask, reopenTask, setTaskWaiting, updateTask } from "../../../lib/demo/actions";
-import type { Task, TaskPriority, TeamMember } from "../../../lib/demo/types";
-import { relationHref, TASK_PRIORITIES, TASK_RELATION_LABELS } from "../../../lib/tasks/model";
+import type { Task, TaskPriority } from "../../../lib/demo/types";
+import { relationHref, TASK_PRIORITIES, TASK_RELATION_LABELS, type TaskTeamMember } from "../../../lib/tasks/model";
+import type { TaskActions } from "../../../lib/tasks/actions";
 import type { ActivityEvent } from "../../../lib/activity/model";
 import { RecordActivity } from "../../../components/dashboard/activity-ui";
 import { getTeamRoleDisplayLabel } from "../../../lib/identity/current-user";
 import { SelectField, TextAreaField, TextField } from "../../../components/demo/field";
 import {
-  DEMO_TASK_SAVE_NOTICE,
   ownerName,
   TaskDueChip,
   TaskPriorityChip,
@@ -39,15 +38,22 @@ export function TaskDetailBody({
   today,
   team,
   activity,
+  actions,
+  saveNotice = "",
   onAnnounce,
   showOpenLink = false,
 }: {
   task: Task;
   today: string;
-  team: readonly TeamMember[];
+  team: readonly TaskTeamMember[];
   /** This task's own recorded history. Passed in rather than read here so the dialog and the
    *  task route stay one component with one data source. */
   activity: readonly ActivityEvent[];
+  /** Every write goes through this — demo and live each supply their own implementation, so
+   *  this component never knows which plane it is in. */
+  actions: TaskActions;
+  /** Demo-only aside shown under a write control ("Saved in this browser."). Live has none. */
+  saveNotice?: string;
   onAnnounce: (message: string) => void;
   /** The dialog offers a link to the task's own route; that route does not link to itself. */
   showOpenLink?: boolean;
@@ -71,26 +77,39 @@ export function TaskDetailBody({
   );
   const href = relationHref(task.relation);
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (title.trim() === "") {
       setTitleError("A task needs a title.");
       return;
     }
-    updateTask(task.id, { title: title.trim(), detail: detail.trim(), dueDate, priority });
+    const result = await actions.updateTask(task.id, {
+      title: title.trim(),
+      detail: detail.trim(),
+      dueDate,
+      priority,
+    });
+    if (!result.ok) {
+      setTitleError(result.message);
+      return;
+    }
     setTitleError("");
     setMode("view");
-    onAnnounce(`Task updated. ${DEMO_TASK_SAVE_NOTICE}`);
+    onAnnounce(`Task updated.${saveNotice ? ` ${saveNotice}` : ""}`);
   };
 
-  const saveWaiting = () => {
+  const saveWaiting = async () => {
     if (waitingOn.trim() === "") {
       setWaitingError("Name who this is waiting on.");
       return;
     }
-    setTaskWaiting(task.id, waitingOn);
+    const result = await actions.setTaskWaiting(task.id, waitingOn);
+    if (!result.ok) {
+      setWaitingError(result.message);
+      return;
+    }
     setWaitingError("");
     setMode("view");
-    onAnnounce(`Task is now waiting on ${waitingOn.trim()}. ${DEMO_TASK_SAVE_NOTICE}`);
+    onAnnounce(`Task is now waiting on ${waitingOn.trim()}.${saveNotice ? ` ${saveNotice}` : ""}`);
   };
 
   if (mode === "edit") {
@@ -120,7 +139,7 @@ export function TaskDetailBody({
           onChange={(value) => setPriority(value as TaskPriority)}
           options={TASK_PRIORITIES.map((value) => ({ value, label: value }))}
         />
-        <p className="text-[11.5px] text-cc-t3">{DEMO_TASK_SAVE_NOTICE}</p>
+        {saveNotice ? <p className="text-[11.5px] text-cc-t3">{saveNotice}</p> : null}
         <div className="flex flex-wrap gap-1.5">
           <button type="button" className={TASK_PRIMARY_ACTION} onClick={saveEdit}>
             Save changes
@@ -148,7 +167,7 @@ export function TaskDetailBody({
           required
         />
         <p className="text-[11.5px] text-cc-t3">
-          A waiting task is not counted as overdue. {DEMO_TASK_SAVE_NOTICE}
+          A waiting task is not counted as overdue.{saveNotice ? ` ${saveNotice}` : ""}
         </p>
         <div className="flex flex-wrap gap-1.5">
           <button type="button" className={TASK_PRIMARY_ACTION} onClick={saveWaiting}>
@@ -192,24 +211,28 @@ export function TaskDetailBody({
         <SelectField
           label="Owner"
           value={task.ownerId}
-          onChange={(value) => {
-            reassignTask(task.id, value);
-            onAnnounce(`Task moved to ${ownerName(team, value)}. ${DEMO_TASK_SAVE_NOTICE}`);
+          onChange={async (value) => {
+            const result = await actions.reassignTask(task.id, value);
+            onAnnounce(
+              result.ok
+                ? `Task moved to ${ownerName(team, value)}.${saveNotice ? ` ${saveNotice}` : ""}`
+                : result.message,
+            );
           }}
           options={ownerOptions}
         />
       </div>
 
-      <p className="text-[11.5px] text-cc-t3">{DEMO_TASK_SAVE_NOTICE}</p>
+      {saveNotice ? <p className="text-[11.5px] text-cc-t3">{saveNotice}</p> : null}
 
       <div className="flex flex-wrap gap-1.5">
         {task.state === "COMPLETED" ? (
           <button
             type="button"
             className={TASK_PRIMARY_ACTION}
-            onClick={() => {
-              reopenTask(task.id);
-              onAnnounce(`Task reopened. ${DEMO_TASK_SAVE_NOTICE}`);
+            onClick={async () => {
+              const result = await actions.reopenTask(task.id);
+              onAnnounce(result.ok ? `Task reopened.${saveNotice ? ` ${saveNotice}` : ""}` : result.message);
             }}
           >
             Reopen
@@ -218,9 +241,9 @@ export function TaskDetailBody({
           <button
             type="button"
             className={TASK_PRIMARY_ACTION}
-            onClick={() => {
-              completeTask(task.id);
-              onAnnounce(`Task completed. ${DEMO_TASK_SAVE_NOTICE}`);
+            onClick={async () => {
+              const result = await actions.completeTask(task.id);
+              onAnnounce(result.ok ? `Task completed.${saveNotice ? ` ${saveNotice}` : ""}` : result.message);
             }}
           >
             Complete
@@ -238,9 +261,9 @@ export function TaskDetailBody({
           <button
             type="button"
             className={TASK_SECONDARY_ACTION}
-            onClick={() => {
-              reopenTask(task.id);
-              onAnnounce(`Task is open again. ${DEMO_TASK_SAVE_NOTICE}`);
+            onClick={async () => {
+              const result = await actions.reopenTask(task.id);
+              onAnnounce(result.ok ? `Task is open again.${saveNotice ? ` ${saveNotice}` : ""}` : result.message);
             }}
           >
             Stop waiting

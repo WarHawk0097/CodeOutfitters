@@ -23,6 +23,7 @@ import {
 import { useDemoState } from "../../lib/demo/store";
 import { DEMO_CURRENT_USER_ID, DEMO_TODAY, LEAD_DIRECTORY } from "../../lib/demo/seed";
 import type { Task } from "../../lib/demo/types";
+import { useLiveTasks } from "../../lib/tasks/use-live-tasks";
 import {
   meetingsNeedingReview,
   meetingsToPrepare,
@@ -37,7 +38,6 @@ import {
   leadIdsWithoutNextAction,
   sortTasks,
 } from "../../lib/tasks/model";
-import { resolveTaskPlane } from "../../lib/tasks/provider";
 import { useCommandCenterConfig } from "../command-center/mode-provider";
 import { TONE_BASE, TONE_INK } from "../demo/tone";
 
@@ -69,13 +69,13 @@ function nameRecords(labels: readonly string[], limit = 2): string {
   return `${labels.slice(0, limit).join(" · ")} · +${labels.length - limit} more`;
 }
 
-function taskToWorkItem(task: Task, meta: string): TodaysWorkItem {
+function taskToWorkItem(task: Task, meta: string, today: string): TodaysWorkItem {
   return {
     title: task.title,
     meta,
-    tag: dueLabel(task, DEMO_TODAY).toUpperCase(),
-    color: TONE_BASE[dueTone(task, DEMO_TODAY)],
-    ink: TONE_INK[dueTone(task, DEMO_TODAY)],
+    tag: dueLabel(task, today).toUpperCase(),
+    color: TONE_BASE[dueTone(task, today)],
+    ink: TONE_INK[dueTone(task, today)],
     cta: "Open",
     href: `/dashboard/my-work/${task.id}`,
     actionLabel: `Open task: ${task.title}`,
@@ -84,22 +84,17 @@ function taskToWorkItem(task: Task, meta: string): TodaysWorkItem {
 
 export function TodaysWorkLive({ variant }: { variant: "desktop" | "tablet" | "mobile" }) {
   const { live } = useCommandCenterConfig();
-  const plane = resolveTaskPlane(live);
+  if (live) return <TodaysWorkOnline variant={variant} />;
+  return <TodaysWorkDemo variant={variant} />;
+}
+
+function TodaysWorkDemo({ variant }: { variant: "desktop" | "tablet" | "mobile" }) {
   const state = useDemoState();
 
   const attention = useMemo(
     () => sortTasks(state.tasks.filter((task) => isOverdue(task, DEMO_TODAY) || isDueToday(task, DEMO_TODAY))),
     [state.tasks],
   );
-
-  if (plane.kind === "provider_required") {
-    return (
-      <div className="rounded-cc-card border border-cc-line bg-cc-surface p-4">
-        <h3 className="text-[12.5px] font-semibold text-cc-ink">Today&apos;s work</h3>
-        <p className="mt-1.5 text-[11.5px] leading-[1.55] text-cc-t2">{plane.reason}</p>
-      </div>
-    );
-  }
 
   // The canonical card draws four rows; more than that is what My Work is for.
   const items = attention.slice(0, 4).map((task) =>
@@ -108,12 +103,67 @@ export function TodaysWorkLive({ variant }: { variant: "desktop" | "tablet" | "m
       task.relation
         ? task.relation.label
         : (state.team.find((member) => member.id === task.ownerId)?.name ?? "Unassigned"),
+      DEMO_TODAY,
     ),
   );
 
   // One control to the queue, not two. The card's own "View queue" used to be inert, and a
   // second link was added underneath the card to compensate — two controls, one
   // destination, and the one the eye goes to was the broken one.
+  return (
+    <div className="flex min-h-0 flex-col">
+      <TodaysWorkCard
+        items={items}
+        openCount={String(attention.length)}
+        variant={variant}
+        queueHref={TODAY_QUEUE_HREF}
+        linkAs={Link}
+      />
+    </div>
+  );
+}
+
+function TodaysWorkOnline({ variant }: { variant: "desktop" | "tablet" | "mobile" }) {
+  const { status, tasks, team, error, refresh } = useLiveTasks();
+  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+
+  const attention = useMemo(
+    () => sortTasks(tasks.filter((task) => isOverdue(task, today) || isDueToday(task, today))),
+    [tasks, today],
+  );
+
+  if (status === "loading") {
+    return (
+      <div className="rounded-cc-card border border-cc-line bg-cc-surface p-4">
+        <h3 className="text-[12.5px] font-semibold text-cc-ink">Today&apos;s work</h3>
+        <p className="mt-1.5 text-[11.5px] text-cc-t2">Loading…</p>
+      </div>
+    );
+  }
+  if (status === "error") {
+    return (
+      <div className="rounded-cc-card border border-cc-line bg-cc-surface p-4">
+        <h3 className="text-[12.5px] font-semibold text-cc-ink">Today&apos;s work</h3>
+        <p className="mt-1.5 text-[11.5px] text-cc-t2" role="alert">
+          {error ?? "This could not be loaded."}
+        </p>
+        <button type="button" className="mt-2 text-[11.5px] underline" onClick={() => void refresh()}>
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  const items = attention
+    .slice(0, 4)
+    .map((task) =>
+      taskToWorkItem(
+        task,
+        task.relation ? task.relation.label : (team.find((member) => member.id === task.ownerId)?.name ?? "Unassigned"),
+        today,
+      ),
+    );
+
   return (
     <div className="flex min-h-0 flex-col">
       <TodaysWorkCard
@@ -138,8 +188,10 @@ export function TodaysWorkLive({ variant }: { variant: "desktop" | "tablet" | "m
  * band counts, using the same predicates the destination screens filter on.
  */
 export function MeetingsProposalsLive({ variant }: { variant: "desktop" | "mobile" }) {
+  // Meetings and Proposals are out of scope for the Tasks live-wiring work — this card stays
+  // demo-only and hides itself in live mode rather than reading a task plane that has nothing
+  // to do with it.
   const { live } = useCommandCenterConfig();
-  const plane = resolveTaskPlane(live);
   const state = useDemoState();
 
   const summaries = useMemo(() => {
@@ -162,7 +214,7 @@ export function MeetingsProposalsLive({ variant }: { variant: "desktop" | "mobil
     return { meetings, proposals };
   }, [state.meetings, state.proposals]);
 
-  if (plane.kind === "provider_required") return null;
+  if (live) return null;
 
   return (
     <MeetingsProposalsCard
@@ -259,8 +311,9 @@ function OperationsModule({
 }
 
 export function OperationsBand() {
+  // Mixes tasks with meetings/proposals/leads — out of scope to take live alongside Tasks, so
+  // this band stays demo-only and hides itself in live mode. See MeetingsProposalsLive above.
   const { live } = useCommandCenterConfig();
-  const plane = resolveTaskPlane(live);
   const state = useDemoState();
 
   const modules = useMemo(() => {
@@ -315,7 +368,7 @@ export function OperationsBand() {
     };
   }, [state.tasks, state.meetings, state.proposals]);
 
-  if (plane.kind === "provider_required") return null;
+  if (live) return null;
 
   return (
     // The desktop composition above is pinned to the frame height, so this band starts at

@@ -1,70 +1,70 @@
 "use client";
-// Next Action — the task module that sits on a record screen.
-//
-// A record screen that shows history but not "what happens next" leaves the reader to
-// work it out. This module answers it in one line: the most urgent open task about this
-// record, or an explicit statement that there isn't one, with a way to add it.
-//
-// It reads the same task collection My Work reads, through the same derivations, so
-// completing a task here and completing it there are the same event on the same record.
+// Next Action — live plane. Same module as next-action-card.tsx's demo body, wired to
+// useLiveTasks instead of the demo store.
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { completeTask, createTask } from "../../lib/demo/actions";
-import { DEMO_CURRENT_USER_ID, DEMO_TODAY } from "../../lib/demo/seed";
-import { useDemoState } from "../../lib/demo/store";
-import type { TaskRelationKind } from "../../lib/demo/types";
+import { useLiveTasks } from "../../lib/tasks/use-live-tasks";
 import { dueLabel, dueTone, nextActionFor, tasksFor } from "../../lib/tasks/model";
-import { useCommandCenterConfig } from "../command-center/mode-provider";
 import { TextField } from "../demo/field";
 import { TONE_INK } from "../demo/tone";
-import { DEMO_TASK_SAVE_NOTICE, ownerName, TASK_PRIMARY_ACTION, TASK_SECONDARY_ACTION } from "./task-ui";
-import { NextActionCardLive } from "./next-action-card-live";
+import { ownerName, TASK_PRIMARY_ACTION, TASK_SECONDARY_ACTION } from "./task-ui";
+import type { NextActionCardProps } from "./next-action-card";
 
-export type NextActionCardProps = {
-  kind: TaskRelationKind;
-  recordId: string;
-  /** Stored on any task created here, so My Work can name the record without a join. */
-  recordLabel: string;
-  leadId?: string | null;
-};
-
-export function NextActionCard(props: NextActionCardProps) {
-  const { live } = useCommandCenterConfig();
-  if (live) return <NextActionCardLive {...props} />;
-  return <NextActionCardDemo {...props} />;
-}
-
-function NextActionCardDemo({ kind, recordId, recordLabel, leadId = null }: NextActionCardProps) {
-  const state = useDemoState();
+export function NextActionCardLive({ kind, recordId, recordLabel, leadId = null }: NextActionCardProps) {
+  const { status, tasks, team, viewer, error: loadError, createTask, actions } = useLiveTasks();
   const [adding, setAdding] = useState(false);
   const [title, setTitle] = useState("");
   const [due, setDue] = useState("");
   const [error, setError] = useState("");
   const [announcement, setAnnouncement] = useState("");
+  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
-  const next = useMemo(() => nextActionFor(state.tasks, kind, recordId), [state.tasks, kind, recordId]);
+  const next = useMemo(() => nextActionFor(tasks, kind, recordId), [tasks, kind, recordId]);
   const queued = useMemo(
-    () => tasksFor(state.tasks, kind, recordId).filter((task) => task.id !== next?.id),
-    [state.tasks, kind, recordId, next],
+    () => tasksFor(tasks, kind, recordId).filter((task) => task.id !== next?.id),
+    [tasks, kind, recordId, next],
   );
 
-  const submit = () => {
+  if (status === "loading") {
+    return (
+      <section className="rounded-cc-card border border-cc-line bg-cc-surface p-4">
+        <h3 className="text-[12.5px] font-semibold text-cc-ink">Next action</h3>
+        <p className="mt-1.5 text-[11.5px] text-cc-t2">Loading…</p>
+      </section>
+    );
+  }
+  if (status === "error") {
+    return (
+      <section className="rounded-cc-card border border-cc-line bg-cc-surface p-4">
+        <h3 className="text-[12.5px] font-semibold text-cc-ink">Next action</h3>
+        <p className="mt-1.5 text-[11.5px] text-cc-t2" role="alert">
+          {loadError ?? "This could not be loaded."}
+        </p>
+      </section>
+    );
+  }
+
+  const submit = async () => {
     if (title.trim() === "") {
       setError("A task needs a title.");
       return;
     }
-    createTask({
+    const result = await createTask({
       title,
-      ownerId: DEMO_CURRENT_USER_ID,
+      ownerId: viewer?.userId ?? "",
       dueDate: due,
       leadId,
       relation: { kind, id: recordId, label: recordLabel },
     });
+    if (!result.ok) {
+      setError(result.message);
+      return;
+    }
     setTitle("");
     setDue("");
     setError("");
     setAdding(false);
-    setAnnouncement(`Next action added. ${DEMO_TASK_SAVE_NOTICE}`);
+    setAnnouncement("Next action added.");
   };
 
   return (
@@ -72,7 +72,6 @@ function NextActionCardDemo({ kind, recordId, recordLabel, leadId = null }: Next
       <p role="status" aria-live="polite" className="sr-only">
         {announcement}
       </p>
-
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-[12.5px] font-semibold text-cc-ink">Next action</h3>
         <Link
@@ -94,19 +93,19 @@ function NextActionCardDemo({ kind, recordId, recordLabel, leadId = null }: Next
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <span
               className="font-cc-mono text-[9px] font-semibold tracking-[.05em]"
-              style={{ color: TONE_INK[dueTone(next, DEMO_TODAY)] }}
+              style={{ color: TONE_INK[dueTone(next, today)] }}
             >
-              {dueLabel(next, DEMO_TODAY).toUpperCase()}
+              {dueLabel(next, today).toUpperCase()}
             </span>
-            <span className="text-[11.5px] text-cc-t3">{ownerName(state.team, next.ownerId)}</span>
+            <span className="text-[11.5px] text-cc-t3">{ownerName(team, next.ownerId)}</span>
           </div>
           <div className="mt-1 flex flex-wrap gap-1.5">
             <button
               type="button"
               className={TASK_PRIMARY_ACTION}
-              onClick={() => {
-                completeTask(next.id);
-                setAnnouncement(`Next action completed. ${DEMO_TASK_SAVE_NOTICE}`);
+              onClick={async () => {
+                const result = await actions.completeTask(next.id);
+                setAnnouncement(result.ok ? "Next action completed." : result.message);
               }}
             >
               Complete
@@ -118,7 +117,6 @@ function NextActionCardDemo({ kind, recordId, recordLabel, leadId = null }: Next
         </div>
       ) : (
         <div className="mt-2 flex flex-col gap-2">
-          {/* Explicit, not hidden: "no next action" is the finding this module exists to report. */}
           <p className="text-[12px] text-cc-t2">No next action on this record.</p>
           {adding ? null : (
             <div>
@@ -171,16 +169,14 @@ function NextActionCardDemo({ kind, recordId, recordLabel, leadId = null }: Next
               </Link>
               <span
                 className="flex-shrink-0 font-cc-mono text-[9px] font-semibold"
-                style={{ color: TONE_INK[dueTone(task, DEMO_TODAY)] }}
+                style={{ color: TONE_INK[dueTone(task, today)] }}
               >
-                {dueLabel(task, DEMO_TODAY).toUpperCase()}
+                {dueLabel(task, today).toUpperCase()}
               </span>
             </li>
           ))}
         </ul>
       ) : null}
-
-      <p className="mt-2.5 text-[11px] text-cc-t3">{DEMO_TASK_SAVE_NOTICE}</p>
     </section>
   );
 }
