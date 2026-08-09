@@ -6,10 +6,7 @@
 // makes "who may write it" a role decision, and a role decision cannot be made in a tab.
 //
 // So in live mode the browser asks a server, the server decides, and RLS decides again
-// underneath. That implementation is not part of this release. Rather than write live views to
-// localStorage and present them as though they were an account feature — which would produce a
-// "shared" view nobody else can see, and a personal view that vanishes with a cleared cache —
-// this module resolves to `provider_required` and the UI says what is missing. There is no
+// underneath (lib/views/server-provider.ts, behind app/api/dashboard/saved-views). There is no
 // third branch and no silent fallback to the demo store.
 import type {
   SavedView,
@@ -84,13 +81,8 @@ export type SavedViewProvider = {
 export type SavedViewPlane =
   /** Demo mode: personal views in this browser, labelled as such, shared unavailable. */
   | { kind: "demo" }
-  /** Live mode with no server implementation wired: explicit, honest, no fallback. */
-  | { kind: "provider_required"; reason: string };
-
-export const SAVED_VIEWS_PROVIDER_REQUIRED_TITLE = "Saved Views are not connected yet";
-
-export const SAVED_VIEWS_PROVIDER_REQUIRED_REASON =
-  "This workspace is running in live mode. Saved Views belong to the workspace and to your account, so they are stored on the server rather than in this browser, and they are not available until the Saved View service is connected. Nothing is being saved locally in their place.";
+  /** Live mode: server-backed via lib/views/server-provider.ts, RLS-enforced. */
+  | { kind: "live" };
 
 /** Why the Shared option is offered but not selectable in demo mode. Shown on the disabled
  *  control itself — the option stays visible so the product does not pretend the concept is
@@ -99,7 +91,5 @@ export const SHARED_VIEWS_UNAVAILABLE_REASON =
   "Sharing a view with your workspace needs the workspace database. In this demo, views are saved in this browser only, so they cannot be shared.";
 
 export function resolveSavedViewPlane(live: boolean): SavedViewPlane {
-  return live
-    ? { kind: "provider_required", reason: SAVED_VIEWS_PROVIDER_REQUIRED_REASON }
-    : { kind: "demo" };
+  return live ? { kind: "live" } : { kind: "demo" };
 }

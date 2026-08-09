@@ -9,11 +9,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { SAVED_VIEWS_LOCAL_NOTICE } from "../../lib/views/store";
-import {
-  SAVED_VIEWS_PROVIDER_REQUIRED_REASON,
-  SAVED_VIEWS_PROVIDER_REQUIRED_TITLE,
-  SHARED_VIEWS_UNAVAILABLE_REASON,
-} from "../../lib/views/provider";
+import { SHARED_VIEWS_UNAVAILABLE_REASON } from "../../lib/views/provider";
 import { SAVED_VIEW_SCOPES } from "../../lib/views/model";
 
 const repo = fileURLToPath(new URL("../../", import.meta.url));
@@ -69,25 +65,24 @@ describe("saved view control (tests 90-96)", () => {
     expect(src).toContain('name="saved-view-visibility"');
     expect(src).toContain('aria-describedby="saved-view-shared-reason"');
     expect(src).toContain('id="saved-view-shared-reason"');
-    expect(src).toContain("{live ? SAVED_VIEWS_PROVIDER_REQUIRED_REASON : SHARED_VIEWS_UNAVAILABLE_REASON}");
-    // The reasons are sentences a person can act on, not "unavailable".
-    for (const reason of [SHARED_VIEWS_UNAVAILABLE_REASON, SAVED_VIEWS_PROVIDER_REQUIRED_REASON]) {
-      expect(reason.trim().length).toBeGreaterThan(40);
-      expect(reason.toLowerCase()).not.toBe("unavailable");
-    }
+    expect(src).toContain("{SHARED_VIEWS_UNAVAILABLE_REASON}");
+    // The reason is a sentence a person can act on, not "unavailable".
+    expect(SHARED_VIEWS_UNAVAILABLE_REASON.trim().length).toBeGreaterThan(40);
+    expect(SHARED_VIEWS_UNAVAILABLE_REASON.toLowerCase()).not.toBe("unavailable");
     // There is exactly one visibility control that can be chosen, and the other is disabled.
     expect(src.match(/name="saved-view-visibility"/g)?.length).toBe(2);
     expect(src).toContain("disabled\n            aria-describedby=\"saved-view-shared-reason\"");
   });
 
   // 93
-  it("has no local fallback in live mode — it renders the provider-required state and saves nothing", () => {
-    expect(src).toContain('if (plane.kind !== "demo")');
-    expect(src).toContain("{SAVED_VIEWS_PROVIDER_REQUIRED_TITLE}. {SAVED_VIEWS_PROVIDER_REQUIRED_REASON}");
-    expect(SAVED_VIEWS_PROVIDER_REQUIRED_TITLE.trim().length).toBeGreaterThan(0);
+  it("has no local fallback in live mode — it hands off to the Supabase-backed bar and saves nothing locally", () => {
+    expect(src).toContain('if (plane.kind === "live")');
+    expect(src).toContain("<SavedViewsLiveBar scope={scope} filters={filters} sort={sort} onApply={onApply} />");
+    expect(src).toContain('import { SavedViewsLiveBar } from "./saved-views-live"');
+    expect(src).not.toContain("SAVED_VIEWS_PROVIDER_REQUIRED");
 
     // The early return sits above every write path, so live mode cannot reach localStorage.
-    const guard = src.indexOf('if (plane.kind !== "demo")');
+    const guard = src.indexOf('if (plane.kind === "live")');
     const write = src.indexOf("window.localStorage.setItem");
     expect(guard).toBeGreaterThan(-1);
     // The only setItem is inside `commit`, which is declared above the guard but only ever
@@ -131,9 +126,6 @@ describe("saved view control (tests 90-96)", () => {
     expect(src).toContain("`Manage saved view ${selected.name}`");
     // Confirmation of a save, a rename or a delete is announced rather than only shown.
     expect(src).toContain('role="status" aria-live="polite"');
-    // The provider-required notice is tied to the control it disables.
-    expect(src).toContain("aria-describedby={`saved-views-unavailable-${scope}`}");
-    expect(src).toContain("id={`saved-views-unavailable-${scope}`}");
     // No hover-only affordance: every action is a button or a menu item.
     expect(src).not.toContain("group-hover:");
   });

@@ -12,9 +12,9 @@
 //   * In demo mode these views live in this browser and every surface says so. There is no
 //     Shared option that quietly saves locally; the option is visible and disabled with the
 //     reason attached, because pretending the concept does not exist is its own kind of lie.
-//   * In live mode there is no local fallback at all. The control renders the
-//     provider-required notice and saves nothing, rather than writing to localStorage and
-//     letting somebody believe their workspace has their view.
+//   * In live mode there is no local fallback at all. The control talks to the workspace's
+//     Supabase-backed saved_views table (SavedViewsLiveBar) rather than writing to
+//     localStorage and letting somebody believe their workspace has their view.
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Dialog, DialogCancelButton, DialogSubmitButton } from "../demo/dialog";
 import { TextField } from "../demo/field";
@@ -49,12 +49,8 @@ import {
   SAVED_VIEWS_STORAGE_KEY,
   type SavedViewsState,
 } from "../../lib/views/store";
-import {
-  resolveSavedViewPlane,
-  SAVED_VIEWS_PROVIDER_REQUIRED_REASON,
-  SAVED_VIEWS_PROVIDER_REQUIRED_TITLE,
-  SHARED_VIEWS_UNAVAILABLE_REASON,
-} from "../../lib/views/provider";
+import { resolveSavedViewPlane, SHARED_VIEWS_UNAVAILABLE_REASON } from "../../lib/views/provider";
+import { SavedViewsLiveBar } from "./saved-views-live";
 import { DEMO_CURRENT_USER_ID } from "../../lib/demo/seed";
 import {
   BTN_DISABLED,
@@ -177,24 +173,8 @@ export function SavedViewsBar({
       ? "Search, filter or sort this list first — there is nothing to save yet."
       : `“${selected.name}” already matches the filters and sort applied.`;
 
-  if (plane.kind !== "demo") {
-    return (
-      <ToolbarGroup>
-        {/* Really disabled, and it looks it: the muted surface and weak border of
-            CONTROL_DISABLED, not an enabled control wearing reduced opacity. */}
-        <button
-          type="button"
-          disabled
-          aria-describedby={`saved-views-unavailable-${scope}`}
-          className={BTN_DISABLED}
-        >
-          Saved views
-        </button>
-        <span id={`saved-views-unavailable-${scope}`} className={`max-w-[420px] ${DISABLED_REASON}`}>
-          {SAVED_VIEWS_PROVIDER_REQUIRED_TITLE}. {SAVED_VIEWS_PROVIDER_REQUIRED_REASON}
-        </span>
-      </ToolbarGroup>
-    );
+  if (plane.kind === "live") {
+    return <SavedViewsLiveBar scope={scope} filters={filters} sort={sort} onApply={onApply} />;
   }
 
   const selectorItems: MenuItem[] = [
@@ -464,7 +444,6 @@ function SaveViewDialog({
   /** Returns a problem to show, or null on success. */
   onSave: (view: SavedView) => string | null;
 }) {
-  const { live } = useCommandCenterConfig();
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -547,7 +526,7 @@ function SaveViewDialog({
           <span>
             My whole workspace
             <span id="saved-view-shared-reason" className="mt-0.5 block text-[11px]">
-              {live ? SAVED_VIEWS_PROVIDER_REQUIRED_REASON : SHARED_VIEWS_UNAVAILABLE_REASON}
+              {SHARED_VIEWS_UNAVAILABLE_REASON}
             </span>
           </span>
         </label>
