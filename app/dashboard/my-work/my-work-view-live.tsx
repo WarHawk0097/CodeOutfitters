@@ -1,17 +1,9 @@
 "use client";
-// My Work — the one screen that answers "what do I do next?".
-//
-// Everything on it is derived from the shared task collection by lib/tasks/model, which is
-// also what the sidebar badge and the Overview work modules read. A count in the switch and
-// the list it opens therefore cannot disagree: they are the same function over the same array.
-//
-// This file is the demo-plane screen plus the plane dispatcher (MyWorkScreen). Live mode
-// renders MyWorkScreenLive (my-work-view-live.tsx) instead — same components, real fetches.
+// My Work — live plane. Same screen as my-work-view.tsx's MyWorkScreenDemo, wired to
+// useLiveTasks instead of the demo store: real fetch, real workspace-scoped writes, and
+// never a claim of a browser-only save.
 import { SEGMENT, SEGMENT_ACTIVE } from "@/lib/command-center/ui/control-system";
 import { useCallback, useMemo, useState } from "react";
-import { createTask, resetDemoTasks } from "../../../lib/demo/actions";
-import { demoTaskActions } from "../../../lib/demo/task-actions";
-import { DEMO_CURRENT_USER_ID, DEMO_TODAY } from "../../../lib/demo/seed";
 import type { Task, TaskPriority } from "../../../lib/demo/types";
 import {
   attentionCount,
@@ -25,43 +17,28 @@ import {
   viewCounts,
   type TaskView,
 } from "../../../lib/tasks/model";
-import { useCommandCenterConfig } from "../../../components/command-center/mode-provider";
-import { MyWorkScreenLive } from "./my-work-view-live";
+import { useLiveTasks } from "../../../lib/tasks/use-live-tasks";
 import { SavedViewsBar } from "../../../components/command-center/saved-views";
 import { useListView } from "../../../components/command-center/use-view-query";
 import { useCommandCreateDialog } from "../../../components/command-center/use-command-create-dialog";
-import { useDemoQuery } from "../../../components/demo/use-demo-query";
 import { Dialog, DialogCancelButton } from "../../../components/demo/dialog";
 import { SelectField, TextAreaField, TextField } from "../../../components/demo/field";
 import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
 import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton, ToolbarDivider } from "../../../components/demo/toolbar";
-import {
-  DEMO_TASK_SAVE_NOTICE,
-  TaskRow,
-  TASK_PRIMARY_ACTION,
-  TASK_SECONDARY_ACTION,
-} from "../../../components/dashboard/task-ui";
-import { eventsFor } from "../../../lib/activity/model";
+import { TaskRow, TASK_PRIMARY_ACTION, TASK_SECONDARY_ACTION } from "../../../components/dashboard/task-ui";
 import { getTeamRoleDisplayLabel } from "../../../lib/identity/current-user";
 import { TaskDetailBody } from "./task-detail";
 
-/** A `?view=` value the Overview and the sidebar can link to. Anything else falls back to
- *  Today rather than rendering an empty screen for a typo. */
 function readView(raw: string | null): TaskView {
   return TASK_VIEWS.includes(raw as TaskView) ? (raw as TaskView) : "today";
 }
 
-export function MyWorkScreen() {
-  const { live } = useCommandCenterConfig();
-  if (live) return <MyWorkScreenLive />;
-  return <MyWorkScreenDemo />;
-}
+const TODAY = () => new Date().toISOString().slice(0, 10);
 
-function MyWorkScreenDemo() {
-  const { state, status, error, retry } = useDemoQuery();
+export function MyWorkScreenLive() {
+  const { status, tasks, team, viewer, error, refresh, actions, createTask } = useLiveTasks();
+  const today = useMemo(() => TODAY(), []);
 
-  // The filter state lives in the URL, so a Saved View, a search result and a link a colleague
-  // was sent all arrive by the same door.
   const { filters, sort, publish, set } = useListView("myWork");
   const view = readView(filters.view ?? null);
   const q = filters.q ?? "";
@@ -71,28 +48,23 @@ function MyWorkScreenDemo() {
 
   const [openId, setOpenId] = useState<string | null>(null);
   const { open: createOpen, openCreateDialog, closeCreateDialog } = useCommandCreateDialog();
-
-  const [resetOpen, setResetOpen] = useState(false);
   const [announcement, setAnnouncement] = useState("");
 
   const [newTitle, setNewTitle] = useState("");
   const [newDetail, setNewDetail] = useState("");
-  const [newOwner, setNewOwner] = useState(DEMO_CURRENT_USER_ID);
+  const [newOwner, setNewOwner] = useState(viewer?.userId ?? "");
   const [newDue, setNewDue] = useState("");
   const [newPriority, setNewPriority] = useState<TaskPriority>("Medium");
   const [newTitleError, setNewTitleError] = useState("");
 
   const announce = useCallback((message: string) => setAnnouncement(message), []);
 
-  const tasks = state.tasks;
-  const counts = useMemo(
-    () => viewCounts(tasks, DEMO_TODAY, DEMO_CURRENT_USER_ID),
-    [tasks],
-  );
-  const attention = useMemo(() => attentionCount(tasks, DEMO_TODAY), [tasks]);
+  const currentUserId = viewer?.userId ?? "";
+  const counts = useMemo(() => viewCounts(tasks, today, currentUserId), [tasks, today, currentUserId]);
+  const attention = useMemo(() => attentionCount(tasks, today), [tasks, today]);
 
   const rows = useMemo(() => {
-    const inView = filterByView(tasks, view, DEMO_TODAY, DEMO_CURRENT_USER_ID);
+    const inView = filterByView(tasks, view, today, currentUserId);
     return sortTasks(
       inView.filter(
         (task) =>
@@ -101,44 +73,42 @@ function MyWorkScreenDemo() {
           (priorityFilter === null || task.priority === priorityFilter),
       ),
     );
-  }, [tasks, view, q, ownerFilter, priorityFilter]);
+  }, [tasks, view, today, currentUserId, q, ownerFilter, priorityFilter]);
 
-  const ownerOptions = useMemo(
-    () => state.team.map((member) => ({ id: member.id, label: member.name })),
-    [state.team],
-  );
-  const priorityOptions = useMemo(
-    () => TASK_PRIORITIES.map((priority) => ({ id: priority, label: priority })),
-    [],
-  );
+  const ownerOptions = useMemo(() => team.map((member) => ({ id: member.id, label: member.name })), [team]);
+  const priorityOptions = useMemo(() => TASK_PRIORITIES.map((priority) => ({ id: priority, label: priority })), []);
   const filtersApplied = q !== "" || ownerFilter !== null || priorityFilter !== null;
   const openTask: Task | null = openId ? (tasks.find((task) => task.id === openId) ?? null) : null;
 
   if (status === "loading") return <RouteLoading label="your work" />;
   if (status === "error") {
-    return <RouteError label="your work" error={error ?? "Unknown error"} onRetry={retry} />;
+    return <RouteError label="your work" error={error ?? "Unknown error"} onRetry={refresh} />;
   }
 
-  const submitCreate = () => {
+  const submitCreate = async () => {
     if (newTitle.trim() === "") {
       setNewTitleError("A task needs a title.");
       return;
     }
-    createTask({
+    const result = await createTask({
       title: newTitle,
       detail: newDetail,
       ownerId: newOwner,
       dueDate: newDue,
       priority: newPriority,
     });
+    if (!result.ok) {
+      setNewTitleError(result.message);
+      return;
+    }
     setNewTitle("");
     setNewDetail("");
     setNewDue("");
     setNewPriority("Medium");
-    setNewOwner(DEMO_CURRENT_USER_ID);
+    setNewOwner(viewer?.userId ?? "");
     setNewTitleError("");
     closeCreateDialog();
-    announce(`Task created. ${DEMO_TASK_SAVE_NOTICE}`);
+    announce("Task created.");
   };
 
   return (
@@ -147,7 +117,6 @@ function MyWorkScreenDemo() {
         {announcement}
       </p>
 
-      {/* Attention summary. One sentence, derived — never a decorative number. */}
       <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-cc-card border border-cc-line bg-cc-surface px-4 py-3">
         <span className="text-[13px] font-semibold text-cc-ink">
           {attention === 0
@@ -157,7 +126,6 @@ function MyWorkScreenDemo() {
         <span className="text-[11.5px] text-cc-t2">
           {counts.overdue} overdue · {counts.today} due today · {counts.waiting} waiting · {counts.upcoming} upcoming
         </span>
-        <span className="ml-auto text-[11.5px] text-cc-t3">{DEMO_TASK_SAVE_NOTICE}</span>
       </div>
 
       <div
@@ -183,11 +151,7 @@ function MyWorkScreenDemo() {
               setView(next);
               document.getElementById(`my-work-tab-${next}`)?.focus();
             }}
-            className={
-              candidate === view
-                ? SEGMENT_ACTIVE
-                : SEGMENT
-            }
+            className={candidate === view ? SEGMENT_ACTIVE : SEGMENT}
           >
             {TASK_VIEW_LABELS[candidate]} · {counts[candidate]}
           </button>
@@ -204,7 +168,6 @@ function MyWorkScreenDemo() {
             onClick={() => publish({ ...filters, q: "", owner: "", priority: "" }, sort)}
           />
         ) : null}
-        <ToolbarButton label="Reset demo tasks" onClick={() => setResetOpen(true)} />
         <ToolbarButton label="New task" tone="primary" onClick={openCreateDialog} />
         <ToolbarDivider />
         <SavedViewsBar scope="myWork" filters={filters} sort={sort} onApply={publish} />
@@ -227,15 +190,13 @@ function MyWorkScreenDemo() {
               <TaskRow
                 key={task.id}
                 task={task}
-                today={DEMO_TODAY}
-                team={state.team}
+                today={today}
+                team={team}
                 onOpen={() => setOpenId(task.id)}
                 actions={
-                  <>
-                    <button type="button" className={TASK_SECONDARY_ACTION} onClick={() => setOpenId(task.id)}>
-                      Open
-                    </button>
-                  </>
+                  <button type="button" className={TASK_SECONDARY_ACTION} onClick={() => setOpenId(task.id)}>
+                    Open
+                  </button>
                 }
               />
             ))}
@@ -255,11 +216,10 @@ function MyWorkScreenDemo() {
           <TaskDetailBody
             key={openTask.id}
             task={openTask}
-            today={DEMO_TODAY}
-            team={state.team}
-            activity={eventsFor(state.activity, "task", openTask.id)}
-            actions={demoTaskActions}
-            saveNotice={DEMO_TASK_SAVE_NOTICE}
+            today={today}
+            team={team}
+            activity={[]}
+            actions={actions}
             onAnnounce={announce}
             showOpenLink
           />
@@ -298,7 +258,7 @@ function MyWorkScreenDemo() {
             label="Owner"
             value={newOwner}
             onChange={setNewOwner}
-            options={state.team.map((member) => ({
+            options={team.map((member) => ({
               value: member.id,
               label: `${member.name} · ${getTeamRoleDisplayLabel(member.role)}`,
             }))}
@@ -316,35 +276,7 @@ function MyWorkScreenDemo() {
             onChange={(value) => setNewPriority(value as TaskPriority)}
             options={TASK_PRIORITIES.map((value) => ({ value, label: value }))}
           />
-          <p className="text-[11.5px] text-cc-t3">{DEMO_TASK_SAVE_NOTICE}</p>
         </div>
-      </Dialog>
-
-      <Dialog
-        open={resetOpen}
-        title="Reset demo tasks?"
-        description="This restores the sample tasks and discards every task you created or changed in this browser. Nothing else on the dashboard changes."
-        width={460}
-        onClose={() => setResetOpen(false)}
-        footer={
-          <>
-            <DialogCancelButton onClick={() => setResetOpen(false)} />
-            <button
-              type="button"
-              className="rounded-cc-control bg-cc-red px-3 py-1.5 text-[12.5px] font-semibold text-white"
-              onClick={() => {
-                resetDemoTasks();
-                setResetOpen(false);
-                setOpenId(null);
-                announce(`Demo tasks reset. ${DEMO_TASK_SAVE_NOTICE}`);
-              }}
-            >
-              Reset demo tasks
-            </button>
-          </>
-        }
-      >
-        <p className="text-[12.5px] leading-[1.55] text-cc-t2">{DEMO_TASK_SAVE_NOTICE}</p>
       </Dialog>
     </div>
   );

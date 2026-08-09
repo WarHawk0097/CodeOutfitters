@@ -1,10 +1,12 @@
-// My Work surface tests (58-70). The screens are client components that read the store,
-// the router and the DOM, so — following this repo's established convention — the facts
-// that cannot be rendered under react-dom/server are asserted by reading the source.
+// My Work surface tests (58-70). The screens are client components that read the store (or,
+// in live mode, the API), the router and the DOM, so — following this repo's established
+// convention — the facts that cannot be rendered under react-dom/server are asserted by
+// reading the source.
 //
 // What these lock down is the honest posture of the feature: a real route behind every
-// link, a spoken result for every write, "Saved in this browser." on every write surface,
-// and a live mode that refuses to pretend the demo store is a database.
+// link, a spoken result for every write, "Saved in this browser." on every demo write
+// surface and nowhere else, and a live mode that is genuinely backed by the workspace
+// database rather than a fixture or a browser store.
 import { describe, expect, it } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -12,7 +14,7 @@ import { OPERATIONS_NAV } from "@/lib/command-center/ui/sidebar";
 import { IMPLEMENTED_ROUTES } from "@/app/dashboard/shell-nav";
 import { createSeedState, DEMO_TODAY } from "@/lib/demo/seed";
 import { attentionCount } from "@/lib/tasks/model";
-import { resolveTaskPlane, TASK_PROVIDER_REQUIRED_REASON } from "@/lib/tasks/provider";
+import { resolveTaskPlane } from "@/lib/tasks/provider";
 import { DEMO_TASK_SAVE_NOTICE } from "@/components/dashboard/task-ui";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
@@ -22,30 +24,46 @@ const read = (relative: string) => readFileSync(`${root}${relative}`, "utf8");
 
 const pageSrc = read("app/dashboard/my-work/page.tsx");
 const viewSrc = read("app/dashboard/my-work/my-work-view.tsx");
+const viewLiveSrc = read("app/dashboard/my-work/my-work-view-live.tsx");
 const detailSrc = read("app/dashboard/my-work/task-detail.tsx");
 const taskPageSrc = read("app/dashboard/my-work/[taskId]/task-page-view.tsx");
+const taskPageLiveSrc = read("app/dashboard/my-work/[taskId]/task-page-view-live.tsx");
 const nextActionSrc = read("components/dashboard/next-action-card.tsx");
+const nextActionLiveSrc = read("components/dashboard/next-action-card-live.tsx");
 const taskUiSrc = read("components/dashboard/task-ui.tsx");
 const operationsSrc = read("components/dashboard/overview-operations.tsx");
 const overviewSrc = read("app/dashboard/(overview)/page.tsx");
 const shellNavSrc = read("app/dashboard/shell-nav.tsx");
+const providerSrc = read("lib/tasks/provider.ts");
+const useLiveTasksSrc = read("lib/tasks/use-live-tasks.ts");
 
 /** Every file that renders a task control. If a new one is added it belongs here, or the
  *  honesty scans below stop covering it. */
 const TASK_SURFACES: ReadonlyArray<[string, string]> = [
   ["my-work-view.tsx", viewSrc],
+  ["my-work-view-live.tsx", viewLiveSrc],
   ["task-detail.tsx", detailSrc],
   ["task-page-view.tsx", taskPageSrc],
+  ["task-page-view-live.tsx", taskPageLiveSrc],
   ["next-action-card.tsx", nextActionSrc],
+  ["next-action-card-live.tsx", nextActionLiveSrc],
   ["task-ui.tsx", taskUiSrc],
   ["overview-operations.tsx", operationsSrc],
 ];
 
-/** Surfaces that actually write. These must say where the write went. */
-const WRITE_SURFACES: ReadonlyArray<[string, string]> = [
+/** Demo surfaces that write directly (not through an injected saveNotice prop). These must
+ *  say where the write went. */
+const DEMO_WRITE_SURFACES: ReadonlyArray<[string, string]> = [
   ["my-work-view.tsx", viewSrc],
-  ["task-detail.tsx", detailSrc],
   ["next-action-card.tsx", nextActionSrc],
+];
+
+/** Live surfaces — no source anywhere in this session may claim a browser-only save. */
+const LIVE_SURFACES: ReadonlyArray<[string, string]> = [
+  ["my-work-view-live.tsx", viewLiveSrc],
+  ["task-page-view-live.tsx", taskPageLiveSrc],
+  ["next-action-card-live.tsx", nextActionLiveSrc],
+  ["use-live-tasks.ts", useLiveTasksSrc],
 ];
 
 describe("my work surfaces (tests 58-70)", () => {
@@ -53,47 +71,66 @@ describe("my work surfaces (tests 58-70)", () => {
   it("the list route and the task deep route both have a page behind them", () => {
     expect(existsSync(`${here}page.tsx`)).toBe(true);
     expect(existsSync(`${here}my-work-view.tsx`)).toBe(true);
+    expect(existsSync(`${here}my-work-view-live.tsx`)).toBe(true);
     expect(existsSync(`${here}[taskId]/page.tsx`)).toBe(true);
     expect(existsSync(`${here}[taskId]/task-page-view.tsx`)).toBe(true);
+    expect(existsSync(`${here}[taskId]/task-page-view-live.tsx`)).toBe(true);
   });
 
   // 59
-  it("the screen reads ?view= from the URL, behind a Suspense boundary", () => {
+  it("the screen reads ?view= from the URL, behind a Suspense boundary, in both planes", () => {
     // The Overview modules drill into a specific view, and a Saved View applies its filters by
     // writing this same query string — one mechanism, so a link, a search result and a saved
-    // view all reproduce the same screen.
-    expect(viewSrc).toContain('useListView("myWork")');
-    expect(viewSrc).toContain("filters.view");
+    // view all reproduce the same screen, live or demo.
+    for (const src of [viewSrc, viewLiveSrc]) {
+      expect(src).toContain('useListView("myWork")');
+      expect(src).toContain("filters.view");
+    }
     expect(pageSrc).toContain("<Suspense");
     expect(pageSrc).toContain("<MyWorkScreen />");
   });
 
   // 60
-  it("the view switch is a real tablist with roving tabindex and arrow-key movement", () => {
-    expect(viewSrc).toContain('role="tablist"');
-    expect(viewSrc).toContain('role="tab"');
-    expect(viewSrc).toContain('role="tabpanel"');
-    expect(viewSrc).toContain("aria-selected={candidate === view}");
-    expect(viewSrc).toContain("tabIndex={candidate === view ? 0 : -1}");
-    expect(viewSrc).toContain('event.key !== "ArrowRight" && event.key !== "ArrowLeft"');
+  it("the view switch is a real tablist with roving tabindex and arrow-key movement, in both planes", () => {
+    for (const src of [viewSrc, viewLiveSrc]) {
+      expect(src).toContain('role="tablist"');
+      expect(src).toContain('role="tab"');
+      expect(src).toContain('role="tabpanel"');
+      expect(src).toContain("aria-selected={candidate === view}");
+      expect(src).toContain("tabIndex={candidate === view ? 0 : -1}");
+      expect(src).toContain('event.key !== "ArrowRight" && event.key !== "ArrowLeft"');
+    }
   });
 
   // 61
-  it("every write result is spoken through a polite live region", () => {
-    expect(viewSrc).toContain('role="status"');
-    expect(viewSrc).toContain('aria-live="polite"');
+  it("every write result is spoken through a polite live region, in both planes", () => {
+    for (const src of [viewSrc, viewLiveSrc]) {
+      expect(src).toContain('role="status"');
+      expect(src).toContain('aria-live="polite"');
+    }
     // A dialog that closes without saying what happened leaves a screen-reader user
     // guessing whether the task was created.
     expect(viewSrc).toContain("announce(`Task created.");
-    expect(detailSrc).toContain("onAnnounce(`Task completed.");
+    expect(viewLiveSrc).toContain('announce("Task created.")');
+    expect(detailSrc).toContain("onAnnounce(result.ok ? `Task completed.");
     expect(nextActionSrc).toContain("setAnnouncement(`Next action added.");
+    expect(nextActionLiveSrc).toContain('setAnnouncement("Next action added.")');
   });
 
   // 62
-  it("every write surface says where the write went, in those exact words", () => {
+  it("demo write surfaces say where the write went, in those exact words — live surfaces never do", () => {
     expect(DEMO_TASK_SAVE_NOTICE).toBe("Saved in this browser.");
-    for (const [name, source] of WRITE_SURFACES) {
+    for (const [name, source] of DEMO_WRITE_SURFACES) {
       expect(source, name).toContain("DEMO_TASK_SAVE_NOTICE");
+    }
+    // task-detail.tsx is plane-agnostic: the demo callers hand it the notice, live callers
+    // don't. The component itself must not import the demo constant or render it directly.
+    expect(detailSrc).not.toContain("DEMO_TASK_SAVE_NOTICE");
+    expect(viewSrc).toContain("saveNotice={DEMO_TASK_SAVE_NOTICE}");
+    expect(taskPageSrc).toContain("saveNotice={DEMO_TASK_SAVE_NOTICE}");
+    for (const [name, source] of LIVE_SURFACES) {
+      expect(source, name).not.toContain("DEMO_TASK_SAVE_NOTICE");
+      expect(source, name).not.toContain("Saved in this browser");
     }
   });
 
@@ -126,25 +163,29 @@ describe("my work surfaces (tests 58-70)", () => {
   });
 
   // 65
-  it("live mode resolves to an unavailable task service and never falls back to the demo store", () => {
+  it("live mode is genuinely task-backed — no third 'unavailable' branch to fall through", () => {
     expect(resolveTaskPlane(false)).toEqual({ kind: "demo" });
-    const live = resolveTaskPlane(true);
-    expect(live.kind).toBe("provider_required");
-    expect(live.kind === "provider_required" && live.reason).toBe(TASK_PROVIDER_REQUIRED_REASON);
-    // The reason has to say what is NOT happening, or "unavailable" reads as "broken".
-    expect(TASK_PROVIDER_REQUIRED_REASON).toContain("Nothing is being kept in this browser.");
+    expect(resolveTaskPlane(true)).toEqual({ kind: "live" });
+    expect(providerSrc).toContain("no `provider_required` plane to fall through");
+    // The live data hook talks to the API and the API alone.
+    expect(useLiveTasksSrc).toContain('fetch("/api/dashboard/tasks"');
+    expect(useLiveTasksSrc).not.toMatch(/lib\/demo/);
   });
 
   // 66
-  it("every task screen checks the plane before it touches the demo store", () => {
+  it("every task screen dispatches to a live variant when the plane is live, with no demo fallback in it", () => {
     for (const [name, source] of [
       ["my-work-view.tsx", viewSrc],
       ["task-page-view.tsx", taskPageSrc],
       ["next-action-card.tsx", nextActionSrc],
-      ["overview-operations.tsx", operationsSrc],
     ] as ReadonlyArray<[string, string]>) {
-      expect(source, name).toContain("resolveTaskPlane");
-      expect(source, name).toContain('plane.kind === "provider_required"');
+      expect(source, name).toContain("useCommandCenterConfig");
+      expect(source, name).toMatch(/if \(live\) return <\w+Live/);
+    }
+    // lib/demo/types is a shared type-only module (no store, no fixture) — reusing it is fine.
+    // Any other lib/demo import would pull in the demo store, actions or seed fixture.
+    for (const [name, source] of LIVE_SURFACES) {
+      expect(source, name).not.toMatch(/lib\/demo\/(?!types)/);
     }
   });
 

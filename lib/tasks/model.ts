@@ -8,6 +8,11 @@
 // passes the workspace's day. That is also what makes these functions testable.
 import type { Task, TaskPriority, TaskRelation, TaskRelationKind, Tone } from "../demo/types";
 
+/** The team-member fields task presentation actually reads. Demo's TeamMember (richer, with
+ *  initials/email/status) and the live roster (id/name/role only) are each structurally
+ *  assignable to this, so task-ui.tsx and task-detail.tsx work unmodified in either plane. */
+export type TaskTeamMember = { id: string; name: string; role: string };
+
 export const TASK_VIEWS = ["today", "upcoming", "overdue", "assigned", "waiting", "completed"] as const;
 export type TaskView = (typeof TASK_VIEWS)[number];
 

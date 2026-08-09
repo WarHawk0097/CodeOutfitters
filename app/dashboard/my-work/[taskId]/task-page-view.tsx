@@ -1,20 +1,20 @@
 "use client";
 // The task detail route body. Same TaskDetailBody the My Work dialog renders, so the two
-// views of a task cannot drift apart.
+// views of a task cannot drift apart. Demo plane here; TaskPageViewLive (task-page-view-live.tsx)
+// is the live equivalent — TaskPageView just dispatches between the two.
 import Link from "next/link";
 import { useCallback, useState } from "react";
 import { DEMO_TODAY } from "../../../../lib/demo/seed";
-import {
-  resolveTaskPlane,
-  TASK_PROVIDER_REQUIRED_TITLE,
-} from "../../../../lib/tasks/provider";
+import { demoTaskActions } from "../../../../lib/demo/task-actions";
 import { useCommandCenterConfig } from "../../../../components/command-center/mode-provider";
 import { useDemoQuery } from "../../../../components/demo/use-demo-query";
 import { RouteEmpty, RouteError, RouteLoading } from "../../../../components/demo/route-states";
 import { eventsFor } from "../../../../lib/activity/model";
+import { DEMO_TASK_SAVE_NOTICE } from "../../../../components/dashboard/task-ui";
 import { TaskDetailBody } from "../task-detail";
+import { TaskPageViewLive } from "./task-page-view-live";
 
-function BackLink() {
+export function BackLink() {
   return (
     <Link
       href="/dashboard/my-work"
@@ -27,22 +27,14 @@ function BackLink() {
 
 export function TaskPageView({ taskId }: { taskId: string }) {
   const { live } = useCommandCenterConfig();
-  const plane = resolveTaskPlane(live);
+  if (live) return <TaskPageViewLive taskId={taskId} />;
+  return <TaskPageViewDemo taskId={taskId} />;
+}
+
+function TaskPageViewDemo({ taskId }: { taskId: string }) {
   const { state, status, error, retry } = useDemoQuery();
   const [announcement, setAnnouncement] = useState("");
   const announce = useCallback((message: string) => setAnnouncement(message), []);
-
-  if (plane.kind === "provider_required") {
-    return (
-      <div>
-        <BackLink />
-        <div className="rounded-cc-card border border-cc-line bg-cc-surface p-6">
-          <h1 className="text-[15px] font-semibold text-cc-ink">{TASK_PROVIDER_REQUIRED_TITLE}</h1>
-          <p className="mt-2 max-w-[60ch] text-[12.5px] leading-[1.6] text-cc-t2">{plane.reason}</p>
-        </div>
-      </div>
-    );
-  }
 
   if (status === "loading") return <RouteLoading label="this task" />;
   if (status === "error") {
@@ -76,6 +68,8 @@ export function TaskPageView({ taskId }: { taskId: string }) {
           today={DEMO_TODAY}
           team={state.team}
           activity={eventsFor(state.activity, "task", task.id)}
+          actions={demoTaskActions}
+          saveNotice={DEMO_TASK_SAVE_NOTICE}
           onAnnounce={announce}
         />
       </div>
