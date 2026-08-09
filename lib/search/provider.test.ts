@@ -18,8 +18,6 @@ import {
 } from "./provider";
 import {
   resolveSavedViewPlane,
-  SAVED_VIEWS_PROVIDER_REQUIRED_REASON,
-  SAVED_VIEWS_PROVIDER_REQUIRED_TITLE,
   SHARED_VIEWS_UNAVAILABLE_REASON,
   type SavedViewProvider,
   type SavedViewProviderContext,
@@ -51,32 +49,33 @@ function context(overrides: Partial<SearchPermissionContext> = {}): SearchPermis
 
 describe("permissions and the live providers (tests 97-108)", () => {
   // 97
-  it("resolves live mode to provider-required, with a reason a person can act on", () => {
+  it("resolves search's live mode to provider-required, and saved views' to a live plane, each with no third branch", () => {
     expect(resolveSearchPlane(true)).toEqual({
       kind: "provider_required",
       reason: SEARCH_PROVIDER_REQUIRED_REASON,
     });
     expect(resolveSearchPlane(false)).toEqual({ kind: "demo" });
-    expect(resolveSavedViewPlane(true)).toEqual({
-      kind: "provider_required",
-      reason: SAVED_VIEWS_PROVIDER_REQUIRED_REASON,
-    });
+    // Saved Views is live-backed now: there is no provider-required plane for it to fall into.
+    expect(resolveSavedViewPlane(true)).toEqual({ kind: "live" });
     expect(resolveSavedViewPlane(false)).toEqual({ kind: "demo" });
-    // Both reasons say what is missing and what is *not* happening in its place.
+    // The search reason says what is missing and what is *not* happening in its place.
     expect(SEARCH_PROVIDER_REQUIRED_REASON).toContain("No demo records are being shown in their place");
-    expect(SAVED_VIEWS_PROVIDER_REQUIRED_REASON).toContain("Nothing is being saved locally in their place");
     expect(SEARCH_PROVIDER_REQUIRED_TITLE).toBe("Search is not connected yet");
-    expect(SAVED_VIEWS_PROVIDER_REQUIRED_TITLE).toBe("Saved Views are not connected yet");
   });
 
   // 98
   it("has exactly two planes — there is no third branch to fall through to", () => {
     const searchSrc = read("lib/search/provider.ts");
     const viewsSrc = read("lib/views/provider.ts");
+    // Search still has no live provider, so its two planes are demo and provider-required.
+    const searchKinds = new Set([...searchSrc.matchAll(/kind: "([a-z_]+)"/g)].map((match) => match[1]));
+    expect([...searchKinds].sort()).toEqual(["demo", "provider_required"]);
+    // Saved Views is now live-backed, so its two planes are demo and live — provider-required
+    // no longer exists for it anywhere.
+    const viewsKinds = new Set([...viewsSrc.matchAll(/kind: "([a-z_]+)"/g)].map((match) => match[1]));
+    expect([...viewsKinds].sort()).toEqual(["demo", "live"]);
+    expect(viewsSrc).not.toContain("provider_required");
     for (const src of [searchSrc, viewsSrc]) {
-      // Whatever `kind` values exist in the module, they are these two and nothing else.
-      const kinds = new Set([...src.matchAll(/kind: "([a-z_]+)"/g)].map((match) => match[1]));
-      expect([...kinds].sort()).toEqual(["demo", "provider_required"]);
       expect(src).toContain("There is no");
     }
     // Neither provider module imports a fixture or a browser store, so there is nothing for
