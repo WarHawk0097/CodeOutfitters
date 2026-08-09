@@ -36,6 +36,14 @@ export async function GET(request: NextRequest) {
   } = await supabase.auth.getUser()
   if (!user) return fail()
 
+  // Password recovery: any authenticated user must reach the update-password
+  // form, not the workspace-membership gate below (destinationForAuthState
+  // sends non-members to /access-pending regardless of returnTo). The page
+  // itself re-verifies the session via getUser(), so this is safe.
+  if (returnTo === '/update-password') {
+    return NextResponse.redirect(`${origin}${returnTo}`)
+  }
+
   let context = await getDashboardContext()
 
   // No membership yet: the controlled, single-use owner bootstrap is the only

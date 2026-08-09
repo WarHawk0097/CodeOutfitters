@@ -33,6 +33,9 @@ export type ShellHeaderProps = {
   mobileCenter?: ReactNode;
   /** Below md, right of the centre (MO-01 avatar, MO-02 record count). */
   mobileRight?: ReactNode;
+  /** The app's signOut() server action, threaded to the mobile drawer's
+      account footer sign-out button (see Sidebar's own onSignOut prop). */
+  onSignOut?: (formData: FormData) => void | Promise<void>;
 };
 
 export function ShellHeader({
@@ -43,6 +46,7 @@ export function ShellHeader({
   right,
   mobileCenter,
   mobileRight,
+  onSignOut,
 }: ShellHeaderProps) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -96,6 +100,7 @@ export function ShellHeader({
         <NavDrawer
           variant="mobile"
           className="md:hidden"
+          onSignOut={onSignOut}
           activeHref={activeHref}
           linkAs={linkAs}
           onClose={() => setOpen(false)}

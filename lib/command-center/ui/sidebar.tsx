@@ -170,10 +170,15 @@ function AccountFooter({
   avatar = 30,
   role = CURRENT_USER.displayRole,
   logout = false,
+  onSignOut,
 }: {
   avatar?: number;
   role?: string;
   logout?: boolean;
+  /** The existing signOut() server action (app/login/actions.ts), passed down from the
+      app layer. The UI package stays framework-agnostic — it renders the control, the
+      app supplies the behaviour, same as `linkAs`. */
+  onSignOut?: (formData: FormData) => void | Promise<void>;
 }) {
   return (
     <div className="flex items-center gap-[11px] border-t border-cc-sidebar-raised px-[26px] pt-[14px]">
@@ -189,7 +194,23 @@ function AccountFooter({
         </div>
         <div className="truncate text-[10.5px] text-cc-sidebar-muted">{role}</div>
       </div>
-      {logout ? (
+      {logout && onSignOut ? (
+        // A real control, not the decorative icon this used to be: a keyboard-reachable
+        // button submitting the existing signOut() server action. Same icon/frame as
+        // before, so the accepted row visual is unchanged.
+        <form action={onSignOut}>
+          <button
+            type="submit"
+            aria-label="Sign out"
+            title="Sign out"
+            className={`flex h-7 w-7 items-center justify-center rounded-md text-cc-sidebar-muted transition-colors hover:bg-cc-sidebar-hover hover:text-cc-sidebar-active-text ${ROW_FOCUS}`}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} aria-hidden="true">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+            </svg>
+          </button>
+        </form>
+      ) : logout ? (
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} aria-hidden="true" className="text-cc-sidebar-muted">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
         </svg>
@@ -280,6 +301,7 @@ export function NavDrawer({
   triggerRef,
   variant,
   className = "",
+  onSignOut,
 }: {
   activeHref: string;
   linkAs?: LinkComponent;
@@ -287,6 +309,7 @@ export function NavDrawer({
   triggerRef: RefObject<HTMLButtonElement | null>;
   variant: keyof typeof DRAWER_VARIANTS;
   className?: string;
+  onSignOut?: (formData: FormData) => void | Promise<void>;
 }) {
   const v = DRAWER_VARIANTS[variant];
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -383,7 +406,7 @@ export function NavDrawer({
             View website
             <span className="sr-only"> (opens in new tab)</span>
           </a>
-          <AccountFooter avatar={v.avatar} role={v.role} />
+          <AccountFooter avatar={v.avatar} role={v.role} logout onSignOut={onSignOut} />
         </div>
       </div>
     </div>
@@ -397,10 +420,12 @@ function ExpandedSidebar({
   activeHref,
   linkAs,
   onCollapse,
+  onSignOut,
 }: {
   activeHref: string;
   linkAs?: LinkComponent;
   onCollapse: () => void;
+  onSignOut?: (formData: FormData) => void | Promise<void>;
 }) {
   return (
     <nav
@@ -431,7 +456,7 @@ function ExpandedSidebar({
         </a>
         <CollapseRow onCollapse={onCollapse} />
         <div className="mt-[10px]">
-          <AccountFooter logout />
+          <AccountFooter logout onSignOut={onSignOut} />
         </div>
       </div>
     </nav>
@@ -510,7 +535,17 @@ function IconRail({
 
 // Below md there is no rail at all: mobile navigation is the header hamburger +
 // MO-05 drawer (see ShellHeader).
-export function Sidebar({ activeHref, linkAs }: { activeHref: string; linkAs?: LinkComponent }) {
+export function Sidebar({
+  activeHref,
+  linkAs,
+  onSignOut,
+}: {
+  activeHref: string;
+  linkAs?: LinkComponent;
+  /** The app's signOut() server action, threaded down to the account footer's
+      sign-out button in every nav surface (expanded sidebar and drawer). */
+  onSignOut?: (formData: FormData) => void | Promise<void>;
+}) {
   const [open, setOpen] = useState(false);
   // Session-scoped on purpose: collapsing is a momentary "give me more room"
   // action, not an account preference like the theme.
@@ -523,6 +558,7 @@ export function Sidebar({ activeHref, linkAs }: { activeHref: string; linkAs?: L
           activeHref={activeHref}
           linkAs={linkAs}
           onCollapse={() => setCollapsed(true)}
+          onSignOut={onSignOut}
         />
       )}
       <IconRail
@@ -544,6 +580,7 @@ export function Sidebar({ activeHref, linkAs }: { activeHref: string; linkAs?: L
           linkAs={linkAs}
           onClose={() => setOpen(false)}
           triggerRef={triggerRef}
+          onSignOut={onSignOut}
         />
       ) : null}
     </>

@@ -7,6 +7,7 @@ import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Sidebar, ShellHeader } from "@command-center/ui";
+import { signOut } from "@/app/login/actions";
 import { useHeaderStats, useLeadsExport, useDashboardRange } from "./header-stats";
 import { useCommandCenterConfig } from "@/components/command-center/mode-provider";
 import { CommandCenterTrigger } from "@/components/command-center/command-center";
@@ -320,7 +321,7 @@ export function ShellLink({
 
 export function ShellNav() {
   const pathname = usePathname();
-  return <Sidebar activeHref={pathname} linkAs={ShellLink} />;
+  return <Sidebar activeHref={pathname} linkAs={ShellLink} onSignOut={signOut} />;
 }
 
 // Content padding is canonical PER SCREEN, not per breakpoint alone: Overview is
@@ -373,6 +374,7 @@ export function ShellHeaderBar() {
     <ShellHeader
       activeHref={pathname}
       linkAs={ShellLink}
+      onSignOut={signOut}
       title={meta?.title ?? "Command Center"}
       subtitle={leadsSubtitle ?? meta?.subtitle}
       right={
