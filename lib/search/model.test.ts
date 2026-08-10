@@ -38,7 +38,7 @@ import {
 } from "./model";
 import { buildDemoSearchIndex, demoSearchUniverse } from "./demo-index";
 import { SEARCH_ROUTE_PATTERNS } from "./routes";
-import { resolveSearchPlane, SEARCH_PROVIDER_REQUIRED_REASON } from "./provider";
+import { resolveSearchPlane } from "./provider";
 import { createSeedState, DEMO_CURRENT_USER_ID, LEAD_DIRECTORY } from "../demo/seed";
 
 const state = createSeedState();
@@ -307,14 +307,9 @@ describe("search domain (tests 1-21)", () => {
   });
 
   // 21
-  it("live mode asks for a provider instead of falling back to demo records", () => {
+  it("live mode resolves to the live plane, not a fallback to demo records", () => {
     expect(resolveSearchPlane(false)).toEqual({ kind: "demo" });
-    const live = resolveSearchPlane(true);
-    expect(live.kind).toBe("provider_required");
-    expect(live.kind === "provider_required" && live.reason).toBe(SEARCH_PROVIDER_REQUIRED_REASON);
-    // The reason has to say that nothing is being searched locally, because the failure mode
-    // this guards against is a person assuming an empty dialog means an empty workspace.
-    expect(SEARCH_PROVIDER_REQUIRED_REASON).toContain("No demo records");
+    expect(resolveSearchPlane(true)).toEqual({ kind: "live" });
   });
 });
 
