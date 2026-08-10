@@ -32,8 +32,12 @@ export type ActivityWriteIntent = {
   workspaceId: string;
   /** The operation the user actually performed, e.g. "task_completed". */
   operation: ActivityEvent["type"];
-  target: { kind: ActivityRecordKind; id: string };
-  parent?: { kind: ActivityRecordKind; id: string };
+  /** What actually happened, in the caller's own words. Stored as-is, not derived from the
+   *  event type — two "task_completed" events on different tasks read differently. */
+  summary: string;
+  detail?: string;
+  target: { kind: ActivityRecordKind; id: string; label: string };
+  parent?: { kind: ActivityRecordKind; id: string; label: string };
   /** Values the operation genuinely carries (old/new stage, version number). Rendered as
    *  labelled pairs; never a JSON blob shown to a user. */
   metadata?: readonly { label: string; value: string }[];
@@ -46,19 +50,18 @@ export type ActivityProvider = {
   record(intent: ActivityWriteIntent): Promise<ActivityEvent>;
 };
 
-export type ActivityPlane =
-  | { kind: "demo" }
-  | { kind: "provider_required"; reason: string };
+/** demo: seeded browser history. live: the workspace-scoped provider is connected and reads
+ *  with the caller's session — see lib/activity/server-provider.ts. There is no third state
+ *  for the feed: a live workspace either has activity or it has an empty/error state, never
+ *  demo history. (ACTIVITY_PROVIDER_REQUIRED_* below still exists — it is what the per-record
+ *  panels show today, since no live provider is wired into those screens yet.) */
+export type ActivityPlane = { kind: "demo" } | { kind: "live" };
 
 export const ACTIVITY_PROVIDER_REQUIRED_TITLE = "Activity history is not connected yet";
 
 export const ACTIVITY_PROVIDER_REQUIRED_REASON =
   "This workspace is running in live mode. Activity is stored in the workspace database and read with your session, so it is not available until the activity service is connected. No history is being kept in this browser, and none is being shown from the demo data.";
 
-/** Live mode never resolves to demo. The absence of a backend is reported, not papered
- *  over. */
 export function resolveActivityPlane(live: boolean): ActivityPlane {
-  return live
-    ? { kind: "provider_required", reason: ACTIVITY_PROVIDER_REQUIRED_REASON }
-    : { kind: "demo" };
+  return live ? { kind: "live" } : { kind: "demo" };
 }

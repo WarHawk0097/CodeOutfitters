@@ -80,6 +80,26 @@ describe("live saved view provider (server-provider.ts)", () => {
     expect(src).toContain('import { createClient } from "@/lib/supabase/server"');
   });
 
+  it("never trusts a client-supplied actor/timestamp for the activity it emits", () => {
+    expect(src).not.toMatch(/actorId:|occurredAt:/);
+  });
+
+  it("emits exactly one activity call per operation: create, update, delete, default-set/clear", () => {
+    expect(src.match(/await recordActivity\(/g)?.length).toBe(5);
+    expect(src).toContain('operation: "saved_view_created"');
+    expect(src).toContain('operation: "saved_view_updated"');
+    expect(src).toContain('operation: "saved_view_deleted"');
+    expect(src.match(/operation: "saved_view_default_changed"/g)?.length).toBe(2);
+  });
+
+  it("remove() emits nothing when it matches zero rows — already gone is not an event", () => {
+    const removeBody = src.slice(src.indexOf("async remove("), src.indexOf("async setDefault("));
+    expect(removeBody).toContain("if (data) {");
+    const ifIndex = removeBody.indexOf("if (data) {");
+    const emitIndex = removeBody.indexOf("await recordActivity(");
+    expect(ifIndex).toBeLessThan(emitIndex);
+  });
+
   it("neither API route imports a demo fixture, and both refuse in demo mode before touching the DB", () => {
     for (const path of ["app/api/dashboard/saved-views/route.ts", "app/api/dashboard/saved-views/[id]/route.ts"]) {
       const routeSrc = read(path);

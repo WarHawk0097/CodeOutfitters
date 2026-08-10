@@ -197,6 +197,12 @@ export const ACTIVITY_EVENT_TYPES = [
   "team_updated",
   "settings_updated",
   "workspace_updated",
+  // Saved Views. See the ACTIVITY_EVENT_META comment above for why these carry the "system"
+  // category and "workspace" record kind instead of new ones.
+  "saved_view_created",
+  "saved_view_updated",
+  "saved_view_deleted",
+  "saved_view_default_changed",
 ] as const;
 export type ActivityEventType = (typeof ACTIVITY_EVENT_TYPES)[number];
 
@@ -302,6 +308,16 @@ export const ACTIVITY_EVENT_META: Record<ActivityEventType, EventMeta> = {
   team_updated: { category: "system", label: "Team updated", importance: "routine" },
   settings_updated: { category: "system", label: "Settings updated", importance: "routine" },
   workspace_updated: { category: "system", label: "Workspace updated", importance: "routine" },
+
+  // Saved Views. There is no dedicated category or record kind for a saved view — "system"
+  // and the "workspace" record kind are the closest existing fit, and adding a new
+  // activity_record_kind enum member is a migration this feature does not need: event_type is
+  // free text specifically so new operations do not require one (see the column comment in
+  // supabase/migrations/20260730000000_command_center_activity.sql).
+  saved_view_created: { category: "system", label: "Saved view created", importance: "routine" },
+  saved_view_updated: { category: "system", label: "Saved view updated", importance: "routine" },
+  saved_view_deleted: { category: "system", label: "Saved view deleted", importance: "routine" },
+  saved_view_default_changed: { category: "system", label: "Default view changed", importance: "routine" },
 };
 
 // ---------------------------------------------------------------------------

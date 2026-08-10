@@ -6,6 +6,8 @@ import "server-only";
 // the raw Postgres message to a caller. There is no delete: the tasks table grants none,
 // so this provider offers none.
 import { createClient } from "@/lib/supabase/server";
+import type { ActivityRef } from "../activity/model";
+import { recordActivity } from "../activity/emit";
 import type { Task, TaskPriority, TaskRelationKind, TaskState } from "../demo/types";
 import type { TaskCreateInput, TaskProvider, TaskQuery, TaskUpdateInput } from "./provider";
 
@@ -76,21 +78,33 @@ type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
 /** A reassigned owner must be an active member of THIS workspace — RLS checks workspace_id
  *  on the row, not that owner_id belongs to it, so this is the one check the provider must
- *  make itself or a task could be assigned to an outsider. */
+ *  make itself or a task could be assigned to an outsider. Returns the owner's display name
+ *  (same profiles join as listWorkspaceTeam below) so a reassignment's activity summary can
+ *  name them without a second round trip. */
 async function assertOwnerInWorkspace(
   supabase: SupabaseServerClient,
   workspaceId: string,
   ownerId: string,
-): Promise<void> {
+): Promise<string> {
   const { data, error } = await supabase
     .from("workspace_memberships")
-    .select("user_id")
+    .select("user_id, profiles(full_name, email)")
     .eq("workspace_id", workspaceId)
     .eq("user_id", ownerId)
     .eq("status", "active")
     .maybeSingle();
   if (error) throwForPgError(error);
   if (!data) throw new TaskError("invalid", "That owner is not a member of this workspace.");
+  const profile = Array.isArray(data.profiles) ? data.profiles[0] : data.profiles;
+  return (profile?.full_name || profile?.email || "Unnamed") as string;
+}
+
+/** The record a task's activity rolls up to — same rule as lib/demo/actions.ts's taskParent,
+ *  minus the leadId-only branch: that would need a join to the leads table for a label, and
+ *  nothing reads it yet. ponytail: add it if a screen needs a lead-only task's parent. */
+function taskParent(task: Task): ActivityRef | undefined {
+  if (task.relation) return { kind: task.relation.kind, id: task.relation.id, label: task.relation.label };
+  return undefined;
 }
 
 export const serverTaskProvider: TaskProvider = {
@@ -110,7 +124,7 @@ export const serverTaskProvider: TaskProvider = {
     const supabase = await createClient();
     await assertOwnerInWorkspace(supabase, input.workspaceId, input.ownerId);
 
-    const { data, error } = await supabase
+    const { data, error: createError } = await supabase
       .from("tasks")
       // created_by is left null — the column is nullable, no read model uses it, and no
       // caller needs it yet. ponytail: add a real audit trail when something reads it.
@@ -128,8 +142,18 @@ export const serverTaskProvider: TaskProvider = {
       })
       .select(SELECT_COLUMNS)
       .single();
-    if (error) throwForPgError(error);
-    return rowToTask(data);
+    if (createError) throwForPgError(createError);
+    const task = rowToTask(data);
+    await recordActivity({
+      workspaceId: input.workspaceId,
+      operation: "task_created",
+      summary: `Task created — ${task.title}`,
+      detail: task.detail,
+      target: { kind: "task", id: task.id, label: task.title },
+      parent: taskParent(task),
+      metadata: task.dueDate ? [{ label: "Due", value: task.dueDate }] : [],
+    });
+    return task;
   },
 
   async update(input: TaskUpdateInput): Promise<Task> {
@@ -147,6 +171,7 @@ export const serverTaskProvider: TaskProvider = {
     const current = rowToTask(currentRow);
 
     const columns: Record<string, unknown> = {};
+    let newOwnerName: string | undefined;
 
     if (patch.title !== undefined) {
       const title = patch.title.trim();
@@ -157,7 +182,7 @@ export const serverTaskProvider: TaskProvider = {
     if (patch.priority !== undefined) columns.priority = patch.priority;
     if (patch.dueDate !== undefined) columns.due_date = patch.dueDate === "" ? null : patch.dueDate;
     if (patch.ownerId !== undefined && patch.ownerId !== current.ownerId) {
-      await assertOwnerInWorkspace(supabase, workspaceId, patch.ownerId);
+      newOwnerName = await assertOwnerInWorkspace(supabase, workspaceId, patch.ownerId);
       columns.owner_id = patch.ownerId;
     }
 
@@ -191,7 +216,59 @@ export const serverTaskProvider: TaskProvider = {
       .maybeSingle();
     if (error) throwForPgError(error);
     if (!data) throw new TaskError("not_found", "That task is not available.");
-    return rowToTask(data);
+    const next = rowToTask(data);
+
+    // Exactly one event per mutation, picked by precedence — a state transition is always
+    // the most significant thing that happened in the call, then a reassignment, then any
+    // other field edit. This mirrors lib/demo/actions.ts, which routes each of these through
+    // its own dedicated action rather than one generic "task updated".
+    const target = { kind: "task" as const, id: next.id, label: next.title };
+    const parent = taskParent(next);
+    if (columns.state === "COMPLETED") {
+      await recordActivity({
+        workspaceId,
+        operation: "task_completed",
+        summary: `Task completed — ${next.title}`,
+        target,
+        parent,
+      });
+    } else if (columns.state === "OPEN") {
+      await recordActivity({
+        workspaceId,
+        operation: "task_reopened",
+        summary: `Task reopened — ${next.title}`,
+        target,
+        parent,
+      });
+    } else if (columns.state === "WAITING") {
+      await recordActivity({
+        workspaceId,
+        operation: "task_waiting_changed",
+        summary: `Task waiting on ${next.waitingOn} — ${next.title}`,
+        target,
+        parent,
+        metadata: [{ label: "Waiting on", value: next.waitingOn }],
+      });
+    } else if (newOwnerName !== undefined) {
+      await recordActivity({
+        workspaceId,
+        operation: "task_assignee_changed",
+        summary: `Task moved to ${newOwnerName} — ${next.title}`,
+        target,
+        parent,
+        metadata: [{ label: "Assignee", value: newOwnerName }],
+      });
+    } else {
+      await recordActivity({
+        workspaceId,
+        operation: "task_updated",
+        summary: `Task updated — ${next.title}`,
+        target,
+        parent,
+      });
+    }
+
+    return next;
   },
 };
 
