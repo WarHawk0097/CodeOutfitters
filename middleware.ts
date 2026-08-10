@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 import { canonicalHostRedirect } from '@/lib/routing/public-origin'
+import { isDemoMode } from '@/lib/command-center/mode'
 
 // Paths whose Supabase auth cookie must be refreshed, and which the /dashboard
 // guard depends on. Everything else is matched only so a production request
@@ -23,7 +24,10 @@ export async function middleware(request: NextRequest) {
   })
   if (canonical) return NextResponse.redirect(canonical, 308)
 
-  if (needsSession(request.nextUrl.pathname)) return updateSession(request)
+  // Demo mode has no auth plane at all (see app/login/page.tsx) — the Supabase
+  // session guard must not run against it, or an unauthenticated demo visit to
+  // /dashboard bounces straight back to /login even after a correct demo sign-in.
+  if (needsSession(request.nextUrl.pathname) && !isDemoMode()) return updateSession(request)
   return NextResponse.next()
 }
 

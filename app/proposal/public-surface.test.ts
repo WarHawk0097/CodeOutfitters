@@ -62,7 +62,9 @@ describe("the public proposal route (tests 242-251)", () => {
     // The matcher is wider than /dashboard since the canonical host redirect, so the
     // guard is read from the session path list the middleware actually branches on.
     expect(middleware).toContain("const SESSION_PATHS = ['/dashboard', '/login', '/access-pending', '/auth']");
-    expect(middleware).toContain("if (needsSession(request.nextUrl.pathname)) return updateSession(request)");
+    expect(middleware).toContain(
+      "if (needsSession(request.nextUrl.pathname) && !isDemoMode()) return updateSession(request)",
+    );
     expect(middleware).not.toContain("/proposal/:path*");
     expect(middleware).not.toContain("/proposal/");
   });
