@@ -14,6 +14,7 @@
 // same non-leaking answer whether the row never existed or the caller may not touch it.
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import { recordActivity } from "../activity/emit";
 import {
   sanitizeFilters,
   sanitizeSort,
@@ -121,7 +122,15 @@ export const serverSavedViewProvider: SavedViewProvider = {
       .select(SELECT_COLUMNS)
       .single();
     if (error) throwForPgError(error);
-    return rowToView(data as SavedViewRow);
+    const view = rowToView(data as SavedViewRow);
+    await recordActivity({
+      workspaceId: context.workspaceId,
+      operation: "saved_view_created",
+      summary: `Saved view created — ${view.name}`,
+      target: { kind: "workspace", id: view.id, label: view.name },
+      metadata: [{ label: "List", value: view.scope }],
+    });
+    return view;
   },
 
   async update(context, id, draft) {
@@ -140,20 +149,42 @@ export const serverSavedViewProvider: SavedViewProvider = {
       .maybeSingle();
     if (error) throwForPgError(error);
     if (!data) throw new SavedViewError("not_found", "That saved view is not available to edit.");
-    return rowToView(data as SavedViewRow);
+    const view = rowToView(data as SavedViewRow);
+    await recordActivity({
+      workspaceId: context.workspaceId,
+      operation: "saved_view_updated",
+      summary: `Saved view updated — ${view.name}`,
+      target: { kind: "workspace", id: view.id, label: view.name },
+      metadata: [{ label: "List", value: view.scope }],
+    });
+    return view;
   },
 
   async remove(context, id) {
     const supabase = await createClient();
     // Matches the house pattern in lib/ai/conversation/supabase-store.ts's delete(): a delete
     // that matches zero rows (already gone, or not yours) is not an error — the end state the
-    // caller wanted is achieved either way, and it does not leak which case it was.
-    const { error } = await supabase
+    // caller wanted is achieved either way, and it does not leak which case it was. select()
+    // on the delete returns the row that was actually removed (or null for a no-op), which is
+    // both how the code already tells the two cases apart and where the emitted event's label
+    // comes from — nothing else in this call still knows the view's name after it is gone.
+    const { data, error } = await supabase
       .from("saved_views")
       .delete()
       .eq("id", id)
-      .eq("workspace_id", context.workspaceId);
+      .eq("workspace_id", context.workspaceId)
+      .select("name, scope")
+      .maybeSingle();
     if (error) throwForPgError(error);
+    if (data) {
+      await recordActivity({
+        workspaceId: context.workspaceId,
+        operation: "saved_view_deleted",
+        summary: `Saved view deleted — ${data.name}`,
+        target: { kind: "workspace", id, label: data.name },
+        metadata: [{ label: "List", value: data.scope }],
+      });
+    }
   },
 
   async setDefault(context, scope, id) {
@@ -162,7 +193,7 @@ export const serverSavedViewProvider: SavedViewProvider = {
     if (id !== null) {
       const { data: target, error: fetchError } = await supabase
         .from("saved_views")
-        .select("owner_user_id, visibility, scope")
+        .select("name, owner_user_id, visibility, scope")
         .eq("id", id)
         .eq("workspace_id", context.workspaceId)
         .maybeSingle();
@@ -195,14 +226,32 @@ export const serverSavedViewProvider: SavedViewProvider = {
       .eq("is_default", true);
     if (clearError) throwForPgError(clearError);
 
-    if (id === null) return;
+    if (id === null) {
+      await recordActivity({
+        workspaceId: context.workspaceId,
+        operation: "saved_view_default_changed",
+        summary: `Default ${scope} view cleared`,
+        target: { kind: "workspace", id: `default-${scope}`, label: `Default ${scope} view` },
+        metadata: [{ label: "List", value: scope }],
+      });
+      return;
+    }
 
-    const { error } = await supabase
+    const { data: setRow, error } = await supabase
       .from("saved_views")
       .update({ is_default: true })
       .eq("id", id)
-      .eq("workspace_id", context.workspaceId);
+      .eq("workspace_id", context.workspaceId)
+      .select("name")
+      .maybeSingle();
     if (error) throwForPgError(error);
+    await recordActivity({
+      workspaceId: context.workspaceId,
+      operation: "saved_view_default_changed",
+      summary: `Default ${scope} view set to ${setRow?.name ?? "a view"}`,
+      target: { kind: "workspace", id, label: setRow?.name ?? "Saved view" },
+      metadata: [{ label: "List", value: scope }],
+    });
   },
 };
 
