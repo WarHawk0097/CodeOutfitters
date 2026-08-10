@@ -7,11 +7,10 @@
 // there". The filtering would then be cosmetic — the records a role may not see would already
 // be in the tab.
 //
-// So in live mode search is a server call, the query is answered inside the caller's session,
-// and RLS is the boundary a second time underneath. That implementation is not part of this
-// release. Rather than let live mode fall through to the demo index — which would show a
-// person fixtures dressed as their workspace — this module resolves to `provider_required`
-// and the dialog renders an explicit notice. There is no third branch.
+// So in live mode search is a server call: GET /api/dashboard/search, answered inside the
+// caller's session by serverSearchProvider (lib/search/server-provider.ts), with RLS as the
+// boundary a second time underneath. The dialog's live-mode UI (components/command-center/
+// search-live.ts) is the sole consumer. There is no third branch.
 import type {
   CommandCenterSearchDocument,
   CommandCenterSearchResult,
@@ -86,16 +85,9 @@ export type DemoSearchIndex = readonly CommandCenterSearchDocument[];
 export type SearchPlane =
   /** Demo mode: the index is built in this browser from fixtures, and every surface says so. */
   | { kind: "demo" }
-  /** Live mode with no server implementation wired: explicit, honest, no fallback. */
-  | { kind: "provider_required"; reason: string };
-
-export const SEARCH_PROVIDER_REQUIRED_TITLE = "Search is not connected yet";
-
-export const SEARCH_PROVIDER_REQUIRED_REASON =
-  "This workspace is running in live mode. Search runs against the workspace database with your session, so results are not available until the search service is connected. No demo records are being shown in their place, and nothing is being searched in this browser.";
+  /** Live mode: results come from GET /api/dashboard/search, scoped to the caller's session. */
+  | { kind: "live" };
 
 export function resolveSearchPlane(live: boolean): SearchPlane {
-  return live
-    ? { kind: "provider_required", reason: SEARCH_PROVIDER_REQUIRED_REASON }
-    : { kind: "demo" };
+  return live ? { kind: "live" } : { kind: "demo" };
 }
