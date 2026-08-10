@@ -436,7 +436,28 @@ describe("unauthenticated dashboard access (21)", () => {
     // paths that get session work are the ones listed for it — /dashboard included.
     const matcher = readFileSync(`${repo}middleware.ts`, "utf8");
     expect(matcher).toContain("const SESSION_PATHS = ['/dashboard', '/login', '/access-pending', '/auth']");
-    expect(matcher).toContain("if (needsSession(request.nextUrl.pathname)) return updateSession(request)");
+    // Demo mode has no auth plane (app/login/page.tsx never calls Supabase there),
+    // so the guard must not run against it — otherwise a correct demo sign-in
+    // bounces straight back to /login because no real Supabase session exists.
+    expect(matcher).toContain(
+      "if (needsSession(request.nextUrl.pathname) && !isDemoMode()) return updateSession(request)",
+    );
+  });
+
+  it("never redirects an unauthenticated demo visit to /dashboard back to /login (regression: production demo login was bouncing back to /login)", async () => {
+    const previous = process.env.COMMAND_CENTER_MODE;
+    process.env.COMMAND_CENTER_MODE = "demo";
+    try {
+      const { middleware } = await import("../../middleware");
+      const { NextRequest } = await import("next/server");
+      const request = new NextRequest("https://codeoutfitters.vercel.app/dashboard");
+      const response = await middleware(request);
+      expect(response.status).not.toBe(307);
+      expect(response.headers.get("location")).toBeNull();
+    } finally {
+      if (previous === undefined) delete process.env.COMMAND_CENTER_MODE;
+      else process.env.COMMAND_CENTER_MODE = previous;
+    }
   });
 
   it("server components re-check membership instead of trusting the middleware", () => {

@@ -191,8 +191,11 @@ describe("the production host redirect", () => {
     const src = read("middleware.ts");
     expect(src).toContain("canonicalHostRedirect");
     expect(src).toContain("NextResponse.redirect(canonical, 308)");
-    // Session work stays scoped to the auth-bearing paths even though the matcher is wider.
-    expect(src).toContain("if (needsSession(request.nextUrl.pathname)) return updateSession(request)");
+    // Session work stays scoped to the auth-bearing paths even though the matcher is wider,
+    // and never runs at all in demo mode (which has no Supabase auth plane).
+    expect(src).toContain(
+      "if (needsSession(request.nextUrl.pathname) && !isDemoMode()) return updateSession(request)",
+    );
   });
 });
 
