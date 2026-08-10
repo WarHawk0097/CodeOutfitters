@@ -21,6 +21,7 @@ import {
   type ActivityImportance,
 } from "../../lib/activity/model";
 import { resolveActivityPlane } from "../../lib/activity/provider";
+import { useLiveActivity } from "../../lib/activity/use-live-activity";
 import { DEMO_TODAY } from "../../lib/demo/seed";
 import { useDemoState } from "../../lib/demo/store";
 import { useCommandCenterConfig } from "../command-center/mode-provider";
@@ -37,9 +38,9 @@ const DOT: Record<ActivityImportance, string> = {
 /** How many rows the canonical card has room for before it clips. */
 const LIMIT = 5;
 
-function Row({ event }: { event: ActivityEvent }) {
+function Row({ event, today }: { event: ActivityEvent; today: string }) {
   const href = activityHref(event.related);
-  const when = `${dayLabel(dayKey(event.occurredAt), DEMO_TODAY)} · ${timeLabel(event.occurredAt)}`;
+  const when = `${dayLabel(dayKey(event.occurredAt), today)} · ${timeLabel(event.occurredAt)}`;
   const body = (
     <span className="flex-1 text-[12px] leading-[1.45] text-cc-t-table">{event.summary}</span>
   );
@@ -67,12 +68,14 @@ function Row({ event }: { event: ActivityEvent }) {
   );
 }
 
-export function RecentActivityLive() {
+export function RecentActivityLive({ today = DEMO_TODAY }: { today?: string }) {
   const { live } = useCommandCenterConfig();
   const plane = resolveActivityPlane(live);
   const state = useDemoState();
+  const liveActivity = useLiveActivity(plane.kind === "live", LIMIT * 10);
 
-  const events = useMemo(() => recentImportant(state.activity, LIMIT), [state.activity]);
+  const demoEvents = useMemo(() => recentImportant(state.activity, LIMIT), [state.activity]);
+  const liveEvents = useMemo(() => recentImportant(liveActivity.events, LIMIT), [liveActivity.events]);
 
   return (
     <section className={`${CARD} min-h-0 flex-1 overflow-hidden`} aria-labelledby="recent-activity">
@@ -82,17 +85,32 @@ export function RecentActivityLive() {
       >
         Recent activity
       </h3>
-      {plane.kind === "provider_required" ? (
-        <p className="px-4 py-3 text-[11.5px] leading-[1.55] text-cc-t2">{plane.reason}</p>
-      ) : events.length === 0 ? (
+      {plane.kind === "live" && liveActivity.status === "loading" ? (
+        <p className="px-4 py-3 text-[11.5px] leading-[1.55] text-cc-t2">Loading recorded activity…</p>
+      ) : plane.kind === "live" && liveActivity.status === "error" ? (
+        <p className="px-4 py-3 text-[11.5px] leading-[1.55] text-cc-t2">
+          Activity could not be loaded ({liveActivity.error}).
+        </p>
+      ) : plane.kind === "live" && liveEvents.length === 0 ? (
+        <p className="px-4 py-3 text-[11.5px] leading-[1.55] text-cc-t2">
+          Nothing needing attention has been recorded yet. Meetings, proposals and follow-ups
+          appear here as they happen.
+        </p>
+      ) : plane.kind === "live" ? (
+        <ul>
+          {liveEvents.map((event) => (
+            <Row key={event.id} event={event} today={today} />
+          ))}
+        </ul>
+      ) : demoEvents.length === 0 ? (
         <p className="px-4 py-3 text-[11.5px] leading-[1.55] text-cc-t2">
           Nothing needing attention has been recorded yet. Meetings, proposals and follow-ups
           appear here as they happen.
         </p>
       ) : (
         <ul>
-          {events.map((event) => (
-            <Row key={event.id} event={event} />
+          {demoEvents.map((event) => (
+            <Row key={event.id} event={event} today={today} />
           ))}
         </ul>
       )}

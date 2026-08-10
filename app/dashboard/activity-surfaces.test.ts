@@ -143,9 +143,9 @@ describe("activity honesty (tests 120-131)", () => {
 
 describe("live mode contract (tests 132-138)", () => {
   // 132
-  it("live mode resolves to provider_required, never to demo", () => {
+  it("live mode resolves to a live provider, never to demo", () => {
     const plane = resolveActivityPlane(true);
-    expect(plane.kind).toBe("provider_required");
+    expect(plane.kind).toBe("live");
     expect(resolveActivityPlane(false).kind).toBe("demo");
   });
 
@@ -166,7 +166,7 @@ describe("live mode contract (tests 132-138)", () => {
   // 135
   it("the Overview card asks the same single resolver", () => {
     expect(overviewCardSrc).toContain("resolveActivityPlane(live)");
-    expect(overviewCardSrc).toContain('plane.kind === "provider_required"');
+    expect(overviewCardSrc).toContain('plane.kind === "live"');
   });
 
   // 136
@@ -237,6 +237,40 @@ describe("accessibility and structure (tests 139-144)", () => {
     expect(overviewCardSrc).toContain('aria-labelledby="recent-activity"');
     expect(overviewCardSrc).toContain("Recent activity");
     expect(panelSrc).toContain("<h2");
+  });
+});
+
+describe("live feed wiring (Overview card)", () => {
+  it("the Overview card fetches through the live hook only when the plane is live", () => {
+    expect(overviewCardSrc).toContain('useLiveActivity(plane.kind === "live"');
+  });
+
+  it("the Overview card has distinct loading, error, empty and list branches for live mode", () => {
+    expect(overviewCardSrc).toContain('liveActivity.status === "loading"');
+    expect(overviewCardSrc).toContain('liveActivity.status === "error"');
+    expect(overviewCardSrc).toContain("liveEvents.length === 0");
+  });
+
+  it("live mode never falls back to demo history on empty or error", () => {
+    const liveBranch = overviewCardSrc.slice(
+      overviewCardSrc.indexOf('plane.kind === "live" && liveActivity.status === "loading"'),
+      overviewCardSrc.indexOf(") : demoEvents.length === 0 ? ("),
+    );
+    expect(liveBranch).not.toContain("demoEvents");
+  });
+
+  it("the string provider_required is not reachable from the live branch", () => {
+    const liveBranch = overviewCardSrc.slice(
+      overviewCardSrc.indexOf('plane.kind === "live" && liveActivity.status === "loading"'),
+      overviewCardSrc.indexOf(") : demoEvents.length === 0 ? ("),
+    );
+    expect(liveBranch).not.toContain("provider_required");
+  });
+
+  it("the live hook never imports a demo fixture or localStorage", () => {
+    const hookSrc = read("lib/activity/use-live-activity.ts");
+    expect(hookSrc).not.toMatch(/lib\/demo/);
+    expect(hookSrc).not.toContain("localStorage");
   });
 });
 
