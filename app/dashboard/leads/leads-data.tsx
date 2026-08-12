@@ -9,6 +9,7 @@
 // narrows 128 records rather than the ten currently on screen.
 import { BTN_PRIMARY } from "@/lib/command-center/ui/control-system";
 import { RouteToolbar } from "../../../components/demo/toolbar";
+import { AddLeadForm } from "./add-lead-form";
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { LeadsTable, type LeadsQuery } from "@command-center/ui";
@@ -253,6 +254,14 @@ export function LeadsData() {
 
   return (
     <>
+    <div className="mb-3 flex justify-end">
+      <AddLeadForm
+        onCreated={() => {
+          setPage(1);
+          setAttempt((n) => n + 1);
+        }}
+      />
+    </div>
     <RouteToolbar>
       <SavedViewsBar scope="leads" filters={filters} sort={sort} onApply={publish} />
     </RouteToolbar>
