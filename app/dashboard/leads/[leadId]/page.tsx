@@ -11,7 +11,9 @@ import {
 import { isDemoMode } from '@/lib/command-center/mode'
 import { NextActionCard } from '@/components/dashboard/next-action-card'
 import { LeadActivity } from './lead-activity'
+import { LeadUpdateControls } from './lead-update-controls'
 import { isDownloadable } from '@/lib/dashboard/validation'
+import type { LeadStatus } from '@command-center/contracts'
 
 export const metadata = { title: 'Lead — Command Center' }
 
@@ -64,6 +66,22 @@ export default async function LeadDetailPage({
           {String(lead.status ?? 'New')}
         </span>
       </div>
+
+      {demo ? (
+        <p
+          className={`mb-8 rounded-cc-card border border-cc-line bg-cc-surface px-6 py-4 text-sm ${ROW_ACTION_DISABLED}`}
+          title="Available when the production data service is connected."
+        >
+          <FileWarning className="h-3.5 w-3.5 flex-shrink-0" />
+          Status/owner updates are available when the production data service is connected.
+        </p>
+      ) : (
+        <LeadUpdateControls
+          leadId={leadId}
+          currentStatus={String(lead.status ?? 'New') as LeadStatus}
+          currentOwner={typeof lead.assigned_owner === 'string' ? lead.assigned_owner : null}
+        />
+      )}
 
       <dl className="mb-8 grid grid-cols-1 gap-x-8 gap-y-4 rounded-cc-card border border-cc-line bg-cc-surface p-6 sm:grid-cols-2">
         {fields

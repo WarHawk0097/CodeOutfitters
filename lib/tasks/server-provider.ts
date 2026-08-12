@@ -81,7 +81,7 @@ type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
  *  make itself or a task could be assigned to an outsider. Returns the owner's display name
  *  (same profiles join as listWorkspaceTeam below) so a reassignment's activity summary can
  *  name them without a second round trip. */
-async function assertOwnerInWorkspace(
+export async function assertOwnerInWorkspace(
   supabase: SupabaseServerClient,
   workspaceId: string,
   ownerId: string,

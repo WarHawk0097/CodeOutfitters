@@ -233,3 +233,20 @@ export const LeadsPatchRequestSchema = z.object({
 export type LeadsPatchRequest = z.infer<typeof LeadsPatchRequestSchema>;
 
 export const LeadsPatchResponseSchema = LeadSchema;
+
+// Manual lead creation (POST /api/leads). The write surface
+// supabase/migrations/20260812030000_leads_insert.sql grants — status/appointment_status are
+// deliberately absent: a manually created lead always starts at the table default ('New'),
+// the same as an inquiry-sourced one, so this schema has no status field to misuse.
+export const LeadsCreateRequestSchema = z.object({
+  firstName: z.string().trim().min(1, "required"),
+  lastName: z.string().trim().optional(),
+  businessName: z.string().trim().min(1, "required"),
+  workEmail: z.string().trim().min(1, "required").email("invalid_email"),
+  phone: z.string().trim().optional(),
+  serviceInterest: z.string().trim().optional(),
+  notes: z.string().trim().optional(),
+});
+export type LeadsCreateRequest = z.infer<typeof LeadsCreateRequestSchema>;
+
+export const LeadsCreateResponseSchema = LeadSchema;
