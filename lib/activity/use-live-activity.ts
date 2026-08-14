@@ -3,7 +3,7 @@
 // Live Activity feed — client hook, same fetch/refresh idiom as lib/tasks/use-live-tasks.ts.
 // `enabled` gates the fetch so demo mode never calls the API.
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { ActivityEvent } from "./model";
+import type { ActivityEvent, ActivityRecordKind } from "./model";
 
 type LoadState =
   | { status: "loading" }
@@ -25,8 +25,16 @@ async function parseApi<T>(res: Response): Promise<ApiResult<T>> {
   return { ok: true, body: body as T };
 }
 
-async function fetchActivity(limit: number): Promise<LoadState> {
-  const res = await fetch(`/api/dashboard/activity?limit=${limit}`, { method: "GET" });
+async function fetchActivity(
+  limit: number,
+  record?: { kind: ActivityRecordKind; id: string },
+): Promise<LoadState> {
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (record) {
+    params.set("kind", record.kind);
+    params.set("id", record.id);
+  }
+  const res = await fetch(`/api/dashboard/activity?${params}`, { method: "GET" });
   const result = await parseApi<{ events: ActivityEvent[] }>(res);
   if (!result.ok) return { status: "error", message: result.message };
   return { status: "ready", events: result.body.events };
@@ -39,16 +47,22 @@ export type UseLiveActivityResult = {
   refresh: () => Promise<void>;
 };
 
-export function useLiveActivity(enabled: boolean, limit = 50): UseLiveActivityResult {
+export function useLiveActivity(
+  enabled: boolean,
+  limit = 50,
+  record?: { kind: ActivityRecordKind; id: string },
+): UseLiveActivityResult {
   const [load, setLoad] = useState<LoadState>({ status: "loading" });
   const mounted = useRef(true);
   useEffect(() => () => void (mounted.current = false), []);
 
+  const recordKind = record?.kind;
+  const recordId = record?.id;
   const refresh = useCallback(async () => {
     if (!enabled) return;
-    const next = await fetchActivity(limit);
+    const next = await fetchActivity(limit, recordKind && recordId ? { kind: recordKind, id: recordId } : undefined);
     if (mounted.current) setLoad(next);
-  }, [enabled, limit]);
+  }, [enabled, limit, recordKind, recordId]);
 
   useEffect(() => {
     void refresh();

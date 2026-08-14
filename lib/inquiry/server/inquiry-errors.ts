@@ -84,3 +84,23 @@ export function isIdempotencyConflict(err: unknown): boolean {
     detail.includes("inquiry_idempotency_conflict")
   );
 }
+
+// Postgres raises this from submit_inquiry when the single seeded workspace
+// (slug 'codeoutfitters') cannot be found — the fail-closed guard added in
+// 20260814000000_leads_ingestion_workspace_fail_closed.sql. This is a
+// deployment misconfiguration, not a transient failure, so it maps to
+// notConfigured() rather than serverError() (spec §9.16: don't tell a client
+// to retry when retrying can never succeed).
+export function isWorkspaceMissing(err: unknown): boolean {
+  const msg =
+    err && typeof err === "object" && "message" in err
+      ? String((err as { message: unknown }).message)
+      : "";
+  const detail =
+    err && typeof err === "object" && "details" in err
+      ? String((err as { details: unknown }).details)
+      : "";
+  return (
+    msg.includes("inquiry_workspace_missing") || detail.includes("inquiry_workspace_missing")
+  );
+}

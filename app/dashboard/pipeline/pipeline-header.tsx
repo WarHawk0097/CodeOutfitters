@@ -5,12 +5,20 @@
 //
 // The chip and the board read the same useStageWindow store, so the label can never
 // describe a different slice from the one the columns show.
+//
+// Live mode drops the count and the drag/keyboard-grab copy: the count would otherwise
+// come from the demo store's Opportunity fixtures (always present client-side, regardless
+// of mode — see lib/demo/store.ts), and PipelineBoardLive has no pointer drag or Space-to-
+// grab (see its header comment for why "Move to stage ▾" is the only affordance there).
 import { CONTROL_DISABLED_INK, CONTROL_FOCUS } from "@/lib/command-center/ui/control-system";
+import { useCommandCenterConfig } from "@/components/command-center/mode-provider";
 import { useDemoState } from "../../../lib/demo/store";
 import { useStageWindow } from "./stage-window";
 
 export function PipelineSubtitle() {
+  const { live } = useCommandCenterConfig();
   const state = useDemoState();
+  if (live) return <>Move a lead with the stage menu on its card · gated stages ask for a reason</>;
   return (
     <>
       {state.opportunities.length} active leads
@@ -57,6 +65,8 @@ export function PipelineHeaderChip() {
 }
 
 export function PipelineMobileCount() {
+  const { live } = useCommandCenterConfig();
   const state = useDemoState();
+  if (live) return null;
   return <span className="font-cc-mono text-[10px] text-cc-t3">{state.opportunities.length}</span>;
 }

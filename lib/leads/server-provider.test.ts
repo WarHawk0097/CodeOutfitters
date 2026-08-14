@@ -50,12 +50,17 @@ describe("live lead provider (server-provider.ts)", () => {
     expect(src).toContain('import { assertOwnerInWorkspace } from "@/lib/tasks/server-provider"');
   });
 
-  it("emits exactly one activity call per branch: status change, reassign, generic update, create", () => {
+  it("emits exactly one activity call per branch: stage change, reassign, generic update, create", () => {
     expect(src.match(/await recordActivity\(/g)?.length).toBe(4);
-    expect(src).toContain('operation: "lead_status_changed"');
+    expect(src).toContain('operation: "lead_stage_changed"');
     expect(src).toContain('operation: "lead_assigned"');
     expect(src).toContain('operation: "lead_updated"');
     expect(src).toContain('operation: "lead_created"');
+  });
+
+  it("routes every status change through the atomic change_lead_stage RPC, never a raw status update", () => {
+    expect(src).toContain('supabase.rpc("change_lead_stage"');
+    expect(src).not.toMatch(/columns\.status\s*=/);
   });
 
   it("createLead never sets status/appointment_status — a manual lead keeps the table default", () => {
@@ -64,14 +69,14 @@ describe("live lead provider (server-provider.ts)", () => {
     expect(branch).not.toContain("appointment_status:");
   });
 
-  it("picks status change over reassignment over a generic field edit — never more than one", () => {
-    const branch = src.slice(src.indexOf("if (columns.status !== undefined)"), src.indexOf("return next;"));
+  it("picks stage change over reassignment over a generic field edit — never more than one", () => {
+    const branch = src.slice(src.indexOf("if (stageResult?.changed) {"), src.indexOf("return next;"));
     expect(branch.match(/await recordActivity\(/g)?.length).toBe(3);
     expect(branch.match(/\} else /g)?.length).toBe(2);
   });
 
   it("emits nothing when update is a no-op — the early return precedes every recordActivity call", () => {
-    const noopIndex = src.indexOf("if (Object.keys(columns).length === 0) return current;");
+    const noopIndex = src.indexOf("if (Object.keys(columns).length === 0 && !stageResult?.changed) return current;");
     const firstEmitIndex = src.indexOf("await recordActivity(");
     expect(noopIndex).toBeGreaterThan(-1);
     expect(noopIndex).toBeLessThan(firstEmitIndex);

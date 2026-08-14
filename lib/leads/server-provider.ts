@@ -32,8 +32,22 @@ function throwForPgError(error: { code?: string; message: string }): never {
 export type LeadUpdateInput = {
   workspaceId: string;
   leadId: string;
-  patch: { status?: string; owner?: string; reason?: string };
+  patch: { status?: string; owner?: string; reason?: string; source?: "lead_detail" | "pipeline" };
 };
+
+// RPC row shape from public.change_lead_stage() — see
+// supabase/migrations/20260813000000_leads_pipeline_stage.sql.
+type StageChangeResult = { lead_id: string; changed: boolean; from_stage: string; to_stage: string };
+
+function throwForStageRpcError(error: { code?: string; message: string }): never {
+  if (error.message?.includes("reason_required")) throw new LeadError("invalid", "That status needs a reason.");
+  if (error.message?.includes("invalid_stage")) throw new LeadError("invalid", "That status is not valid.");
+  if (error.message?.includes("lead_not_found")) throw new LeadError("not_found", "That lead is not available.");
+  if (error.message?.includes("forbidden") || error.code === "42501") {
+    throw new LeadError("forbidden", "You do not have permission to do that.");
+  }
+  throwForPgError(error);
+}
 
 export async function updateLead(input: LeadUpdateInput): Promise<Lead> {
   const { workspaceId, leadId, patch } = input;
@@ -64,41 +78,74 @@ export async function updateLead(input: LeadUpdateInput): Promise<Lead> {
   );
   const current = rowToLead(currentRow as LeadRow, teamNames);
 
-  const columns: Record<string, unknown> = {};
+  const wantsStatusChange = patch.status !== undefined && patch.status !== current.status;
   let newOwnerName: string | undefined;
+  const columns: Record<string, unknown> = {};
 
-  if (patch.status !== undefined && patch.status !== current.status) columns.status = patch.status;
   if (patch.owner !== undefined && patch.owner !== current.owner) {
     newOwnerName = await assertOwnerInWorkspace(supabase, workspaceId, patch.owner);
     columns.assigned_owner = patch.owner;
   }
 
-  if (Object.keys(columns).length === 0) return current;
+  // Every status change — whether from the Lead detail status control or the Pipeline
+  // board — goes through change_lead_stage() so it is atomic with its
+  // lead_stage_history row. A plain owner-only patch skips the RPC entirely: no stage
+  // changed, nothing to put in stage history.
+  let stageResult: StageChangeResult | null = null;
+  if (wantsStatusChange) {
+    const { data: rpcData, error: rpcError } = await supabase.rpc("change_lead_stage", {
+      p_lead_id: leadId,
+      p_to_stage: patch.status,
+      p_reason: patch.reason ?? null,
+      p_change_source: patch.source ?? "lead_detail",
+    });
+    if (rpcError) throwForStageRpcError(rpcError);
+    stageResult = rpcData as StageChangeResult;
+  }
 
-  const { data, error } = await supabase
-    .from("leads")
-    .update(columns)
-    .eq("id", leadId)
-    .eq("workspace_id", workspaceId)
-    .select(LEAD_COLUMNS)
-    .maybeSingle();
-  if (error) throwForPgError(error);
-  if (!data) throw new LeadError("not_found", "That lead is not available.");
-  const next = rowToLead(data as LeadRow, teamNames);
+  if (Object.keys(columns).length === 0 && !stageResult?.changed) return current;
+
+  let next = current;
+  if (Object.keys(columns).length > 0) {
+    const { data, error } = await supabase
+      .from("leads")
+      .update(columns)
+      .eq("id", leadId)
+      .eq("workspace_id", workspaceId)
+      .select(LEAD_COLUMNS)
+      .maybeSingle();
+    if (error) throwForPgError(error);
+    if (!data) throw new LeadError("not_found", "That lead is not available.");
+    next = rowToLead(data as LeadRow, teamNames);
+  } else if (stageResult?.changed) {
+    // The RPC already wrote the new status — re-read so the returned Lead reflects it
+    // (and updated_at) rather than hand-assembling a partial row.
+    const { data, error } = await supabase
+      .from("leads")
+      .select(LEAD_COLUMNS)
+      .eq("id", leadId)
+      .eq("workspace_id", workspaceId)
+      .maybeSingle();
+    if (error) throwForPgError(error);
+    if (!data) throw new LeadError("not_found", "That lead is not available.");
+    next = rowToLead(data as LeadRow, teamNames);
+  }
 
   // Precedence mirrors lib/tasks/server-provider.ts's update(): the most significant thing
   // that happened wins, one event per mutation, never both a status and an owner event for
-  // one PATCH.
+  // one PATCH. Fired after the RPC's own transaction has committed — see
+  // supabase/migrations/20260813000000_leads_pipeline_stage.sql's header comment for why
+  // Activity cannot be inside that same transaction.
   const target = { kind: "lead" as const, id: next.id, label: next.name };
-  if (columns.status !== undefined) {
+  if (stageResult?.changed) {
     await recordActivity({
       workspaceId,
-      operation: "lead_status_changed",
+      operation: "lead_stage_changed",
       summary: `${next.name} moved to ${next.status}${patch.reason ? ` — ${patch.reason}` : ""}`,
       target,
       metadata: [
-        { label: "From", value: current.status },
-        { label: "To", value: next.status },
+        { label: "From", value: stageResult.from_stage },
+        { label: "To", value: stageResult.to_stage },
         ...(patch.reason ? [{ label: "Reason", value: patch.reason }] : []),
       ],
     });

@@ -158,8 +158,8 @@ describe("live mode contract (tests 132-138)", () => {
   });
 
   // 134
-  it("the panel refuses demo history in live mode before it reads any events", () => {
-    expect(panelSrc).toContain("if (live) return <ActivityProviderRequired />;");
+  it("the panel refuses demo history in live mode before it reads any events, unless a live provider is actually connected", () => {
+    expect(panelSrc).toContain("if (live && !connected) return <ActivityProviderRequired />;");
     expect(panelSrc).toContain('resolveActivityPlane(false).kind !== "demo"');
   });
 

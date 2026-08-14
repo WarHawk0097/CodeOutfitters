@@ -9,7 +9,13 @@ import type {
   PersistResult,
   EmailEventStatus,
 } from "./inquiry-repository";
-import { idempotencyConflict, isIdempotencyConflict, serverError } from "./inquiry-errors";
+import {
+  idempotencyConflict,
+  isIdempotencyConflict,
+  isWorkspaceMissing,
+  notConfigured,
+  serverError,
+} from "./inquiry-errors";
 import { toSubmitPayload } from "./inquiry-submit-payload";
 
 // LOCAL / TEST ONLY repository (owner directive: "use the safe local
@@ -61,6 +67,7 @@ export class PgliteInquiryRepository implements InquiryRepository {
       };
     } catch (err) {
       if (isIdempotencyConflict(err)) throw idempotencyConflict();
+      if (isWorkspaceMissing(err)) throw notConfigured();
       throw serverError();
     }
   }

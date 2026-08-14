@@ -107,9 +107,8 @@ export default async function LeadDetailPage({
         />
       </div>
 
-      {/* Lead 360. Client island for the same reason as the card above: the history is the
-          demo store in demo mode, and in live mode it reports that no activity provider is
-          connected rather than showing history this workspace never produced. */}
+      {/* Lead 360. Client island: demo mode reads the demo store, live mode reads the real
+          activity_events table for this lead (lib/activity/use-live-activity.ts). */}
       <div className="mb-8">
         <LeadActivity leadId={leadId} live={!demo} />
       </div>

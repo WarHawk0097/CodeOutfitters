@@ -5,8 +5,10 @@
 // changes while they are looking at it — completing a task has to show up in the timeline
 // underneath it, or the two halves of the screen disagree.
 //
-// In live mode it renders the contract, not the data: there is no activity provider yet, so
-// it says that plainly instead of quietly showing demo history a workspace never produced.
+// In live mode it renders the contract, not the data, UNLESS the caller passes
+// connected={true} — meaning it has actually wired a live provider and `events` is real
+// workspace history. A live screen that has not been wired yet says so plainly instead of
+// quietly showing demo history a workspace never produced.
 import { useMemo, useState } from "react";
 import {
   ACTIVITY_CATEGORY_LABELS,
@@ -71,6 +73,7 @@ export function ActivityPanel({
   events,
   today,
   live,
+  connected = false,
   title = "Activity",
   emptyLabel,
   showRecord = true,
@@ -78,6 +81,10 @@ export function ActivityPanel({
   events: readonly ActivityEvent[];
   today: string;
   live: boolean;
+  /** True once a screen has an actual live provider wired in and `events` is real data, not
+   *  demo history. Screens that have not been wired yet leave this false so `live` alone
+   *  keeps producing ActivityProviderRequired — see the file header. */
+  connected?: boolean;
   title?: string;
   emptyLabel: string;
   showRecord?: boolean;
@@ -95,10 +102,10 @@ export function ActivityPanel({
     [counts],
   );
 
-  if (live) return <ActivityProviderRequired />;
+  if (live && !connected) return <ActivityProviderRequired />;
   // resolveActivityPlane is the single decision; asserting it here keeps this component from
   // becoming a second place that decides whether demo data may be shown.
-  if (resolveActivityPlane(false).kind !== "demo") return <ActivityProviderRequired />;
+  if (!live && resolveActivityPlane(false).kind !== "demo") return <ActivityProviderRequired />;
 
   const active = isFilterActive(filter);
 

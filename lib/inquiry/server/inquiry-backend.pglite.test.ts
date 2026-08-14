@@ -19,6 +19,7 @@ const MIGRATIONS = [
   "../../../supabase/migrations/20260727_command_center_workspaces.sql",
   "../../../supabase/migrations/20260729010000_owner_bootstrap.sql",
   "../../../supabase/migrations/20260812020000_leads_workspace_ingestion_fix.sql",
+  "../../../supabase/migrations/20260814000000_leads_ingestion_workspace_fail_closed.sql",
 ].map((rel) => fileURLToPath(new URL(rel, import.meta.url)));
 
 const AUTH_STUB = `
@@ -237,5 +238,33 @@ describe("submit_inquiry — atomic persistence", () => {
     expect(cs.rows[0]!.source_attribution.sourceSection).toBe(
       "case-studies-card-real-estate-whatsapp",
     );
+  });
+
+  // LEAD_INGESTION_WORKSPACE_MISSING_FAIL_CLOSED (20260814000000): if the single
+  // seeded workspace is ever missing, submit_inquiry must abort instead of
+  // silently writing a NULL-workspace lead — the original bug this migration
+  // chain exists to close, recreated one layer up.
+  it("fails closed when the seeded workspace is missing — no lead, no submission row", async () => {
+    await db.exec("delete from public.workspaces where slug = 'codeoutfitters'");
+
+    await expect(submit(payload(randomUUID()), "fp-no-ws")).rejects.toThrow(
+      /inquiry_workspace_missing/,
+    );
+    expect(await count("leads")).toBe(0);
+    expect(await count("lead_form_submissions")).toBe(0);
+    expect(await count("email_events")).toBe(0);
+  });
+
+  it("still replays an already-persisted submission if the workspace slug is later renamed", async () => {
+    // A real delete of a workspace with leads attached is blocked by
+    // leads_workspace_id_fkey's RESTRICT — renaming the slug is the realistic
+    // way the lookup in submit_inquiry stops resolving.
+    const sid = randomUUID();
+    await submit(payload(sid), "fp-1");
+    await db.exec("update public.workspaces set slug = 'renamed' where slug = 'codeoutfitters'");
+
+    const replay = await submit(payload(sid), "fp-1");
+    expect(replay.replay).toBe(true);
+    expect(await count("leads")).toBe(1);
   });
 });

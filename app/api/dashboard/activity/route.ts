@@ -7,6 +7,11 @@ import { isDemoMode } from "@/lib/command-center/mode";
 import { getDashboardContext } from "@/lib/dashboard/server";
 import { jsonError, jsonOk } from "@/lib/activity/api-response";
 import { serverActivityProvider, ActivityError } from "@/lib/activity/server-provider";
+import { ACTIVITY_RECORD_KINDS, type ActivityRecordKind } from "@/lib/activity/model";
+
+function isRecordKind(value: string): value is ActivityRecordKind {
+  return (ACTIVITY_RECORD_KINDS as readonly string[]).includes(value);
+}
 
 export const runtime = "nodejs";
 
@@ -30,11 +35,15 @@ export async function GET(request: Request): Promise<Response> {
   const context = await getDashboardContext();
   if (!context) return jsonError(401, "unauthorized", "Sign in to continue.", correlationId);
 
-  const rawLimit = Number(new URL(request.url).searchParams.get("limit"));
+  const searchParams = new URL(request.url).searchParams;
+  const rawLimit = Number(searchParams.get("limit"));
   const limit = Number.isFinite(rawLimit) && rawLimit > 0 ? Math.min(rawLimit, MAX_LIMIT) : DEFAULT_LIMIT;
+  const recordKind = searchParams.get("kind");
+  const recordId = searchParams.get("id");
+  const record = recordKind && recordId && isRecordKind(recordKind) ? { kind: recordKind, id: recordId } : undefined;
 
   try {
-    const events = await serverActivityProvider.list({ workspaceId: context.workspaceId, limit });
+    const events = await serverActivityProvider.list({ workspaceId: context.workspaceId, limit, record });
     return jsonOk({ events }, correlationId);
   } catch (error) {
     if (error instanceof ActivityError) {

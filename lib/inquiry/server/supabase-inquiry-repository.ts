@@ -9,6 +9,7 @@ import type {
 import {
   idempotencyConflict,
   isIdempotencyConflict,
+  isWorkspaceMissing,
   notConfigured,
   serverError,
 } from "./inquiry-errors";
@@ -48,6 +49,7 @@ export class SupabaseInquiryRepository implements InquiryRepository {
 
     if (error) {
       if (isIdempotencyConflict(error)) throw idempotencyConflict();
+      if (isWorkspaceMissing(error)) throw notConfigured();
       // Do not leak the DB error to the client; map to a safe server error.
       throw serverError();
     }

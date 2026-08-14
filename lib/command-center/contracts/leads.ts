@@ -225,6 +225,11 @@ export const LeadsPatchRequestSchema = z.object({
   status: LeadStatusSchema.optional(),
   owner: IdSchema.optional(),
   reason: z.string().min(1).optional(),
+  // Which surface initiated a status change — recorded on the stage-history row
+  // (public.lead_stage_history.change_source) so the audit trail can tell a pipeline
+  // drag apart from a Lead detail status edit. Defaults to "lead_detail" server-side
+  // when omitted, so existing callers need no change.
+  source: z.enum(["lead_detail", "pipeline"]).optional(),
 }).superRefine((val, ctx) => {
   if (val.status && REASON_REQUIRED_STATUSES.includes(val.status) && !val.reason) {
     ctx.addIssue({ code: "custom", message: "reason_required", path: ["reason"] });
