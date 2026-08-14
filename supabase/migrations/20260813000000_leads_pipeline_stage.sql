@@ -54,11 +54,19 @@ grant select on public.lead_stage_history to authenticated;
 -- service-role client — and re-checks workspace membership itself with
 -- is_workspace_member(), since security definer bypasses RLS on the tables
 -- it touches.
+-- p_expected_from_stage: optimistic concurrency. The caller must state the stage its own
+-- view of the Lead was based on. If that no longer matches the DB's current status under
+-- the row lock, the call is rejected as a conflict rather than silently overwriting a
+-- transition another session already made — see the "stale/conflict" cases in
+-- lib/leads/pipeline-stage.pglite.test.ts. This is a required parameter, not optional: a
+-- caller with no prior view of the Lead (there isn't one — every mutation follows a read)
+-- has nothing meaningful to assert here, so there is no safe default to fall back to.
 create or replace function public.change_lead_stage(
-  p_lead_id       uuid,
-  p_to_stage      text,
-  p_reason        text default null,
-  p_change_source text default 'pipeline'
+  p_lead_id             uuid,
+  p_expected_from_stage text,
+  p_to_stage            text,
+  p_reason              text default null,
+  p_change_source       text default 'pipeline'
 ) returns jsonb
 language plpgsql
 security definer
@@ -101,6 +109,16 @@ begin
     raise exception 'forbidden' using errcode = '42501';
   end if;
 
+  -- Authorization is checked BEFORE this comparison so a non-member never learns anything
+  -- about the Lead's current stage via a conflict response. A stale caller is rejected even
+  -- when its target stage happens to already match the DB's current stage (p_to_stage ==
+  -- v_from_stage but p_expected_from_stage != v_from_stage) — the caller's belief about the
+  -- Lead was wrong, and a coincidentally-matching target does not make that safe to disguise
+  -- as a no-op.
+  if p_expected_from_stage is distinct from v_from_stage then
+    raise exception 'stage_conflict' using errcode = '40001';
+  end if;
+
   if v_from_stage = p_to_stage then
     return jsonb_build_object('lead_id', p_lead_id, 'from_stage', v_from_stage, 'to_stage', p_to_stage, 'changed', false);
   end if;
@@ -123,8 +141,8 @@ begin
 end;
 $$;
 
-revoke all on function public.change_lead_stage(uuid, text, text, text) from public;
-grant execute on function public.change_lead_stage(uuid, text, text, text) to authenticated;
+revoke all on function public.change_lead_stage(uuid, text, text, text, text) from public;
+grant execute on function public.change_lead_stage(uuid, text, text, text, text) to authenticated;
 
 commit;
 

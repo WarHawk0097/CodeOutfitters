@@ -11,7 +11,7 @@ import { recordActivity } from "../activity/emit";
 import { LEAD_COLUMNS, rowToLead, type LeadRow } from "./row";
 import type { Lead } from "@command-center/contracts";
 
-export type LeadErrorCode = "invalid" | "forbidden" | "not_found" | "conflict";
+export type LeadErrorCode = "invalid" | "forbidden" | "not_found" | "conflict" | "stage_conflict";
 
 export class LeadError extends Error {
   constructor(
@@ -32,7 +32,16 @@ function throwForPgError(error: { code?: string; message: string }): never {
 export type LeadUpdateInput = {
   workspaceId: string;
   leadId: string;
-  patch: { status?: string; owner?: string; reason?: string; source?: "lead_detail" | "pipeline" };
+  patch: {
+    status?: string;
+    // The status the caller's own view was based on. Compared against the DB's current
+    // status inside change_lead_stage()'s row lock — see that migration's header comment
+    // for why a mismatch is rejected as a conflict even when `status` already matches.
+    expectedStatus?: string;
+    owner?: string;
+    reason?: string;
+    source?: "lead_detail" | "pipeline";
+  };
 };
 
 // RPC row shape from public.change_lead_stage() — see
@@ -40,6 +49,9 @@ export type LeadUpdateInput = {
 type StageChangeResult = { lead_id: string; changed: boolean; from_stage: string; to_stage: string };
 
 function throwForStageRpcError(error: { code?: string; message: string }): never {
+  if (error.message?.includes("stage_conflict")) {
+    throw new LeadError("stage_conflict", "This lead has changed since you loaded it. Refresh and try again.");
+  }
   if (error.message?.includes("reason_required")) throw new LeadError("invalid", "That status needs a reason.");
   if (error.message?.includes("invalid_stage")) throw new LeadError("invalid", "That status is not valid.");
   if (error.message?.includes("lead_not_found")) throw new LeadError("not_found", "That lead is not available.");
@@ -78,7 +90,11 @@ export async function updateLead(input: LeadUpdateInput): Promise<Lead> {
   );
   const current = rowToLead(currentRow as LeadRow, teamNames);
 
-  const wantsStatusChange = patch.status !== undefined && patch.status !== current.status;
+  // Deliberately NOT gated on `patch.status !== current.status`: `current` is an
+  // un-locked read taken moments earlier and may already be stale. Whether this is a
+  // real transition, a true no-op, or a stale conflict is decided by change_lead_stage()
+  // under its row lock, not by comparing against this read.
+  const wantsStatusChange = patch.status !== undefined;
   let newOwnerName: string | undefined;
   const columns: Record<string, unknown> = {};
 
@@ -90,11 +106,15 @@ export async function updateLead(input: LeadUpdateInput): Promise<Lead> {
   // Every status change — whether from the Lead detail status control or the Pipeline
   // board — goes through change_lead_stage() so it is atomic with its
   // lead_stage_history row. A plain owner-only patch skips the RPC entirely: no stage
-  // changed, nothing to put in stage history.
+  // changed, nothing to put in stage history. A rejected (conflicting) RPC call throws
+  // and aborts this whole function before the owner `columns` update below ever runs —
+  // a combined owner+status PATCH can therefore never partially apply a rejected status
+  // change together with an owner change.
   let stageResult: StageChangeResult | null = null;
   if (wantsStatusChange) {
     const { data: rpcData, error: rpcError } = await supabase.rpc("change_lead_stage", {
       p_lead_id: leadId,
+      p_expected_from_stage: patch.expectedStatus ?? null,
       p_to_stage: patch.status,
       p_reason: patch.reason ?? null,
       p_change_source: patch.source ?? "lead_detail",

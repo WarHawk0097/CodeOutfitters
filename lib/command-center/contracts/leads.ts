@@ -223,16 +223,29 @@ export const APPOINTMENT_STATUS_LABELS: Record<AppointmentStatus, string> = {
 
 export const LeadsPatchRequestSchema = z.object({
   status: LeadStatusSchema.optional(),
+  // The status the client's own view of this lead was based on. Optimistic-concurrency
+  // input for public.change_lead_stage() (supabase/migrations/20260813000000) — required
+  // whenever `status` is present so a stale client can never overwrite a transition it
+  // never saw, even when its target status happens to coincide with the current one.
+  expectedStatus: LeadStatusSchema.optional(),
   owner: IdSchema.optional(),
   reason: z.string().min(1).optional(),
   // Which surface initiated a status change — recorded on the stage-history row
   // (public.lead_stage_history.change_source) so the audit trail can tell a pipeline
   // drag apart from a Lead detail status edit. Defaults to "lead_detail" server-side
-  // when omitted, so existing callers need no change.
+  // when omitted, so existing callers need no change. This is a UI-origin label, never an
+  // authorization signal — change_lead_stage() re-derives auth from auth.uid() and
+  // is_workspace_member(), never from this value. Do not extend this enum with
+  // privileged-sounding values (e.g. "automation", "system", "ai_recommendation_accepted")
+  // to mean "skip a check" — a browser-supplied string can never carry that meaning; a real
+  // automation actor needs its own authenticated identity and RPC path, not a new label here.
   source: z.enum(["lead_detail", "pipeline"]).optional(),
 }).superRefine((val, ctx) => {
   if (val.status && REASON_REQUIRED_STATUSES.includes(val.status) && !val.reason) {
     ctx.addIssue({ code: "custom", message: "reason_required", path: ["reason"] });
+  }
+  if (val.status && !val.expectedStatus) {
+    ctx.addIssue({ code: "custom", message: "expected_status_required", path: ["expectedStatus"] });
   }
 });
 export type LeadsPatchRequest = z.infer<typeof LeadsPatchRequestSchema>;

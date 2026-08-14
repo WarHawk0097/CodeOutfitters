@@ -19,7 +19,11 @@
 // Concurrency/failure model: a move is never shown on the card until the PATCH
 // resolves — there is no optimistic column change, so a failure has nothing to roll
 // back, and a stale response (superseded by a second move on the same card) is
-// dropped via a per-lead attempt token.
+// dropped via a per-lead attempt token. Every move also sends the card's own current
+// status as expectedStatus; if the server rejects it as a stage_conflict (someone else
+// moved this lead first), the board refetches so the card shows the real current
+// stage — it never retries the original move for you, that would defeat the point of
+// checking staleness in the first place.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchLeads } from "@/lib/data/leads";
 import { RouteEmpty, RouteError, RouteLoading } from "@/components/demo/route-states";
@@ -84,7 +88,8 @@ export function PipelineBoardLive() {
     };
   }, [attempt]);
 
-  const doMove = useCallback(async (id: string, name: string, toStage: LeadStatus, reason?: string) => {
+  const doMove = useCallback(async (lead: Lead, toStage: LeadStatus, reason?: string) => {
+    const { id, name, status: expectedStatus } = lead;
     const myToken = (tokens.current.get(id) ?? 0) + 1;
     tokens.current.set(id, myToken);
     setMove((prev) => ({ movingId: id, errors: { ...prev.errors, [id]: "" } }));
@@ -94,7 +99,7 @@ export function PipelineBoardLive() {
       res = await fetch(`/api/leads/${id}`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ status: toStage, reason, source: "pipeline" }),
+        body: JSON.stringify({ status: toStage, expectedStatus, reason, source: "pipeline" }),
       });
     } catch {
       if (tokens.current.get(id) !== myToken) return;
@@ -105,10 +110,19 @@ export function PipelineBoardLive() {
     if (tokens.current.get(id) !== myToken) return; // superseded by a later move on this card
 
     if (!res.ok) {
+      const isStageConflict = body?.error?.code === "stage_conflict";
       setMove((prev) => ({
         movingId: null,
-        errors: { ...prev.errors, [id]: body?.error?.message ?? "That move failed." },
+        errors: {
+          ...prev.errors,
+          [id]: isStageConflict
+            ? "Someone else moved this lead — refreshed to its current stage."
+            : (body?.error?.message ?? "That move failed."),
+        },
       }));
+      // Refetch to show the real current stage, but never re-issue this move — the
+      // caller must look at the refreshed card and decide again.
+      if (isStageConflict) setAttempt((n) => n + 1);
       return;
     }
     const updated = LeadSchema.parse(body);
@@ -118,14 +132,14 @@ export function PipelineBoardLive() {
   }, []);
 
   const performMove = useCallback(
-    (id: string, name: string, toStage: LeadStatus) => {
+    (lead: Lead, toStage: LeadStatus) => {
       if (REASON_REQUIRED_STATUSES.includes(toStage)) {
-        setGate({ id, stage: toStage });
+        setGate({ id: lead.id, stage: toStage });
         setGateReason("");
         setGateError(null);
         return;
       }
-      void doMove(id, name, toStage);
+      void doMove(lead, toStage);
     },
     [doMove],
   );
@@ -247,7 +261,7 @@ export function PipelineBoardLive() {
                             align="right"
                             width={240}
                             items={stageMenuItems(lead)}
-                            onSelect={(id) => performMove(lead.id, lead.name, id as LeadStatus)}
+                            onSelect={(id) => performMove(lead, id as LeadStatus)}
                             chevron
                             className={ROW_ACTION_ICON_QUIET}
                           />
@@ -304,7 +318,7 @@ export function PipelineBoardLive() {
                 setGateError("Give a reason of at least 3 characters.");
                 return;
               }
-              void doMove(gate.id, gateCard.name, gate.stage, reason);
+              void doMove(gateCard, gate.stage, reason);
               setGate(null);
             }}
           >

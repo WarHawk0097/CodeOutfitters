@@ -37,6 +37,17 @@ export function LeadUpdateControls({
   const [error, setError] = useState("");
   const [announcement, setAnnouncement] = useState("");
 
+  // Re-syncs the dropdown to the server's real status after router.refresh() brings a
+  // fresh `currentStatus` prop — the case that matters is a stage_conflict save (below):
+  // it must show the true current status, not silently keep the user's stale selection.
+  // Adjusted during render (React's documented pattern) rather than in an effect, so this
+  // never causes an extra commit — see https://react.dev/learn/you-might-not-need-an-effect.
+  const [prevCurrentStatus, setPrevCurrentStatus] = useState(currentStatus);
+  if (currentStatus !== prevCurrentStatus) {
+    setPrevCurrentStatus(currentStatus);
+    setStatus(currentStatus);
+  }
+
   const statusOptions = useMemo(
     () => CANONICAL_LEAD_STATUS_ORDER.map((value) => ({ value, label: LEAD_STATUS_LABELS[value] })),
     [],
@@ -51,7 +62,10 @@ export function LeadUpdateControls({
       return;
     }
     const patch: Record<string, string> = {};
-    if (status !== currentStatus) patch.status = status;
+    if (status !== currentStatus) {
+      patch.status = status;
+      patch.expectedStatus = currentStatus;
+    }
     if (owner !== "" && owner !== currentOwner) patch.owner = owner;
     if (reason.trim() !== "") patch.reason = reason.trim();
     if (Object.keys(patch).length === 0) return;
@@ -66,6 +80,14 @@ export function LeadUpdateControls({
     const body = await res.json().catch(() => null);
     setSaving(false);
     if (!res.ok) {
+      if (body?.error?.code === "stage_conflict") {
+        // Someone else changed this lead's status first. Never resend the same stale
+        // patch — reload the real status (the effect above re-syncs once the refreshed
+        // `currentStatus` prop arrives) and make the user look again and re-decide.
+        setError("This lead's status changed elsewhere — reloaded the current status.");
+        router.refresh();
+        return;
+      }
       setError(body?.error?.message ?? "That update failed.");
       return;
     }

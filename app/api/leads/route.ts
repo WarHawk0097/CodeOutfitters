@@ -44,6 +44,7 @@ function statusForCode(code: LeadError["code"]): number {
     case "not_found":
       return 404;
     case "conflict":
+    case "stage_conflict":
       return 409;
   }
 }

@@ -85,13 +85,14 @@ type StageChangeResult = {
 
 async function changeStage(
   leadId: string,
+  expectedFromStage: string,
   toStage: string,
   reason: string | null = null,
   source = "pipeline",
 ): Promise<StageChangeResult> {
   const result = await db.query<{ change_lead_stage: StageChangeResult }>(
-    `select public.change_lead_stage($1, $2, $3, $4) as change_lead_stage`,
-    [leadId, toStage, reason, source],
+    `select public.change_lead_stage($1, $2, $3, $4, $5) as change_lead_stage`,
+    [leadId, expectedFromStage, toStage, reason, source],
   );
   return result.rows[0]!.change_lead_stage;
 }
@@ -115,7 +116,7 @@ describe("change_lead_stage() — atomic move + history (20260813000000_leads_pi
     const lead = await createLead(workspace, "New");
     await signIn(owner);
 
-    const result = await changeStage(lead, "Contacted");
+    const result = await changeStage(lead, "New", "Contacted");
     expect(result.changed).toBe(true);
     expect(result.from_stage).toBe("New");
     expect(result.to_stage).toBe("Contacted");
@@ -132,7 +133,7 @@ describe("change_lead_stage() — atomic move + history (20260813000000_leads_pi
     const workspace = await createWorkspace(owner);
     const lead = await createLead(workspace, "New");
     await signIn(owner);
-    await changeStage(lead, "Contacted");
+    await changeStage(lead, "New", "Contacted");
 
     // A distinct query, not the RPC's own return value — this is the persistence the UI's
     // GET /api/leads relies on after a reload.
@@ -146,8 +147,8 @@ describe("change_lead_stage() — atomic move + history (20260813000000_leads_pi
     const lead = await createLead(workspace, "New");
     await signIn(owner);
 
-    await changeStage(lead, "Contacted");
-    const second = await changeStage(lead, "Appt Pending");
+    await changeStage(lead, "New", "Contacted");
+    const second = await changeStage(lead, "Contacted", "Appt Pending");
     expect(second.from_stage).toBe("Contacted");
     expect(second.to_stage).toBe("Appt Pending");
 
@@ -167,7 +168,7 @@ describe("change_lead_stage() — atomic move + history (20260813000000_leads_pi
     const lead = await createLead(workspace, "New");
     await signIn(owner);
 
-    const result = await changeStage(lead, "New");
+    const result = await changeStage(lead, "New", "New");
     expect(result.changed).toBe(false);
 
     const history = await db.query(`select id from public.lead_stage_history where lead_id = $1`, [lead]);
@@ -180,8 +181,8 @@ describe("change_lead_stage() — atomic move + history (20260813000000_leads_pi
     const lead = await createLead(workspace, "Negotiation");
     await signIn(owner);
 
-    await expect(changeStage(lead, "Won", null)).rejects.toThrow(/reason_required/);
-    await expect(changeStage(lead, "Lost", "  ")).rejects.toThrow(/reason_required/);
+    await expect(changeStage(lead, "Negotiation", "Won", null)).rejects.toThrow(/reason_required/);
+    await expect(changeStage(lead, "Negotiation", "Lost", "  ")).rejects.toThrow(/reason_required/);
 
     const leadRow = await db.query<{ status: string }>(`select status from public.leads where id = $1`, [lead]);
     expect(leadRow.rows[0]!.status).toBe("Negotiation");
@@ -193,7 +194,7 @@ describe("change_lead_stage() — atomic move + history (20260813000000_leads_pi
     const lead = await createLead(workspace, "Negotiation");
     await signIn(owner);
 
-    const result = await changeStage(lead, "Won", "Signed contract");
+    const result = await changeStage(lead, "Negotiation", "Won", "Signed contract");
     expect(result.changed).toBe(true);
 
     const history = await db.query<{ reason: string }>(
@@ -209,7 +210,7 @@ describe("change_lead_stage() — atomic move + history (20260813000000_leads_pi
     const lead = await createLead(workspace, "New");
     await signIn(owner);
 
-    await expect(changeStage(lead, "Deleted")).rejects.toThrow(/invalid_stage/);
+    await expect(changeStage(lead, "New", "Deleted")).rejects.toThrow(/invalid_stage/);
   });
 
   it("rejects a move for a lead that does not exist", async () => {
@@ -217,7 +218,7 @@ describe("change_lead_stage() — atomic move + history (20260813000000_leads_pi
     await createWorkspace(owner);
     await signIn(owner);
 
-    await expect(changeStage(randomUUID(), "Contacted")).rejects.toThrow(/lead_not_found/);
+    await expect(changeStage(randomUUID(), "New", "Contacted")).rejects.toThrow(/lead_not_found/);
   });
 
   it("rejects an unauthenticated call", async () => {
@@ -226,7 +227,7 @@ describe("change_lead_stage() — atomic move + history (20260813000000_leads_pi
     const lead = await createLead(workspace, "New");
     await signIn(null);
 
-    await expect(changeStage(lead, "Contacted")).rejects.toThrow(/unauthorized/);
+    await expect(changeStage(lead, "New", "Contacted")).rejects.toThrow(/unauthorized/);
   });
 
   it("a member of another workspace cannot move a lead that is not theirs", async () => {
@@ -238,7 +239,7 @@ describe("change_lead_stage() — atomic move + history (20260813000000_leads_pi
     await createWorkspace(stranger);
     await signIn(stranger);
 
-    await expect(changeStage(lead, "Contacted")).rejects.toThrow(/forbidden/);
+    await expect(changeStage(lead, "New", "Contacted")).rejects.toThrow(/forbidden/);
 
     await signIn(owner);
     const leadRow = await db.query<{ status: string }>(`select status from public.leads where id = $1`, [lead]);
@@ -253,7 +254,7 @@ describe("change_lead_stage() — atomic move + history (20260813000000_leads_pi
     await createWorkspace(stranger);
 
     await signIn(owner);
-    await changeStage(lead, "Contacted");
+    await changeStage(lead, "New", "Contacted");
 
     await signIn(stranger);
 
@@ -281,7 +282,7 @@ describe("change_lead_stage() — atomic move + history (20260813000000_leads_pi
     const workspace = await createWorkspace(owner);
     const lead = await createLead(workspace, "New");
     await signIn(owner);
-    await changeStage(lead, "Contacted");
+    await changeStage(lead, "New", "Contacted");
 
     const history = await db.query<{ actor_user_id: string }>(
       `select actor_user_id from public.lead_stage_history where lead_id = $1`,
@@ -296,7 +297,7 @@ describe("change_lead_stage() — atomic move + history (20260813000000_leads_pi
     const lead = await createLead(workspace, "New");
     await signIn(owner);
     const before = await db.query<{ now: string }>(`select now() as now`);
-    await changeStage(lead, "Contacted");
+    await changeStage(lead, "New", "Contacted");
 
     const history = await db.query<{ workspace_id: string; occurred_at: string }>(
       `select workspace_id, occurred_at from public.lead_stage_history where lead_id = $1`,
@@ -314,7 +315,7 @@ describe("change_lead_stage() — atomic move + history (20260813000000_leads_pi
     const lead = await createLead(workspace, "New");
     await signIn(owner);
 
-    await expect(changeStage(lead, "Contacted", null, "ai_recommendation_accepted")).rejects.toThrow();
+    await expect(changeStage(lead, "New", "Contacted", null, "ai_recommendation_accepted")).rejects.toThrow();
 
     const leadRow = await db.query<{ status: string }>(`select status from public.leads where id = $1`, [lead]);
     expect(leadRow.rows[0]!.status).toBe("New");
@@ -327,7 +328,7 @@ describe("change_lead_stage() — atomic move + history (20260813000000_leads_pi
     const workspace = await createWorkspace(owner);
     const lead = await createLead(workspace, "New");
     await signIn(owner);
-    await changeStage(lead, "Contacted");
+    await changeStage(lead, "New", "Contacted");
 
     await expect(
       db.query(`update public.lead_stage_history set reason = 'forged' where lead_id = $1`, [lead]),
@@ -339,7 +340,7 @@ describe("change_lead_stage() — atomic move + history (20260813000000_leads_pi
     const workspace = await createWorkspace(owner);
     const lead = await createLead(workspace, "New");
     await signIn(owner);
-    await changeStage(lead, "Contacted");
+    await changeStage(lead, "New", "Contacted");
 
     await expect(db.query(`delete from public.lead_stage_history where lead_id = $1`, [lead])).rejects.toThrow();
 
@@ -353,26 +354,150 @@ describe("change_lead_stage() — atomic move + history (20260813000000_leads_pi
     const lead = await createLead(workspace, "New");
     await signIn(owner);
 
-    await expect(changeStage(lead, "Deleted")).rejects.toThrow();
+    await expect(changeStage(lead, "New", "Deleted")).rejects.toThrow();
     const history = await db.query(`select id from public.lead_stage_history where lead_id = $1`, [lead]);
     expect(history.rows).toHaveLength(0);
   });
+});
 
-  it("concurrent/stale transition policy: a move is always relative to the current DB row, not the caller's stale view — last write wins, serialized by the row lock, no rejection of a superseded 'from' stage", async () => {
-    // Session A loads the lead while it is "New". Session B (not modeled concurrently here,
-    // since PGlite is single-connection, but the RPC's `for update` + no expected_from_stage
-    // parameter documents the policy) moves it New -> Qualified-equivalent stage first.
+// Optimistic concurrency: a move is only applied if the caller's expected_from_stage
+// matches the DB's current status under the row lock; otherwise the whole call is
+// rejected as `stage_conflict` — no Lead update, no history row, no partial effect.
+describe("optimistic concurrency — expected_from_stage (cases A–H)", () => {
+  it("A) valid transition: expected matches current, to differs — succeeds with exactly one history row", async () => {
     const owner = await createUser();
     const workspace = await createWorkspace(owner);
     const lead = await createLead(workspace, "New");
     await signIn(owner);
 
-    await changeStage(lead, "Contacted"); // session B's move, landed first
-    // Session A's stale attempt: it still thinks the lead is "New" but does not (and cannot)
-    // assert that — change_lead_stage has no expected_from_stage input, so this succeeds
-    // against whatever the DB currently holds, silently overwriting session B's move.
-    const staleMove = await changeStage(lead, "Appt Pending");
-    expect(staleMove.from_stage).toBe("Contacted"); // not "New" — no stale-write rejection today
-    expect(staleMove.changed).toBe(true);
+    const result = await changeStage(lead, "New", "Contacted");
+    expect(result.changed).toBe(true);
+    expect(result.from_stage).toBe("New");
+    expect(result.to_stage).toBe("Contacted");
+
+    const history = await db.query(`select id from public.lead_stage_history where lead_id = $1`, [lead]);
+    expect(history.rows).toHaveLength(1);
+  });
+
+  it("B) stale expected + different to — rejected as stage_conflict, DB unchanged, no history written", async () => {
+    const owner = await createUser();
+    const workspace = await createWorkspace(owner);
+    const lead = await createLead(workspace, "New");
+    await signIn(owner);
+
+    await changeStage(lead, "New", "Contacted"); // DB is now "Contacted"
+
+    await expect(changeStage(lead, "New", "Discovery Done")).rejects.toThrow(/stage_conflict/);
+
+    const leadRow = await db.query<{ status: string }>(`select status from public.leads where id = $1`, [lead]);
+    expect(leadRow.rows[0]!.status).toBe("Contacted");
+    const history = await db.query(`select id from public.lead_stage_history where lead_id = $1`, [lead]);
+    expect(history.rows).toHaveLength(1); // only the first, real move
+  });
+
+  it("C) expected === current === to — a true no-op, zero history rows", async () => {
+    const owner = await createUser();
+    const workspace = await createWorkspace(owner);
+    const lead = await createLead(workspace, "New");
+    await signIn(owner);
+
+    const result = await changeStage(lead, "New", "New");
+    expect(result.changed).toBe(false);
+
+    const history = await db.query(`select id from public.lead_stage_history where lead_id = $1`, [lead]);
+    expect(history.rows).toHaveLength(0);
+  });
+
+  it("D) expected !== current even though to === current — still a conflict, not a disguised no-op", async () => {
+    const owner = await createUser();
+    const workspace = await createWorkspace(owner);
+    const lead = await createLead(workspace, "New");
+    await signIn(owner);
+
+    await changeStage(lead, "New", "Contacted"); // DB is now "Contacted"
+
+    // The caller still believes the lead is "New" and asks to move it to "Contacted" —
+    // which happens to already be the DB's current stage. Must still reject: the caller's
+    // belief was wrong, and a coincidentally-matching target does not make that safe.
+    await expect(changeStage(lead, "New", "Contacted")).rejects.toThrow(/stage_conflict/);
+
+    const history = await db.query(`select id from public.lead_stage_history where lead_id = $1`, [lead]);
+    expect(history.rows).toHaveLength(1); // still only the first, real move
+  });
+
+  it("E) two-session race: the first move wins, the stale second is rejected — exactly one history row", async () => {
+    const owner = await createUser();
+    const workspace = await createWorkspace(owner);
+    const lead = await createLead(workspace, "New");
+    await signIn(owner);
+
+    // Both sessions loaded the lead at "New" and independently chose where to move it.
+    const first = await changeStage(lead, "New", "Contacted");
+    expect(first.changed).toBe(true);
+
+    await expect(changeStage(lead, "New", "Appt Pending")).rejects.toThrow(/stage_conflict/);
+
+    const leadRow = await db.query<{ status: string }>(`select status from public.leads where id = $1`, [lead]);
+    expect(leadRow.rows[0]!.status).toBe("Contacted");
+    const history = await db.query(`select id from public.lead_stage_history where lead_id = $1`, [lead]);
+    expect(history.rows).toHaveLength(1);
+  });
+
+  it("F) after refetch, the second session succeeds with the corrected expected value — a second history row is recorded", async () => {
+    const owner = await createUser();
+    const workspace = await createWorkspace(owner);
+    const lead = await createLead(workspace, "New");
+    await signIn(owner);
+
+    await changeStage(lead, "New", "Contacted"); // first session wins
+    await expect(changeStage(lead, "New", "Appt Pending")).rejects.toThrow(/stage_conflict/); // second session, stale
+
+    // Second session refetches, sees "Contacted", and retries with the corrected value —
+    // this is a fresh, user-initiated decision, not an automatic retry of the stale one.
+    const retried = await changeStage(lead, "Contacted", "Appt Pending");
+    expect(retried.changed).toBe(true);
+    expect(retried.from_stage).toBe("Contacted");
+
+    const history = await db.query<{ from_stage: string; to_stage: string }>(
+      `select from_stage, to_stage from public.lead_stage_history where lead_id = $1 order by occurred_at`,
+      [lead],
+    );
+    expect(history.rows).toEqual([
+      { from_stage: "New", to_stage: "Contacted" },
+      { from_stage: "Contacted", to_stage: "Appt Pending" },
+    ]);
+  });
+
+  it("G) authorization is unaffected by expected_from_stage — a correct guess does not grant cross-workspace or unauthenticated access", async () => {
+    const owner = await createUser();
+    const workspace = await createWorkspace(owner);
+    const lead = await createLead(workspace, "New");
+
+    const stranger = await createUser();
+    await createWorkspace(stranger);
+    await signIn(stranger);
+    await expect(changeStage(lead, "New", "Contacted")).rejects.toThrow(/forbidden/);
+
+    await signIn(null);
+    await expect(changeStage(lead, "New", "Contacted")).rejects.toThrow(/unauthorized/);
+
+    await signIn(owner);
+    const leadRow = await db.query<{ status: string }>(`select status from public.leads where id = $1`, [lead]);
+    expect(leadRow.rows[0]!.status).toBe("New");
+  });
+
+  it("H) reason-required rules are enforced independently of expected_from_stage — a correct expected value does not bypass the reason gate", async () => {
+    const owner = await createUser();
+    const workspace = await createWorkspace(owner);
+    const lead = await createLead(workspace, "Negotiation");
+    await signIn(owner);
+
+    await expect(changeStage(lead, "Negotiation", "Won", null)).rejects.toThrow(/reason_required/);
+
+    const leadRow = await db.query<{ status: string }>(`select status from public.leads where id = $1`, [lead]);
+    expect(leadRow.rows[0]!.status).toBe("Negotiation");
+
+    const result = await changeStage(lead, "Negotiation", "Won", "Signed contract");
+    expect(result.changed).toBe(true);
   });
 });

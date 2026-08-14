@@ -34,4 +34,17 @@ describe("live pipeline board (pipeline-board-live.tsx)", () => {
     expect(src).not.toContain("moveOpportunity");
     expect(src).not.toContain("lib/demo/store");
   });
+
+  it("sends the card's own status as expectedStatus on every move", () => {
+    expect(src).toContain("status: expectedStatus } = lead");
+    expect(src).toContain("status: toStage, expectedStatus, reason, source: \"pipeline\"");
+  });
+
+  it("refetches on a stage conflict but never re-issues the original move", () => {
+    const branch = src.slice(src.indexOf("if (!res.ok) {"), src.indexOf("const updated = LeadSchema.parse"));
+    expect(branch).toContain('body?.error?.code === "stage_conflict"');
+    expect(branch).toContain("setAttempt((n) => n + 1)");
+    expect(branch).not.toContain("void doMove");
+    expect(branch).not.toContain("fetch(");
+  });
 });
