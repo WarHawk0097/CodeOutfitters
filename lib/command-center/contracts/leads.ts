@@ -247,6 +247,15 @@ export const LeadsPatchRequestSchema = z.object({
   if (val.status && !val.expectedStatus) {
     ctx.addIssue({ code: "custom", message: "expected_status_required", path: ["expectedStatus"] });
   }
+  // Status and owner are two independent mutations (see lead-update-controls.tsx), never
+  // one combined write — change_lead_stage() and the owner UPDATE are two separate
+  // non-transactional calls in updateLead(), so a single request naming both fields could
+  // succeed on one and fail on the other with no way to represent that honestly to the
+  // caller. Rejected here so no future client can recreate that ambiguity even if the
+  // current UI only ever sends one field at a time.
+  if (val.status !== undefined && val.owner !== undefined) {
+    ctx.addIssue({ code: "custom", message: "status_and_owner_mutually_exclusive", path: ["owner"] });
+  }
 });
 export type LeadsPatchRequest = z.infer<typeof LeadsPatchRequestSchema>;
 

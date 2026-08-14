@@ -65,6 +65,35 @@ describe("LeadsPatchRequestSchema — expectedStatus required for a status chang
   });
 });
 
+// Status and owner are independent mutations, never one combined write — see
+// lead-update-controls.tsx and updateLead() (lib/leads/server-provider.ts). A single
+// request naming both fields could succeed on one and fail on the other with no honest
+// way to report that, so it is rejected here at the contract boundary regardless of what
+// the current UI sends.
+describe("LeadsPatchRequestSchema — status and owner are mutually exclusive in one request", () => {
+  it("rejects a patch that carries both status and owner", () => {
+    const result = LeadsPatchRequestSchema.safeParse({
+      status: "Contacted",
+      expectedStatus: "New",
+      owner: "11111111-1111-1111-1111-111111111111",
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.some((i) => i.message === "status_and_owner_mutually_exclusive")).toBe(true);
+    }
+  });
+
+  it("still allows a status-only patch", () => {
+    const result = LeadsPatchRequestSchema.safeParse({ status: "Contacted", expectedStatus: "New" });
+    expect(result.success).toBe(true);
+  });
+
+  it("still allows an owner-only patch", () => {
+    const result = LeadsPatchRequestSchema.safeParse({ owner: "11111111-1111-1111-1111-111111111111" });
+    expect(result.success).toBe(true);
+  });
+});
+
 // change_source (leads.ts:~240) is a UI-origin label, never an authorization signal —
 // change_lead_stage() re-derives auth from auth.uid()/is_workspace_member(), not this
 // field. This pins the enum to exactly the two real UI surfaces so a future edit cannot
