@@ -16,6 +16,7 @@ const MIGRATIONS = [
   "../../supabase/migrations/20260812020000_leads_workspace_ingestion_fix.sql",
   "../../supabase/migrations/20260812030000_leads_insert.sql",
   "../../supabase/migrations/20260813000000_leads_pipeline_stage.sql",
+  "../../supabase/migrations/20260814010000_lead_stage_history_grant_hardening.sql",
 ].map((rel) => fileURLToPath(new URL(rel, import.meta.url)));
 
 const AUTH_STUB = `
@@ -73,6 +74,15 @@ async function signIn(userId: string | null) {
   await db.exec("reset role");
   await db.query("select set_config('request.jwt.claim.sub', $1, false)", [userId ?? ""]);
   if (userId) await db.exec("set role authenticated");
+}
+
+/** Supabase's actual unauthenticated role — distinct from `signIn(null)`, which leaves the
+ *  connection on its bootstrap role. Privilege checks below run as `anon` for real, so a
+ *  missing GRANT fails here exactly as it would against hosted Postgres. */
+async function signInAsAnon() {
+  await db.exec("reset role");
+  await db.query("select set_config('request.jwt.claim.sub', '', false)");
+  await db.exec("set role anon");
 }
 
 type StageChangeResult = {
@@ -501,3 +511,134 @@ describe("optimistic concurrency — expected_from_stage (cases A–H)", () => {
     expect(result.changed).toBe(true);
   });
 });
+
+// Proves supabase/migrations/20260814010000_lead_stage_history_grant_hardening.sql — the
+// corrective migration for a hosted defect where role-level default ACLs (never explicitly
+// stripped by 20260813000000) left `anon`/`authenticated` holding table/EXECUTE grants beyond
+// what RLS alone was assumed to cover. These are real GRANT/REVOKE checks against a real
+// embedded Postgres — PGlite enforces privilege checks (including TRUNCATE, which bypasses RLS
+// entirely) exactly as hosted Postgres does. What PGlite does NOT reproduce is *why* the grants
+// existed on hosted: Supabase's project-level `ALTER DEFAULT PRIVILEGES` for role `postgres`
+// (confirmed via `pg_default_acl` on the hosted project) has no PGlite equivalent — this suite
+// never had the excess grants to begin with, so it cannot demonstrate the defect regressing.
+// It proves the migration's own GRANT/REVOKE statements produce the intended final privilege
+// model, which is what a local suite can faithfully check.
+describe("privilege hardening — lead_stage_history & change_lead_stage grants (20260814010000)", () => {
+  it("[1] authenticated can SELECT its own workspace's history", async () => {
+    const owner = await createUser();
+    const workspace = await createWorkspace(owner);
+    const lead = await createLead(workspace, "New");
+    await signIn(owner);
+    await changeStage(lead, "New", "Contacted");
+
+    const history = await db.query(`select id from public.lead_stage_history where lead_id = $1`, [lead]);
+    expect(history.rows).toHaveLength(1);
+  });
+
+  it("[3] authenticated direct INSERT into lead_stage_history is rejected", async () => {
+    const owner = await createUser();
+    const workspace = await createWorkspace(owner);
+    const lead = await createLead(workspace, "New");
+    await signIn(owner);
+
+    await expect(
+      db.query(
+        `insert into public.lead_stage_history (workspace_id, lead_id, from_stage, to_stage, actor_user_id)
+         values ($1, $2, 'New', 'Won', $3)`,
+        [workspace, lead, owner],
+      ),
+    ).rejects.toThrow(/permission denied/);
+  });
+
+  it("[4] authenticated direct UPDATE of a history row is rejected", async () => {
+    const owner = await createUser();
+    const workspace = await createWorkspace(owner);
+    const lead = await createLead(workspace, "New");
+    await signIn(owner);
+    await changeStage(lead, "New", "Contacted");
+
+    await expect(
+      db.query(`update public.lead_stage_history set reason = 'forged' where lead_id = $1`, [lead]),
+    ).rejects.toThrow(/permission denied/);
+  });
+
+  it("[5] authenticated direct DELETE of a history row is rejected", async () => {
+    const owner = await createUser();
+    const workspace = await createWorkspace(owner);
+    const lead = await createLead(workspace, "New");
+    await signIn(owner);
+    await changeStage(lead, "New", "Contacted");
+
+    await expect(db.query(`delete from public.lead_stage_history where lead_id = $1`, [lead])).rejects.toThrow(
+      /permission denied/,
+    );
+  });
+
+  it("[6] authenticated TRUNCATE of lead_stage_history is rejected — the grant this migration closes", async () => {
+    const owner = await createUser();
+    await signIn(owner);
+
+    await expect(db.exec(`truncate public.lead_stage_history`)).rejects.toThrow(/permission denied/);
+  });
+
+  it("[7] authenticated change_lead_stage EXECUTE succeeds when otherwise authorized", async () => {
+    const owner = await createUser();
+    const workspace = await createWorkspace(owner);
+    const lead = await createLead(workspace, "New");
+    await signIn(owner);
+
+    const result = await changeStage(lead, "New", "Contacted");
+    expect(result.changed).toBe(true);
+  });
+
+  it("[8] anon SELECT on lead_stage_history is rejected", async () => {
+    await signInAsAnon();
+    await expect(db.query(`select id from public.lead_stage_history limit 1`)).rejects.toThrow(/permission denied/);
+  });
+
+  it("[9] anon direct INSERT into lead_stage_history is rejected", async () => {
+    await signInAsAnon();
+    await expect(
+      db.query(
+        `insert into public.lead_stage_history (workspace_id, lead_id, from_stage, to_stage)
+         values (gen_random_uuid(), gen_random_uuid(), 'New', 'Won')`,
+      ),
+    ).rejects.toThrow(/permission denied/);
+  });
+
+  it("[10] anon direct UPDATE of lead_stage_history is rejected", async () => {
+    await signInAsAnon();
+    await expect(db.query(`update public.lead_stage_history set reason = 'forged'`)).rejects.toThrow(
+      /permission denied/,
+    );
+  });
+
+  it("[11] anon direct DELETE of lead_stage_history is rejected", async () => {
+    await signInAsAnon();
+    await expect(db.query(`delete from public.lead_stage_history`)).rejects.toThrow(/permission denied/);
+  });
+
+  it("[12] anon TRUNCATE of lead_stage_history is rejected", async () => {
+    await signInAsAnon();
+    await expect(db.exec(`truncate public.lead_stage_history`)).rejects.toThrow(/permission denied/);
+  });
+
+  it("[13] anon has no EXECUTE privilege on change_lead_stage — rejected before the function body runs", async () => {
+    await signInAsAnon();
+    await expect(
+      db.query(`select public.change_lead_stage($1, $2, $3, $4, $5)`, [
+        randomUUID(),
+        "New",
+        "Contacted",
+        null,
+        "pipeline",
+      ]),
+    ).rejects.toThrow(/permission denied for function/);
+  });
+});
+
+// [14]-[18] of the required privilege matrix (legitimate transition succeeds, history is
+// created, stale-conflict behavior is unchanged, no-op behavior is unchanged, workspace
+// isolation is unchanged) are the pre-existing "atomic move + history" and "optimistic
+// concurrency" describe blocks above, now re-run with 20260814010000 in the migration chain —
+// no separate cases needed; a regression in any of them would fail those tests, not these.
