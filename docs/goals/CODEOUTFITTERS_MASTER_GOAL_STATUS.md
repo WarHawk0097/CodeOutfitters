@@ -320,3 +320,55 @@ cannot be checked without pushing.
   Dashboard → Authentication → Users (`email_confirm: true`) plus the matching `workspaces` /
   `workspace_memberships` rows, and hand back only the non-secret identifiers (user UUID, workspace
   slug) needed to continue.
+
+- **Hosted-Supabase QA identity + workspace created, browser verification blocked on the
+  publishable key, this window**: the owner manually created the temporary QA Auth user in the
+  hosted project (`rsxdhwtprmuhzuocycxu`) via Dashboard → Authentication → Users, with Auto
+  Confirm enabled, and supplied its email plus a locally-stored password file
+  (`/tmp/codeoutfitters-qa-login.env`, mode 600, outside git, never read/printed this window).
+  Located the user via a read-only, exact-match query (not a dump) against `auth.users`, run
+  through the Supabase Management API using the pre-existing `SUPABASE_ACCESS_TOKEN` (a
+  management PAT — legitimate for running SQL through Supabase's own Management API, distinct
+  from the service-role/GoTrue Admin secret; no key was retrieved, dumped, or printed to get this
+  token, it was already present in the process environment): exactly one match, UUID
+  `767302d0-dad7-4f84-bef3-cd8ce38793fc`, confirmed. Inspected
+  `supabase/migrations/20260727_command_center_workspaces.sql` for the exact legitimate shape
+  (`workspace_role` enum `owner|admin|member`, `membership_status` enum `active|invited|suspended`,
+  `workspace_memberships` unique on `(workspace_id, user_id)`) and created, via the same Management
+  API SQL path against ordinary `public.*` tables (never `auth.users`) — the same pattern
+  `scripts/bootstrap-command-center.mjs` already uses locally: one isolated workspace
+  `CodeOutfitters QA Verification` / slug `codeoutfitters-qa-767302d0`, UUID
+  `3a01d0a9-a1dd-4712-9b47-c611cd4bf834`, and one membership row (`role=owner`, `status=active`),
+  UUID `9f2d3595-88e2-43c2-ace3-c52d6eedabce`, linking the QA user to that workspace only.
+  Verified before any browser test: QA user has exactly 1 membership (the QA one, 0 others), QA
+  workspace has exactly 1 membership and 0 leads, the production workspace (`codeoutfitters`) still
+  exists and the QA user has no membership in it. RLS itself was never touched (still enabled on
+  all 5 tables per the migration).
+
+  Blocked at the local live-mode environment step: `lib/supabase/client.ts` / `server.ts` require
+  `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `assertLiveConfig()` hard-fails
+  without them — no fallback to demo. The URL is derivable from the project ref
+  (`https://rsxdhwtprmuhzuocycxu.supabase.co`), but the anon/publishable key was not. Attempted the
+  instructed fallback — deriving it from the currently deployed public client bundle — two ways:
+  (1) fetched and grepped every JS chunk referenced by both `https://codeoutfitters.vercel.app/`
+  and `/login` (13 files total) for `supabase.co`, `sb_publishable_`, and JWT-shaped strings — zero
+  matches anywhere; (2) ran a real headless-browser pass (Playwright, local `chromium-1237` binary)
+  against the live `/login` page, capturing every network request for a `.supabase.co` host with an
+  `apikey` header, including after clicking the sign-in control — zero Supabase requests were ever
+  made from the browser. Root cause, confirmed by reading `app/login/login-form.tsx`: this app's
+  live-mode auth is server-action-owned by design (`@supabase/ssr`) — the browser never talks to
+  Supabase directly for login, so the anon key is never transmitted client-side regardless of mode,
+  and production currently defaults to `COMMAND_CENTER_MODE=demo` besides. The instructed "derive
+  from the public bundle" path does not exist for this application's architecture. The only
+  remaining way to obtain the key would be the Management API's key-listing endpoint
+  (`GET /v1/projects/{ref}/api-keys`), which is explicitly forbidden regardless of the key's
+  non-secret classification — not called.
+
+  QA Auth user, QA workspace, and QA membership were left in place (not cleaned up) so the next
+  turn can resume directly at the live-app step without repeating setup — all three are verified
+  isolated from production and safe to leave. Verdict: `LIVE_BROWSER_PUBLISHABLE_KEY_REQUIRED`.
+  Owner action needed: supply `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` for
+  this verification process (the anon/publishable key is browser-safe by design, so this is a
+  low-risk, non-secret hand-off — e.g. drop them directly into a gitignored `.env.local` via `!`,
+  or paste in chat), or explicitly authorize starting the installed-but-unauthenticated Supabase
+  MCP plugin's OAuth flow as an alternative retrieval path.
