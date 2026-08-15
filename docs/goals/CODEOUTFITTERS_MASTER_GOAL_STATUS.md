@@ -250,3 +250,44 @@ cannot be checked without pushing.
   `KEY_MIGRATION_VERIFIED_HEALTHY`: the new publishable key is now proven, via an actual browser network
   request (not just component-level/server-side inference), to authenticate a real Supabase RPC call and
   return real data end-to-end in the live frontend.
+
+- **Correction, this window**: key migration verdict downgraded to `KEY_MIGRATION_PARTIALLY_VERIFIED`.
+  The browser→anon-key→`get_available_slots` RPC path is genuinely proven (see above). The
+  Worker's `sb_secret_` (service-role) → Supabase write path has never been exercised in a real
+  browser session — no production booking was safe to submit — so "healthy" overstated what was
+  actually shown. Only the read path is verified; the privileged write path remains untested.
+
+- **Leads Foundation live-mode browser verification, this window**: source inspection (no browser
+  test attempted — blocked before step 4, see below) established the exact live-mode contract.
+  `lib/command-center/mode.ts` — mode is controlled by the **server-only** `COMMAND_CENTER_MODE` env
+  var (`demo` default, `live` opt-in, any other value hard-errors); live mode never silently falls
+  back to demo, it throws `CommandCenterConfigError` listing missing keys. `assertLiveConfig()`
+  requires exactly `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` at minimum.
+  `docs/COMMAND_CENTER_AUTH.md` documents the full live env contract (adds
+  `SUPABASE_SECRET_KEY`, `NEXT_PUBLIC_SITE_URL`, `AUTH_GOOGLE_ENABLED`, `AUTH_APPLE_ENABLED`) and the
+  auth model: authenticated ≠ authorized — access requires a row in `public.workspace_memberships`,
+  enforced by RLS; no first-user-becomes-owner path exists. Production has exactly one bootstrapped
+  owner path (`bootstrap_initial_workspace_owner()`, allowlisted to `marc@gmail.com` via Google OAuth
+  only, single-use, cannot create a second owner) — there is no disposable/test identity on the
+  hosted production Supabase project, and none should be created there per the explicit
+  do-not-create-production-users constraint. The repository does define a genuinely safe alternative:
+  `scripts/bootstrap-command-center.mjs` + `docs/COMMAND_CENTER_LOCAL.md` — a fully local Docker
+  Supabase stack (`node scripts/start-local-inquiry-platform.mjs`, `npx supabase db reset`) with a
+  throwaway seeded owner account (`owner@codeoutfitters.local` / `localdev-owner-pass`, workspace
+  `primary`) and seed leads, hard-refusing to run against any non-localhost Supabase URL. This is
+  exactly an "existing disposable/test account" path (auth safety priority 1) and was the intended
+  route. It could not be exercised in this environment: `docker`, `podman`, and `docker.io` are all
+  absent from `PATH`, no `docker.service` unit exists (`systemctl status docker` → unit not found),
+  and `npx supabase status` fails with `docker: command not found (podman also not found)`. No hosted
+  preview/staging Supabase project with its own isolated test identity is documented anywhere in the
+  repo (`docs/COMMAND_CENTER_AUTH.md` §7 explicitly calls for one but none is provisioned). Per the
+  explicit stop condition in this window's instructions, verification was halted here rather than
+  falling back to creating a production user or skipping the auth boundary: **no usable identity
+  exists in this environment.** Verdict: `LIVE_TEST_AUTH_IDENTITY_REQUIRED`. What the project owner
+  needs to provide/do (either one unblocks the remaining 13 verification steps): (a) install
+  Docker or Podman on the machine running this verification so the repo's own local-Docker-Supabase
+  bootstrap path (`docs/COMMAND_CENTER_LOCAL.md`) can run as designed, or (b) provision an isolated
+  preview/staging Supabase project (per `docs/COMMAND_CENTER_AUTH.md` §7) with its own disposable
+  owner account and workspace membership row, and share only its URL/anon key (never the
+  service-role key) for use in a local `.env.local`. No `.env.local` was created and no local server
+  was started this window, since neither prerequisite was available.
