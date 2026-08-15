@@ -173,3 +173,40 @@ cannot be checked without pushing.
   protected by the RLS policies re-verified this window) plus a disposable hosted membership identity to
   sign in with; or (c) the user installs Docker so `scripts/bootstrap-command-center.mjs`'s existing
   disposable local accounts become usable end-to-end.
+- Post-key-rotation production verification, HTTP/static + server-side evidence only (this window; still
+  no real-browser render was achieved — see the browser-tooling attempt below). All checks read-only, no
+  production data created or mutated, no Supabase key retrieved or printed:
+  `https://codeoutfitters.vercel.app`, `/login`, `/dashboard`, `/book` all return HTTP 200. Client bundle
+  contains a genuine new-format `sb_publishable_...` key (non-empty; length-only check, never printed), no
+  legacy JWT-format key, no `service_role` string. Unauthenticated `GET /api/dashboard/tasks` and
+  `GET /api/dashboard/activity` both return `404 not_found` matching the exact `isDemoMode()` gate strings
+  in `app/api/dashboard/{tasks,activity}/route.ts` — production is confirmed running in Command Center
+  demo mode server-side, consistent with prior status. Booking availability
+  (`lib/booking-actions.ts:48`, `supabase.rpc('get_available_slots', ...)`) is a direct browser→Supabase
+  call, architecturally separate from the Cloudflare Booking Worker (only booking *submission* goes
+  through the Worker) — corrects an earlier assumption that availability routes through the Worker.
+  Verified server-side via the linked-project CLI role (never the anon key): `anon` holds `EXECUTE` on
+  `get_available_slots`, and the RPC returns real data (294 slots for 2026-08, 56 for 2026-09). Booking
+  Worker (`booking-reservation-worker.tsamuel.workers.dev`) probed with three safe, non-mutating requests:
+  `OPTIONS` preflight from the production origin → 204; `POST` from the production origin with an
+  intentionally invalid empty body → 400 `invalid_date` (proves the request passed the
+  `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY`-presence check with no `config_error`, then failed
+  validation *before* `callReserveSlot` — zero DB mutation); `POST` from a disallowed origin → 403
+  `origin_not_allowed`. No booking was created. Key migration verdict for this window:
+  `KEY_MIGRATION_PARTIALLY_VERIFIED` — strong component-level evidence (new key present, no legacy JWT,
+  RPC healthy, Worker responds without config error) but no literal end-to-end browser-driven request was
+  captured, and the Worker's actual `reserve_slot` call path was deliberately never exercised.
+- Browser-tooling attempt this window (Chromium, not Edge): confirmed `~/.cache/ms-playwright/` has a
+  working installed Chromium (`chromium-1234/chrome-linux64/chrome`) though the Playwright MCP server is
+  configured (`~/.claude.json`, global, not a tracked project file) with `--browser msedge`, which is not
+  installed. Temporarily edited that global config to `--browser chrome --executable-path
+  <installed-chromium-path>` and attempted `browser_navigate` — the running MCP server process had already
+  been spawned with the old `msedge` args for this session and does not pick up a config change without a
+  session/connection restart, which cannot be triggered from inside the session. The edit was reverted
+  immediately (no lasting change to global config). Claude-in-Chrome extension: still not connected
+  (`tabs_context_mcp` → "Browser extension is not connected"). Net result: `msedge` was NOT installed (per
+  instruction), the installed Chromium was NOT reachable this session, and no real-browser render,
+  console capture, network capture, login click-through, or booking-form exercise was possible. Minimum
+  unblocking action: restart/reconnect the Playwright MCP server (or the Claude Code session) after
+  pointing its config at the installed Chromium binary instead of `msedge`, or connect the Claude-in-Chrome
+  extension.
