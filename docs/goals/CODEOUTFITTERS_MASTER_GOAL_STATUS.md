@@ -291,3 +291,32 @@ cannot be checked without pushing.
   owner account and workspace membership row, and share only its URL/anon key (never the
   service-role key) for use in a local `.env.local`. No `.env.local` was created and no local server
   was started this window, since neither prerequisite was available.
+
+- **Hosted-Supabase disposable-QA-identity attempt, this window**: user directed a third path —
+  create one temporary QA Auth user + isolated QA workspace + membership directly in the hosted
+  project (`rsxdhwtprmuhzuocycxu`), explicitly forbidding raw `auth.users` SQL insertion as a
+  fallback and requiring the Auth Admin secret to already be securely available to this process
+  (never retrieved/dumped/printed). Schema inspection confirmed the minimum legitimate record set:
+  one `auth.users` row (Auth Admin API only), one `workspaces` row, one `workspace_memberships` row
+  (`role='owner'`, `status='active'`) — the same shape `scripts/bootstrap-command-center.mjs` uses
+  locally. RLS on `leads`/`workspace_memberships` is workspace-scoped and covered by existing
+  integration tests (cross-workspace reads/updates/deletes match zero rows, not errors —
+  `lib/leads/leads-update-rls.integration.test.ts`, `lib/views/saved-views-rls.integration.test.ts`).
+  Checked this process's environment for the required secret: `SUPABASE_SECRET_KEY` and
+  `SUPABASE_SERVICE_ROLE_KEY` are both absent. `SUPABASE_ACCESS_TOKEN` is present, but it is a
+  Supabase CLI/Management-API personal access token, not a project service-role key — it appears
+  nowhere in this repo's own contract (zero matches), grants org/project management, not the GoTrue
+  Auth Admin API, and using it to run raw SQL against `auth.users` is exactly the fallback the
+  instructions explicitly forbid. No command was run to fetch/dump the project's actual API keys
+  (e.g. `supabase projects api-keys`), per the explicit "do not retrieve or dump" constraint. The
+  Supabase MCP plugin (`plugin:supabase:supabase`) is installed but unauthenticated — starting its
+  OAuth flow would grant broad account access and requires the user's own browser action, so it was
+  not initiated without asking first. **No secure server-side Auth Admin secret is available to this
+  process.** Per the user's own explicit stop condition, creation was halted before touching the
+  hosted project — no auth user, workspace, or membership was created; nothing in the hosted project
+  was modified. Verdict: `HOSTED_QA_ADMIN_SECRET_REQUIRED`. Owner action needed: either (a) securely
+  export `SUPABASE_SECRET_KEY` (the project's service-role key) into this verification process's
+  environment without pasting it into chat, or (b) create the temporary QA user directly in Supabase
+  Dashboard → Authentication → Users (`email_confirm: true`) plus the matching `workspaces` /
+  `workspace_memberships` rows, and hand back only the non-secret identifiers (user UUID, workspace
+  slug) needed to continue.
