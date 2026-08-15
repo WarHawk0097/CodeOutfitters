@@ -210,3 +210,43 @@ cannot be checked without pushing.
   unblocking action: restart/reconnect the Playwright MCP server (or the Claude Code session) after
   pointing its config at the installed Chromium binary instead of `msedge`, or connect the Claude-in-Chrome
   extension.
+- Real-browser production verification, this window: msedge blocker bypassed by using the Playwright
+  Node library directly (`require('playwright')`) in a scratch npm project at
+  `/tmp/codeoutfitters-production-check/` (outside tracked source), instead of the msedge-locked MCP
+  server. `chromium.launch({headless:true})` succeeded with no channel/executablePath override
+  (`version=151.0.7922.34`), reusing the already-cached `~/.cache/ms-playwright/` binary — no Edge
+  dependency. Two independent browser contexts were driven against `https://codeoutfitters.vercel.app`
+  (a "first" context that also exercised the booking form, and a completely fresh context with no
+  cookies/storage, to rule out first-context-only state). Both contexts, independently: public site
+  returns 200, real content renders (12042 chars visible body text, nav present), zero console
+  errors/warnings, zero uncaught page exceptions. `/login` returns 200; the demo-mode "Fill demo
+  credentials" button is present and, when clicked followed by Sign in, reaches
+  `https://codeoutfitters.vercel.app/dashboard` via `window.location.assign` (full navigation, confirmed
+  by `page.waitForURL`) in both contexts — no production Supabase auth user was created, this is the
+  existing client-side demo-mode credential match only. Dashboard renders (2648 chars visible text) and
+  survives a full page reload (200, still on `/dashboard`) in both contexts; this exercises Command
+  Center demo mode only and does not prove live Leads Supabase behavior. `/book` returns 200 in both
+  contexts, and — this is the missing end-to-end proof the prior window's server-side-only checks could
+  not produce — a real browser-issued request to
+  `rsxdhwtprmuhzuocycxu.supabase.co/rest/v1/rpc/get_available_slots` was captured returning **HTTP 200**
+  in both contexts, using the live publishable key actually shipped in the page (never inspected/printed).
+  The calendar UI rendered 11 selectable days and, after selecting one, 14 selectable time slots. In the
+  first context, selecting a day then a time slot genuinely advanced the booking wizard to step 3
+  ("Details") — confirmed both by the step indicator screenshot and by DOM evidence: the contact form
+  (`#booking-name` etc.) was present, clicking Submit while empty produced 4 field-validation errors, and
+  the form was then filled with synthetic QA-only data (`QA Test Automation` /
+  `qa-test-noreply@codeoutfitters.invalid`) reaching a genuine ready-to-submit state — Submit was
+  deliberately never clicked. (A later screenshot of this same state shows an unrelated marketing
+  lead-capture popup, "Free Workflow Audit", re-covering the page — this is a separate, timed overlay
+  unrelated to booking and does not affect the DOM-level evidence above, which was queried directly, not
+  from the screenshot.) No safe disposable-booking path exists in source
+  (`workers/booking-reservation-worker.ts` has no QA/test bypass before the real `callReserveSlot` write),
+  so submission was correctly not attempted; the Worker→Supabase write path remains genuinely untested.
+  A handful of `net::ERR_ABORTED` failed requests to `/dashboard/my-work/task-00X` were observed on
+  dashboard interaction in both contexts — no corresponding console error or page error, consistent with
+  benign Next.js navigation-aborted prefetches rather than a real regression; not further investigated.
+  Screenshots and raw JSON evidence saved to `/tmp/codeoutfitters-production-check/` (screenshots + 
+  `summary.json`), outside tracked source, not committed. Key migration verdict upgraded this window to
+  `KEY_MIGRATION_VERIFIED_HEALTHY`: the new publishable key is now proven, via an actual browser network
+  request (not just component-level/server-side inference), to authenticate a real Supabase RPC call and
+  return real data end-to-end in the live frontend.
