@@ -29,7 +29,7 @@ import {
   sendEmail,
   updateAppointment,
 } from "../../../lib/demo/actions";
-import { DEMO_TODAY, LEAD_DIRECTORY } from "../../../lib/demo/seed";
+import { DEMO_TODAY, getLeadDirectory } from "../../../lib/demo/seed";
 import type { Appointment, AppointmentState, Meeting, Tone } from "../../../lib/demo/types";
 import { useDemoQuery } from "../../../components/demo/use-demo-query";
 import { TONE_BASE, TONE_INK } from "../../../components/demo/tone";
@@ -647,7 +647,7 @@ export function AppointmentsScreen() {
           defaultDate={date}
           onClose={() => setCreateOpen(false)}
           onSubmit={(draft) => {
-            const lead = LEAD_DIRECTORY.find((row) => row.id === draft.leadId);
+            const lead = getLeadDirectory().find((row) => row.id === draft.leadId);
             if (!lead) return;
             createAppointment({
               leadId: lead.id,
@@ -829,7 +829,7 @@ function CreateAppointmentDialog({
   onClose: () => void;
   onSubmit: (draft: CreateDraft) => void;
 }) {
-  const available = useMemo(() => LEAD_DIRECTORY.slice(0, 40), []);
+  const available = useMemo(() => getLeadDirectory().slice(0, 40), []);
   const [draft, setDraft] = useState<CreateDraft>({
     leadId: available[0]?.id ?? "",
     title: available[0] ? `${available[0].name} — discovery call` : "",

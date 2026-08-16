@@ -27,7 +27,7 @@ import {
   snoozeFollowUp,
   updateFollowUp,
 } from "../../../lib/demo/actions";
-import { DEMO_TODAY, LEAD_DIRECTORY, PIPELINE_STAGES, STAGE_LABELS } from "../../../lib/demo/seed";
+import { DEMO_TODAY, getLeadDirectory, PIPELINE_STAGES, STAGE_LABELS } from "../../../lib/demo/seed";
 import type { FollowUp, FollowUpState, PipelineStage, Tone } from "../../../lib/demo/types";
 import { useDemoQuery } from "../../../components/demo/use-demo-query";
 import { TONE_INK } from "../../../components/demo/tone";
@@ -506,7 +506,7 @@ export function FollowUpsScreen() {
           owners={ownerOptions}
           onClose={closeCreateDialog}
           onSubmit={(leadId, draft) => {
-            const lead = LEAD_DIRECTORY.find((row) => row.id === leadId);
+            const lead = getLeadDirectory().find((row) => row.id === leadId);
             if (!lead) return;
             createFollowUp({
               leadId: lead.id,
@@ -741,7 +741,7 @@ function CreateFollowUpDialog({
   onClose: () => void;
   onSubmit: (leadId: string, draft: FollowUpDraft) => void;
 }) {
-  const available = useMemo(() => LEAD_DIRECTORY.slice(0, 40), []);
+  const available = useMemo(() => getLeadDirectory().slice(0, 40), []);
   const first = available[0];
   const [leadId, setLeadId] = useState(first?.id ?? "");
   const [draft, setDraft] = useState<FollowUpDraft>({

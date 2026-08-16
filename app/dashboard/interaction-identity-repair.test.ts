@@ -26,7 +26,7 @@ import {
 } from "@command-center/ui";
 import { CURRENT_USER, displayRoleFor } from "../../lib/identity/current-user";
 import { DEMO_EMAIL } from "../login/credentials";
-import { createSeedState, DEMO_CURRENT_USER_ID, LEAD_DIRECTORY } from "../../lib/demo/seed";
+import { createSeedState, DEMO_CURRENT_USER_ID, getLeadDirectory } from "../../lib/demo/seed";
 import {
   MEETING_PREPARE_STATES,
   MEETING_REVIEW_STATES,
@@ -435,7 +435,7 @@ describe("derived operational views on the canonical lists (28-35)", () => {
     expect(leadsHandlerSrc).toContain("leadIdsWithoutNextAction(");
     expect(leadsDataSrc).toContain("view: leadsView ?? undefined");
     // The predicate itself: a lead covered by an open task is never in the set.
-    const ids = LEAD_DIRECTORY.map((l) => l.id);
+    const ids = getLeadDirectory().map((l) => l.id);
     const uncovered = new Set(leadIdsWithoutNextAction(state.tasks, ids));
     const covered = state.tasks
       .filter((t) => t.state !== "COMPLETED" && t.leadId)

@@ -10,7 +10,7 @@ import type {
   LeadDetail,
   LeadAttachment,
 } from '@/lib/dashboard/server'
-import { LEAD_DIRECTORY } from '@/lib/demo/seed'
+import { getLeadDirectory } from '@/lib/demo/seed'
 
 export const DEMO_WORKSPACE_NAME = 'CodeOutfitters Demo Workspace'
 
@@ -203,9 +203,16 @@ const DEMO_LEADS: DemoLead[] = [
 
 const byId = new Map(DEMO_LEADS.map((l) => [l.id, l]))
 
-// The pipeline lead directory, indexed once. Imported here and never the other way round:
-// lib/demo never reads this module, so there is no cycle between the two demo universes.
-const PIPELINE_LEADS_BY_ID = new Map(LEAD_DIRECTORY.map((lead) => [lead.id, lead]))
+// The pipeline lead directory, indexed once on first access (not at module load — see
+// getLeadDirectory()). Imported here and never the other way round: lib/demo never reads
+// this module, so there is no cycle between the two demo universes.
+let _pipelineLeadsById: Map<string, ReturnType<typeof getLeadDirectory>[number]> | null = null
+function pipelineLeadsById() {
+  if (_pipelineLeadsById === null) {
+    _pipelineLeadsById = new Map(getLeadDirectory().map((lead) => [lead.id, lead]))
+  }
+  return _pipelineLeadsById
+}
 
 // A recognizable demo lead id for QA / URLs.
 export const DEMO_SAMPLE_LEAD_ID = DEMO_LEADS[0].id
@@ -258,7 +265,7 @@ export function listDemoLeads(
 // industry, timeline) are left absent rather than invented, and the detail page already
 // drops empty fields, so a pipeline lead renders what is true about it and nothing else.
 function pipelineLeadDetail(leadId: string): LeadDetail | null {
-  const lead = PIPELINE_LEADS_BY_ID.get(leadId)
+  const lead = pipelineLeadsById().get(leadId)
   if (!lead) return null
   const [firstName, ...restName] = lead.name.split(' ')
   return {

@@ -24,7 +24,7 @@ import {
   updateProposal,
 } from "../../../lib/demo/actions";
 import Link from "next/link";
-import { LEAD_DIRECTORY } from "../../../lib/demo/seed";
+import { getLeadDirectory } from "../../../lib/demo/seed";
 import { needsAttention, PROPOSAL_ATTENTION_STATES } from "../../../lib/operations/attention";
 import type { Proposal, ProposalState, Tone } from "../../../lib/demo/types";
 import { useDemoQuery } from "../../../components/demo/use-demo-query";
@@ -440,7 +440,7 @@ export function ProposalsScreen() {
           owners={ownerOptions}
           onClose={closeCreateDialog}
           onSubmit={(leadId, draft) => {
-            const lead = LEAD_DIRECTORY.find((row) => row.id === leadId);
+            const lead = getLeadDirectory().find((row) => row.id === leadId);
             if (!lead) return;
             const id = createProposal({
               leadId: lead.id,
@@ -708,7 +708,7 @@ function CreateProposalDialog({
   onClose: () => void;
   onSubmit: (leadId: string, draft: ProposalDraft) => void;
 }) {
-  const available = useMemo(() => LEAD_DIRECTORY.slice(0, 40), []);
+  const available = useMemo(() => getLeadDirectory().slice(0, 40), []);
   const first = available[0];
   const [leadId, setLeadId] = useState(first?.id ?? "");
   const [draft, setDraft] = useState<ProposalDraft>({

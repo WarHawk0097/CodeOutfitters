@@ -7,6 +7,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { useCommandCenterConfig } from "@/components/command-center/mode-provider";
 import { createSeedState, DEMO_CURRENT_USER_ID, DEMO_NOW, DEMO_STATE_VERSION } from "./seed";
 import { categoryOf, defaultImportance } from "@/lib/activity/model";
 import type {
@@ -20,8 +21,43 @@ import type { DemoState } from "./types";
 const STORAGE_KEY = "cc-demo-state";
 
 /** The pristine seed. Also the server snapshot, so server and first client render agree
- *  and hydration is not a mismatch. */
-const SEED_STATE: DemoState = createSeedState();
+ *  and hydration is not a mismatch. Built once, on first access rather than at module
+ *  load: this module is imported (via useDemoState/useDemoQuery) from client components
+ *  that also mount in live mode, and createSeedState() must not run there — see
+ *  useDemoState() below, which never reaches this in live mode, and getLeadDirectory()
+ *  in ./seed for the same pattern one layer down. */
+let _seedState: DemoState | null = null;
+function getSeedStateLazy(): DemoState {
+  if (_seedState === null) _seedState = createSeedState();
+  return _seedState;
+}
+
+/** Static, always-empty state for live mode. A plain constant, never generated fixture
+ *  data — live mode must not call createSeedState()/getLeadDirectory()/generateLeads(). */
+const EMPTY_DEMO_STATE: DemoState = {
+  version: DEMO_STATE_VERSION,
+  team: [],
+  opportunities: [],
+  appointments: [],
+  meetings: [],
+  proposals: [],
+  followUps: [],
+  tasks: [],
+  emails: [],
+  settings: [],
+  leadOverrides: {},
+  activity: [],
+  publications: [],
+  accessLinks: [],
+  clientResponses: [],
+  nextId: 0,
+};
+function getEmptyDemoState(): DemoState {
+  return EMPTY_DEMO_STATE;
+}
+function neverSubscribe(): () => void {
+  return () => {};
+}
 
 function readStored(): DemoState | null {
   if (typeof window === "undefined") return null;
@@ -48,16 +84,17 @@ function writeStored(state: DemoState): void {
   }
 }
 
-let state: DemoState = readStored() ?? SEED_STATE;
+let state: DemoState | null = null;
 const listeners = new Set<() => void>();
 
 export function getDemoState(): DemoState {
+  if (state === null) state = readStored() ?? getSeedStateLazy();
   return state;
 }
 
 /** Server render always sees the seed, never a stored session. */
 export function getSeedState(): DemoState {
-  return SEED_STATE;
+  return getSeedStateLazy();
 }
 
 export function subscribeDemoState(listener: () => void): () => void {
@@ -74,8 +111,9 @@ function emit(): void {
 /** Apply a mutation. The updater must return a new object — every reader compares by
  *  reference. */
 export function updateDemoState(updater: (current: DemoState) => DemoState): void {
-  const next = updater(state);
-  if (next === state) return;
+  const current = getDemoState();
+  const next = updater(current);
+  if (next === current) return;
   state = next;
   writeStored(state);
   emit();
@@ -190,5 +228,14 @@ export function withClientActivity(
  *  selector: a selector that builds a new array on every call makes useSyncExternalStore
  *  loop forever. Derive with useMemo at the call site instead. */
 export function useDemoState(): DemoState {
-  return useSyncExternalStore(subscribeDemoState, getDemoState, getSeedState);
+  // Live mode must never touch the demo store: no createSeedState(), no fixtures. `live`
+  // is resolved server-side and stable for a page's lifetime (see mode-provider.tsx), so
+  // switching which getters are passed here does not violate the Rules of Hooks — this
+  // call is always made, in the same order, on every render.
+  const { live } = useCommandCenterConfig();
+  return useSyncExternalStore(
+    live ? neverSubscribe : subscribeDemoState,
+    live ? getEmptyDemoState : getDemoState,
+    live ? getEmptyDemoState : getSeedState,
+  );
 }

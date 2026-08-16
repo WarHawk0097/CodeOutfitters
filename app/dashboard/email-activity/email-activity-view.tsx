@@ -13,7 +13,7 @@ import {
 } from "@/lib/command-center/ui/control-system";
 import { useCallback, useMemo, useState } from "react";
 import { retryEmail, sendEmail, setEmailArchived, setEmailRead } from "../../../lib/demo/actions";
-import { LEAD_DIRECTORY } from "../../../lib/demo/seed";
+import { getLeadDirectory } from "../../../lib/demo/seed";
 import type { EmailActivity, EmailState, Tone } from "../../../lib/demo/types";
 import { useDemoQuery } from "../../../components/demo/use-demo-query";
 import { TONE_INK } from "../../../components/demo/tone";
@@ -104,7 +104,7 @@ export function EmailActivityScreen() {
         body: "",
       });
     } else {
-      const first = LEAD_DIRECTORY[0];
+      const first = getLeadDirectory()[0];
       setCompose({ leadId: first?.id ?? "", to: "", leadName: first?.name ?? "", subject: "", body: "" });
     }
   };
@@ -379,7 +379,7 @@ function ComposeDialog({
   onClose: () => void;
   onSend: (draft: ComposeDraft) => void;
 }) {
-  const leads = useMemo(() => LEAD_DIRECTORY.slice(0, 40), []);
+  const leads = useMemo(() => getLeadDirectory().slice(0, 40), []);
   const [draft, setDraft] = useState<ComposeDraft>(initial);
   const [errors, setErrors] = useState<Partial<Record<keyof ComposeDraft, string>>>({});
   const patch = (values: Partial<ComposeDraft>) => setDraft((d) => ({ ...d, ...values }));

@@ -29,7 +29,7 @@ import {
   stageRequiresReason,
   updateOpportunity,
 } from "../../../lib/demo/actions";
-import { LEAD_DIRECTORY, PIPELINE_STAGES, STAGE_LABELS, STAGE_META } from "../../../lib/demo/seed";
+import { getLeadDirectory, PIPELINE_STAGES, STAGE_LABELS, STAGE_META } from "../../../lib/demo/seed";
 import type { Opportunity, PipelineStage, Tone } from "../../../lib/demo/types";
 import { useDemoQuery } from "../../../components/demo/use-demo-query";
 import { TONE_BASE, TONE_INK } from "../../../components/demo/tone";
@@ -582,7 +582,7 @@ export function PipelineBoard() {
           takenLeadIds={new Set(state.opportunities.map((o) => o.leadId))}
           onClose={closeCreateDialog}
           onSubmit={(draft) => {
-            const lead = LEAD_DIRECTORY.find((row) => row.id === draft.leadId);
+            const lead = getLeadDirectory().find((row) => row.id === draft.leadId);
             if (!lead) return;
             createOpportunity({
               leadId: lead.id,
@@ -764,7 +764,7 @@ function CreateOpportunityDialog({
   // Only leads that are not already on the board, so a create cannot produce two cards for
   // the same person — the brief's "no card may duplicate" applies to creation too.
   const available = useMemo(
-    () => LEAD_DIRECTORY.filter((lead) => !takenLeadIds.has(lead.id)).slice(0, 40),
+    () => getLeadDirectory().filter((lead) => !takenLeadIds.has(lead.id)).slice(0, 40),
     [takenLeadIds],
   );
   const [draft, setDraft] = useState<CreateDraft>({

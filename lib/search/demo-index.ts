@@ -24,7 +24,7 @@
 //     everyone, and an index is read by everyone.
 //   * Internal notes and detail bodies. `Meeting.notes` and `Appointment.notes` are internal
 //     commentary; the index carries the record's identity, not its contents.
-import { LEAD_DIRECTORY } from "@/lib/demo/seed";
+import { getLeadDirectory } from "@/lib/demo/seed";
 import type { DemoState } from "@/lib/demo/types";
 import type { Lead } from "@command-center/contracts";
 import { activityHref } from "@/lib/activity/model";
@@ -245,7 +245,7 @@ function activityDocuments(state: DemoState): CommandCenterSearchDocument[] {
  */
 export function buildDemoSearchIndex(
   state: DemoState,
-  leads: readonly Lead[] = LEAD_DIRECTORY,
+  leads: readonly Lead[] = getLeadDirectory(),
 ): CommandCenterSearchDocument[] {
   const leadIndex = new Map(leads.map((lead) => [lead.id, lead]));
   return [
@@ -265,7 +265,7 @@ export function buildDemoSearchIndex(
  *  real: the id universe per type, and the routes this application implements. */
 export function demoSearchUniverse(
   state: DemoState,
-  leads: readonly Lead[] = LEAD_DIRECTORY,
+  leads: readonly Lead[] = getLeadDirectory(),
 ): SearchIndexUniverse {
   const ids = new Map<SearchEntityType, ReadonlySet<string>>([
     ["lead", new Set(leads.map((lead) => lead.id))],

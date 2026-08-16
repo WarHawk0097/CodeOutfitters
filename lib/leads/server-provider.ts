@@ -6,7 +6,7 @@ import "server-only";
 // the raw Postgres message to a caller. Only status and owner are writable — that is all
 // public.leads grants to `authenticated`.
 import { createClient } from "@/lib/supabase/server";
-import { assertOwnerInWorkspace } from "@/lib/tasks/server-provider";
+import { assertOwnerInWorkspace, displayNamesByUserId } from "@/lib/tasks/server-provider";
 import { recordActivity } from "../activity/emit";
 import { LEAD_COLUMNS, rowToLead, type LeadRow } from "./row";
 import type { Lead } from "@command-center/contracts";
@@ -75,18 +75,19 @@ export async function updateLead(input: LeadUpdateInput): Promise<Lead> {
   if (!currentRow) throw new LeadError("not_found", "That lead is not available.");
 
   // Owner names aren't on the row — fetch once, reused for the current row's mapping, the
-  // reassignment check, and the updated row's mapping.
+  // reassignment check, and the updated row's mapping. workspace_memberships and profiles both
+  // FK to auth.users independently (no direct FK between them), so this is two queries joined
+  // in application code, not a PostgREST embed — see displayNamesByUserId in
+  // lib/tasks/server-provider.ts, which listWorkspaceTeam/assertOwnerInWorkspace also share.
   const { data: team, error: teamError } = await supabase
     .from("workspace_memberships")
-    .select("user_id, profiles(full_name, email)")
+    .select("user_id")
     .eq("workspace_id", workspaceId)
     .eq("status", "active");
   if (teamError) throwForPgError(teamError);
-  const teamNames = new Map(
-    (team ?? []).map((row) => {
-      const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
-      return [row.user_id as string, (profile?.full_name || profile?.email || "Unnamed") as string];
-    }),
+  const teamNames = await displayNamesByUserId(
+    supabase,
+    [...new Set((team ?? []).map((row) => row.user_id as string))],
   );
   const current = rowToLead(currentRow as LeadRow, teamNames);
 

@@ -27,7 +27,7 @@ import { LoginFrame } from "../login/login-frame";
 import { providerAvailability } from "../../lib/auth/providers";
 import { DEFAULT_SIDEBAR_STYLE, DEFAULT_THEME, SIDEBAR_STYLES, THEMES } from "./theme";
 import { aggregateLeadFlow, leadFlowTotals } from "../../lib/dashboard/lead-flow";
-import { LEAD_DIRECTORY } from "../../lib/demo/seed";
+import { getLeadDirectory } from "../../lib/demo/seed";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 const repo = `${here}../../`;
@@ -292,16 +292,16 @@ describe("command center repair — shell, theme and range facts (15-20)", () =>
 
   // 20
   it("7D / 30D / 90D produce different, deterministic lead-flow data", () => {
-    const d7 = aggregateLeadFlow(LEAD_DIRECTORY, "7d");
-    const d30 = aggregateLeadFlow(LEAD_DIRECTORY, "30d");
-    const d90 = aggregateLeadFlow(LEAD_DIRECTORY, "90d");
+    const d7 = aggregateLeadFlow(getLeadDirectory(), "7d");
+    const d30 = aggregateLeadFlow(getLeadDirectory(), "30d");
+    const d90 = aggregateLeadFlow(getLeadDirectory(), "90d");
     expect(d7.length).toBeLessThan(d30.length);
     expect(d30.length).toBeLessThan(d90.length);
     const t7 = leadFlowTotals(d7);
     const t90 = leadFlowTotals(d90);
     expect(t90.newTotal).toBeGreaterThan(t7.newTotal);
     // Deterministic: the same input yields the same series every time.
-    expect(aggregateLeadFlow(LEAD_DIRECTORY, "30d")).toEqual(d30);
+    expect(aggregateLeadFlow(getLeadDirectory(), "30d")).toEqual(d30);
   });
 });
 

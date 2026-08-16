@@ -21,7 +21,7 @@ import {
   type TodaysWorkItem,
 } from "@command-center/ui";
 import { useDemoState } from "../../lib/demo/store";
-import { DEMO_CURRENT_USER_ID, DEMO_TODAY, LEAD_DIRECTORY } from "../../lib/demo/seed";
+import { DEMO_CURRENT_USER_ID, DEMO_TODAY, getLeadDirectory } from "../../lib/demo/seed";
 import type { Task } from "../../lib/demo/types";
 import { useLiveTasks } from "../../lib/tasks/use-live-tasks";
 import {
@@ -329,14 +329,13 @@ export function OperationsBand() {
     const waiting = sortTasks(filterByView(state.tasks, "waiting", DEMO_TODAY, DEMO_CURRENT_USER_ID));
 
     // A lead nobody owes anything to is a lead going quiet. The set is exact: every lead in
-    // the directory with no open task against it.
-    const uncovered = new Set(
-      leadIdsWithoutNextAction(
-        state.tasks,
-        LEAD_DIRECTORY.map((lead) => lead.id),
-      ),
-    );
-    const leads = LEAD_DIRECTORY.filter((lead) => uncovered.has(lead.id)).slice(0, 12);
+    // the directory with no open task against it. Skipped entirely in live mode — this band
+    // hides itself below (`if (live) return null`), and the lead directory is demo-only
+    // fixture data that must never be generated outside demo mode.
+    const uncovered = live
+      ? new Set<string>()
+      : new Set(leadIdsWithoutNextAction(state.tasks, getLeadDirectory().map((lead) => lead.id)));
+    const leads = live ? [] : getLeadDirectory().filter((lead) => uncovered.has(lead.id)).slice(0, 12);
 
     // Both predicates come from lib/operations/attention.ts, which is also what
     // /dashboard/meetings?view=prepare and /dashboard/proposals?view=attention filter on,
@@ -366,7 +365,7 @@ export function OperationsBand() {
       })),
       uncoveredTotal: uncovered.size,
     };
-  }, [state.tasks, state.meetings, state.proposals]);
+  }, [state.tasks, state.meetings, state.proposals, live]);
 
   if (live) return null;
 

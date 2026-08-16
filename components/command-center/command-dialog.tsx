@@ -26,6 +26,7 @@ import {
   MIN_QUERY_LENGTH,
   SEARCH_SCOPE_LABELS,
   type CommandCenterSearchResult,
+  type SearchIndexUniverse,
   type SearchPermissionContext,
   type SearchScope,
 } from "../../lib/search/model";
@@ -61,6 +62,11 @@ export const SEARCH_INPUT_LABEL = "Search records and commands";
 
 export const SEARCH_DIALOG_DESCRIPTION =
   "Type to search leads, tasks, meetings, proposals, follow-ups and communications, or to run a command. Use the up and down arrow keys to move through results and Enter to open one.";
+
+/** Live mode's stand-in for `demoSearchUniverse` — recent items are dropped before this is
+ *  ever read (see `visibleRecent`), so its only job is to avoid calling into the demo fixture
+ *  path at all. */
+const EMPTY_SEARCH_UNIVERSE: SearchIndexUniverse = { ids: new Map(), routes: new Set() };
 
 /** One navigable row, whatever section it came from. Search results, commands and recent items
  *  share this shape so the arrow keys walk one list rather than three, and so Enter has exactly
@@ -119,7 +125,13 @@ export function CommandDialog({
     () => (plane.kind === "demo" ? buildDemoSearchIndex(state) : []),
     [plane.kind, state],
   );
-  const universe = useMemo(() => demoSearchUniverse(state), [state]);
+  // Also demo only — `demoSearchUniverse` pulls in the lead directory by default, which live
+  // mode must never generate. `visibleRecent` below already discards this in live mode, but
+  // the call itself has to be gated too, not just its result.
+  const universe = useMemo(
+    () => (plane.kind === "demo" ? demoSearchUniverse(state) : EMPTY_SEARCH_UNIVERSE),
+    [plane.kind, state],
+  );
 
   const context = useMemo<SearchPermissionContext>(() => {
     const member = state.team.find((candidate) => candidate.id === DEMO_CURRENT_USER_ID);

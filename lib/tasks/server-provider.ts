@@ -76,10 +76,28 @@ function today(): string {
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
+/** workspace_memberships and profiles both FK to auth.users independently — there is no direct
+ *  FK between them, so PostgREST cannot embed `profiles(...)` on a `workspace_memberships`
+ *  select. Every caller that needs a display name fetches profiles in a second, explicit query
+ *  keyed by id instead. */
+export async function displayNamesByUserId(
+  supabase: SupabaseServerClient,
+  userIds: readonly string[],
+): Promise<Map<string, string>> {
+  const names = new Map<string, string>();
+  if (userIds.length === 0) return names;
+  const { data, error } = await supabase.from("profiles").select("id, full_name, email").in("id", userIds);
+  if (error) throwForPgError(error);
+  for (const profile of data ?? []) {
+    names.set(profile.id as string, ((profile.full_name || profile.email || "Unnamed") as string));
+  }
+  return names;
+}
+
 /** A reassigned owner must be an active member of THIS workspace — RLS checks workspace_id
  *  on the row, not that owner_id belongs to it, so this is the one check the provider must
  *  make itself or a task could be assigned to an outsider. Returns the owner's display name
- *  (same profiles join as listWorkspaceTeam below) so a reassignment's activity summary can
+ *  (same profiles lookup as listWorkspaceTeam below) so a reassignment's activity summary can
  *  name them without a second round trip. */
 export async function assertOwnerInWorkspace(
   supabase: SupabaseServerClient,
@@ -88,15 +106,15 @@ export async function assertOwnerInWorkspace(
 ): Promise<string> {
   const { data, error } = await supabase
     .from("workspace_memberships")
-    .select("user_id, profiles(full_name, email)")
+    .select("user_id")
     .eq("workspace_id", workspaceId)
     .eq("user_id", ownerId)
     .eq("status", "active")
     .maybeSingle();
   if (error) throwForPgError(error);
   if (!data) throw new TaskError("invalid", "That owner is not a member of this workspace.");
-  const profile = Array.isArray(data.profiles) ? data.profiles[0] : data.profiles;
-  return (profile?.full_name || profile?.email || "Unnamed") as string;
+  const names = await displayNamesByUserId(supabase, [ownerId]);
+  return names.get(ownerId) ?? "Unnamed";
 }
 
 /** The record a task's activity rolls up to — same rule as lib/demo/actions.ts's taskParent,
@@ -280,16 +298,18 @@ export async function listWorkspaceTeam(workspaceId: string): Promise<TeamMember
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("workspace_memberships")
-    .select("user_id, role, profiles(full_name, email)")
+    .select("user_id, role")
     .eq("workspace_id", workspaceId)
     .eq("status", "active");
   if (error) throwForPgError(error);
-  return (data ?? []).map((row) => {
-    const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
-    return {
-      id: row.user_id as string,
-      name: (profile?.full_name || profile?.email || "Unnamed") as string,
-      role: row.role as TeamMember["role"],
-    };
-  });
+  const members = data ?? [];
+  const names = await displayNamesByUserId(
+    supabase,
+    [...new Set(members.map((row) => row.user_id as string))],
+  );
+  return members.map((row) => ({
+    id: row.user_id as string,
+    name: names.get(row.user_id as string) ?? "Unnamed",
+    role: row.role as TeamMember["role"],
+  }));
 }

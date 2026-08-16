@@ -27,7 +27,7 @@ import {
   rescheduleMeeting,
   updateMeeting,
 } from "../../../lib/demo/actions";
-import { DEMO_TODAY, LEAD_DIRECTORY } from "../../../lib/demo/seed";
+import { DEMO_TODAY, getLeadDirectory } from "../../../lib/demo/seed";
 import { MEETING_PREPARE_STATES, MEETING_REVIEW_STATES } from "../../../lib/operations/attention";
 import type { Meeting, MeetingState, Tone } from "../../../lib/demo/types";
 import { useDemoQuery } from "../../../components/demo/use-demo-query";
@@ -532,7 +532,7 @@ export function MeetingsScreen() {
           owners={ownerOptions}
           onClose={closeCreateDialog}
           onSubmit={(leadId, draft) => {
-            const lead = LEAD_DIRECTORY.find((row) => row.id === leadId);
+            const lead = getLeadDirectory().find((row) => row.id === leadId);
             if (!lead) return;
             createMeeting({
               leadId: lead.id,
@@ -913,7 +913,7 @@ function CreateMeetingDialog({
   onClose: () => void;
   onSubmit: (leadId: string, draft: MeetingDraft) => void;
 }) {
-  const available = useMemo(() => LEAD_DIRECTORY.slice(0, 40), []);
+  const available = useMemo(() => getLeadDirectory().slice(0, 40), []);
   const first = available[0];
   const [leadId, setLeadId] = useState(first?.id ?? "");
   const [draft, setDraft] = useState<MeetingDraft>({

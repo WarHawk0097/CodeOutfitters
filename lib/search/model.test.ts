@@ -39,7 +39,7 @@ import {
 import { buildDemoSearchIndex, demoSearchUniverse } from "./demo-index";
 import { SEARCH_ROUTE_PATTERNS } from "./routes";
 import { resolveSearchPlane, SEARCH_PROVIDER_REQUIRED_REASON } from "./provider";
-import { createSeedState, DEMO_CURRENT_USER_ID, LEAD_DIRECTORY } from "../demo/seed";
+import { createSeedState, DEMO_CURRENT_USER_ID, getLeadDirectory } from "../demo/seed";
 
 const state = createSeedState();
 const index = buildDemoSearchIndex(state);
@@ -326,7 +326,7 @@ describe("demo search index contents", () => {
 
   it("indexes the whole lead directory, not just the first page of it", () => {
     const leads = index.filter((document) => document.type === "lead");
-    expect(leads.length).toBe(LEAD_DIRECTORY.length);
+    expect(leads.length).toBe(getLeadDirectory().length);
   });
 
   it("carries no proposal access token or recipient address in any document", () => {

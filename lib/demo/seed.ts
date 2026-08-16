@@ -747,13 +747,20 @@ function buildTasks(
   ];
 }
 
-/** The lead directory every demo route links against. Built once: a route that has to
+/** The lead directory every demo route links against. Built once, on first access rather than
+ *  at module load: this file is imported for its constants (DEMO_CURRENT_USER_ID etc.) from
+ *  code that also runs in live mode, and generateLeads() refuses to run there — so the
+ *  directory must not be generated just because the module was evaluated. A route that has to
  *  attach a new record to a lead picks from this list rather than inventing an id, which is
  *  what keeps "every record links to a real lead" true after a create as well as at seed. */
-export const LEAD_DIRECTORY: readonly Lead[] = generateLeads();
+let _leadDirectory: readonly Lead[] | null = null;
+export function getLeadDirectory(): readonly Lead[] {
+  if (_leadDirectory === null) _leadDirectory = generateLeads();
+  return _leadDirectory;
+}
 
 export function createSeedState(leads?: readonly Lead[]): DemoState {
-  const dataset = leads ?? LEAD_DIRECTORY;
+  const dataset = leads ?? getLeadDirectory();
   const index = buildLeadIndex(dataset);
   const opportunities = buildOpportunities(dataset, index);
   const appointments = buildAppointments(index, opportunities);

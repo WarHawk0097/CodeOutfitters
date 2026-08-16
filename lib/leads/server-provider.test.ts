@@ -46,8 +46,15 @@ describe("live lead provider (server-provider.ts)", () => {
     expect(src).not.toMatch(/actorId:|occurredAt:/);
   });
 
-  it("reuses assertOwnerInWorkspace rather than duplicating the membership check", () => {
-    expect(src).toContain('import { assertOwnerInWorkspace } from "@/lib/tasks/server-provider"');
+  it("reuses assertOwnerInWorkspace and displayNamesByUserId rather than duplicating them", () => {
+    expect(src).toContain(
+      'import { assertOwnerInWorkspace, displayNamesByUserId } from "@/lib/tasks/server-provider"',
+    );
+  });
+
+  it("never embeds profiles(...) on a workspace_memberships select (PostgREST has no FK for it)", () => {
+    expect(src).not.toMatch(/workspace_memberships["'][\s\S]{0,80}profiles\(/);
+    expect(src).not.toContain(".select(\"user_id, profiles(full_name, email)\")");
   });
 
   it("emits exactly one activity call per branch: stage change, reassign, generic update, create", () => {

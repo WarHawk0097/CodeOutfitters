@@ -5,7 +5,7 @@
 // email is delivered and no real account is created.
 "use client";
 
-import { createSeedState, DEMO_CURRENT_USER_ID, DEMO_NOW, DEMO_TODAY, LEAD_DIRECTORY, stageToLeadStatus } from "./seed";
+import { createSeedState, DEMO_CURRENT_USER_ID, DEMO_NOW, DEMO_TODAY, getLeadDirectory, stageToLeadStatus } from "./seed";
 import { getDemoState, mintId, updateDemoState, withActivity, withClientActivity } from "./store";
 import { buildProposalDetail } from "@/lib/command-center/proposals/fixtures";
 import {
@@ -54,7 +54,11 @@ function replace<T extends { id: string }>(rows: T[], id: string, patch: Partial
   return rows.map((row) => (row.id === id ? { ...row, ...patch } : row));
 }
 
-const LEAD_NAMES = new Map(LEAD_DIRECTORY.map((lead) => [lead.id, lead.name]));
+let _leadNames: Map<string, string> | null = null;
+function leadNames(): Map<string, string> {
+  if (_leadNames === null) _leadNames = new Map(getLeadDirectory().map((lead) => [lead.id, lead.name]));
+  return _leadNames;
+}
 
 /** The lead a record belongs to, as an activity reference.
  *
@@ -62,7 +66,7 @@ const LEAD_NAMES = new Map(LEAD_DIRECTORY.map((lead) => [lead.id, lead.name]));
  *  makes a proposal edit or a meeting cancellation show up on that lead's timeline without
  *  the event being written twice. */
 function leadRef(leadId: string): ActivityRef {
-  return { kind: "lead", id: leadId, label: LEAD_NAMES.get(leadId) ?? "Lead" };
+  return { kind: "lead", id: leadId, label: leadNames().get(leadId) ?? "Lead" };
 }
 
 /** Where a task's history rolls up to. The lead comes first because that is the record a
