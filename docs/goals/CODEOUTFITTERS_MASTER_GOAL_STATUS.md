@@ -89,7 +89,7 @@ connect route). All four gate on `getDashboardContext()` (401) and the existing 
 matching the Tasks/Leads route convention exactly (`lib/integrations/api-response.ts` duplicates
 `lib/tasks/api-response.ts`'s envelope, per this repo's per-domain-response-module convention).
 
-**Tests**: 32 new, all local-only (no real Google API calls — Section 11's mocked-provider
+**Tests**: 34, all local-only (no real Google API calls — Section 11's mocked-provider
 constraint) — `crypto.test.ts` (4: round-trip, tamper detection, fails closed with no/malformed
 key), `providers/local-test.test.ts` (7: exchange, refresh producing a distinct credential,
 refresh-failure yields a safe token-free error under 200 chars, revoke never throws, inspect
@@ -99,31 +99,74 @@ test override seam), `store.test.ts` (10, source-surface convention matching
 outside `loadForServiceOp`, every service-role query workspace-scoped, every Postgres error mapped
 not rethrown raw, disconnect always clears the credential independent of provider-revoke outcome,
 reconnect never rewrites `workspace_id`/`provider`/`provider_account_id`/`connected_at`, no bare
-`select("*")`), and `integration-connections.pglite.test.ts` (8, real embedded Postgres running
+`select("*")`), and `integration-connections.pglite.test.ts` (10, real embedded Postgres running
 the unmodified migration SQL, migration chain `20260723_inquiry_backend.sql` →
 `20260727_command_center_workspaces.sql` → `20260818000000_integration_connections.sql`: cross-
 workspace read denial, cross-workspace write denial (0 rows affected), authorized create/read,
 `credential_ciphertext` unselectable by `authenticated` — `permission denied`, duplicate
 `(workspace_id, provider, provider_account_id)` rejected by the unique constraint, the disconnect
 check-constraint pairing enforced (status alone rejected, status+ciphertext-null+timestamp
-accepted), anon has zero access to either table, and an event's `workspace_id` is
-trigger-overwritten not caller-supplied with cross-workspace event inserts denied). Quality gate
-this window: targeted suite 32/32, `tsc --noEmit` clean (0 errors), `eslint` clean on all touched
-files (0 errors, 2 pre-existing-pattern warnings — an unused `beforeEach` import removed, an
-intentionally-unused `_credentials` interface-conformance parameter left as-is), full Vitest
-2129/2129 (up from 2097, +32, 0 regressions), `next build` clean — all four new routes
-(`/api/dashboard/integrations/connections`, `.../[id]`, `.../connect`, `.../callback`) registered
-as dynamic (`ƒ`) in the route manifest.
+accepted), anon has zero access to either table, an event's `workspace_id` is
+trigger-overwritten not caller-supplied with cross-workspace event inserts denied, and — added
+this window (2026-08-17, hosted deployment window) — `authenticated` cannot `DELETE`/`TRUNCATE`
+either table). Quality gate this window (post-hardening re-run): targeted suite 34/34, `tsc
+--noEmit` clean (0 errors), `eslint` clean, full Vitest 2131/2131 (up from 2129, +2, 0
+regressions), `next build` clean.
 
-**Not done, deliberately, this window**: the migration was NOT applied to hosted (`rsxdhwtprmuhzuocycxu`)
-— `MIGRATION_READY_NOT_DEPLOYED`, consistent with every other new-schema window in this ledger,
-and this window's instruction did not authorize a hosted push the way some prior Leads windows
-did. No real Google OAuth client was registered or wired. No Calendar/Email consumer code exists
-yet — this is purely the shared connection substrate. No browser click-through was performed (no
-UI surface was built or requested for this phase — API + store + schema only, per the
-instruction's explicit scope). This entry does not change the status of any of rows 1-21 above,
-and does not touch or reinterpret the Pipeline 409 / `HOSTED_PLATFORM_TRANSIENT` investigation
-recorded earlier in this file.
+**Hosted deployment + security verification (this window, 2026-08-17, second pass)**: before
+deploying, per this window's explicit `SUPABASE_PUBLIC_DEFAULT_ACL_HARDENING` instruction, the
+migration's own grants were re-audited rather than trusting RLS — and a real gap was found,
+matching the exact `lead_stage_history` defect pattern (row 2 above): the original migration
+revoked table privileges `from public, anon` only, never explicitly from `authenticated`, before
+granting narrow column-scoped privileges to `authenticated`. Because GRANT is additive and this
+project's schema-level default ACLs grant `authenticated` broad inherited table privileges
+(INSERT/UPDATE/DELETE/TRUNCATE, all columns) on every new `public` table, `authenticated` would
+have retained the ability to `DELETE`/`TRUNCATE` either table and to `UPDATE`/`INSERT` columns
+never listed in the migration's own grants — undetectable by RLS or by reading the column-scoped
+grants alone. **Fixed** (migration edited in place, not yet deployed at the time — same convention
+as `20260813000000`): both table-level `revoke all` statements now explicitly include
+`authenticated`, and `can_use_integration_connection`'s function revoke now explicitly includes
+`anon` (previously `from public` only). Verified with 2 new pglite cases proving `authenticated`
+cannot `DELETE`/`TRUNCATE` either table post-hardening (see Tests above). **Deployed**:
+`20260818000000_integration_connections.sql` (hardened) pushed to `rsxdhwtprmuhzuocycxu` via
+`supabase db push --linked` (`"Finished supabase db push."`); `supabase migration list --linked`
+re-run post-deploy confirms local==remote through `20260818000000`, no divergence, no other
+pending migration. **Hosted read-back** (read-only, no mutation): columns, types, nullability,
+both check constraints, the unique constraint, both FKs, both primary keys, and all 6 expected
+indexes on both tables match the hardened migration verbatim; RLS enabled on both tables
+(`force_rls` not set — expected); all 5 RLS policies (`integration_connections_select/insert/
+update`, `integration_connection_events_select/insert`) present with `qual`/`with_check`
+expressions matching the migration exactly. **Hosted ACL matrix** (`information_schema.role_table_
+grants`, `information_schema.column_privileges`, `pg_proc.proacl`): `anon` has zero rows on either
+table (no SELECT/INSERT/UPDATE/DELETE/TRUNCATE/REFERENCES/TRIGGER) — matches intent exactly.
+`authenticated` has only column-scoped SELECT (excluding `credential_ciphertext`), INSERT, and
+UPDATE (excluding `workspace_id`/`provider`/`provider_account_id`/`created_by`/`id`/`created_at`/
+`updated_at`) on `integration_connections`, and SELECT+INSERT (no column restriction needed, no
+secret column) on `integration_connection_events` — no DELETE, no TRUNCATE, no REFERENCES, no
+TRIGGER for `authenticated` on either table, confirmed absent from the live grant set, not merely
+absent from the migration text. `service_role` retains full privileges on both tables (unaffected,
+as required for `loadForServiceOp`'s service-role path). No `PUBLIC` grant rows exist on either
+table. Function ACLs: `can_use_integration_connection` grants EXECUTE to `authenticated`/
+`service_role`/`postgres` only, no `anon`, no bare `PUBLIC`; the two trigger functions
+(`integration_connections_touch_updated_at`, `integration_connection_events_set_workspace`) grant
+EXECUTE to `postgres`/`service_role` only — no `authenticated`, no `anon`. **The hardening is
+confirmed live on the hosted database, not just in the migration's own text.**
+`SUPABASE_PUBLIC_DEFAULT_ACL_HARDENING` backlog item: this migration is now hardened; the
+project-level default ACL itself remains unchanged (out of scope, same as every prior window this
+was found in) — every future `public`-schema migration still needs the same explicit
+`authenticated`-inclusive revoke. **Token security**: `INTEGRATION_TOKEN_ENCRYPTION_KEY` (AES-256-
+GCM, 32-byte base64) confirmed server-only (`crypto.ts` imports `"server-only"`), not a
+`NEXT_PUBLIC_*` variable, present only as an empty template value in `.env.example`/`.env.local.
+example` (no real key committed anywhere in git history), fails closed with no/malformed key
+(proven by 4 existing `crypto.test.ts` cases), and `listConnections` never calls
+`loadForServiceOp`/`decryptCredential` — only `refreshConnection`/`disconnect` decrypt, both for a
+legitimate provider-facing operation. No such secret exists in any deployed environment today; one
+will be required before the first real Google connection — not configured this window, per
+explicit instruction. **No real Google OAuth, no Calendar/Gmail consumer code, no real provider
+connection was made or attempted this window** — foundation deployment/security verification only.
+This entry does not change the status of any of rows 1-21 above, and does not touch or reinterpret
+the Pipeline 409 / `HOSTED_PLATFORM_TRANSIENT` investigation recorded earlier in this file (not
+resumed this window, per explicit instruction).
 
 ## Backlog
 

@@ -210,6 +210,26 @@ describe("integration_connections RLS + grants", () => {
     );
   });
 
+  it("authenticated cannot DELETE or TRUNCATE integration_connections — the table-level revoke covers authenticated, not just public/anon", async () => {
+    const created = await insertConnection(workspaceA, "acct-1", userA);
+    await asUser(userA);
+    await expect(
+      db.query(`delete from public.integration_connections where id = $1`, [created.rows[0]!.id]),
+    ).rejects.toThrow(/permission denied/i);
+    await expect(db.query(`truncate public.integration_connections`)).rejects.toThrow(/permission denied/i);
+  });
+
+  it("authenticated cannot DELETE or TRUNCATE integration_connection_events", async () => {
+    await insertConnection(workspaceA, "acct-1", userA);
+    await asUser(userA);
+    await expect(db.query(`delete from public.integration_connection_events`)).rejects.toThrow(
+      /permission denied/i,
+    );
+    await expect(db.query(`truncate public.integration_connection_events`)).rejects.toThrow(
+      /permission denied/i,
+    );
+  });
+
   it("I: an event's workspace_id is trigger-derived, not caller-supplied, and cross-workspace event writes are denied", async () => {
     const created = await insertConnection(workspaceA, "acct-1", userA);
     const connectionId = created.rows[0]!.id;

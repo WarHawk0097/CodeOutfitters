@@ -158,7 +158,7 @@ returns boolean language sql stable security definer set search_path = pg_catalo
   );
 $$;
 
-revoke all on function public.can_use_integration_connection(uuid) from public;
+revoke all on function public.can_use_integration_connection(uuid) from public, anon;
 grant execute on function public.can_use_integration_connection(uuid) to authenticated, service_role;
 revoke all on function public.integration_connections_touch_updated_at() from public, anon, authenticated;
 revoke all on function public.integration_connection_events_set_workspace() from public, anon, authenticated;
@@ -170,8 +170,15 @@ revoke all on function public.integration_connection_events_set_workspace() from
 alter table public.integration_connections     enable row level security;
 alter table public.integration_connection_events enable row level security;
 
-revoke all on public.integration_connections     from public, anon;
-revoke all on public.integration_connection_events from public, anon;
+-- Table-level revoke must include `authenticated`, not just public/anon: this
+-- project's schema-level default ACLs (see the SUPABASE_PUBLIC_DEFAULT_ACL_HARDENING
+-- backlog item / the lead_stage_history incident) grant `authenticated` broad
+-- inherited table privileges (INSERT/UPDATE/DELETE/TRUNCATE, all columns) on every new
+-- table by default. A column-scoped GRANT below is additive — it does not remove that
+-- inherited grant — so without this explicit revoke first, authenticated would still
+-- be able to DELETE/TRUNCATE either table and UPDATE/INSERT columns never listed below.
+revoke all on public.integration_connections     from public, anon, authenticated;
+revoke all on public.integration_connection_events from public, anon, authenticated;
 
 -- Column-scoped: `authenticated` can never SELECT credential_ciphertext, at the
 -- database layer, independent of what any route handler returns.
