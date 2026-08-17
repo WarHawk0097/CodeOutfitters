@@ -33,6 +33,98 @@ Last updated: 2026-08-14, after CRM pipeline live persistence + Lead-360 Activit
 | 20 | Market pricing | NOT_STARTED | No pricing-data integration found. |
 | 21 | Internal quote recommendation | NOT_STARTED | No quote-recommendation code found. |
 
+## Integration Foundation (Phase 2 — shared infrastructure, this window, 2026-08-17)
+
+Not one of the 21 numbered rows above — this is the shared provider-connection substrate rows
+6/7/8/9 (Calendar) and 11 (Email) will build on, built and TESTED_LOCAL only, on
+`feat/leads-foundation-live` (branch `feat/leads-foundation-live` inside the
+`leads-foundation` worktree). Explicitly NOT Calendar sync, Gmail sync, meeting creation,
+reminders, AI, proposals, or SMS — none of rows 4-11 or 16-21 are touched or advanced by this
+entry.
+
+**Schema**: `supabase/migrations/20260818000000_integration_connections.sql` (local only, not
+applied to hosted) adds `integration_connections` (`workspace_id, provider, status,
+provider_account_id, provider_account_email, granted_scopes, credential_ciphertext,
+credential_version, connected_at, refreshed_at, disconnected_at, last_error, created_by,
+created_at, updated_at`) and immutable `integration_connection_events` (audit trail, workspace_id
+trigger-derived from the parent connection, never caller-supplied). Column-scoped grants are the
+primary enforcement layer, not just RLS: the `authenticated` SELECT grant excludes
+`credential_ciphertext` outright (the role is structurally incapable of reading it back, session or
+no session), and the UPDATE grant excludes `workspace_id, provider, provider_account_id,
+created_by, id, created_at, updated_at` — `connected_at` is settable only at INSERT, immutable
+after (encodes "first connected" directly in the grant). Check constraints tie `status =
+'disconnected'` to `credential_ciphertext is null` and to `disconnected_at is not null` together,
+so a disconnect can't clear one without the other. `unique (workspace_id, provider,
+provider_account_id)` backs deterministic reconnect-not-duplicate behavior. RLS on both tables is
+`is_workspace_member(workspace_id)`-scoped, reusing `20260727_command_center_workspaces.sql`'s
+existing SECURITY DEFINER helpers rather than adding new ones.
+
+**Token security (Section 4 of this window's instruction)**: credentials are AES-256-GCM encrypted
+(`lib/integrations/crypto.ts`) with a required `INTEGRATION_TOKEN_ENCRYPTION_KEY` (base64, 32
+bytes) — fails closed with no key configured or a wrong-length key, never falls back to a
+hardcoded or reversible scheme. Ciphertext is decrypted only inside `loadForServiceOp()`
+(`lib/integrations/store.ts`), which uses a service-role Supabase client scoped with an explicit
+`.eq("workspace_id", ...).eq("id", ...)` filter (defense-in-depth even though service-role
+bypasses RLS) — mirrors the existing `getServiceClient()` pattern in
+`lib/inquiry/server/supabase-inquiry-repository.ts`. Every other read/write (list, connect,
+refresh's status update, disconnect's status update, event recording) goes through the
+session-bound `authenticated` client, which the column grants make physically incapable of
+returning `credential_ciphertext` regardless of query. No new secret-storage system was invented;
+this is the safest minimal server-side design available in-repo, per the instruction's own
+fallback guidance — nothing was left insecurely stored.
+
+**Provider abstraction (Sections 7-8)**: `IntegrationProviderAdapter`
+(`lib/integrations/provider.ts`: `exchangeCode`/`refresh`/`revoke`/`inspect`), one concrete
+`local_test` adapter (`lib/integrations/providers/local-test.ts`, fixture-driven, no network
+calls), and a lazy per-provider loader registry (`lib/integrations/registry.ts`).
+`google_calendar`/`gmail` are reserved identifiers in the registry but resolve to a thrown
+`IntegrationProviderError` — reserved, not implemented, fails closed rather than silently
+succeeding against a provider that doesn't exist yet. No real Google OAuth redirect/callback was
+built this phase, per the Master Goal's own Phase 2 text calling for local/test providers only.
+
+**API surface**: `GET/DELETE` on `/api/dashboard/integrations/connections[/[id]]`,
+`POST` on `.../connect` and `.../callback` (kept as separate route files — a real OAuth
+provider's callback will need state/CSRF handling connect/start doesn't, without touching the
+connect route). All four gate on `getDashboardContext()` (401) and the existing demo-mode guard,
+matching the Tasks/Leads route convention exactly (`lib/integrations/api-response.ts` duplicates
+`lib/tasks/api-response.ts`'s envelope, per this repo's per-domain-response-module convention).
+
+**Tests**: 32 new, all local-only (no real Google API calls — Section 11's mocked-provider
+constraint) — `crypto.test.ts` (4: round-trip, tamper detection, fails closed with no/malformed
+key), `providers/local-test.test.ts` (7: exchange, refresh producing a distinct credential,
+refresh-failure yields a safe token-free error under 200 chars, revoke never throws, inspect
+health states), `registry.test.ts` (3: adapter caching, `google_calendar`/`gmail` fail closed,
+test override seam), `store.test.ts` (10, source-surface convention matching
+`lib/tasks/server-provider.test.ts`: `credential_ciphertext` never in `SAFE_COLUMNS`, never read
+outside `loadForServiceOp`, every service-role query workspace-scoped, every Postgres error mapped
+not rethrown raw, disconnect always clears the credential independent of provider-revoke outcome,
+reconnect never rewrites `workspace_id`/`provider`/`provider_account_id`/`connected_at`, no bare
+`select("*")`), and `integration-connections.pglite.test.ts` (8, real embedded Postgres running
+the unmodified migration SQL, migration chain `20260723_inquiry_backend.sql` →
+`20260727_command_center_workspaces.sql` → `20260818000000_integration_connections.sql`: cross-
+workspace read denial, cross-workspace write denial (0 rows affected), authorized create/read,
+`credential_ciphertext` unselectable by `authenticated` — `permission denied`, duplicate
+`(workspace_id, provider, provider_account_id)` rejected by the unique constraint, the disconnect
+check-constraint pairing enforced (status alone rejected, status+ciphertext-null+timestamp
+accepted), anon has zero access to either table, and an event's `workspace_id` is
+trigger-overwritten not caller-supplied with cross-workspace event inserts denied). Quality gate
+this window: targeted suite 32/32, `tsc --noEmit` clean (0 errors), `eslint` clean on all touched
+files (0 errors, 2 pre-existing-pattern warnings — an unused `beforeEach` import removed, an
+intentionally-unused `_credentials` interface-conformance parameter left as-is), full Vitest
+2129/2129 (up from 2097, +32, 0 regressions), `next build` clean — all four new routes
+(`/api/dashboard/integrations/connections`, `.../[id]`, `.../connect`, `.../callback`) registered
+as dynamic (`ƒ`) in the route manifest.
+
+**Not done, deliberately, this window**: the migration was NOT applied to hosted (`rsxdhwtprmuhzuocycxu`)
+— `MIGRATION_READY_NOT_DEPLOYED`, consistent with every other new-schema window in this ledger,
+and this window's instruction did not authorize a hosted push the way some prior Leads windows
+did. No real Google OAuth client was registered or wired. No Calendar/Email consumer code exists
+yet — this is purely the shared connection substrate. No browser click-through was performed (no
+UI surface was built or requested for this phase — API + store + schema only, per the
+instruction's explicit scope). This entry does not change the status of any of rows 1-21 above,
+and does not touch or reinterpret the Pipeline 409 / `HOSTED_PLATFORM_TRANSIENT` investigation
+recorded earlier in this file.
+
 ## Backlog
 
 - `LEAD_INGESTION_WORKSPACE_MISSING_FAIL_CLOSED` — **RESOLVED, on hosted.** Fixed by
