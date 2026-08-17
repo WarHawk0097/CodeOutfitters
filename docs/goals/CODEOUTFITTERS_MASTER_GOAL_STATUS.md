@@ -291,6 +291,48 @@ and the new migration is reviewed and deployed. Does not change the status of ro
 Integration Foundation entry above; does not touch or reinterpret the Pipeline 409 investigation.
 **Do not begin Calendar or Gmail functionality next** — those remain separate future phases.
 
+### Hosted deployment + security verification (2026-08-17, follow-up window)
+
+`20260819000000_oauth_states.sql` audited (no changes needed — already correctly authored:
+RLS enabled, zero policies, explicit `revoke all on public.oauth_states from public, anon,
+authenticated`), pre-deploy migration history confirmed exact-pending, 13/13 pre-deploy
+targeted tests re-run green (`oauth-state.test.ts` 6 + `oauth-state.pglite.test.ts` 7), then
+deployed via `supabase db push --linked` to hosted project `rsxdhwtprmuhzuocycxu`. Post-deploy
+migration history confirmed local==remote through `20260819000000`, no pending, no divergence.
+
+**Hosted read-back**: `public.oauth_states` on hosted matches the migration verbatim — 8
+columns, PK `id uuid default gen_random_uuid()`, `workspace_id`/`user_id` FKs with `on delete
+cascade`, `provider public.integration_provider not null`, `nonce text not null unique`,
+`expires_at timestamptz not null`, `consumed_at timestamptz` nullable, `created_at timestamptz
+not null default now()`. `relrowsecurity = true`, zero rows in `pg_policies`. No functions,
+triggers, or sequences were created by this migration.
+
+**Hosted ACL matrix** (via `has_table_privilege` + `information_schema.role_table_grants`,
+not RLS-policy presence alone): `anon` — no privileges. `authenticated` — no privileges.
+`PUBLIC` — no privileges. None of the three can SELECT, INSERT, UPDATE, DELETE, or TRUNCATE.
+`service_role` retains full CRUD (the only path that ever touches this table, per
+`lib/integrations/oauth-state.ts`'s exclusive use of `getServiceClient()`).
+`get_advisors(type=security)` reports only the expected INFO-level `rls_enabled_no_policy`
+finding for this table (shared with 3 other known service-role-only tables in this project) —
+not a defect, the intentional pattern. **Default-ACL verdict: `NO_EXCESS_PRIVILEGES`** — no
+hardening/corrective migration was required.
+
+**Exact redirect URI** (confirmed from `lib/routing/public-origin.ts` + `lib/integrations/
+providers/google.ts`'s `googleRedirectUri()`, not guessed): production
+`https://codeoutfitters.vercel.app/api/dashboard/integrations/connections/callback`; localhost
+dev `http://localhost:3000/api/dashboard/integrations/connections/callback` (from
+`DEVELOPMENT_ORIGIN`, used whenever `VERCEL_ENV` is unset/non-production/non-preview and
+`NEXT_PUBLIC_SITE_URL` is also unset).
+
+**Schema status update**: `20260819000000_oauth_states.sql` is now **DEPLOYED_AND_HOSTED_
+VERIFIED** (supersedes the `MIGRATION_READY_NOT_DEPLOYED` note above). Runtime configuration
+(`GOOGLE_OAUTH_CLIENT_ID`/`GOOGLE_OAUTH_CLIENT_SECRET`/`INTEGRATION_TOKEN_ENCRYPTION_KEY`)
+remains unconfigured in this environment — unchanged, still the sole remaining blocker. **No
+real Google Cloud client, no real Google account connection, no Calendar/Gmail work was
+attempted this window**, per explicit instruction. Milestone verdict unchanged:
+`GOOGLE_OAUTH_FOUNDATION_CODE_COMPLETE_OWNER_CONFIG_REQUIRED`. Pipeline 409 investigation not
+touched, not resumed.
+
 ## Backlog
 
 - `LEAD_INGESTION_WORKSPACE_MISSING_FAIL_CLOSED` — **RESOLVED, on hosted.** Fixed by
