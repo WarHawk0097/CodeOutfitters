@@ -90,7 +90,7 @@ function throwForPgError(error: { code?: string; message: string }): never {
   throw new IntegrationError("invalid", "That integration request could not be completed.");
 }
 
-function getServiceClient(): SupabaseClient {
+export function getServiceClient(): SupabaseClient {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const secret = process.env.SUPABASE_SECRET_KEY;
   if (!url || !secret) throw new IntegrationError("unavailable", "Integrations are not available.");
@@ -154,7 +154,33 @@ export async function connect(
     .eq("provider_account_id", exchange.providerAccountId)
     .maybeSingle();
 
-  const credentialCiphertext = encryptCredential(JSON.stringify(exchange.credentials));
+  // Google (and any provider) can omit a refresh token on a reconnect it does not
+  // consider "first consent" — preserve the still-valid one already on file rather than
+  // overwriting it with null, which would silently break every future refresh.
+  let credentials = exchange.credentials;
+  if (existing && !credentials.refreshToken) {
+    const service = getServiceClient();
+    const { data: previous } = await service
+      .from("integration_connections")
+      .select("credential_ciphertext")
+      .eq("workspace_id", workspaceId)
+      .eq("id", existing.id)
+      .maybeSingle();
+    const previousCiphertext = (previous as { credential_ciphertext: string | null } | null)?.credential_ciphertext;
+    if (previousCiphertext) {
+      try {
+        const previousCredentials = JSON.parse(decryptCredential(previousCiphertext)) as ProviderCredentials;
+        if (previousCredentials.refreshToken) {
+          credentials = { ...credentials, refreshToken: previousCredentials.refreshToken };
+        }
+      } catch {
+        // A ciphertext that no longer decrypts (rotated/corrupted key) has nothing left
+        // to preserve — not a reason to fail the reconnect.
+      }
+    }
+  }
+
+  const credentialCiphertext = encryptCredential(JSON.stringify(credentials));
 
   // Deliberately not a single upsert: the update grant on this table excludes
   // workspace_id/provider/provider_account_id/connected_at (see the migration —

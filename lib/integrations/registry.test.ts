@@ -18,9 +18,15 @@ describe("integrations/registry", () => {
     expect(first.id).toBe("local_test");
   });
 
-  it("F: an unimplemented provider (google_calendar) fails closed, not silently", async () => {
-    await expect(getProviderAdapter("google_calendar")).rejects.toThrow(IntegrationProviderError);
+  it("F: an unimplemented provider (gmail) fails closed, not silently", async () => {
     await expect(getProviderAdapter("gmail")).rejects.toThrow(IntegrationProviderError);
+  });
+
+  it("loads and caches the google_calendar adapter (Google OAuth Foundation)", async () => {
+    const first = await getProviderAdapter("google_calendar");
+    const second = await getProviderAdapter("google_calendar");
+    expect(first).toBe(second);
+    expect(first.id).toBe("google_calendar");
   });
 
   it("__overrideProviderAdapterForTests swaps the cached instance", async () => {

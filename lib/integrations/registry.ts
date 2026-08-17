@@ -7,12 +7,14 @@ import { IntegrationProviderError } from "./provider";
 // import() per provider so an unconfigured provider never pulls its module (and, for a
 // future Google adapter, its SDK) into a bundle that never uses it.
 //
-// google_calendar and gmail are reserved provider ids (the enum and this table both
-// know them) with no loader yet: Phase 2 is the connection lifecycle, not a Google
-// integration, per Master Goal Phase 2 ("local/test providers"). Adding one is Phase
-// 3/4's job — a new file plus one line here, no change to store.ts or the API routes.
+// google_calendar now has a real adapter (Master Goal Phase 2.5, Google OAuth
+// Foundation) — see providers/google.ts. gmail remains reserved with no loader: it
+// either extends the google_calendar connection via incremental authorization or
+// gets its own adapter later, per Section 10's decision; either way it is not a
+// migration.
 const LOADERS: Partial<Record<IntegrationProviderId, () => Promise<IntegrationProviderAdapter>>> = {
   local_test: async () => (await import("./providers/local-test")).default(),
+  google_calendar: async () => (await import("./providers/google")).default(),
 };
 
 const instances = new Map<IntegrationProviderId, IntegrationProviderAdapter>();

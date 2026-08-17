@@ -1,15 +1,18 @@
 // POST integrations/connections/connect — starts (and, for a provider with no real
-// redirect step, completes) a connection. For local_test — the only provider Phase 2
-// implements, per Master Goal Phase 2's "local/test providers" — there is no OAuth
-// redirect: the "code" is a fixture string a dev/test constructs directly (see
-// lib/integrations/providers/local-test.ts). google_calendar/gmail are reserved ids
-// with no adapter yet, so a connect attempt against them fails closed with
-// provider_error — not a silent no-op.
+// redirect step, completes) a connection. For local_test — the only local/test
+// provider Phase 2 named — there is no OAuth redirect: the "code" is a fixture string
+// a dev/test constructs directly (see lib/integrations/providers/local-test.ts).
+// google_calendar is real Google OAuth (Master Goal Phase 2.5): this route only
+// starts it — creates a CSRF-bound state and hands back Google's authorization URL,
+// no code, no token material. gmail remains a reserved id with no adapter, so a
+// connect attempt against it still fails closed with provider_error.
 import { randomUUID } from "node:crypto";
 import { isDemoMode } from "@/lib/command-center/mode";
 import { getDashboardContext } from "@/lib/dashboard/server";
 import { jsonError, jsonOk } from "@/lib/integrations/api-response";
 import { IntegrationError, connect } from "@/lib/integrations/store";
+import { createOAuthState } from "@/lib/integrations/oauth-state";
+import { buildGoogleAuthorizationUrl } from "@/lib/integrations/providers/google";
 import type { IntegrationProviderId } from "@/lib/integrations/types";
 
 export const runtime = "nodejs";
@@ -57,6 +60,27 @@ export async function POST(request: Request): Promise<Response> {
       provider: "That is not a supported provider.",
     });
   }
+
+  // Real, redirect-based OAuth: no code from the caller — this route only starts the
+  // flow. The state nonce is bound to the CURRENT session's workspace/user, never a
+  // client-supplied value, so the callback can prove later that a redirect belongs to
+  // the request that started it (Section 5).
+  if (candidate.provider === "google_calendar") {
+    try {
+      const nonce = await createOAuthState({
+        workspaceId: context.workspaceId,
+        userId: context.userId,
+        provider: "google_calendar",
+      });
+      const authorizationUrl = buildGoogleAuthorizationUrl(nonce);
+      return jsonOk({ authorizationUrl }, correlationId);
+    } catch {
+      // Owner has not configured GOOGLE_OAUTH_CLIENT_ID/SECRET yet, or state creation
+      // failed — either way, fail closed rather than leak which one.
+      return jsonError(503, "unavailable", NOT_AVAILABLE, correlationId);
+    }
+  }
+
   if (typeof candidate.code !== "string" || candidate.code.trim() === "") {
     return jsonError(422, "validation", "Please fix the highlighted fields.", correlationId, {
       code: "A connect code is required.",

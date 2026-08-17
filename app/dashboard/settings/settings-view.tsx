@@ -18,6 +18,7 @@ import { useDemoQuery } from "../../../components/demo/use-demo-query";
 import { TONE_INK } from "../../../components/demo/tone";
 import { SecretFieldNotice, SelectField, TextAreaField, TextField, ToggleField } from "../../../components/demo/field";
 import { RouteError, RouteLoading } from "../../../components/demo/route-states";
+import { GoogleConnectionCard } from "./google-connection-card";
 import {
   APPEARANCES,
   APPEARANCE_LABELS,
@@ -56,6 +57,19 @@ export function SettingsScreen() {
               Appearance
             </a>
           </li>
+          <li>
+            <a
+              href="#settings-google"
+              onClick={() => setActive("google")}
+              className={
+                active === "google"
+                  ? "block rounded-cc-control bg-cc-green-tint px-3 py-1.5 text-[12px] font-semibold text-cc-green-ink"
+                  : "block rounded-cc-control px-3 py-1.5 text-[12px] font-medium text-cc-t2 hover:bg-cc-secondary"
+              }
+            >
+              Google
+            </a>
+          </li>
           {state.settings.map((section) => (
             <li key={section.id}>
               <a
@@ -76,6 +90,7 @@ export function SettingsScreen() {
 
       <div className="min-w-0 flex-1 space-y-4">
         <ThemeSettingsCard />
+        <GoogleConnectionCard />
         {state.settings.map((section) => (
           <SettingsSectionCard key={section.id} section={section} />
         ))}

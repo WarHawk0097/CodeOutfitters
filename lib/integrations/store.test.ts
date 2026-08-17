@@ -66,6 +66,16 @@ describe("integration connection store (store.ts)", () => {
     expect(fn).not.toMatch(/\bconnected_at:/);
   });
 
+  it("L: reconnect preserves the previously stored refresh token when the new exchange omits one, reading it only via the service client", () => {
+    const fn = src.slice(src.indexOf("let credentials = exchange.credentials"), src.indexOf("const credentialCiphertext ="));
+    expect(fn).toContain("!credentials.refreshToken");
+    expect(fn).toContain("getServiceClient()");
+    expect(fn).toContain('.select("credential_ciphertext")');
+    expect(fn).toContain("previousCredentials.refreshToken");
+    // The write path always encrypts the merged `credentials`, not the raw exchange result.
+    expect(src).toContain("encryptCredential(JSON.stringify(credentials))");
+  });
+
   it("never selects with a bare '*' — every select names its columns explicitly", () => {
     expect(src).not.toMatch(/\.select\(\s*\)/);
     expect(src).not.toContain('.select("*")');

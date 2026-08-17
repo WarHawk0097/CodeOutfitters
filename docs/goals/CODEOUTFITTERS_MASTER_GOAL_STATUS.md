@@ -168,6 +168,129 @@ This entry does not change the status of any of rows 1-21 above, and does not to
 the Pipeline 409 / `HOSTED_PLATFORM_TRANSIENT` investigation recorded earlier in this file (not
 resumed this window, per explicit instruction).
 
+## Google OAuth Foundation (Phase 2.5 — 2026-08-17)
+
+Not one of the 21 numbered rows above — builds the real Google OAuth provider behind the
+Integration Foundation above (rows 6/7/8/9/11 still NOT_STARTED). Explicitly NOT Calendar
+availability, Calendar event creation, Google Meet, Gmail read/send, or reminders — none
+implemented, none of rows 6-11 advanced.
+
+**Architecture**: server-side authorization-code flow only — no token-exchange logic in
+browser/client code. New `lib/integrations/providers/google.ts` (`buildGoogleAuthorizationUrl`,
+`exchangeCode`, `refresh`, `revoke`, `inspect`) implements `IntegrationProviderAdapter`
+(pre-existing interface from the Integration Foundation), registered in
+`lib/integrations/registry.ts` under the already-reserved `google_calendar` identifier — no
+second Google table added, `integration_connections` reused as-is (locked decision from a prior
+session: reuse the `google_calendar` enum value rather than add a new provider identifier, since
+Calendar is the eventual consumer and no separate identity-only provider row is needed).
+
+**Scopes**: `openid email profile` only — no `calendar` or `gmail` scope requested anywhere in
+`buildGoogleAuthorizationUrl`.
+
+**CSRF/state**: new `oauth_states` table + `lib/integrations/oauth-state.ts`
+(`createOAuthState`/`consumeOAuthState`). State is a cryptographically random token, bound to
+the authenticated session's own `workspace_id` + `user_id` + `provider` at creation (a
+client-supplied `workspace_id` in the connect request body is ignored — proven by connect
+route test "P"), one-time-use (consumed and deleted atomically on callback), and expiring.
+Callback never trusts a query-string `workspace_id`; it re-derives everything from the consumed
+state row.
+
+**Google identity**: `sub` (Google's stable subject ID) is stored as `provider_account_id`, not
+email. `email_verified` is checked before trusting the returned email for
+`provider_account_email` — an unverified email is never stored/displayed.
+
+**Token handling**: reuses the existing AES-256-GCM `lib/integrations/crypto.ts` unchanged
+(fails closed on missing/malformed `INTEGRATION_TOKEN_ENCRYPTION_KEY`) — hardened this window,
+see below. On reconnect, if Google's token response omits a refresh token (common on repeat
+consent), the previously stored valid refresh token is preserved, never overwritten with null —
+proven by `store.test.ts`'s refresh-token-preservation case ("L").
+
+**Connect/callback routes**: `POST .../connect` — authorized workspace user only (401
+otherwise), 404s in demo mode (demo mode can never trigger a live Google OAuth), returns only
+`{ok, authorizationUrl}`, no token material, fails closed with a 503 and a sanitized body (no
+env var names leaked) when `GOOGLE_OAUTH_CLIENT_ID`/`SECRET` are unset ("S"). `GET .../callback`
+— handles success, `access_denied`, invalid/missing/expired state, exchange failure, identity
+failure (unverified email), duplicate connection, and partial token response, redirecting back
+to Settings with a safe `?google=error&google_detail=<code>` query pair the UI maps to a
+human-readable banner (`CALLBACK_DETAIL_MESSAGES` in `google-connection-card.tsx`) — never
+renders a raw OAuth error or token to the browser.
+
+**Refresh/disconnect**: `refresh()` decrypts server-side only (never calls Calendar/Gmail APIs),
+preserves an omitted refresh token. `disconnect()` revokes at Google when possible, always
+clears `credential_ciphertext` and sets `status='disconnected'` regardless of revoke outcome
+(matches the pre-existing disconnect route's provider-agnostic contract), and a disconnected
+connection is not refreshable/usable afterward (enforced by the existing `status` check in
+`loadForServiceOp`, unchanged this phase).
+
+**UI**: `app/dashboard/settings/google-connection-card.tsx` (new) — minimal "Connect Google" /
+"Connected as `<email>`" / "Disconnect" card, mounted additively into the existing
+demo-architected Settings screen (`settings-view.tsx`) as a live-fetching client component, same
+convention as `pipeline-board-live.tsx`/`leads-data.tsx`. No Calendar or Gmail UI. Renders
+nothing (not an error state) in demo mode, since there is nothing to connect.
+
+**Tests (labels A-S, 19 scenarios)**: all mocked, zero real Google API calls. Targeted suite —
+`crypto.test.ts`, `oauth-state.test.ts`, `oauth-state.pglite.test.ts`, `providers/google.test.ts`,
+`registry.test.ts`, `store.test.ts`, `connect/route.test.ts`, `callback/route.test.ts` — **10
+files, 81 tests, all passing**. Covers: state CSRF binding/one-time-use/expiry, cross-workspace
+state rejection, unverified-email rejection, refresh-token preservation on omitted reconnect
+response, `sub`-not-email identity, demo-mode 404, unauthenticated 401, missing-config 503 with
+no leaked env var names, duplicate-connection handling, partial-token-response rejection, and
+disconnect always clearing credential material regardless of revoke success/failure.
+
+**Quality gate (this window)**: `tsc --noEmit -p .` clean (0 errors). `eslint` on every touched
+file clean — one real `react-hooks/set-state-in-effect` violation was found and fixed in
+`google-connection-card.tsx` (rewritten to the codebase's existing inline-fetch-in-effect +
+numeric-retry-token convention from `leads-data.tsx`, not suppressed). Full project-wide
+`vitest run`: **128 test files, 2178 tests, all passing** (up from 2131, +47, 0 regressions).
+`next build`: clean, `/dashboard/settings` still builds as a static route, all four
+`/api/dashboard/integrations/connections*` routes present in the route table.
+
+**Security gate (`secure-check .`, this window)**: one in-scope finding — `lib/integrations/
+crypto.ts`'s `createDecipheriv` call was missing an explicit `authTagLength` (semgrep
+`gcm-no-tag-length`: a shorter-than-expected GCM tag can in principle be accepted, weakening the
+tamper/wrong-key detection the encrypted token storage relies on). **Fixed**: pinned
+`authTagLength: 16` explicitly, re-verified against `crypto.test.ts` (4/4 still passing, no
+round-trip/fail-closed regression). All other findings (40 semgrep `wildcard-postmessage-
+configuration`, 41 gitleaks filesystem/history leaks, 30 trivy HIGH/CRITICAL dependency CVEs)
+were triaged by direct JSON-report inspection (`semgrep.json`/`trivy.json` `results[].path`/
+package fields) and confirmed to originate entirely from pre-existing untracked vendored/
+uploaded design-export files at the repo root (`CODEOUTFITTERS-*.zip`, `System-Artifacts/`,
+`Dashboard/`, etc.) and unrelated dependency trees (`drizzle-orm`, `fastify`, `next`, `sharp`,
+etc., none of which are `google-auth-library` or its transitive dependencies) — none touch any
+file this phase changed, none suppressed, disclosed here rather than silently dropped.
+
+**Schema**: `supabase/migrations/20260819000000_oauth_states.sql` — local only,
+**MIGRATION_READY_NOT_DEPLOYED**, not pushed to hosted this window (ACL/RLS review of the new
+table deferred to the same deploy-gate convention already used for `20260818000000` — deploy
+only after an explicit hosted-ACL audit pass, not automatically alongside code).
+
+**Runtime configuration**: `GOOGLE_OAUTH_CLIENT_ID`/`GOOGLE_OAUTH_CLIENT_SECRET` remain **NOT
+configured** in this environment (confirmed, both this window and carried forward — server-only,
+never `NEXT_PUBLIC_*`, added as empty template values to `.env.example` only, no real value
+committed anywhere). The adapter fails closed (503, `google_calendar unavailable`) with either
+unset — proven by test "S". **No real Google OAuth connection was attempted or is possible in
+this environment.** No Google Cloud OAuth client was created programmatically and no Google
+Cloud configuration was touched, per explicit instruction — that remains a manual owner action.
+
+**Manual owner setup required** (`GOOGLE_OAUTH_OWNER_CONFIGURATION_REQUIRED`): (1) create an
+OAuth 2.0 Client ID (Web application type) in Google Cloud Console for this project; (2) add the
+exact redirect URI(s) — **not guessed here**, must be confirmed against the actual deployed
+hostname(s) (e.g. `https://codeoutfitters.vercel.app/api/dashboard/integrations/connections/
+callback` for production, plus any preview/local URL actually used) — to the client's Authorized
+redirect URIs list; (3) set the OAuth consent screen scopes to exactly `openid`, `email`,
+`profile` (no Calendar/Gmail scope yet); (4) set `GOOGLE_OAUTH_CLIENT_ID` and
+`GOOGLE_OAUTH_CLIENT_SECRET` as server-only environment variables (Vercel project env, never
+`NEXT_PUBLIC_*`) for each environment that should support a real connection; (5) once configured,
+deploy `20260819000000_oauth_states.sql` to hosted (after its own ACL review) before the first
+real connect attempt, since `createOAuthState` requires the table.
+
+**Milestone verdict**: `GOOGLE_OAUTH_FOUNDATION_CODE_COMPLETE_OWNER_CONFIG_REQUIRED`. Code,
+tests, and quality/security gates are complete and passing; the feature cannot be exercised
+end-to-end until the owner completes the manual Google Cloud + environment-variable setup above
+and the new migration is reviewed and deployed. Does not change the status of rows 1-21 or the
+Integration Foundation entry above; does not touch or reinterpret the Pipeline 409 investigation.
+**Do not begin Calendar or Gmail functionality next** — those remain separate future phases.
+
 ## Backlog
 
 - `LEAD_INGESTION_WORKSPACE_MISSING_FAIL_CLOSED` — **RESOLVED, on hosted.** Fixed by

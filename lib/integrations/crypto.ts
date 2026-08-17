@@ -20,6 +20,7 @@ import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 const ALGORITHM = "aes-256-gcm";
 const KEY_BYTES = 32;
 const IV_BYTES = 12;
+const AUTH_TAG_BYTES = 16;
 
 class IntegrationCryptoConfigError extends Error {
   constructor(message: string) {
@@ -76,7 +77,10 @@ export function decryptCredential(ciphertext: string): string {
   if (version !== "v1" || !ivB64 || !tagB64 || !dataB64) {
     throw new IntegrationCryptoConfigError("Malformed credential ciphertext.");
   }
-  const decipher = createDecipheriv(ALGORITHM, key, Buffer.from(ivB64, "base64"));
+  // authTagLength pinned explicitly: without it, a shorter-than-expected tag can be
+  // accepted, weakening the GCM authentication check that makes a tampered or
+  // wrong-key ciphertext fail closed (semgrep gcm-no-tag-length).
+  const decipher = createDecipheriv(ALGORITHM, key, Buffer.from(ivB64, "base64"), { authTagLength: AUTH_TAG_BYTES });
   decipher.setAuthTag(Buffer.from(tagB64, "base64"));
   const decrypted = Buffer.concat([
     decipher.update(Buffer.from(dataB64, "base64")),
