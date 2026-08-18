@@ -30,6 +30,11 @@ function mockScenarioParam(options: FetchLeadsOptions): string {
   return `mock-scenario=${encodeURIComponent(options.mockScenario)}`;
 }
 
+// Dashboard overview mounts three responsive variants (desktop/tablet/mobile) of the same
+// widgets at once — CSS hides the inactive two, but all three call fetchLeads() on mount.
+// Dedup identical in-flight requests to one network call instead of three.
+const inFlight = new Map<string, Promise<LeadsListResponse>>();
+
 export async function fetchLeads(
   params: FetchLeadsParams = {},
   options: FetchLeadsOptions = {},
@@ -37,10 +42,22 @@ export async function fetchLeads(
   const qs = leadsQueryString(params);
   const scenario = mockScenarioParam(options);
   const url = `/api/leads${qs}${scenario ? (qs ? "&" : "?") + scenario : ""}`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`leads.list failed: ${res.status}`);
+
+  const existing = inFlight.get(url);
+  if (existing) return existing;
+
+  const request = (async () => {
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error(`leads.list failed: ${res.status}`);
+    }
+    const json = await res.json();
+    return LeadsListResponseSchema.parse(json);
+  })();
+  inFlight.set(url, request);
+  try {
+    return await request;
+  } finally {
+    inFlight.delete(url);
   }
-  const json = await res.json();
-  return LeadsListResponseSchema.parse(json);
 }

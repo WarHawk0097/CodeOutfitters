@@ -41,11 +41,25 @@ async function parseApi<T>(res: Response): Promise<ApiResult<T>> {
   return { ok: true, body: body as T };
 }
 
+// Dashboard overview mounts three responsive variants (desktop/tablet/mobile) of the same
+// widgets at once — CSS hides the inactive two, but all three call useLiveTasks() on mount.
+// Dedup identical in-flight requests to one network call instead of three.
+let tasksInFlight: Promise<LoadState> | null = null;
+
 async function fetchTasks(): Promise<LoadState> {
-  const res = await fetch("/api/dashboard/tasks", { method: "GET" });
-  const result = await parseApi<{ tasks: Task[]; team: TeamMember[]; viewer: TaskViewer }>(res);
-  if (!result.ok) return { status: "error", message: result.message };
-  return { status: "ready", tasks: result.body.tasks, team: result.body.team, viewer: result.body.viewer };
+  if (tasksInFlight) return tasksInFlight;
+  const request = (async () => {
+    const res = await fetch("/api/dashboard/tasks", { method: "GET" });
+    const result = await parseApi<{ tasks: Task[]; team: TeamMember[]; viewer: TaskViewer }>(res);
+    if (!result.ok) return { status: "error" as const, message: result.message };
+    return { status: "ready" as const, tasks: result.body.tasks, team: result.body.team, viewer: result.body.viewer };
+  })();
+  tasksInFlight = request;
+  try {
+    return await request;
+  } finally {
+    tasksInFlight = null;
+  }
 }
 
 async function patchTask(id: string, patch: Record<string, unknown>): Promise<TaskActionResult> {

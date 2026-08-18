@@ -11,6 +11,7 @@ import type {
   LeadAttachment,
 } from '@/lib/dashboard/server'
 import { getLeadDirectory } from '@/lib/demo/seed'
+import { CURRENT_USER } from '@/lib/identity/current-user'
 
 export const DEMO_WORKSPACE_NAME = 'CodeOutfitters Demo Workspace'
 
@@ -224,6 +225,8 @@ export function demoContext(): DashboardContext {
     workspaceId: 'demo-workspace',
     workspaceName: DEMO_WORKSPACE_NAME,
     role: 'owner',
+    name: CURRENT_USER.name,
+    initials: CURRENT_USER.initials,
   }
 }
 

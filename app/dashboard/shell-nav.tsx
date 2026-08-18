@@ -8,6 +8,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Sidebar, ShellHeader } from "@command-center/ui";
 import { signOut } from "@/app/login/actions";
+import { CURRENT_USER } from "@/lib/identity/current-user";
 import { useHeaderStats, useLeadsExport, useDashboardRange } from "./header-stats";
 import { useCommandCenterConfig } from "@/components/command-center/mode-provider";
 import { CommandCenterTrigger } from "@/components/command-center/command-center";
@@ -84,7 +85,7 @@ const RANGE_PILLS = [
   { label: "90D", value: "90d" },
 ] as const;
 
-function OverviewHeaderRight() {
+function OverviewHeaderRight({ viewerInitials }: { viewerInitials?: string }) {
   const { range, setRange } = useDashboardRange();
   return (
     <>
@@ -123,7 +124,7 @@ function OverviewHeaderRight() {
         <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
       </svg>
       <span className="hidden h-8 w-8 items-center justify-center rounded-[7px] bg-cc-avatar text-[12px] font-semibold text-cc-avatar-ink xl:flex">
-        MR
+        {viewerInitials ?? CURRENT_USER.initials}
       </span>
     </>
   );
@@ -319,9 +320,23 @@ export function ShellLink({
   );
 }
 
-export function ShellNav() {
+export function ShellNav({
+  viewerName,
+  viewerInitials,
+}: {
+  viewerName?: string;
+  viewerInitials?: string;
+}) {
   const pathname = usePathname();
-  return <Sidebar activeHref={pathname} linkAs={ShellLink} onSignOut={signOut} />;
+  return (
+    <Sidebar
+      activeHref={pathname}
+      linkAs={ShellLink}
+      onSignOut={signOut}
+      viewerName={viewerName}
+      viewerInitials={viewerInitials}
+    />
+  );
 }
 
 // Content padding is canonical PER SCREEN, not per breakpoint alone: Overview is
@@ -350,7 +365,13 @@ export function ShellMain({ children }: { children: ReactNode }) {
   );
 }
 
-export function ShellHeaderBar() {
+export function ShellHeaderBar({
+  viewerName,
+  viewerInitials,
+}: {
+  viewerName?: string;
+  viewerInitials?: string;
+} = {}) {
   const pathname = usePathname();
   const meta = PAGE_META[pathname];
   const { stats } = useHeaderStats();
@@ -375,6 +396,8 @@ export function ShellHeaderBar() {
       activeHref={pathname}
       linkAs={ShellLink}
       onSignOut={signOut}
+      viewerName={viewerName}
+      viewerInitials={viewerInitials}
       title={meta?.title ?? "Command Center"}
       subtitle={leadsSubtitle ?? meta?.subtitle}
       right={
@@ -388,7 +411,7 @@ export function ShellHeaderBar() {
             <CommandCenterTrigger variant="icon" />
           </span>
           {pathname === "/dashboard" ? (
-          <OverviewHeaderRight />
+          <OverviewHeaderRight viewerInitials={viewerInitials} />
         ) : isLeads ? (
           <LeadsHeaderRight />
         ) : pathname === "/dashboard/pipeline" ? (
@@ -416,7 +439,7 @@ export function ShellHeaderBar() {
           <CommandCenterTrigger variant="icon" />
           {pathname === "/dashboard" ? (
           <span className="flex h-8 w-8 items-center justify-center rounded-[7px] bg-cc-avatar text-[11px] font-semibold text-cc-avatar-ink">
-            MR
+            {viewerInitials ?? CURRENT_USER.initials}
           </span>
         ) : isLeads && stats ? (
           // MO-02 1070: the record count replaces the avatar at mobile.

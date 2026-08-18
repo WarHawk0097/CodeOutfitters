@@ -26,8 +26,12 @@ describe("dashboard sign-out control", () => {
   });
 
   it("threads onSignOut into both NavDrawer call sites and ExpandedSidebar", () => {
-    expect(sidebarSrc).toContain("<AccountFooter avatar={v.avatar} role={v.role} logout onSignOut={onSignOut} />");
-    expect(sidebarSrc).toContain("<AccountFooter logout onSignOut={onSignOut} />");
+    expect(sidebarSrc).toContain(
+      "<AccountFooter\n            avatar={v.avatar}\n            role={v.role}\n            name={viewerName}\n            initials={viewerInitials}\n            logout\n            onSignOut={onSignOut}\n          />",
+    );
+    expect(sidebarSrc).toContain(
+      "<AccountFooter name={viewerName} initials={viewerInitials} logout onSignOut={onSignOut} />",
+    );
   });
 
   it("threads onSignOut through the mobile header drawer", () => {

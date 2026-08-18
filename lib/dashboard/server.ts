@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { roleRank, type WorkspaceRole } from '@/lib/dashboard/roles'
 import { isUuid } from '@/lib/dashboard/validation'
+import { resolveDisplayName, initialsFor } from '@/lib/identity/display-name'
 
 export type DashboardContext = {
   userId: string
@@ -10,6 +11,8 @@ export type DashboardContext = {
   workspaceId: string
   workspaceName: string
   role: WorkspaceRole
+  name: string
+  initials: string
 }
 
 // Resolves the authenticated user and their highest-privilege active workspace.
@@ -23,17 +26,34 @@ export async function getDashboardContext(): Promise<DashboardContext | null> {
   } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: memberships } = await supabase
-    .from('workspace_memberships')
-    .select('role, workspace_id, workspaces(name)')
-    .eq('user_id', user.id)
-    .eq('status', 'active')
+  // profiles has no FK PostgREST can embed on the memberships query (same reason
+  // lib/tasks/server-provider.ts's displayNamesByUserId fetches it separately) —
+  // one extra id-scoped lookup, RLS-bound to the caller's own row. Both depend
+  // only on user.id, so they run concurrently: one network round trip, not two.
+  const [{ data: memberships }, { data: profile }] = await Promise.all([
+    supabase
+      .from('workspace_memberships')
+      .select('role, workspace_id, workspaces(name)')
+      .eq('user_id', user.id)
+      .eq('status', 'active'),
+    supabase.from('profiles').select('full_name').eq('id', user.id).maybeSingle(),
+  ])
 
   if (!memberships || memberships.length === 0) return null
 
   const best = [...memberships].sort(
     (a, b) => roleRank(b.role as WorkspaceRole) - roleRank(a.role as WorkspaceRole),
   )[0]
+
+  const meta = (user.user_metadata ?? {}) as Record<string, unknown>
+  const asString = (value: unknown): string | null => (typeof value === 'string' ? value : null)
+  const name = resolveDisplayName({
+    profileFullName: profile?.full_name ?? null,
+    providerFullName: asString(meta.full_name) ?? asString(meta.name),
+    providerGivenName: asString(meta.given_name),
+    providerFamilyName: asString(meta.family_name),
+    email: user.email ?? null,
+  })
 
   return {
     userId: user.id,
@@ -42,6 +62,8 @@ export async function getDashboardContext(): Promise<DashboardContext | null> {
     workspaceName:
       (best.workspaces as { name?: string } | null)?.name ?? 'Workspace',
     role: best.role as WorkspaceRole,
+    name,
+    initials: initialsFor(name),
   }
 }
 

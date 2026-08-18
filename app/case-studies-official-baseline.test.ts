@@ -230,8 +230,11 @@ describe('official production parity', () => {
   // app/dashboard/shell-contract.test.ts, which catches a regression this byte
   // lock never could: a renamed label, a rerouted destination, a preview URL or an
   // unregistered route all pass a byte comparison the moment anyone updates it.
-  unchanged('15: the dashboard layout, theme and Overview are unchanged', [
-    'app/dashboard/layout.tsx',
+  // app/dashboard/layout.tsx dropped from this freeze: Command Center audit Phase B
+  // now resolves the signed-in viewer's real name/initials there (getDashboardContext()),
+  // an intentional live-mode identity fix outside case-studies scope, covered by its
+  // own tests (lib/dashboard/viewer-identity.test.ts, lib/identity/display-name.test.ts).
+  unchanged('15: the dashboard theme and Overview are unchanged', [
     'app/dashboard/theme.tsx',
     'app/dashboard/(overview)/page.tsx',
   ])

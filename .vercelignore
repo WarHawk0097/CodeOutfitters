@@ -1,0 +1,6 @@
+scripts/.*.cjs
+.env.local
+.env*.local
+..env.local.swp
+*.swp
+work/

@@ -13,16 +13,23 @@ import { ShellNav, ShellHeaderBar, ShellMain } from "./shell-nav";
 import { HeaderStatsProvider } from "./header-stats";
 import { CommandCenterConfigProvider } from "@/components/command-center/mode-provider";
 import { CommandCenterProvider } from "@/components/command-center/command-center";
+import { CopilotLauncher } from "@/components/command-center/copilot-launcher";
 import { commandCenterClientConfig } from "@/lib/command-center/mode";
+import { getDashboardContext } from "@/lib/dashboard/server";
 import { MockBrowserInit } from "@/mocks/browser-init";
 import { DashboardThemeRoot } from "./theme";
 
-export default function ShellLayout({ children }: { children: ReactNode }) {
+export default async function ShellLayout({ children }: { children: ReactNode }) {
   // Mode is resolved here, in a server component, from the server-only
   // COMMAND_CENTER_MODE. The client tree receives only booleans (never the mode
   // env), so demo/live behaviour is server-decided and never inlined client-side.
   // Demo disables real downloads; live (Work Order F) permits them.
   const config = commandCenterClientConfig();
+  // Real viewer identity, live mode only — demo keeps its fixed identity.
+  // requireDashboardContext isn't used here: an unauthenticated or
+  // not-yet-authorized visitor still needs the shell to render so the page body
+  // (e.g. /access-pending) can do its own redirect; this is display-only.
+  const viewer = config.live ? await getDashboardContext() : null;
   return (
     // The provider spans header and content because the C-D05 header subtitle is derived
     // from the leads response the content fetches (see header-stats.tsx).
@@ -37,14 +44,17 @@ export default function ShellLayout({ children }: { children: ReactNode }) {
         positioned against the viewport, not against the scrolling content column. */}
     <CommandCenterProvider>
     <DashboardThemeRoot className="flex h-screen overflow-hidden bg-cc-canvas">
-      <ShellNav />
+      <ShellNav viewerName={viewer?.name} viewerInitials={viewer?.initials} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <ShellHeaderBar />
+        <ShellHeaderBar viewerName={viewer?.name} viewerInitials={viewer?.initials} />
         {/* Content padding is canonical per screen, so it lives in ShellMain where the
             pathname is available: Overview MO-01 1042 / T-01 859 / C-D01 44, Leads
             MO-02 1077 / T-02 894 / C-D05 143. */}
         <ShellMain>{children}</ShellMain>
       </div>
+      {/* Global, not per-route: mounted here so its conversation state survives navigation
+          between dashboard pages instead of resetting on every route change. */}
+      <CopilotLauncher />
     </DashboardThemeRoot>
     </CommandCenterProvider>
     </HeaderStatsProvider>

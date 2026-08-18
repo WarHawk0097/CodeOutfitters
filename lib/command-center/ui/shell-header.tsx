@@ -36,6 +36,10 @@ export type ShellHeaderProps = {
   /** The app's signOut() server action, threaded to the mobile drawer's
       account footer sign-out button (see Sidebar's own onSignOut prop). */
   onSignOut?: (formData: FormData) => void | Promise<void>;
+  /** The signed-in person, server-resolved by the app — threaded to the mobile
+      drawer's account footer (see Sidebar's own viewerName/viewerInitials). */
+  viewerName?: string;
+  viewerInitials?: string;
 };
 
 export function ShellHeader({
@@ -47,6 +51,8 @@ export function ShellHeader({
   mobileCenter,
   mobileRight,
   onSignOut,
+  viewerName,
+  viewerInitials,
 }: ShellHeaderProps) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -105,6 +111,8 @@ export function ShellHeader({
           linkAs={linkAs}
           onClose={() => setOpen(false)}
           triggerRef={triggerRef}
+          viewerName={viewerName}
+          viewerInitials={viewerInitials}
         />
       ) : null}
     </>

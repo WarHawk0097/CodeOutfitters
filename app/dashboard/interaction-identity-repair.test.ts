@@ -466,10 +466,16 @@ describe("owner identity (36-43)", () => {
   });
 
   // 37
-  it("shows that identity in the sidebar account footer", () => {
-    expect(sidebarSrc).toContain("{CURRENT_USER.initials}");
-    expect(sidebarSrc).toContain("{CURRENT_USER.name}");
+  it("shows that identity in the sidebar account footer, defaulting to it when no real viewer is passed", () => {
+    // AccountFooter takes name/initials/role as props (a live caller passes the
+    // real, server-resolved viewer — see lib/dashboard/server.ts /
+    // app/dashboard/layout.tsx) so demo mode still falls back to CURRENT_USER
+    // when none is given, and the footer renders whichever it was given.
     expect(sidebarSrc).toContain("role = CURRENT_USER.displayRole");
+    expect(sidebarSrc).toContain("name = CURRENT_USER.name");
+    expect(sidebarSrc).toContain("initials = CURRENT_USER.initials");
+    expect(sidebarSrc).toContain("{initials}");
+    expect(sidebarSrc).toContain("{name}");
   });
 
   // 38

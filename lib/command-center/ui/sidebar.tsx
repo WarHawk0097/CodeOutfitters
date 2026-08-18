@@ -169,11 +169,19 @@ function BrandBlock() {
 function AccountFooter({
   avatar = 30,
   role = CURRENT_USER.displayRole,
+  name = CURRENT_USER.name,
+  initials = CURRENT_USER.initials,
   logout = false,
   onSignOut,
 }: {
   avatar?: number;
   role?: string;
+  /** The signed-in person's name/initials. Defaults to the demo identity — a live
+      caller passes the real, server-resolved viewer (see app/dashboard/layout.tsx)
+      so this footer, the two drawers and the rail avatar cannot show a different
+      person than who is actually signed in. */
+  name?: string;
+  initials?: string;
   logout?: boolean;
   /** The existing signOut() server action (app/login/actions.ts), passed down from the
       app layer. The UI package stays framework-agnostic — it renders the control, the
@@ -186,11 +194,11 @@ function AccountFooter({
         className="flex shrink-0 items-center justify-center rounded-[7px] bg-cc-avatar text-[11.5px] font-semibold text-cc-avatar-ink"
         style={{ width: avatar, height: avatar }}
       >
-        {CURRENT_USER.initials}
+        {initials}
       </div>
       <div className="min-w-0 flex-1">
         <div className="truncate text-[12.5px] font-medium text-cc-sidebar-name">
-          {CURRENT_USER.name}
+          {name}
         </div>
         <div className="truncate text-[10.5px] text-cc-sidebar-muted">{role}</div>
       </div>
@@ -302,6 +310,8 @@ export function NavDrawer({
   variant,
   className = "",
   onSignOut,
+  viewerName,
+  viewerInitials,
 }: {
   activeHref: string;
   linkAs?: LinkComponent;
@@ -310,6 +320,8 @@ export function NavDrawer({
   variant: keyof typeof DRAWER_VARIANTS;
   className?: string;
   onSignOut?: (formData: FormData) => void | Promise<void>;
+  viewerName?: string;
+  viewerInitials?: string;
 }) {
   const v = DRAWER_VARIANTS[variant];
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -406,7 +418,14 @@ export function NavDrawer({
             View website
             <span className="sr-only"> (opens in new tab)</span>
           </a>
-          <AccountFooter avatar={v.avatar} role={v.role} logout onSignOut={onSignOut} />
+          <AccountFooter
+            avatar={v.avatar}
+            role={v.role}
+            name={viewerName}
+            initials={viewerInitials}
+            logout
+            onSignOut={onSignOut}
+          />
         </div>
       </div>
     </div>
@@ -421,11 +440,15 @@ function ExpandedSidebar({
   linkAs,
   onCollapse,
   onSignOut,
+  viewerName,
+  viewerInitials,
 }: {
   activeHref: string;
   linkAs?: LinkComponent;
   onCollapse: () => void;
   onSignOut?: (formData: FormData) => void | Promise<void>;
+  viewerName?: string;
+  viewerInitials?: string;
 }) {
   return (
     <nav
@@ -456,7 +479,7 @@ function ExpandedSidebar({
         </a>
         <CollapseRow onCollapse={onCollapse} />
         <div className="mt-[10px]">
-          <AccountFooter logout onSignOut={onSignOut} />
+          <AccountFooter name={viewerName} initials={viewerInitials} logout onSignOut={onSignOut} />
         </div>
       </div>
     </nav>
@@ -472,6 +495,7 @@ function IconRail({
   triggerRef,
   collapsed,
   onExpand,
+  viewerInitials = CURRENT_USER.initials,
 }: {
   activeHref: string;
   linkAs?: LinkComponent;
@@ -481,6 +505,7 @@ function IconRail({
   /** True when the rail is standing in for the collapsed 248px desktop nav. */
   collapsed: boolean;
   onExpand: () => void;
+  viewerInitials?: string;
 }) {
   return (
     <nav
@@ -526,7 +551,7 @@ function IconRail({
           </button>
         ) : null}
         <div className="flex h-[30px] w-[30px] items-center justify-center rounded-[7px] bg-cc-avatar text-[11px] font-semibold text-cc-avatar-ink">
-          MR
+          {viewerInitials}
         </div>
       </div>
     </nav>
@@ -539,12 +564,19 @@ export function Sidebar({
   activeHref,
   linkAs,
   onSignOut,
+  viewerName,
+  viewerInitials,
 }: {
   activeHref: string;
   linkAs?: LinkComponent;
   /** The app's signOut() server action, threaded down to the account footer's
       sign-out button in every nav surface (expanded sidebar and drawer). */
   onSignOut?: (formData: FormData) => void | Promise<void>;
+  /** The signed-in person, server-resolved by the app (see
+      app/dashboard/layout.tsx). Undefined renders the demo identity, so this
+      package still works standalone. */
+  viewerName?: string;
+  viewerInitials?: string;
 }) {
   const [open, setOpen] = useState(false);
   // Session-scoped on purpose: collapsing is a momentary "give me more room"
@@ -559,6 +591,8 @@ export function Sidebar({
           linkAs={linkAs}
           onCollapse={() => setCollapsed(true)}
           onSignOut={onSignOut}
+          viewerName={viewerName}
+          viewerInitials={viewerInitials}
         />
       )}
       <IconRail
@@ -569,6 +603,7 @@ export function Sidebar({
         triggerRef={triggerRef}
         collapsed={collapsed}
         onExpand={() => setCollapsed(false)}
+        viewerInitials={viewerInitials}
       />
       {open ? (
         <NavDrawer
@@ -581,6 +616,8 @@ export function Sidebar({
           onClose={() => setOpen(false)}
           triggerRef={triggerRef}
           onSignOut={onSignOut}
+          viewerName={viewerName}
+          viewerInitials={viewerInitials}
         />
       ) : null}
     </>

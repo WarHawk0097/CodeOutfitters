@@ -674,3 +674,47 @@ cannot be checked without pushing.
   low-risk, non-secret hand-off — e.g. drop them directly into a gitignored `.env.local` via `!`,
   or paste in chat), or explicitly authorize starting the installed-but-unauthenticated Supabase
   MCP plugin's OAuth flow as an alternative retrieval path.
+
+## Command Center Quality + UX milestone — production verified, finalized (2026-08-18)
+
+Resolves the `LIVE_BROWSER_PUBLISHABLE_KEY_REQUIRED` blocker above: publishable key was supplied,
+Production env preflight added `COMMAND_CENTER_MODE=live`, `AUTH_GOOGLE_ENABLED=true`,
+`NEXT_PUBLIC_SITE_URL=https://codeoutfitters.vercel.app` (non-secret config only, no secret
+values touched), and a Production deployment was created from the local worktree via Vercel CLI
+(`dpl_ymnkxuTd7Nh56EGjRaHTE9XcWmbb`, source=cli, gitDirty=1, aliased to
+`codeoutfitters.vercel.app` + custom domains). Full authenticated Production QA (Playwright,
+real hosted QA login) passed: dashboard routes, Copilot, Settings, Leads, security, responsive
+(390/834/1440px), no secret/ciphertext exposure, unauthenticated APIs correctly 401. Rollback
+deployment (`dpl_FRMoBwZM6L3CpCFe7LrSEZhYPkeG`) retained untouched, not needed.
+
+Factual current-state, as of this window:
+- **Command Center production live mode is enabled** (`COMMAND_CENTER_MODE=live` set in
+  Production) — supersedes the "production currently defaults to demo" note above.
+- **Google Sign-In works** in Production (`AUTH_GOOGLE_ENABLED=true`, verified button present;
+  no forced real OAuth handshake was run this window).
+- **Authenticated identity bug fixed**: real viewer identity now renders in the dashboard shell
+  in place of demo fixture data ("Marc"/"Mark Bryce" leakage) — `lib/identity/display-name.ts` +
+  `lib/dashboard/viewer-identity.test.ts` (new this window).
+- **Global Copilot launcher/drawer added** (`components/command-center/copilot-launcher.tsx`) —
+  the full standalone Copilot page is retained unchanged; the drawer is an additive entry point,
+  not a replacement.
+- **Copilot backend remains unavailable where no AI provider/backend is configured** — not
+  changed this window, not claimed fixed.
+- **Dashboard performance**: request duplication in Leads/Tasks data-fetching reduced
+  (`lib/dashboard/server.ts`, `lib/data/leads.ts`, `lib/tasks/use-live-tasks.ts`).
+- **Integration connection management is embedded in Settings**, not a standalone page — matches
+  the Integration Foundation UI decision recorded above (`google-connection-card.tsx` mounted
+  into `settings-view.tsx`).
+- **Google OAuth Integration Foundation exists** (Phase 2.5 above) — identity scopes only
+  (`openid email profile`), no Calendar/Gmail scope.
+- **Calendar and Gmail functionality/scopes remain NOT_STARTED** — rows 6/7/8/9/11 above are
+  unchanged by this window; nothing here advances them.
+- **Production deployment verified** end-to-end via authenticated browser QA against the live
+  hosted app, not source inspection alone.
+- **The deferred Leads hosted-stage `409`/`HOSTED_PLATFORM_TRANSIENT` investigation (row 2 above)
+  remains deferred and unrelated to this milestone** — not touched, not resumed this window.
+
+Source preserved exactly as deployed: one local commit created on `feat/leads-foundation-live`
+representing this exact deployed worktree state (see commit history for SHA/message), not pushed
+to GitHub, Production not redeployed. No new feature work (Calendar/Gmail/SMS/proposals/AI
+backend/Pipeline 409) started this window.
