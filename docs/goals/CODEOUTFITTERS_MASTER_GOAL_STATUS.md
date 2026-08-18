@@ -718,3 +718,65 @@ Source preserved exactly as deployed: one local commit created on `feat/leads-fo
 representing this exact deployed worktree state (see commit history for SHA/message), not pushed
 to GitHub, Production not redeployed. No new feature work (Calendar/Gmail/SMS/proposals/AI
 backend/Pipeline 409) started this window.
+
+## Settings restoration + Calendar provider UX + Copilot state continuity (2026-08-18, this window)
+
+Restores the 13 historical Settings sections to the live Command Center, which an earlier
+window's `useDemoState()`/`EMPTY_DEMO_STATE.settings = []` behavior had silently emptied to
+Appearance + Google only. No Settings persistence backend was created — the audit behind this
+window's plan confirmed the 13 sections never had one; this window is restoration of the UI, not
+invention of a new backend. Work happened in `/srv/projects/CodeOutfitters-worktrees/leads-foundation`,
+branch `feat/leads-foundation-live`; not deployed, not pushed.
+
+- **Settings — all 13 historical sections restored to live mode**
+  (`app/dashboard/settings/settings-view.tsx`): live mode now reads section *definitions* from
+  `SETTINGS_SEED` (`lib/demo/seed.ts`) instead of the always-empty `state.settings`; demo mode is
+  unchanged. `lib/demo/store.ts` was **not** touched — its live branch still returns the frozen
+  `EMPTY_DEMO_STATE` by design, so no demo Leads/tasks/activity data was activated for live mode.
+  Appearance and Google remain outside the sections loop, rendered unconditionally as before.
+- **Persistence stays honest, not invented**: live mode skips `saveSettingsSection()` entirely
+  (demo mode still calls it) and shows "Kept for this browser tab only — not synced." instead of
+  a bare "Saved"; each section carries one disclosure line, "Local preview only — account sync is
+  not available yet." No `workspace_settings` table, no new Settings API route, no Supabase
+  migration were created, per explicit instruction.
+- **Real viewer identity in General**: `app/dashboard/settings/page.tsx` is now an async server
+  component that calls `getDashboardContext()` when live (same pattern as
+  `app/dashboard/layout.tsx`) and passes the real name/role into `SettingsScreen`, which
+  substitutes them into the `general` section's `profileName`/`profileRole` fields via the
+  existing `secret: true` read-only-notice pattern — never the demo `CURRENT_USER`
+  ("Marc Bryce") values baked into `SETTINGS_SEED`.
+- **Team and Permissions**: restored visually; live mode adds a link to the real
+  `/dashboard/team` page rather than building a second member-management surface.
+- **Calendar provider UX** (`app/dashboard/settings/google-connection-card.tsx`, renamed in
+  substance to a "Calendar connections" card): Google's connected-state label is now driven by
+  its actual `granted_scopes` (safe metadata, not a token) rather than a hardcoded claim — today
+  that is always `openid email profile`, so it renders "Google account connected" (not "Google
+  Calendar syncing"); the logic would say "Google Calendar connected" automatically if a Calendar
+  scope were ever added, without a future editor having to remember to update a string. Apple
+  Calendar (iCloud) and Microsoft Outlook / Microsoft 365 are shown as "Coming soon" rows with no
+  backend, no OAuth, and no credential collection of any kind. The real Google connection was not
+  disconnected, reconnected, or modified, and no new scopes were requested.
+- **Copilot drawer state continuity**: a new module-level store
+  (`lib/copilot/active-conversation.ts`) ties the floating drawer's persistent `CopilotScreen`
+  instance and the full `/dashboard/ai` page's separate instance to one active-conversation
+  identity via `useSyncExternalStore`, so switching a conversation on either surface resumes it on
+  the other. No server-side conversation-continuity backend exists yet; this is client-only state
+  continuity, not invented persistence. The drawer continues to render with `historyPanel={false}`
+  (no conversation list); the full page keeps its history panel.
+- **Regression checks performed**: no `CURRENT_USER`/"Marc Bryce" leakage found outside test
+  fixtures and the demo-only `state.settings` path; `lib/dashboard/server.ts`,
+  `lib/data/leads.ts`, and `lib/tasks/use-live-tasks.ts` (the dedup/parallelization fixes from the
+  prior milestone) were not touched by this window's changes.
+- **Verification**: `tsc --noEmit` clean; full `vitest run` — 132 files, 2220 tests, all passing
+  (includes 15 new Settings/Calendar tests in `settings-view.test.ts` and 4 new Copilot-continuity
+  tests appended to `copilot-view.test.ts`); `next build` clean (0 errors, all 49 routes compiled);
+  full-project `eslint` shows 0 new errors or warnings attributable to this window's changed files
+  (the 68 pre-existing errors present in the tree are all in untracked scratch `.cjs` QA scripts,
+  unrelated to this work). `next start` was run and `/dashboard/settings`, `/dashboard/ai`,
+  `/dashboard`, `/dashboard/leads`, and `/dashboard/pipeline` were confirmed to resolve (login
+  redirect for unauthenticated requests, as expected) — **full authenticated in-browser QA of the
+  rendered Settings/Calendar/Copilot UI was not performed**, because no test login credentials
+  were available in this environment. This is a known gap, not a claimed pass.
+- **Not started, deliberately**: Apple backend, Microsoft backend, Gmail backend, any Settings
+  persistence API, `workspace_settings`. Not deployed to Preview or Production, not pushed to
+  GitHub, Google credentials untouched.

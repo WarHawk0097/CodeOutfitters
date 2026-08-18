@@ -8,7 +8,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { CopilotScreen, CopilotTranscript } from "./copilot-view";
+import { CopilotScreen, type CopilotScreenProps, CopilotTranscript } from "./copilot-view";
 import { readCopilotStream, type CopilotStreamEvent } from "./copilot-stream";
 import {
   INITIAL_COPILOT_STATE,
@@ -525,5 +525,55 @@ describe("Copilot accessibility", () => {
     });
     expect(renderToStaticMarkup(createElement(CopilotTranscript, { state: errored, errorId: "e" })))
       .toContain("The assistant took too long to respond.");
+  });
+});
+
+describe("Phase 5 — drawer vs. full page conversation surfaces", () => {
+  const launcherSrc = readFileSync(
+    fileURLToPath(new URL("../../../components/command-center/copilot-launcher.tsx", import.meta.url)),
+    "utf8",
+  );
+  const activeConversationSrc = readFileSync(
+    fileURLToPath(new URL("../../../lib/copilot/active-conversation.ts", import.meta.url)),
+    "utf8",
+  );
+
+  it("9: the floating drawer renders CopilotScreen with no conversation history list", () => {
+    // The drawer passes historyPanel={false} explicitly — CopilotScreen defaults
+    // historyPanel to true, so an omitted prop would silently regress this.
+    expect(launcherSrc).toContain("<CopilotScreen historyPanel={false} />");
+    const drawerHtml = renderToStaticMarkup(
+      createElement<CopilotScreenProps>(CopilotScreen, { historyPanel: false }),
+    );
+    expect(drawerHtml).not.toMatch(/<h2[^>]*>Conversations<\/h2>/);
+    expect(drawerHtml).not.toContain('aria-label="Conversation history"');
+  });
+
+  it("10: the full /dashboard/ai page keeps the conversation history list", () => {
+    // page.tsx renders CopilotScreen with no historyPanel override, so it gets the
+    // historyPanel=true default rather than the drawer's explicit false.
+    expect(pageSrc).toContain("<CopilotScreen");
+    expect(pageSrc).not.toContain("historyPanel={false}");
+    const fullHtml = renderToStaticMarkup(createElement(CopilotScreen));
+    expect(fullHtml).toMatch(/<h2[^>]*>Conversations<\/h2>/);
+    expect(fullHtml).toContain('aria-label="Conversation history"');
+  });
+
+  it("11: drawer and full page share one active-conversation identity, not a per-instance one", () => {
+    // Each CopilotScreen owns its own reducer/state — the only thing that can tie a
+    // conversation picked on one surface to the other showing it next is a shared
+    // store outside either instance's local state.
+    expect(viewSrc).toContain("subscribeActiveConversationId");
+    expect(viewSrc).toContain("getActiveConversationId");
+    expect(viewSrc).toContain("setActiveConversationId(state.conversationId)");
+    expect(viewSrc).toContain("useSyncExternalStore");
+    // getServerSnapshot is required and must not throw during SSR (renderToStaticMarkup
+    // never runs effects, so the push/pull useEffects below never fire there either).
+    expect(() => renderToStaticMarkup(createElement(CopilotScreen))).not.toThrow();
+  });
+
+  it("the shared store is a plain module singleton — no server persistence invented for it", () => {
+    expect(activeConversationSrc).not.toMatch(/fetch\(|localStorage|sessionStorage|indexedDB/i);
+    expect(activeConversationSrc).toContain("let activeId: string | null = null");
   });
 });

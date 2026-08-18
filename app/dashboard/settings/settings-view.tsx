@@ -12,9 +12,12 @@ import {
   SEGMENT_ACTIVE,
 } from "@/lib/command-center/ui/control-system";
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { saveSettingsSection } from "../../../lib/demo/actions";
+import { SETTINGS_SEED } from "../../../lib/demo/seed";
 import type { SettingField, SettingsSection, Tone } from "../../../lib/demo/types";
 import { useDemoQuery } from "../../../components/demo/use-demo-query";
+import { useCommandCenterConfig } from "../../../components/command-center/mode-provider";
 import { TONE_INK } from "../../../components/demo/tone";
 import { SecretFieldNotice, SelectField, TextAreaField, TextField, ToggleField } from "../../../components/demo/field";
 import { RouteError, RouteLoading } from "../../../components/demo/route-states";
@@ -32,9 +35,58 @@ import {
   useDashboardTheme,
 } from "../theme";
 
-export function SettingsScreen() {
+/** The 13 historical sections, with real viewer identity substituted for the two
+ *  fields that must never show a demo profile in live mode. Rendered as a `secret`
+ *  notice — no input, no claim of account persistence — same pattern already used
+ *  for every other field this product cannot back with a real provider. */
+export function liveGeneralSection(section: SettingsSection, viewerName: string, viewerRoleLabel: string): SettingsSection {
+  if (section.id !== "general") return section;
+  return {
+    ...section,
+    fields: section.fields.map((field) => {
+      if (field.id === "profileName") {
+        return {
+          ...field,
+          secret: true,
+          value: viewerName,
+          help: `Signed in as ${viewerName}. Editing your name here isn't available yet.`,
+        };
+      }
+      if (field.id === "profileRole") {
+        return {
+          ...field,
+          secret: true,
+          value: viewerRoleLabel,
+          help: `Your workspace role is ${viewerRoleLabel}. Roles are managed on the Team page.`,
+        };
+      }
+      return field;
+    }),
+  };
+}
+
+export function SettingsScreen({
+  viewerName,
+  viewerRole,
+}: {
+  viewerName?: string;
+  viewerRole?: string;
+} = {}) {
   const { state, status, error, retry } = useDemoQuery();
+  const { live } = useCommandCenterConfig();
   const [active, setActive] = useState<string | null>(null);
+
+  // Live mode never reads from the demo store — it stays frozen empty on purpose (see
+  // lib/demo/store.ts) so no synthetic Leads/tasks/business data can leak into a live
+  // dashboard. The 13 historical section DEFINITIONS are safe to reuse directly: they
+  // are a static literal, not demo state. Persistence semantics stay honest — see
+  // SettingsSectionCard's `live` handling below.
+  const sections = useMemo(() => {
+    if (!live) return state.settings;
+    return SETTINGS_SEED.map((section) =>
+      liveGeneralSection(section, viewerName ?? "You", viewerRole ?? "Member"),
+    );
+  }, [live, state.settings, viewerName, viewerRole]);
 
   if (status === "loading") return <RouteLoading label="settings" />;
   if (status === "error") return <RouteError label="settings" error={error!} onRetry={retry} />;
@@ -70,7 +122,7 @@ export function SettingsScreen() {
               Google
             </a>
           </li>
-          {state.settings.map((section) => (
+          {sections.map((section) => (
             <li key={section.id}>
               <a
                 href={`#settings-${section.id}`}
@@ -91,8 +143,8 @@ export function SettingsScreen() {
       <div className="min-w-0 flex-1 space-y-4">
         <ThemeSettingsCard />
         <GoogleConnectionCard />
-        {state.settings.map((section) => (
-          <SettingsSectionCard key={section.id} section={section} />
+        {sections.map((section) => (
+          <SettingsSectionCard key={section.id} section={section} live={live} />
         ))}
       </div>
     </div>
@@ -278,7 +330,7 @@ function ThemeSettingsCard() {
   );
 }
 
-function SettingsSectionCard({ section }: { section: SettingsSection }) {
+function SettingsSectionCard({ section, live }: { section: SettingsSection; live: boolean }) {
   // The editable draft holds only the non-secret fields; secret fields never enter it, so
   // they can never be written.
   const initial = useMemo(() => {
@@ -306,13 +358,28 @@ function SettingsSectionCard({ section }: { section: SettingsSection }) {
           {section.label}
         </h2>
         <p className="mt-0.5 text-[12px] text-cc-t3">{section.description}</p>
+        {/* Single section-level disclosure rather than per-field noise — these 13
+            sections have no account/workspace backend yet, so nothing here should
+            imply it does. */}
+        {live ? (
+          <p className="mt-1.5 text-[11.5px] text-cc-t3">
+            Local preview only — account sync is not available yet.
+          </p>
+        ) : null}
+        {live && section.id === "permissions" ? (
+          <p className="mt-1.5 text-[12px]">
+            <Link href="/dashboard/team" className="font-semibold text-cc-green-ink hover:underline">
+              Manage team members and roles →
+            </Link>
+          </p>
+        ) : null}
       </div>
 
       <form
         onSubmit={(event) => {
           event.preventDefault();
-          saveSettingsSection(section.id, draft);
-          setSavedAt("Saved in this browser.");
+          if (!live) saveSettingsSection(section.id, draft);
+          setSavedAt(live ? "Kept for this browser tab only — not synced." : "Saved in this browser.");
         }}
       >
         {section.fields.map((field) => (

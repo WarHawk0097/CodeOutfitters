@@ -12,13 +12,18 @@
 // `copilot-stream.ts`, the two history reads in `copilot-history.ts`, so all
 // three can be tested in this repo's node environment.
 
-import { useEffect, useId, useReducer, useRef, useState } from "react";
+import { useEffect, useId, useReducer, useRef, useState, useSyncExternalStore } from "react";
 import {
   BTN_PRIMARY,
   BTN_QUIET,
   BTN_SECONDARY,
   FIELD_TEXTAREA,
 } from "../../../lib/command-center/ui/control-system";
+import {
+  getActiveConversationId,
+  setActiveConversationId,
+  subscribeActiveConversationId,
+} from "../../../lib/copilot/active-conversation";
 import { fetchConversation, fetchConversations } from "./copilot-history";
 import type { CopilotState } from "./copilot-state";
 import {
@@ -42,7 +47,12 @@ const MEASURE = "max-w-[68ch]";
 /** Wrapped rather than passed bare: an unbound `fetch` throws in the browser. */
 const browserFetch: typeof fetch = (input, init) => fetch(input, init);
 
-export function CopilotScreen() {
+export interface CopilotScreenProps {
+  historyPanel?: boolean;
+}
+
+export function CopilotScreen(props: CopilotScreenProps = {}) {
+  const { historyPanel = true } = props;
   const [state, dispatch] = useReducer(copilotReducer, INITIAL_COPILOT_STATE);
   const [draft, setDraft] = useState("");
   // Collapsed on small screens only, where the list would otherwise push the
@@ -71,13 +81,14 @@ export function CopilotScreen() {
   }
 
   // The list on arrival. Its own request, so a history that will not load leaves
-  // the composer working.
+  // the composer working. Skipped entirely when the panel showing it is hidden —
+  // don't fetch what isn't on screen, same reasoning as leads-data.tsx's dedup.
   useEffect(() => {
+    if (!historyPanel) return;
     const controller = new AbortController();
     void loadHistory(controller.signal);
     return () => controller.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- once, on mount.
-  }, []);
+  }, [historyPanel]);
 
   // Leaving the page mid-stream should not leave a fetch reading into a component
   // that no longer exists.
@@ -141,7 +152,7 @@ export function CopilotScreen() {
       // The first turn of a new conversation is what creates it, and the server
       // titles it from that message — so the list is only correct after the turn,
       // not before it.
-      if (!controller.signal.aborted) void loadHistory();
+      if (historyPanel && !controller.signal.aborted) void loadHistory();
     } catch {
       // An aborted fetch rejects here, and a cancellation is not a failure.
       if (controller.signal.aborted) return;
@@ -168,17 +179,42 @@ export function CopilotScreen() {
     dispatch({ type: "clear" });
   }
 
+  // State continuity between the drawer and the full page (Phase 5): both mount their own
+  // CopilotScreen, so this is the only thing tying their active conversation together.
+  const sharedConversationId = useSyncExternalStore(
+    subscribeActiveConversationId,
+    getActiveConversationId,
+    () => null,
+  );
+
+  // Push: whenever this instance's own conversation identity changes (a message starts one,
+  // "open" picks a saved one, "clear" starts fresh), tell the other surface.
+  useEffect(() => {
+    setActiveConversationId(state.conversationId);
+  }, [state.conversationId]);
+
+  // Pull: if the OTHER surface changed the active conversation, resume it here too. Guarded
+  // by equality, so this never fires from this instance's own push above.
+  useEffect(() => {
+    if (sharedConversationId === state.conversationId) return;
+    if (sharedConversationId) void open(sharedConversationId);
+    else clear();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sharedConversationId]);
+
   return (
-    <div className="flex flex-col gap-3 lg:flex-row lg:items-start">
-      <HistoryPanel
-        state={state}
-        panelId={historyId}
-        expanded={historyOpen}
-        onToggle={() => setHistoryOpen((value) => !value)}
-        onOpen={(id) => void open(id)}
-        onNew={clear}
-        onRetry={() => void loadHistory()}
-      />
+    <div className={historyPanel ? "flex flex-col gap-3 lg:flex-row lg:items-start" : "flex flex-col gap-3"}>
+      {historyPanel ? (
+        <HistoryPanel
+          state={state}
+          panelId={historyId}
+          expanded={historyOpen}
+          onToggle={() => setHistoryOpen((value) => !value)}
+          onOpen={(id) => void open(id)}
+          onNew={clear}
+          onRetry={() => void loadHistory()}
+        />
+      ) : null}
 
       <div className="flex min-w-0 flex-1 flex-col gap-3">
         {/* The shell header carries the <h1> for the route (shell-nav PAGE_META),

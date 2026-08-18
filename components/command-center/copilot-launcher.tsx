@@ -5,7 +5,12 @@
 //
 // The drawer renders the exact same CopilotScreen as the full /dashboard/ai page — same
 // reducer, same endpoint, same honest "read-only preview" framing. There is no separate,
-// smaller AI surface to keep in sync or to accidentally fake.
+// smaller AI surface to keep in sync or to accidentally fake. It passes historyPanel={false}
+// so the drawer stays a single active conversation, no history rail — that layout is a
+// `lg` viewport media query inside CopilotScreen, which would otherwise fire from the
+// browser's width regardless of how wide this panel is, not from the panel's own width.
+// "New conversation" is still reachable in the drawer via the composer's own "Clear
+// conversation" button once a conversation has messages.
 //
 // Escape/backdrop/focus-restore mirrors components/command-center/command-dialog.tsx: that
 // dialog is centered and this one is a side panel, but the accessibility shape (role="dialog",
@@ -16,10 +21,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CopilotScreen } from "../../app/dashboard/ai/copilot-view";
 
-// CopilotScreen switches to a two-column layout (history rail beside the transcript) at
-// Tailwind's `lg` viewport breakpoint — a media query, not a container query, so it fires by
-// the browser's width regardless of how wide this panel is. Below `lg` the drawer stays narrow
-// (420px); at `lg` and up it widens to give that two-column layout room instead of squeezing it.
 const PANEL =
   "fixed inset-0 z-[60] flex flex-col border-cc-line bg-cc-surface shadow-[0_24px_64px_rgba(20,26,30,.24)] sm:inset-y-0 sm:left-auto sm:right-0 sm:w-[420px] sm:border-l lg:w-[640px]";
 
@@ -138,7 +139,7 @@ export function CopilotLauncher() {
             </div>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-            <CopilotScreen />
+            <CopilotScreen historyPanel={false} />
           </div>
         </div>
       </div>

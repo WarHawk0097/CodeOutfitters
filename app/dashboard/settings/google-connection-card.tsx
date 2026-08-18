@@ -3,7 +3,7 @@
 // as <email> / Disconnect only. No Calendar or Gmail UI — those are explicitly out of scope
 // until their own phases. Live fetch against the real integrations API, not the demo store:
 // this is the one settings card with an actual server-side connection behind it.
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
 import { BTN_DANGER, BTN_DISABLED, BTN_PRIMARY } from "@/lib/command-center/ui/control-system";
 import { RouteError, RouteLoading } from "@/components/demo/route-states";
@@ -13,7 +13,18 @@ type Connection = {
   provider: string;
   status: "connected" | "error" | "disconnected";
   providerAccountEmail: string | null;
+  grantedScopes: string[];
 };
+
+// Row wrapper shared by the connected Google state and the two Coming Soon
+// providers, so all three read as one "Calendar connections" list.
+function ProviderRow({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-cc-line py-3 first:border-t-0 first:pt-0">
+      {children}
+    </div>
+  );
+}
 
 const CALLBACK_DETAIL_MESSAGES: Record<string, string> = {
   access_denied: "Google sign-in was cancelled.",
@@ -113,6 +124,14 @@ export function GoogleConnectionCard() {
       ? (callbackDetail && CALLBACK_DETAIL_MESSAGES[callbackDetail]) || "Google could not be connected."
       : null;
 
+  // Scope names are safe metadata (never a token), returned by listConnections()'s
+  // fixed safe-column select — see the route's own comment. Only openid/email/profile
+  // are ever requested today (lib/integrations/providers/google.ts), so the accurate
+  // label is always "account connected", never "Calendar syncing" — but this stays
+  // scope-driven rather than hardcoded so the label stays honest if Calendar scopes
+  // are ever added later, without anyone having to remember to update this string.
+  const hasCalendarScope = connection?.grantedScopes.some((s) => s.toLowerCase().includes("calendar")) ?? false;
+
   return (
     <section
       id="settings-google"
@@ -121,10 +140,11 @@ export function GoogleConnectionCard() {
     >
       <div className="mb-3">
         <h2 id="settings-google-title" className="text-[14px] font-semibold text-cc-ink">
-          Google
+          Calendar connections
         </h2>
         <p className="mt-0.5 text-[12px] text-cc-t3">
-          Connect a Google account to identify you for future Calendar and Gmail features. Nothing is read or sent yet.
+          Connect a calendar provider to identify you for future Calendar and Gmail features. Nothing is read or
+          sent yet.
         </p>
       </div>
 
@@ -140,20 +160,47 @@ export function GoogleConnectionCard() {
         </p>
       ) : null}
 
-      {connection ? (
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="text-[12.5px] text-cc-ink">
-            Connected as <span className="font-semibold">{connection.providerAccountEmail ?? "unknown email"}</span>
-          </span>
+      <ProviderRow>
+        <div className="text-[12.5px] text-cc-ink">
+          <span className="font-semibold">Google Calendar</span>
+          {connection ? (
+            <span className="ml-2 text-cc-t3">
+              {hasCalendarScope ? "Google Calendar connected" : "Google account connected"} as{" "}
+              <span className="font-semibold text-cc-ink">{connection.providerAccountEmail ?? "unknown email"}</span>
+              {hasCalendarScope ? null : " — Calendar sync is not enabled yet."}
+            </span>
+          ) : null}
+        </div>
+        {connection ? (
           <button type="button" onClick={disconnect} disabled={busy} className={busy ? BTN_DISABLED : BTN_DANGER}>
             Disconnect
           </button>
+        ) : (
+          <button type="button" onClick={connect} disabled={busy} className={busy ? BTN_DISABLED : BTN_PRIMARY}>
+            Connect Google
+          </button>
+        )}
+      </ProviderRow>
+
+      <ProviderRow>
+        <div className="text-[12.5px] text-cc-ink">
+          <span className="font-semibold">Apple Calendar (iCloud)</span>
+          <span className="ml-2 text-cc-t3">Not connected.</span>
         </div>
-      ) : (
-        <button type="button" onClick={connect} disabled={busy} className={busy ? BTN_DISABLED : BTN_PRIMARY}>
-          Connect Google
-        </button>
-      )}
+        <span className="rounded-cc-control bg-cc-secondary px-2 py-1 text-[11px] font-semibold text-cc-t3">
+          Coming soon
+        </span>
+      </ProviderRow>
+
+      <ProviderRow>
+        <div className="text-[12.5px] text-cc-ink">
+          <span className="font-semibold">Microsoft Outlook / Microsoft 365</span>
+          <span className="ml-2 text-cc-t3">Not connected.</span>
+        </div>
+        <span className="rounded-cc-control bg-cc-secondary px-2 py-1 text-[11px] font-semibold text-cc-t3">
+          Coming soon
+        </span>
+      </ProviderRow>
     </section>
   );
 }
