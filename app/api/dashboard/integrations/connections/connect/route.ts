@@ -12,7 +12,7 @@ import { getDashboardContext } from "@/lib/dashboard/server";
 import { jsonError, jsonOk } from "@/lib/integrations/api-response";
 import { IntegrationError, connect } from "@/lib/integrations/store";
 import { createOAuthState } from "@/lib/integrations/oauth-state";
-import { buildGoogleAuthorizationUrl } from "@/lib/integrations/providers/google";
+import { buildGoogleAuthorizationUrl, isGoogleCapability } from "@/lib/integrations/providers/google";
 import type { IntegrationProviderId } from "@/lib/integrations/types";
 
 export const runtime = "nodejs";
@@ -66,13 +66,23 @@ export async function POST(request: Request): Promise<Response> {
   // client-supplied value, so the callback can prove later that a redirect belongs to
   // the request that started it (Section 5).
   if (candidate.provider === "google_calendar") {
+    // Incremental authorization: an optional capability name (never a raw scope) adds
+    // scopes to the SAME connection. Anything not in the allowlist is rejected outright
+    // rather than ignored, so a caller cannot discover which strings are meaningful by
+    // watching which ones succeed — and Gmail is not in the allowlist at all.
+    if (candidate.capability !== undefined && !isGoogleCapability(candidate.capability)) {
+      return jsonError(422, "validation", "Please fix the highlighted fields.", correlationId, {
+        capability: "That is not a supported capability.",
+      });
+    }
+    const capabilities = isGoogleCapability(candidate.capability) ? [candidate.capability] : [];
     try {
       const nonce = await createOAuthState({
         workspaceId: context.workspaceId,
         userId: context.userId,
         provider: "google_calendar",
       });
-      const authorizationUrl = buildGoogleAuthorizationUrl(nonce);
+      const authorizationUrl = buildGoogleAuthorizationUrl(nonce, capabilities);
       return jsonOk({ authorizationUrl }, correlationId);
     } catch {
       // Owner has not configured GOOGLE_OAUTH_CLIENT_ID/SECRET yet, or state creation

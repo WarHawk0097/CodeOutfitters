@@ -11,6 +11,7 @@ import {
 import { isDemoMode } from '@/lib/command-center/mode'
 import { NextActionCard } from '@/components/dashboard/next-action-card'
 import { LeadActivity } from './lead-activity'
+import { LeadMeetings } from './lead-meetings'
 import { LeadUpdateControls } from './lead-update-controls'
 import { isDownloadable } from '@/lib/dashboard/validation'
 import type { LeadStatus } from '@command-center/contracts'
@@ -26,7 +27,7 @@ export default async function LeadDetailPage({
   params: Promise<{ leadId: string }>
 }) {
   const { leadId } = await params
-  await resolveDashboardContext(`/dashboard/leads/${leadId}`)
+  const context = await resolveDashboardContext(`/dashboard/leads/${leadId}`)
   const demo = isDemoMode()
 
   const lead = await resolveLead(leadId)
@@ -112,6 +113,11 @@ export default async function LeadDetailPage({
       <div className="mb-8">
         <LeadActivity leadId={leadId} live={!demo} />
       </div>
+
+      {/* Meetings, transcripts and Meeting Intelligence. Live mode only — demo has no
+          meeting plane, and a fixture meeting rendered here would be indistinguishable
+          from a real one. */}
+      {demo ? null : <LeadMeetings workspaceId={context.workspaceId} leadId={leadId} />}
 
       {typeof lead.workflow_description === 'string' && lead.workflow_description && (
         <div className="mb-8">

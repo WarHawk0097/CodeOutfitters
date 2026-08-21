@@ -22,6 +22,27 @@ import { IntegrationProviderError } from "../provider";
 
 export const GOOGLE_SCOPES = ["openid", "email", "profile"] as const;
 
+/** Read-only Google Meet: conference records, transcripts, transcript entries. The
+ *  narrower `meetings.space.created` covers only spaces this app created, and this app
+ *  creates none, so it would grant nothing usable — `.readonly` is the least privilege
+ *  that actually works here. See lib/meetings/providers/google-meet.ts. */
+export const GOOGLE_MEET_SCOPES = ["https://www.googleapis.com/auth/meetings.space.readonly"] as const;
+
+/** Capabilities a caller may ask to add to the existing Google connection.
+ *
+ *  An ALLOWLIST, not a passthrough: incremental authorization means a caller influences
+ *  which scopes get requested, and the one thing that must never be reachable that way is
+ *  Gmail. A capability that is not named here cannot be asked for at all. */
+export const GOOGLE_OPTIONAL_SCOPES: Readonly<Record<string, readonly string[]>> = {
+  meet: GOOGLE_MEET_SCOPES,
+};
+
+export type GoogleCapability = keyof typeof GOOGLE_OPTIONAL_SCOPES;
+
+export function isGoogleCapability(value: unknown): value is GoogleCapability {
+  return typeof value === "string" && Object.hasOwn(GOOGLE_OPTIONAL_SCOPES, value);
+}
+
 /** The one canonical Google redirect URI — same route Google calls back on in both
  *  local dev and production, resolved from publicOrigin() rather than the request's
  *  own host so it can never be steered by a forwarded header. */
@@ -46,13 +67,31 @@ function client(): OAuth2Client {
 /** Fails closed (throws IntegrationProviderError) the same way exchangeCode does if
  *  GOOGLE_OAUTH_CLIENT_ID/SECRET are not configured — the connect route must not
  *  hand back an authorization URL built from an empty client id. */
-export function buildGoogleAuthorizationUrl(state: string): string {
+export function buildGoogleAuthorizationUrl(state: string, capabilities: readonly GoogleCapability[] = []): string {
+  // Incremental authorization, exactly as the header describes it: the SAME connection
+  // gains a scope by re-running this request with the extra scope added, with
+  // include_granted_scopes so Google returns a token carrying the previously granted ones
+  // too. The user is never disconnected and the stored refresh token is preserved by
+  // store.ts's connect() when Google declines to re-issue one.
+  const extra = capabilities.flatMap((capability) => GOOGLE_OPTIONAL_SCOPES[capability] ?? []);
   return client().generateAuthUrl({
     access_type: "offline",
-    scope: [...GOOGLE_SCOPES],
+    scope: [...new Set([...GOOGLE_SCOPES, ...extra])],
     state,
     include_granted_scopes: true,
+    // Google only re-prompts — and only then re-issues a refresh token — when the grant
+    // actually changes. Asking for consent explicitly on an incremental request is what
+    // makes the added scope land instead of being silently skipped for an account that
+    // has already consented once.
+    ...(extra.length > 0 ? { prompt: "consent" as const } : {}),
   });
+}
+
+/** Does this connection already carry everything the capability needs? The granted
+ *  scopes are what Google actually returned, never what was asked for. */
+export function hasGoogleCapability(grantedScopes: readonly string[], capability: GoogleCapability): boolean {
+  const required = GOOGLE_OPTIONAL_SCOPES[capability] ?? [];
+  return required.length > 0 && required.every((scope) => grantedScopes.includes(scope));
 }
 
 export class GoogleProviderAdapter implements IntegrationProviderAdapter {

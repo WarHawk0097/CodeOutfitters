@@ -9,6 +9,7 @@
 // scrolling inside it. The page itself never grows past the viewport, so the
 // scroll container is the inner region, not the document.
 import type { ReactNode } from "react";
+import { redirect } from "next/navigation";
 import { ShellNav, ShellHeaderBar, ShellMain } from "./shell-nav";
 import { HeaderStatsProvider } from "./header-stats";
 import { CommandCenterConfigProvider } from "@/components/command-center/mode-provider";
@@ -26,10 +27,16 @@ export default async function ShellLayout({ children }: { children: ReactNode })
   // Demo disables real downloads; live (Work Order F) permits them.
   const config = commandCenterClientConfig();
   // Real viewer identity, live mode only — demo keeps its fixed identity.
-  // requireDashboardContext isn't used here: an unauthenticated or
-  // not-yet-authorized visitor still needs the shell to render so the page body
-  // (e.g. /access-pending) can do its own redirect; this is display-only.
   const viewer = config.live ? await getDashboardContext() : null;
+  // Signed in but carrying no active membership (invited, suspended, or revoked).
+  // The routes that resolve workspace data already redirect here via
+  // requireDashboardContext(), but the shell itself is composed of canonical
+  // fixtures — Overview, Pipeline and the rail badges render numbers without ever
+  // touching the workspace — so without this a non-member sees a plausible-looking
+  // dashboard instead of /access-pending. Middleware has already bounced anonymous
+  // requests to /login, so a null viewer here means "authenticated, not authorized".
+  // /access-pending lives outside this layout (app/access-pending), so this cannot loop.
+  if (config.live && !viewer) redirect("/access-pending");
   return (
     // The provider spans header and content because the C-D05 header subtitle is derived
     // from the leads response the content fetches (see header-stats.tsx).

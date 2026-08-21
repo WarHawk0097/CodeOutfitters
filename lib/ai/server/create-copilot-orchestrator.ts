@@ -23,6 +23,7 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { createCopilotConversationStore } from "@/lib/ai/server/copilot-conversation-store";
+import { createMeetingKnowledgeSource } from "@/lib/meetings/knowledge";
 import {
   ConfigurationError,
   CORE_PROMPTS,
@@ -36,7 +37,6 @@ import {
   denyAllPermissionChecker,
   getAIConfig,
   isAIError,
-  nullKnowledgeSource,
   type AIConfig,
   type AIEnvironment,
   type ConversationStore,
@@ -186,9 +186,13 @@ export async function createCopilotOrchestrator(
     planner: new DefaultPlanner({ maxToolIterations: config.maxToolIterations }),
     conversations,
     memory,
-    // No retrieval in this slice. The null source reports itself as unavailable,
-    // which is what stops the planner from ever adding a retrieve step.
-    knowledge: nullKnowledgeSource,
+    // Meeting grounding, and only meeting grounding. The source returns stored,
+    // already-grounded extractions for this workspace's meetings — never a transcript it
+    // re-reads and never a model call of its own — so a Copilot answer about a meeting is
+    // either supported by an analysed meeting or is "I don't know". A workspace with no
+    // analysed meeting retrieves nothing, which is the null source's behaviour and the
+    // path the existing tests cover.
+    knowledge: createMeetingKnowledgeSource(),
     telemetry: copilotTelemetry(options.correlationId),
     rateLimiter: sharedRateLimiter(config),
     clock: () => new Date(),

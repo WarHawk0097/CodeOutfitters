@@ -13,6 +13,7 @@ import {
   InMemoryRateLimiter,
   loadAIConfig,
   noopTelemetry,
+  nullKnowledgeSource,
   type AIConfig,
   type AIStreamEvent,
   type Orchestrator,
@@ -133,7 +134,10 @@ describe("Copilot composition — persistence", () => {
     expect(startedConversation(events)).toBe(conversationId);
     expect(fake.conversations).toHaveLength(1);
     expect(fake.messages).toHaveLength(4);
-    expect(state.clients).toBe(2);
+    // Four, not two: each turn now opens a second client for meeting retrieval as well
+    // as the conversation store. Both are per request, which is the property this asserts
+    // — a client held across requests would outlive the session that authorised it.
+    expect(state.clients).toBe(4);
   });
 
   it("builds one client per composition and never keeps one for the process", async () => {
@@ -143,12 +147,15 @@ describe("Copilot composition — persistence", () => {
     expect(state.clients).toBe(2);
   });
 
-  it("does not touch Supabase at all when a store is injected", async () => {
+  it("does not touch Supabase at all when its stores are injected", async () => {
     const conversations = new InMemoryConversationStore();
 
     const orchestrator = await createCopilotOrchestrator({
       correlationId: "correlation-1",
-      overrides: { ...baseOverrides(), conversations },
+      // Both database-backed seams, because there are now two: the conversation store
+      // and the meeting knowledge source. Injecting only one would leave the other
+      // opening a client and make the count below say nothing about the seam.
+      overrides: { ...baseOverrides(), conversations, knowledge: nullKnowledgeSource },
     });
     await runTurn(orchestrator);
 
@@ -193,6 +200,13 @@ describe("Copilot composition — source", () => {
     expect(identity).toBeGreaterThan(-1);
     expect(identity).toBeLessThan(body);
     expect(body).toBeLessThan(composed);
+  });
+
+  it("grounds a turn on meetings, and on nothing else", () => {
+    // A second knowledge source added here would widen what Copilot can quote without
+    // any test failing. `nullKnowledgeSource` would silently turn the grounding off.
+    expect(composition).toContain("knowledge: createMeetingKnowledgeSource()");
+    expect(composition).not.toContain("nullKnowledgeSource");
   });
 
   it("keeps database access out of the handler", () => {

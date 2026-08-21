@@ -1,6 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { IntegrationProviderError } from "../provider";
-import { GoogleProviderAdapter, GOOGLE_SCOPES, buildGoogleAuthorizationUrl } from "./google";
+import {
+  GoogleProviderAdapter,
+  GOOGLE_MEET_SCOPES,
+  GOOGLE_SCOPES,
+  buildGoogleAuthorizationUrl,
+  hasGoogleCapability,
+  isGoogleCapability,
+} from "./google";
 
 // Mocked google-auth-library only — no real Google call anywhere in this suite (Section
 // 19: "mocked tests ... no real Google calls"). One shared mock instance per test lets
@@ -173,5 +180,80 @@ describe("integrations/providers/google", () => {
     await expect(
       new GoogleProviderAdapter().revoke({ accessToken: "access-1", refreshToken: "refresh-1" }),
     ).resolves.toBeUndefined();
+  });
+});
+
+// Incremental authorization. A capability is an extra permission asked for against the
+// SAME Google account — the account is never disconnected first, and the stored refresh
+// token survives (lib/integrations/store.ts's connect()). Everything below is about not
+// asking for more than the capability needs, and not claiming one that was not granted.
+describe("integrations/providers/google — incremental authorization", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env.GOOGLE_OAUTH_CLIENT_ID = "test-client-id";
+    process.env.GOOGLE_OAUTH_CLIENT_SECRET = "test-client-secret";
+    mockClient.generateAuthUrl.mockReturnValue("https://accounts.google.com/mock");
+  });
+
+  afterEach(() => {
+    process.env = { ...ORIGINAL_ENV };
+  });
+
+  it("asks for the identity scopes only when no capability is named", () => {
+    buildGoogleAuthorizationUrl("nonce");
+    const call = mockClient.generateAuthUrl.mock.calls[0]![0];
+    expect(call.scope).toEqual([...GOOGLE_SCOPES]);
+    // No extra scopes means no re-consent prompt for someone who is only signing in.
+    expect(call.prompt).toBeUndefined();
+  });
+
+  it("adds the Meet scope — and nothing else — for the meet capability", () => {
+    buildGoogleAuthorizationUrl("nonce", ["meet"]);
+    const call = mockClient.generateAuthUrl.mock.calls[0]![0];
+    expect(call.scope).toEqual([...GOOGLE_SCOPES, "https://www.googleapis.com/auth/meetings.space.readonly"]);
+    expect(GOOGLE_MEET_SCOPES).toEqual(["https://www.googleapis.com/auth/meetings.space.readonly"]);
+  });
+
+  it("never requests a Gmail scope, or the Meet scope that could create a space", () => {
+    buildGoogleAuthorizationUrl("nonce", ["meet"]);
+    const scopes: string[] = mockClient.generateAuthUrl.mock.calls[0]![0].scope;
+    expect(scopes.join(" ")).not.toMatch(/gmail|mail\.google/i);
+    // meetings.space.created only works for spaces this app created. Requesting it would
+    // be both useless here and a wider grant than reading needs.
+    expect(scopes).not.toContain("https://www.googleapis.com/auth/meetings.space.created");
+  });
+
+  it("keeps previously granted scopes and forces a consent screen for the new one", () => {
+    buildGoogleAuthorizationUrl("nonce", ["meet"]);
+    const call = mockClient.generateAuthUrl.mock.calls[0]![0];
+    // include_granted_scopes is what makes this incremental rather than a replacement:
+    // the resulting token still carries whatever was granted before.
+    expect(call.include_granted_scopes).toBe(true);
+    // Without prompt=consent Google may return a token with no refresh token on a repeat
+    // authorization. connect() would then reuse the stored one — but asking is cheaper
+    // than depending on that path.
+    expect(call.prompt).toBe("consent");
+    expect(call.access_type).toBe("offline");
+  });
+
+  it("does not duplicate a scope that is already in the identity set", () => {
+    const scopes: string[] = (buildGoogleAuthorizationUrl("nonce", ["meet", "meet"]), mockClient.generateAuthUrl.mock.calls[0]![0].scope);
+    expect(new Set(scopes).size).toBe(scopes.length);
+  });
+
+  it("hasGoogleCapability reads what Google granted, never what was requested", () => {
+    expect(hasGoogleCapability([...GOOGLE_SCOPES], "meet")).toBe(false);
+    expect(hasGoogleCapability([...GOOGLE_SCOPES, ...GOOGLE_MEET_SCOPES], "meet")).toBe(true);
+    // A near-miss must not pass: a scope that merely mentions "meetings" is not the one.
+    expect(hasGoogleCapability(["https://www.googleapis.com/auth/meetings.space.created"], "meet")).toBe(false);
+  });
+
+  it("isGoogleCapability rejects anything not on the allowlist", () => {
+    expect(isGoogleCapability("meet")).toBe(true);
+    expect(isGoogleCapability("gmail")).toBe(false);
+    expect(isGoogleCapability("drive")).toBe(false);
+    expect(isGoogleCapability(undefined)).toBe(false);
+    // Prototype keys must not read as capabilities.
+    expect(isGoogleCapability("toString")).toBe(false);
   });
 });

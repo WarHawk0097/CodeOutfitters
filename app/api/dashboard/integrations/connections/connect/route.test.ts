@@ -13,9 +13,15 @@ const state = vi.hoisted(() => ({
 vi.mock("@/lib/command-center/mode", () => ({ isDemoMode: () => state.demoMode }));
 vi.mock("@/lib/dashboard/server", () => ({ getDashboardContext: async () => state.context }));
 vi.mock("@/lib/integrations/oauth-state", () => ({ createOAuthState: (...args: unknown[]) => state.createOAuthState(...args) }));
-vi.mock("@/lib/integrations/providers/google", () => ({
-  buildGoogleAuthorizationUrl: (...args: unknown[]) => state.buildGoogleAuthorizationUrl(...args),
-}));
+// Only the URL builder is stubbed. isGoogleCapability stays real on purpose — it IS the
+// capability allowlist, and a test that mocked it would prove nothing about what this
+// route will accept.
+vi.mock("@/lib/integrations/providers/google", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/integrations/providers/google")>(
+    "@/lib/integrations/providers/google",
+  );
+  return { ...actual, buildGoogleAuthorizationUrl: (...args: unknown[]) => state.buildGoogleAuthorizationUrl(...args) };
+});
 vi.mock("@/lib/integrations/store", async () => {
   const actual = await vi.importActual<typeof import("@/lib/integrations/store")>("@/lib/integrations/store");
   return { ...actual, connect: (...args: unknown[]) => state.connect(...args) };
@@ -103,5 +109,36 @@ describe("POST integrations/connections/connect", () => {
     const res = await POST(req({ provider: "local_test" }));
     expect(res.status).toBe(422);
     expect(state.createOAuthState).not.toHaveBeenCalled();
+  });
+
+  // Incremental authorization: the caller may name a capability, and the route decides
+  // which ones exist. A client that could name an arbitrary capability would be a client
+  // that could widen its own Google grant.
+  it("passes a named capability through to the authorization URL builder", async () => {
+    state.createOAuthState.mockResolvedValue("nonce-abc");
+    state.buildGoogleAuthorizationUrl.mockReturnValue("https://accounts.google.com/mock");
+
+    const res = await POST(req({ provider: "google_calendar", capability: "meet" }));
+
+    expect(res.status).toBe(200);
+    expect(state.buildGoogleAuthorizationUrl).toHaveBeenCalledWith("nonce-abc", ["meet"]);
+  });
+
+  it("asks for no extra scope when no capability is named", async () => {
+    state.createOAuthState.mockResolvedValue("nonce-abc");
+    state.buildGoogleAuthorizationUrl.mockReturnValue("https://accounts.google.com/mock");
+
+    await POST(req({ provider: "google_calendar" }));
+
+    expect(state.buildGoogleAuthorizationUrl).toHaveBeenCalledWith("nonce-abc", []);
+  });
+
+  it("422s on a capability that is not on the allowlist, and starts no OAuth flow", async () => {
+    for (const capability of ["gmail", "drive", "meetings.space.created", "toString", 7]) {
+      const res = await POST(req({ provider: "google_calendar", capability }));
+      expect(res.status).toBe(422);
+    }
+    expect(state.createOAuthState).not.toHaveBeenCalled();
+    expect(state.buildGoogleAuthorizationUrl).not.toHaveBeenCalled();
   });
 });

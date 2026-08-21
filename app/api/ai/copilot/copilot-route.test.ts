@@ -15,6 +15,7 @@ import {
   InMemoryRateLimiter,
   ProviderRegistry,
   loadAIConfig,
+  nullKnowledgeSource,
   type AIConfig,
   type AIProvider,
   type AIStreamEvent,
@@ -211,6 +212,11 @@ beforeEach(() => {
     config: CONFIG,
     rateLimiter: new InMemoryRateLimiter(1_000, 60_000),
     conversations: new InMemoryConversationStore(),
+    // Injected for the same reason the conversation store is: the deployed source
+    // reads meetings through the request-scoped Supabase client, and a unit test has
+    // no request scope. What the composition root actually wires here is asserted in
+    // lib/ai/server/copilot-composition.test.ts, against a database stand-in.
+    knowledge: nullKnowledgeSource,
     telemetry: recordingTelemetry([]),
   };
 });

@@ -78,13 +78,16 @@ export function GoogleConnectionCard() {
 
   const reload = () => setReloadToken((n) => n + 1);
 
-  const connect = async () => {
+  // `capability` is incremental authorization against the SAME connection — the account
+  // is never disconnected first, and the stored refresh token survives (see
+  // lib/integrations/store.ts's connect()). Undefined means the plain identity connect.
+  const connect = async (capability?: "meet") => {
     setBusy(true);
     try {
       const res = await fetch("/api/dashboard/integrations/connections/connect", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ provider: "google_calendar" }),
+        body: JSON.stringify({ provider: "google_calendar", ...(capability ? { capability } : {}) }),
       });
       const body = (await res.json()) as { ok: boolean; authorizationUrl?: string };
       if (body.ok && body.authorizationUrl) {
@@ -131,6 +134,12 @@ export function GoogleConnectionCard() {
   // scope-driven rather than hardcoded so the label stays honest if Calendar scopes
   // are ever added later, without anyone having to remember to update this string.
   const hasCalendarScope = connection?.grantedScopes.some((s) => s.toLowerCase().includes("calendar")) ?? false;
+  // Same rule for Meet, and it is the ONLY thing that decides what this card claims:
+  // granted_scopes is what Google actually returned, not what was requested. A consent
+  // screen that has not been updated yet simply does not grant it, and the card says
+  // "permission required" rather than implying transcripts will appear.
+  const hasMeetScope =
+    connection?.grantedScopes.includes("https://www.googleapis.com/auth/meetings.space.readonly") ?? false;
 
   return (
     <section
@@ -143,8 +152,8 @@ export function GoogleConnectionCard() {
           Calendar connections
         </h2>
         <p className="mt-0.5 text-[12px] text-cc-t3">
-          Connect a calendar provider to identify you for future Calendar and Gmail features. Nothing is read or
-          sent yet.
+          One Google account identifies you here. Each permission below is listed separately and reflects what
+          Google actually granted — nothing is read until its permission says granted.
         </p>
       </div>
 
@@ -176,11 +185,34 @@ export function GoogleConnectionCard() {
             Disconnect
           </button>
         ) : (
-          <button type="button" onClick={connect} disabled={busy} className={busy ? BTN_DISABLED : BTN_PRIMARY}>
+          <button type="button" onClick={() => connect()} disabled={busy} className={busy ? BTN_DISABLED : BTN_PRIMARY}>
             Connect Google
           </button>
         )}
       </ProviderRow>
+
+      {/* Per-permission truth for the one connection that exists. Each line is derived
+          from granted_scopes, so none of them can claim a capability Google did not
+          actually grant. */}
+      {connection ? (
+        <ProviderRow>
+          <ul className="space-y-1 text-[12px] text-cc-t3">
+            <li data-permission="account">Account identity — granted.</li>
+            <li data-permission="calendar">
+              Calendar — {hasCalendarScope ? "granted." : "permission required. Calendar is not read or written."}
+            </li>
+            <li data-permission="meet">
+              Google Meet — {hasMeetScope ? "granted." : "permission required."}
+            </li>
+            <li data-permission="transcript">
+              Meeting transcripts —{" "}
+              {hasMeetScope
+                ? "available for meetings your Workspace transcribed. Meet keeps transcript entries for 30 days after a meeting."
+                : "unavailable until the Google Meet permission is granted."}
+            </li>
+          </ul>
+        </ProviderRow>
+      ) : null}
 
       <ProviderRow>
         <div className="text-[12.5px] text-cc-ink">
@@ -201,6 +233,60 @@ export function GoogleConnectionCard() {
           Coming soon
         </span>
       </ProviderRow>
+
+      {/* Meeting providers are a separate list from calendar connections because they
+          answer a different question: which conversations can this workspace read a
+          transcript from. Google Meet's state is the same connection above — one Google
+          identity, not a second sign-in. */}
+      <div id="settings-meeting-providers" className="mt-5 border-t border-cc-line pt-4">
+        <h3 className="text-[13px] font-semibold text-cc-ink">Meeting providers</h3>
+        <p className="mb-2 mt-0.5 text-[12px] text-cc-t3">
+          Transcripts are read only from meetings your own account can already access.
+        </p>
+
+        <ProviderRow>
+          <div className="text-[12.5px] text-cc-ink">
+            <span className="font-semibold">Google Meet</span>
+            <span className="ml-2 text-cc-t3">
+              {!connection
+                ? "Connect the Google account first."
+                : hasMeetScope
+                  ? "Permission granted. Transcripts can be read for meetings your Workspace transcribed."
+                  : "Permission required."}
+            </span>
+          </div>
+          {connection && !hasMeetScope ? (
+            <button
+              type="button"
+              onClick={() => connect("meet")}
+              disabled={busy}
+              className={busy ? BTN_DISABLED : BTN_PRIMARY}
+            >
+              Grant Meet permission
+            </button>
+          ) : null}
+        </ProviderRow>
+
+        <ProviderRow>
+          <div className="text-[12.5px] text-cc-ink">
+            <span className="font-semibold">Zoom</span>
+            <span className="ml-2 text-cc-t3">Not connected.</span>
+          </div>
+          <span className="rounded-cc-control bg-cc-secondary px-2 py-1 text-[11px] font-semibold text-cc-t3">
+            Coming soon
+          </span>
+        </ProviderRow>
+
+        <ProviderRow>
+          <div className="text-[12.5px] text-cc-ink">
+            <span className="font-semibold">Microsoft Teams</span>
+            <span className="ml-2 text-cc-t3">Not connected.</span>
+          </div>
+          <span className="rounded-cc-control bg-cc-secondary px-2 py-1 text-[11px] font-semibold text-cc-t3">
+            Coming soon
+          </span>
+        </ProviderRow>
+      </div>
     </section>
   );
 }

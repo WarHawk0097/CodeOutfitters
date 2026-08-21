@@ -46,3 +46,7 @@ graphify-out/
 # Design-handoff bundle (implementation guidance only, not part of the native production build)
 CODEOUTFITTERS-FINAL-HANDOFF/
 .gstack/
+
+# Editor swap files — a swap of .env.local is not covered by the .env.local rule
+*.swp
+*.swo

@@ -112,7 +112,21 @@ describe("6, 7, 8: Calendar providers — Google scope accuracy, Apple and Micro
     expect(googleCardSrc).toContain("Microsoft Outlook / Microsoft 365");
   });
 
-  it("both stub providers render the same 'Coming soon' badge, not a fake connected state", () => {
-    expect(googleCardSrc.match(/Coming soon/g)).toHaveLength(2);
+  it("every unbuilt provider renders the same 'Coming soon' badge, not a fake connected state", () => {
+    // Four: Apple Calendar and Microsoft Outlook in the calendar list, Zoom and Microsoft
+    // Teams in the meeting-provider list. Google Meet is deliberately not among them —
+    // it is the one meeting provider that is really implemented, and its row reports the
+    // granted scope rather than a badge.
+    expect(googleCardSrc.match(/Coming soon/g)).toHaveLength(4);
+    for (const name of ["Apple Calendar (iCloud)", "Microsoft Outlook / Microsoft 365", "Zoom", "Microsoft Teams"]) {
+      expect(googleCardSrc).toContain(name);
+    }
+  });
+
+  it("offers exactly one place to grant the Meet permission", () => {
+    // Two identical buttons for one grant is how a user ends up unsure whether they
+    // authorised twice. The permissions list states what is granted; the meeting-provider
+    // row is where it is granted.
+    expect(googleCardSrc.match(/Grant Meet permission/g)).toHaveLength(1);
   });
 });
