@@ -21,10 +21,11 @@ import { useBreakpoint } from "../../../components/demo/use-breakpoint";
 import { MenuButton, type MenuItem } from "../../../components/demo/menu";
 import { Dialog, DialogCancelButton, DialogSubmitButton } from "../../../components/demo/dialog";
 import { SelectField, TextAreaField, TextField } from "../../../components/demo/field";
-import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
+import { LiveProviderRequired, RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
 import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton, ToolbarDivider } from "../../../components/demo/toolbar";
 import { SavedViewsBar } from "../../../components/command-center/saved-views";
 import { useListView } from "../../../components/command-center/use-view-query";
+import { useCommandCenterConfig } from "@/components/command-center/mode-provider";
 
 const STATE_TONE: Record<EmailState, Tone> = {
   QUEUED: "amber",
@@ -52,6 +53,7 @@ const SECONDARY_ACTION = ROW_ACTION;
 type ComposeDraft = { leadId: string; to: string; leadName: string; subject: string; body: string };
 
 export function EmailActivityScreen() {
+  const { live } = useCommandCenterConfig();
   const { state, status, error, retry } = useDemoQuery();
   const breakpoint = useBreakpoint();
 
@@ -111,6 +113,9 @@ export function EmailActivityScreen() {
 
   if (status === "loading") return <RouteLoading label="email activity" />;
   if (status === "error") return <RouteError label="email activity" error={error!} onRetry={retry} />;
+  if (live) {
+    return <LiveProviderRequired label="Email activity" detail="Mailbox reads and delivery are not connected in this workspace yet." />;
+  }
 
   const rowMenu = (email: EmailActivity): MenuItem[] => [
     { id: "open", label: "Open thread" },

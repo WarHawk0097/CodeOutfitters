@@ -44,7 +44,8 @@ const OWN_PATH = 'app/case-studies-official-baseline.test.ts'
 const repo = fileURLToPath(new URL('../', import.meta.url))
 const git = (...args: string[]) =>
   execFileSync('git', args, { cwd: repo, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
-const read = (path: string) => readFileSync(join(repo, path), 'utf8')
+const read = (path: string) =>
+  readFileSync(join(repo, path === 'middleware.ts' ? 'proxy.ts' : path), 'utf8')
 const baseline = (path: string) => git('show', `${OFFICIAL_PRODUCTION_SHA}:${path}`)
 const bytes = (path: string) => readFileSync(join(repo, path))
 

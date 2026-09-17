@@ -22,6 +22,9 @@ import { IntegrationProviderError } from "../provider";
 
 export const GOOGLE_SCOPES = ["openid", "email", "profile"] as const;
 
+/** OAuth calls must not leave a request hanging indefinitely when Google is degraded. */
+export const GOOGLE_REQUEST_TIMEOUT_MS = 10_000;
+
 /** Read-only Google Meet: conference records, transcripts, transcript entries. The
  *  narrower `meetings.space.created` covers only spaces this app created, and this app
  *  creates none, so it would grant nothing usable — `.readonly` is the least privilege
@@ -64,6 +67,23 @@ function client(): OAuth2Client {
   return new OAuth2Client(clientId, clientSecret, googleRedirectUri());
 }
 
+async function withDeadline<T>(operation: Promise<T>, timeoutMessage: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      operation,
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(
+          () => reject(new IntegrationProviderError("google_calendar", timeoutMessage)),
+          GOOGLE_REQUEST_TIMEOUT_MS,
+        );
+      }),
+    ]);
+  } finally {
+    if (timer !== undefined) clearTimeout(timer);
+  }
+}
+
 /** Fails closed (throws IntegrationProviderError) the same way exchangeCode does if
  *  GOOGLE_OAUTH_CLIENT_ID/SECRET are not configured — the connect route must not
  *  hand back an authorization URL built from an empty client id. */
@@ -103,7 +123,7 @@ export class GoogleProviderAdapter implements IntegrationProviderAdapter {
 
     let tokens;
     try {
-      ({ tokens } = await oauth2Client.getToken(code));
+      ({ tokens } = await withDeadline(oauth2Client.getToken(code), "Google authorization timed out."));
     } catch (error) {
       throw new IntegrationProviderError(
         "google_calendar",
@@ -119,7 +139,10 @@ export class GoogleProviderAdapter implements IntegrationProviderAdapter {
 
     let payload;
     try {
-      const ticket = await oauth2Client.verifyIdToken({ idToken: tokens.id_token, audience: clientId });
+      const ticket = await withDeadline(
+        oauth2Client.verifyIdToken({ idToken: tokens.id_token, audience: clientId }),
+        "Google identity verification timed out.",
+      );
       payload = ticket.getPayload();
     } catch (error) {
       throw new IntegrationProviderError(
@@ -156,7 +179,10 @@ export class GoogleProviderAdapter implements IntegrationProviderAdapter {
 
     let refreshed;
     try {
-      ({ credentials: refreshed } = await oauth2Client.refreshAccessToken());
+      ({ credentials: refreshed } = await withDeadline(
+        oauth2Client.refreshAccessToken(),
+        "Google credential refresh timed out.",
+      ));
     } catch (error) {
       throw new IntegrationProviderError(
         "google_calendar",
@@ -181,7 +207,7 @@ export class GoogleProviderAdapter implements IntegrationProviderAdapter {
     const token = credentials.refreshToken ?? credentials.accessToken;
     if (!token) return;
     try {
-      await client().revokeToken(token);
+      await withDeadline(client().revokeToken(token), "Google credential revocation timed out.");
     } catch {
       // Best-effort — see the interface note: local disconnect must not depend on
       // Google's revoke endpoint succeeding or being reachable.

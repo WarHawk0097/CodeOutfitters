@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 import { isDemoMode } from '@/lib/command-center/mode'
+import { LiveProposalPublicProvider } from '@/lib/proposals/access/live-public-provider'
 import {
   PUBLIC_TEMPORARILY_UNAVAILABLE_DETAIL,
   PUBLIC_TEMPORARILY_UNAVAILABLE_TITLE,
-  resolveSecureProposalPlane,
 } from '@/lib/proposals/access/provider'
 import { ProposalPublicView } from './proposal-public-view'
 import { PublicNotice } from './public-chrome'
@@ -34,12 +34,12 @@ export default async function SecureProposalPage({
   params: Promise<{ secureToken: string }>
 }) {
   const { secureToken } = await params
-  const plane = resolveSecureProposalPlane(!isDemoMode())
+  if (isDemoMode()) return <ProposalPublicView token={secureToken} />
 
-  // Live mode has no secure-proposal provider yet. It says so honestly and shows nothing —
-  // falling back to demo publications here would put another company's document in front of
-  // a real client, which is worse than any outage.
-  if (plane.kind === 'provider_required') {
+  let view
+  try {
+    view = await new LiveProposalPublicProvider().resolve(secureToken)
+  } catch {
     return (
       <PublicNotice
         heading={PUBLIC_TEMPORARILY_UNAVAILABLE_TITLE}
@@ -48,5 +48,5 @@ export default async function SecureProposalPage({
     )
   }
 
-  return <ProposalPublicView token={secureToken} />
+  return <ProposalPublicView token={secureToken} live initialView={view} />
 }

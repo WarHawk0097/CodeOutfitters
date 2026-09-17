@@ -378,6 +378,8 @@ describe("sign-in repair — credential facts (21-26)", () => {
 
 describe("sign-in repair — rendered screen facts (27-30)", () => {
   const demoHtml = renderToStaticMarkup(
+    // LoginFrame requires children in its props object for this source-inspection test.
+    // eslint-disable-next-line react/no-children-prop
     createElement(LoginFrame, {
       children: createElement(LoginForm, {
         live: false,

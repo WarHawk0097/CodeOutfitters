@@ -1258,8 +1258,15 @@
     function postDesignMode(mode) {
       if (window.parent === window) return;
       try {
-        window.parent.postMessage({ type: "__dc_design_mode", mode }, "*");
+        window.parent.postMessage({ type: "__dc_design_mode", mode }, messageTargetOrigin());
       } catch {
+      }
+    }
+    function messageTargetOrigin() {
+      try {
+        return document.referrer ? new URL(document.referrer).origin : window.location.origin;
+      } catch {
+        return window.location.origin;
       }
     }
     function setDesignDocMode(mode) {
@@ -1638,7 +1645,7 @@
             propsMeta: r && r.propsMeta || null,
             preview: r && r.preview || null
           },
-          "*"
+          messageTargetOrigin()
         );
       } catch {
       }

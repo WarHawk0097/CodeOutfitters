@@ -120,8 +120,8 @@ describe("release 4 regression guards (tests 121-139)", () => {
   // 127
   it("keeps the public proposal surface out of search entirely", () => {
     const publicPage = read("app/proposal/[secureToken]/page.tsx");
-    for (const module of ["lib/search", "lib/views", "command-center/command-dialog", "SavedViewsBar"]) {
-      expect(publicPage, module).not.toContain(module);
+    for (const modulePath of ["lib/search", "lib/views", "command-center/command-dialog", "SavedViewsBar"]) {
+      expect(publicPage, modulePath).not.toContain(modulePath);
     }
     // And nothing in the index resolves to that route.
     for (const document of buildDemoSearchIndex(createSeedState())) {

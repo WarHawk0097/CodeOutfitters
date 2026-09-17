@@ -18,6 +18,8 @@ const settingsSrc = readFileSync(`${here}settings/settings-view.tsx`, "utf8");
 // children is a required prop, so it is passed in the props object rather than
 // as a variadic argument — the variadic overload does not satisfy it.
 const rootHtml = renderToStaticMarkup(
+  // DashboardThemeRoot requires children in its props object for this server-render test.
+  // eslint-disable-next-line react/no-children-prop
   createElement(DashboardThemeRoot, {
     className: "frame",
     children: createElement("span", null, "child"),

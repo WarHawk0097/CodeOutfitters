@@ -145,7 +145,7 @@ describe("the production host redirect", () => {
       canonicalHostRedirect({ host: SYSTEM_ALIAS, pathname: "/api/inquiries", env: PRODUCTION }),
     ).toBeNull();
     // The middleware matcher excludes it outright as well.
-    expect(read("middleware.ts")).toContain("(?!api/|_next/|_vercel/");
+    expect(read("proxy.ts")).toContain("(?!api/|_next/|_vercel/");
   });
 
   // 8
@@ -188,7 +188,7 @@ describe("the production host redirect", () => {
   });
 
   it("is wired into the middleware as a permanent redirect", () => {
-    const src = read("middleware.ts");
+    const src = read("proxy.ts");
     expect(src).toContain("canonicalHostRedirect");
     expect(src).toContain("NextResponse.redirect(canonical, 308)");
     // Session work stays scoped to the auth-bearing paths even though the matcher is wider,
@@ -230,7 +230,7 @@ describe("the frozen URL policy in source", () => {
 
   it("has no second hostname for the same product", () => {
     for (const path of [
-      "middleware.ts",
+      "proxy.ts",
       "app/layout.tsx",
       "app/sitemap.ts",
       "app/robots.ts",
@@ -244,7 +244,7 @@ describe("the frozen URL policy in source", () => {
   });
 
   it("writes no duplicated dashboard segment", () => {
-    for (const path of ["middleware.ts", "lib/routing/public-origin.ts", "app/sitemap.ts"]) {
+    for (const path of ["proxy.ts", "lib/routing/public-origin.ts", "app/sitemap.ts"]) {
       expect(read(path).includes("/dashboard/dashboard"), path).toBe(false);
     }
   });

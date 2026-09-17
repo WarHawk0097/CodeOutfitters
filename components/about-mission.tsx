@@ -27,7 +27,7 @@ export function AboutMission() {
           We build automation studios treat as infrastructure, not a project.
         </h1>
         <p data-reveal className="text-[#6B6155] text-lg leading-relaxed">
-          CodeOutfitters exists to remove the manual busywork that quietly eats a small business's week — missed calls, duplicate data entry, chased-down follow-ups. We scope every build around your actual workflow, ship it fast, and hand it off fully documented and fully yours.
+          CodeOutfitters exists to remove the manual busywork that quietly eats a small business&apos;s week — missed calls, duplicate data entry, chased-down follow-ups. We scope every build around your actual workflow, ship it fast, and hand it off fully documented and fully yours.
         </p>
       </div>
 

@@ -48,3 +48,15 @@ export function RouteEmpty({ title, hint }: { title: string; hint?: ReactNode })
     </div>
   );
 }
+
+export function LiveProviderRequired({ label, detail }: { label: string; detail: string }) {
+  return (
+    <div
+      role="status"
+      className="rounded-cc-card border border-dashed border-cc-line-strong bg-cc-surface px-4 py-10 text-center"
+    >
+      <p className="text-[13px] font-semibold text-cc-ink">{label} needs a live provider</p>
+      <p className="mt-1 text-[12px] text-cc-t3">{detail}</p>
+    </div>
+  );
+}

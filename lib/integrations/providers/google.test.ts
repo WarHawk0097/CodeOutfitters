@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { IntegrationProviderError } from "../provider";
 import {
   GoogleProviderAdapter,
+  GOOGLE_REQUEST_TIMEOUT_MS,
   GOOGLE_MEET_SCOPES,
   GOOGLE_SCOPES,
   buildGoogleAuthorizationUrl,
@@ -114,6 +115,19 @@ describe("integrations/providers/google", () => {
     mockClient.getToken.mockRejectedValue(new Error("invalid_grant: raw provider detail"));
 
     await expect(new GoogleProviderAdapter().exchangeCode("bad-code")).rejects.toThrow(IntegrationProviderError);
+  });
+
+  it("bounds a Google authorization call when the provider never responds", async () => {
+    vi.useFakeTimers();
+    try {
+      mockClient.getToken.mockReturnValue(new Promise(() => {}));
+      const pending = new GoogleProviderAdapter().exchangeCode("slow-code");
+      const assertion = expect(pending).rejects.toThrow("Google authorization timed out.");
+      await vi.advanceTimersByTimeAsync(GOOGLE_REQUEST_TIMEOUT_MS);
+      await assertion;
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("exchangeCode fails closed when Google returns no id_token to verify identity from", async () => {

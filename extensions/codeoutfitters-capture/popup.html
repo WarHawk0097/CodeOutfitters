@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>CodeOutfitters Meeting Capture</title>
+    <style>
+      body { font-family: system-ui, sans-serif; width: 300px; margin: 0; padding: 16px; color: #1a1a1a; }
+      h1 { font-size: 14px; margin: 0 0 4px; }
+      .sub { font-size: 11px; color: #666; margin: 0 0 12px; }
+      .state { font-size: 12px; font-weight: 600; padding: 6px 8px; border-radius: 6px; margin-bottom: 12px; }
+      .state.idle, .state.not-connected { background: #eef0f3; color: #555; }
+      .state.starting { background: #e8f0fe; color: #174ea6; }
+      .state.active { background: #e8f5e9; color: #1b5e20; }
+      .state.paused { background: #fff8e1; color: #8d6e00; }
+      .state.error { background: #fdecea; color: #b3261e; }
+      .state.complete { background: #e3f2fd; color: #0d47a1; }
+      .field { margin-bottom: 10px; }
+      .field label { display: block; font-size: 11px; color: #666; margin-bottom: 3px; }
+      .field input { width: 100%; box-sizing: border-box; padding: 5px 8px; border: 1px solid #ccc; border-radius: 5px; font-size: 12px; }
+      .row { display: flex; gap: 8px; }
+      button { flex: 1; padding: 7px 8px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+      button.primary { background: #0b57d0; color: #fff; }
+      button.secondary { background: #e8eaed; color: #333; }
+      button:disabled { opacity: 0.5; cursor: not-allowed; }
+      .notice { font-size: 10.5px; color: #8d6e00; background: #fff8e1; border: 1px solid #f0e0a0; border-radius: 5px; padding: 7px 8px; margin-top: 10px; }
+      .meta { font-size: 11px; color: #555; margin-top: 8px; }
+      .error-text { font-size: 11px; color: #b3261e; margin-top: 6px; }
+      .count { font-size: 13px; font-weight: 700; }
+    </style>
+  </head>
+  <body>
+    <h1>CodeOutfitters Meeting Capture</h1>
+    <p class="sub">Google Meet live-caption capture</p>
+
+    <div id="state" class="state idle">Checking…</div>
+
+    <div class="row" style="margin-bottom:10px">
+      <button id="sign-in" class="secondary">Sign in to CodeOutfitters</button>
+      <button id="sign-out" class="secondary" hidden>Sign out</button>
+    </div>
+    <div id="auth-status" class="meta" hidden></div>
+
+    <div id="meeting-fields" class="field">
+      <label for="space">Meet space (auto-detected or paste URL/code)</label>
+      <input id="space" type="text" placeholder="https://meet.google.com/abc-defg-hij" />
+    </div>
+
+    <div id="count-row" class="meta" hidden>
+      Transcript entries captured: <span id="count" class="count">0</span>
+    </div>
+
+    <div id="meeting-meta" class="meta" hidden></div>
+
+    <div class="row">
+      <button id="start" class="primary">Start capture</button>
+      <button id="pause" class="secondary" disabled>Pause</button>
+      <button id="stop" class="secondary" disabled>Stop</button>
+    </div>
+
+    <div id="resume-row" class="row" style="margin-top:8px">
+      <button id="resume" class="secondary" hidden>Resume</button>
+    </div>
+
+    <div id="notice" class="notice" hidden>
+      Meeting capture is active. Make sure participants have been notified where required.
+    </div>
+
+    <div id="error" class="error-text" hidden></div>
+
+    <script src="config.js"></script>
+    <script src="auth.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

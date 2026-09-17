@@ -33,7 +33,8 @@ const APPROVED_RELEASE_SHA = '5af9184774c87948132cd39fa48cc01336a94418'
 
 const repo = fileURLToPath(new URL('../', import.meta.url))
 const git = (...args: string[]) => execFileSync('git', args, { cwd: repo, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
-const read = (path: string) => readFileSync(join(repo, path), 'utf8')
+const read = (path: string) =>
+  readFileSync(join(repo, path === 'middleware.ts' ? 'proxy.ts' : path), 'utf8')
 const bytes = (path: string) => readFileSync(join(repo, path))
 
 const voicedesk = CASE_STUDY_PROJECTS.find((entry) => entry.id === 'voicedesk')!

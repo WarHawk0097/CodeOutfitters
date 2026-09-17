@@ -49,13 +49,16 @@ describe("integration connection store (store.ts)", () => {
   });
 
   it("H: toSafeErrorMessage caps message length so no unbounded provider payload is stored", () => {
-    expect(src).toMatch(/raw\.length > \d+/);
+    expect(src).toMatch(/redacted\.length > \d+/);
+    expect(src).toContain("Bearer\\s+\\S+");
+    expect(src).toContain("$1=[redacted]");
+    expect(src).not.toContain('console.error("provider revoke failed during disconnect", error');
   });
 
   it("disconnect always clears credential_ciphertext locally, independent of the provider revoke call's outcome", () => {
     const fn = src.slice(src.indexOf("export async function disconnect"));
     expect(fn).toContain("credential_ciphertext: null");
-    expect(fn).toContain("catch (error)");
+    expect(fn).toContain("catch {");
   });
 
   it("reconnect never rewrites workspace_id, provider, provider_account_id, or connected_at", () => {

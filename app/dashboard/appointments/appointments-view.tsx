@@ -38,6 +38,7 @@ import { MenuButton, type MenuItem } from "../../../components/demo/menu";
 import { Dialog, DialogCancelButton, DialogSubmitButton } from "../../../components/demo/dialog";
 import { SelectField, TextAreaField, TextField } from "../../../components/demo/field";
 import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
+import { LiveProviderRequired } from "../../../components/demo/route-states";
 import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton } from "../../../components/demo/toolbar";
 import { setQueryParam, useQueryParam } from "../../../components/command-center/use-view-query";
 import { isPast, isUpcoming, useAppointmentsView } from "./view-store";
@@ -56,6 +57,7 @@ import {
 } from "./date-utils";
 import { RecordActivity } from "@/components/dashboard/activity-ui";
 import { eventsFor, type ActivityEvent } from "@/lib/activity/model";
+import { useCommandCenterConfig } from "@/components/command-center/mode-provider";
 
 // C-D11 320/328/336 give three states a chip. `short` is the tablet and mobile wording
 // (T-06 972 "READY", 973 "PREP NEEDED"). The remaining three states are not drawn on any
@@ -104,6 +106,7 @@ const DANGER_ACTION =
   "rounded-cc-control border border-cc-red-border px-[11px] py-[5px] text-[11.5px] font-semibold text-cc-red-ink";
 
 export function AppointmentsScreen() {
+  const { live } = useCommandCenterConfig();
   const { state, status, error, retry } = useDemoQuery();
   const breakpoint = useBreakpoint();
   const { view, date, setDate, today } = useAppointmentsView();
@@ -214,6 +217,9 @@ export function AppointmentsScreen() {
 
   if (status === "loading") return <RouteLoading label="appointments" />;
   if (status === "error") return <RouteError label="appointments" error={error!} onRetry={retry} />;
+  if (live) {
+    return <LiveProviderRequired label="Appointments" detail="Calendar and reminder delivery are not connected in this workspace yet." />;
+  }
 
   const rowMenu = (appointment: Appointment): MenuItem[] => [
     { id: "open", label: "Open details" },

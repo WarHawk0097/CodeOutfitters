@@ -89,7 +89,8 @@ describe("useDemoState() never reaches the demo store in live mode", () => {
     expect(source).toContain(
       'import { useCommandCenterConfig } from "@/components/command-center/mode-provider";',
     );
-    expect(source).toContain("const { live } = useCommandCenterConfig();");
+    expect(source).toContain("const { live: configuredLive } = useCommandCenterConfig();");
+    expect(source).toContain("const live = options?.live ?? configuredLive;");
   });
 
   it("swaps out every useSyncExternalStore argument in live mode, never just the getter", () => {

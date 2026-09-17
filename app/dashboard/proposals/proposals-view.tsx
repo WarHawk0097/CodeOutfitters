@@ -33,13 +33,14 @@ import { useBreakpoint } from "../../../components/demo/use-breakpoint";
 import { MenuButton, type MenuItem } from "../../../components/demo/menu";
 import { Dialog, DialogCancelButton, DialogSubmitButton } from "../../../components/demo/dialog";
 import { SelectField, TextField } from "../../../components/demo/field";
-import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
+import { LiveProviderRequired, RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
 import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton, ToolbarDivider } from "../../../components/demo/toolbar";
 import { SavedViewsBar } from "../../../components/command-center/saved-views";
 import { useListView } from "../../../components/command-center/use-view-query";
 import { useCommandCreateDialog } from "../../../components/command-center/use-command-create-dialog";
 import { RecordActivity } from "@/components/dashboard/activity-ui";
 import { eventsFor, type ActivityEvent } from "@/lib/activity/model";
+import { useCommandCenterConfig } from "@/components/command-center/mode-provider";
 
 // CANON 1428-1433 draws a directory, not per-state chips; these tones follow the same
 // palette grammar the rest of the app uses (in-motion blue, waiting amber, won green,
@@ -121,6 +122,7 @@ function downloadText(filename: string, text: string): void {
 }
 
 export function ProposalsScreen() {
+  const { live } = useCommandCenterConfig();
   const { state, status, error, retry } = useDemoQuery();
   const breakpoint = useBreakpoint();
 
@@ -195,6 +197,9 @@ export function ProposalsScreen() {
 
   if (status === "loading") return <RouteLoading label="proposals" />;
   if (status === "error") return <RouteError label="proposals" error={error!} onRetry={retry} />;
+  if (live) {
+    return <LiveProviderRequired label="Proposal directory" detail="Internal proposal records are not connected; published secure proposals remain available through their live access links." />;
+  }
 
   // CANON action set, plus the three pipeline transitions. Sent/accepted/declined open a
   // confirm dialog because they move the linked opportunity; archive is reversible enough to

@@ -431,10 +431,17 @@ describe("unauthenticated dashboard access (21)", () => {
     expect(source).not.toMatch(/await\s+supabase\.auth\.getSession\(\)/);
     expect(source).toMatch(/if \(!user && path\.startsWith\('\/dashboard'\)\)/);
     expect(source).toContain("safeReturnTo(");
+    // Production auth requests must be bounded: a stalled Supabase Auth fetch may
+    // never consume the entire middleware execution budget. Dashboard access fails
+    // closed with a retryable 503 rather than bypassing authorization.
+    expect(source).toContain("AUTH_FETCH_TIMEOUT_MS");
+    expect(source).toContain("global: { fetch: authFetch }");
+    expect(source).toContain("status: 503");
+    expect(source).toContain("Retry-After");
 
     // Since the canonical host redirect the matcher covers the whole site, so the
     // paths that get session work are the ones listed for it — /dashboard included.
-    const matcher = readFileSync(`${repo}middleware.ts`, "utf8");
+    const matcher = readFileSync(`${repo}proxy.ts`, "utf8");
     expect(matcher).toContain("const SESSION_PATHS = ['/dashboard', '/login', '/access-pending', '/auth']");
     // Demo mode has no auth plane (app/login/page.tsx never calls Supabase there),
     // so the guard must not run against it — otherwise a correct demo sign-in
@@ -448,10 +455,10 @@ describe("unauthenticated dashboard access (21)", () => {
     const previous = process.env.COMMAND_CENTER_MODE;
     process.env.COMMAND_CENTER_MODE = "demo";
     try {
-      const { middleware } = await import("../../middleware");
+      const { proxy } = await import("../../proxy");
       const { NextRequest } = await import("next/server");
       const request = new NextRequest("https://codeoutfitters.vercel.app/dashboard");
-      const response = await middleware(request);
+      const response = await proxy(request);
       expect(response.status).not.toBe(307);
       expect(response.headers.get("location")).toBeNull();
     } finally {
@@ -524,6 +531,9 @@ describe("secrets stay out of source and the client bundle (37-42)", () => {
 
   const root = repo.replace(/[\\/]$/, "");
   const rel = (file: string) => file.slice(root.length + 1);
+  // These tests intentionally scan the whole checkout, including generated/WIP-adjacent
+  // source files. Keep the assertion strict while allowing slower CI filesystems to finish.
+  const SOURCE_SCAN_TIMEOUT_MS = 30_000;
   // This file necessarily contains every pattern it searches for, so it excludes
   // itself. Nothing else is exempt.
   const files = walk(root).filter((f) => !f.endsWith("live-auth.test.ts"));
@@ -540,7 +550,7 @@ describe("secrets stay out of source and the client bundle (37-42)", () => {
       expect(source, file).not.toContain("SUPABASE_SECRET_KEY");
       expect(source, file).not.toContain("SUPABASE_SERVICE_ROLE");
     }
-  });
+  }, SOURCE_SCAN_TIMEOUT_MS);
 
   it("never exposes an auth or provider secret through NEXT_PUBLIC_ (37, 38, 39)", () => {
     for (const file of sources) {
@@ -548,7 +558,7 @@ describe("secrets stay out of source and the client bundle (37-42)", () => {
       expect(source, file).not.toMatch(/NEXT_PUBLIC_[A-Z_]*(SECRET|SERVICE_ROLE|PRIVATE_KEY)/);
       expect(source, file).not.toMatch(/NEXT_PUBLIC_[A-Z_]*(GOOGLE_CLIENT|APPLE_)/);
     }
-  });
+  }, SOURCE_SCAN_TIMEOUT_MS);
 
   it("contains no committed provider credential or key material (38, 39, 41)", () => {
     for (const file of files.filter((f) => /\.(ts|tsx|js|mjs|cjs|json|sql|md|yml|yaml)$/.test(f))) {
@@ -570,7 +580,7 @@ describe("secrets stay out of source and the client bundle (37-42)", () => {
         expect(role, `${file}: committed JWT role`).not.toBe("service_role");
       }
     }
-  });
+  }, SOURCE_SCAN_TIMEOUT_MS);
 
   it("tracks no .p8 file and refuses one in .gitignore (40)", () => {
     expect(files.filter((f) => f.endsWith(".p8"))).toEqual([]);

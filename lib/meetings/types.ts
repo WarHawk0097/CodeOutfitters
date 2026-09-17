@@ -29,7 +29,8 @@ export type Meeting = {
   workspaceId: string;
   leadId: string | null;
   provider: MeetingProviderId;
-  connectionId: string;
+  /** Null for browser-captured meetings that do not use a provider credential. */
+  connectionId: string | null;
   providerSpaceId: string;
   providerConferenceRecordId: string | null;
   title: string | null;
@@ -42,11 +43,17 @@ export type Meeting = {
   updatedAt: string;
 };
 
+export type CaptureSource = "provider_transcript" | "browser_captions" | "browser_audio";
+
 export type MeetingArtifact = {
   id: string;
   meetingId: string;
   workspaceId: string;
   artifactType: MeetingArtifactType;
+  /** The acquisition source of this artifact — distinct from the meeting provider.
+   *  'provider_transcript' is the default; browser capture artifacts are
+   *  'browser_captions' (live caption capture) or 'browser_audio' (future audio mode). */
+  captureSource: CaptureSource;
   providerArtifactId: string;
   state: string | null;
   docsUrl: string | null;

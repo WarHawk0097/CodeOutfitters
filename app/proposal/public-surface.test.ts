@@ -20,7 +20,7 @@ const publicView = read("app/proposal/[secureToken]/proposal-public-view.tsx");
 const publicChrome = read("app/proposal/[secureToken]/public-chrome.tsx");
 const accessPage = read("app/dashboard/proposals/[proposalId]/access/page.tsx");
 const accessView = read("app/dashboard/proposals/[proposalId]/access/access-view.tsx");
-const middleware = read("middleware.ts");
+const middleware = read("proxy.ts");
 const globals = read("app/globals.css");
 
 const publicSurface = [publicPage, publicView, publicChrome].join("\n");

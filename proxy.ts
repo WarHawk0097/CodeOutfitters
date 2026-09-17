@@ -14,7 +14,7 @@ function needsSession(pathname: string): boolean {
   )
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // One client-facing origin. Production only, never for /api, /auth, /proposal or
   // Vercel internals, and path plus query are preserved.
   const canonical = canonicalHostRedirect({

@@ -663,7 +663,7 @@ export function ContactBookingFlow(_props: ContactBookingFlowProps) {
                 Book a 30-minute discovery call.
               </h2>
               <p style={{ margin: 0, font: "400 16.5px/1.6 'Instrument Sans',sans-serif", color: '#5B6355', maxWidth: '480px' }}>
-                Pick a date and an open 30-minute slot. You'll see the exact time in your own timezone, then review your details before you request it.
+                Pick a date and an open 30-minute slot. You&apos;ll see the exact time in your own timezone, then review your details before you request it.
               </p>
               <span style={{
                 display: 'inline-flex', alignItems: 'center', gap: '7px',

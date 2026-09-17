@@ -16,6 +16,7 @@ const MIGRATIONS = [
   "../../supabase/migrations/20260727_command_center_workspaces.sql",
   "../../supabase/migrations/20260818000000_integration_connections.sql",
   "../../supabase/migrations/20260820000000_meetings_transcripts.sql",
+  "../../supabase/migrations/20260822000000_meetings_capture_source.sql",
 ].map((rel) => fileURLToPath(new URL(rel, import.meta.url)));
 
 const AUTH_STUB = `
@@ -113,7 +114,7 @@ beforeEach(async () => {
   connectionA = connection.rows[0]!.id;
 }, 60_000);
 
-async function insertMeeting(workspaceId: string, connectionId: string, spaceId: string) {
+async function insertMeeting(workspaceId: string, connectionId: string | null, spaceId: string) {
   return db.query<{ id: string }>(
     `insert into public.meetings (workspace_id, lead_id, provider, connection_id, provider_space_id)
      values ($1, $2, 'google_meet', $3, $4)
@@ -233,5 +234,100 @@ describe("meetings_transcripts RLS + grants", () => {
         [inserted.rows[0]!.id],
       ),
     ).rejects.toThrow();
+  });
+
+  it("meetings.connection_id is nullable (capture meetings need no Google connection)", async () => {
+    await asVerifier();
+    const inserted = await db.query<{ id: string; connection_id: string | null }>(
+      `insert into public.meetings (workspace_id, lead_id, provider, provider_space_id, created_by)
+       values ($1, $2, 'google_meet', 'capture-space-1', $3)
+       returning id, connection_id`,
+      [workspaceA, leadA, userA],
+    );
+    expect(inserted.rows[0]!.connection_id).toBeNull();
+
+    await asUser(userA);
+    const read = await db.query(`select id from public.meetings where id = $1`, [inserted.rows[0]!.id]);
+    expect(read.rows).toHaveLength(1);
+  });
+
+  it("meeting_artifacts.capture_source defaults to provider_transcript and stores browser_captions", async () => {
+    await asVerifier();
+    const inserted = await db.query<{ id: string }>(
+      `insert into public.meetings (workspace_id, lead_id, provider, provider_space_id, created_by)
+       values ($1, $2, 'google_meet', 'capture-space-2', $3) returning id`,
+      [workspaceA, leadA, userA],
+    );
+
+    const defaulted = await db.query<{ capture_source: string }>(
+      `insert into public.meeting_artifacts (meeting_id, artifact_type, provider_artifact_id)
+       values ($1, 'transcript', 'conferenceRecords/xyz/transcripts/1')
+       returning capture_source`,
+      [inserted.rows[0]!.id],
+    );
+    expect(defaulted.rows[0]!.capture_source).toBe("provider_transcript");
+
+    const captured = await db.query<{ capture_source: string }>(
+      `insert into public.meeting_artifacts (meeting_id, artifact_type, provider_artifact_id, capture_source)
+       values ($1, 'transcript', 'codeoutfitters-capture:sess-1', 'browser_captions')
+       returning capture_source`,
+      [inserted.rows[0]!.id],
+    );
+    expect(captured.rows[0]!.capture_source).toBe("browser_captions");
+
+    await asUser(userA);
+    const read = await db.query<{ capture_source: string }>(
+      `select capture_source from public.meeting_artifacts where meeting_id = $1 order by created_at`,
+      [inserted.rows[0]!.id],
+    );
+    expect(read.rows.map((r) => r.capture_source)).toEqual(["provider_transcript", "browser_captions"]);
+  });
+
+  it("service role can write capture entries idempotently via unique provider_entry_id", async () => {
+    await asVerifier();
+    const meeting = await db.query<{ id: string }>(
+      `insert into public.meetings (workspace_id, lead_id, provider, provider_space_id, created_by)
+       values ($1, $2, 'google_meet', 'capture-space-3', $3) returning id`,
+      [workspaceA, leadA, userA],
+    );
+    const artifact = await db.query<{ id: string }>(
+      `insert into public.meeting_artifacts (meeting_id, artifact_type, provider_artifact_id, capture_source)
+       values ($1, 'transcript', 'codeoutfitters-capture:sess-2', 'browser_captions')
+       returning id`,
+      [meeting.rows[0]!.id],
+    );
+    const transcript = await db.query<{ id: string }>(
+      `insert into public.transcripts (meeting_artifact_id, state) values ($1, 'capture_active') returning id`,
+      [artifact.rows[0]!.id],
+    );
+
+    const entry = {
+      transcript_id: transcript.rows[0]!.id,
+      workspace_id: workspaceA,
+      provider_entry_id: "codeoutfitters-capture:sess-2:0",
+      speaker_label: "Alice",
+      sequence: 0,
+      text: "we need an offline application",
+    };
+    await db.query(
+      `insert into public.transcript_entries (transcript_id, workspace_id, provider_entry_id, speaker_label, sequence, text)
+       values ($1, $2, $3, $4, $5, $6)`,
+      [entry.transcript_id, entry.workspace_id, entry.provider_entry_id, entry.speaker_label, entry.sequence, entry.text],
+    );
+
+    // A retry of the same batch must not duplicate — unique (transcript_id, provider_entry_id).
+    await expect(
+      db.query(
+        `insert into public.transcript_entries (transcript_id, workspace_id, provider_entry_id, speaker_label, sequence, text)
+         values ($1, $2, $3, $4, $5, $6)`,
+        [entry.transcript_id, entry.workspace_id, entry.provider_entry_id, entry.speaker_label, entry.sequence, entry.text],
+      ),
+    ).rejects.toThrow();
+
+    const count = await db.query<{ n: number }>(
+      `select count(*)::int as n from public.transcript_entries where transcript_id = $1`,
+      [transcript.rows[0]!.id],
+    );
+    expect(count.rows[0]!.n).toBe(1);
   });
 });

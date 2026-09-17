@@ -14,9 +14,10 @@ import { useBreakpoint } from "../../../components/demo/use-breakpoint";
 import { MenuButton, type MenuItem } from "../../../components/demo/menu";
 import { Dialog, DialogCancelButton, DialogSubmitButton } from "../../../components/demo/dialog";
 import { SelectField, TextField } from "../../../components/demo/field";
-import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
+import { LiveProviderRequired, RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
 import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton } from "../../../components/demo/toolbar";
 import { getTeamRoleDisplayLabel } from "../../../lib/identity/current-user";
+import { useCommandCenterConfig } from "@/components/command-center/mode-provider";
 
 const ROLES: TeamRole[] = ["Administrator", "Sales"];
 const STATUSES: TeamStatus[] = ["Active", "Pending", "Inactive"];
@@ -25,6 +26,7 @@ const STATUS_TONE: Record<TeamStatus, Tone> = { Active: "green", Pending: "amber
 type TeamDraft = { name: string; email: string; role: TeamRole; status: TeamStatus };
 
 export function TeamScreen() {
+  const { live } = useCommandCenterConfig();
   const { state, status, error, retry } = useDemoQuery();
   const breakpoint = useBreakpoint();
 
@@ -64,6 +66,9 @@ export function TeamScreen() {
 
   if (status === "loading") return <RouteLoading label="team" />;
   if (status === "error") return <RouteError label="team" error={error!} onRetry={retry} />;
+  if (live) {
+    return <LiveProviderRequired label="Team management" detail="Workspace membership and invitations are not connected in this workspace yet." />;
+  }
 
   const rowMenu: MenuItem[] = [
     { id: "edit", label: "Edit member" },

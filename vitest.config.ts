@@ -30,6 +30,9 @@ export default defineConfig({
       // The Command Center's client components live in components/, and the surface tests that
       // read their source have to be collected from where the source is.
       "components/**/*.test.ts",
+      // The Chrome extension is plain JS with its own unit tests for the pure helpers
+      // (caption assembler mirror, session-cookie reconstruction).
+      "extensions/**/*.test.js",
     ],
     // Five *.pglite.test.ts suites hold an embedded Postgres each — a WASM heap the worker
     // does not hand back. Run enough of them at once and the process dies with "Fatal

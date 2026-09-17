@@ -30,7 +30,7 @@ type MeetingRow = {
   workspace_id: string;
   lead_id: string | null;
   provider: MeetingProviderId;
-  connection_id: string;
+  connection_id: string | null;
   provider_space_id: string;
   provider_conference_record_id: string | null;
   title: string | null;
@@ -143,6 +143,7 @@ type ArtifactRow = {
   meeting_id: string;
   workspace_id: string;
   artifact_type: MeetingArtifact["artifactType"];
+  capture_source: MeetingArtifact["captureSource"];
   provider_artifact_id: string;
   state: string | null;
   docs_url: string | null;
@@ -154,7 +155,9 @@ export async function listArtifacts(workspaceId: string, meetingId: string): Pro
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("meeting_artifacts")
-    .select("id, meeting_id, workspace_id, artifact_type, provider_artifact_id, state, docs_url, created_at, updated_at")
+    .select(
+      "id, meeting_id, workspace_id, artifact_type, capture_source, provider_artifact_id, state, docs_url, created_at, updated_at",
+    )
     .eq("workspace_id", workspaceId)
     .eq("meeting_id", meetingId)
     .order("created_at", { ascending: true });
@@ -166,6 +169,7 @@ export async function listArtifacts(workspaceId: string, meetingId: string): Pro
       meetingId: r.meeting_id,
       workspaceId: r.workspace_id,
       artifactType: r.artifact_type,
+      captureSource: r.capture_source,
       providerArtifactId: r.provider_artifact_id,
       state: r.state,
       docsUrl: r.docs_url,

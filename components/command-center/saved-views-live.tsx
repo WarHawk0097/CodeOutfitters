@@ -69,9 +69,21 @@ type LoadState =
   | { status: "error"; message: string }
   | { status: "ready"; serverViews: SavedView[]; defaultViewId: string | null; viewer: Viewer };
 
-async function parseApi(res: Response): Promise<{ ok: boolean; body: any }> {
-  const body = await res.json().catch(() => null);
-  return { ok: res.ok && body?.ok === true, body };
+type SavedViewsApiBody = {
+  ok?: boolean;
+  error?: { message?: string };
+  view?: SavedView;
+  views?: SavedView[];
+  defaultViewId?: string | null;
+  viewer?: Viewer;
+};
+
+async function parseApi(
+  res: Response,
+): Promise<{ ok: true; body: SavedViewsApiBody } | { ok: false; body: SavedViewsApiBody | null }> {
+  const body = (await res.json().catch(() => null)) as SavedViewsApiBody | null;
+  if (res.ok && body?.ok === true) return { ok: true, body };
+  return { ok: false, body };
 }
 
 async function fetchSavedViews(scope: SavedViewScope): Promise<LoadState> {
@@ -97,7 +109,7 @@ async function fetchSavedViews(scope: SavedViewScope): Promise<LoadState> {
 async function callApi(
   path: string,
   init: RequestInit,
-): Promise<{ ok: true; body: any } | { ok: false; message: string }> {
+): Promise<{ ok: true; body: SavedViewsApiBody } | { ok: false; message: string }> {
   try {
     const res = await fetch(path, {
       ...init,

@@ -28,9 +28,11 @@ import {
   DECLINE_CONFIRMATION_LABEL,
   MAX_MESSAGE_LENGTH,
   MAX_NOTE_LENGTH,
+  NOT_FOUND_VIEW,
   grantsContentAccess,
   sectionAnchors,
   validateResponseDraft,
+  type ProposalPublicViewModel,
   type ResponseDraft,
 } from '@/lib/proposals/access/model'
 import { PUBLIC_RESPONSE_REJECTION_MESSAGES } from '@/lib/proposals/access/provider'
@@ -50,9 +52,19 @@ const TABS: { id: Tab; label: string }[] = [
 const DEMO_SAVE_NOTICE =
   'Saved in browser. This is a demonstration: nothing was sent to CodeOutfitters and no email was delivered.'
 
-export function ProposalPublicView({ token }: { token: string }) {
-  const state = useDemoState()
-  const view = useMemo(() => demoPublicView(state, token, DEMO_NOW), [state, token])
+export function ProposalPublicView({
+  token,
+  live = false,
+  initialView,
+}: {
+  token: string
+  live?: boolean
+  initialView?: ProposalPublicViewModel
+}) {
+  const state = useDemoState({ live })
+  const demoView = useMemo(() => demoPublicView(state, token, DEMO_NOW), [state, token])
+  const [liveView, setLiveView] = useState<ProposalPublicViewModel | null>(initialView ?? null)
+  const view = live ? liveView ?? initialView ?? NOT_FOUND_VIEW : demoView
 
   // One open per reader session. A reload, a prefetch or a second tab must not inflate the
   // count, or "opened 4 times" stops meaning anything to the person reading it in the
@@ -63,15 +75,25 @@ export function ProposalPublicView({ token }: { token: string }) {
     if (recorded.current) return
     recorded.current = true
     const key = `cc-proposal-open:${token}`
+    const sessionKey = crypto.randomUUID()
     try {
-      if (window.sessionStorage.getItem(key)) return
-      window.sessionStorage.setItem(key, DEMO_NOW)
+      const existing = window.sessionStorage.getItem(key)
+      if (existing) return
+      window.sessionStorage.setItem(key, sessionKey)
     } catch {
       // Storage blocked. Recording the open once per mount is the honest fallback: better a
       // slightly high count than a proposal that looks unread because a browser said no.
     }
-    recordProposalOpen(token)
-  }, [token])
+    if (live) {
+      void fetch(`/api/proposal/${encodeURIComponent(token)}/open`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ sessionKey }),
+      }).catch(() => undefined)
+    } else {
+      recordProposalOpen(token)
+    }
+  }, [live, token])
 
   if (!grantsContentAccess(view.state) || !view.document) {
     return <PublicNotice heading={view.heading} detail={view.detail} />
@@ -79,14 +101,24 @@ export function ProposalPublicView({ token }: { token: string }) {
 
   return (
     <PublicShell>
-      <ProposalDocument token={token} view={view} />
+      <ProposalDocument token={token} view={view} live={live} onLiveView={setLiveView} />
     </PublicShell>
   )
 }
 
-type ViewModel = ReturnType<typeof demoPublicView>
+type ViewModel = ProposalPublicViewModel
 
-function ProposalDocument({ token, view }: { token: string; view: ViewModel }) {
+function ProposalDocument({
+  token,
+  view,
+  live,
+  onLiveView,
+}: {
+  token: string
+  view: ViewModel
+  live: boolean
+  onLiveView: (view: ProposalPublicViewModel) => void
+}) {
   const snapshot = view.document!
   const anchors = useMemo(() => sectionAnchors(snapshot), [snapshot])
 
@@ -142,7 +174,9 @@ function ProposalDocument({ token, view }: { token: string; view: ViewModel }) {
 
       {view.decision ? <DecisionRecord decision={view.decision} /> : null}
       {view.responses.length > 0 ? <ResponseHistory responses={view.responses} /> : null}
-      {view.canRespond ? <ResponseForm token={token} /> : null}
+      {view.canRespond ? (
+        <ResponseForm token={token} live={live} onLiveView={onLiveView} />
+      ) : null}
 
       <style>{`
         .pp-head h1 { font-family: var(--font-display); font-size: clamp(24px, 4.5vw, 34px); line-height: 1.15; letter-spacing: -.025em; margin: 6px 0 0; }
@@ -243,7 +277,15 @@ function ResponseHistory({ responses }: { responses: ViewModel['responses'] }) {
   )
 }
 
-function ResponseForm({ token }: { token: string }) {
+function ResponseForm({
+  token,
+  live,
+  onLiveView,
+}: {
+  token: string
+  live: boolean
+  onLiveView: (view: ProposalPublicViewModel) => void
+}) {
   const [tab, setTab] = useState<Tab>('question')
   const [message, setMessage] = useState('')
   const [displayName, setDisplayName] = useState('')
@@ -254,6 +296,8 @@ function ResponseForm({ token }: { token: string }) {
   const [confirmed, setConfirmed] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [status, setStatus] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const pendingIdempotencyKey = useRef<string | null>(null)
 
   const draft: ResponseDraft =
     tab === 'question' || tab === 'comment'
@@ -262,25 +306,64 @@ function ResponseForm({ token }: { token: string }) {
         ? { type: 'acceptance', typedName, authorised, note }
         : { type: 'decline', reason, confirmed }
 
-  function submit(event: React.FormEvent) {
+  async function submit(event: React.FormEvent) {
     event.preventDefault()
-    // Checked here for immediate feedback, and checked again inside the mutation. The form's
-    // copy is a courtesy; the boundary is the one that decides.
     const found = validateResponseDraft(draft)
     setErrors(found)
     if (Object.keys(found).length > 0) {
       setStatus('Please check the highlighted fields.')
       return
     }
-    const result = submitProposalResponse(token, draft)
-    if (!result.ok) {
-      setStatus(PUBLIC_RESPONSE_REJECTION_MESSAGES[result.reason])
+
+    if (!live) {
+      const result = submitProposalResponse(token, draft)
+      if (!result.ok) {
+        setStatus(PUBLIC_RESPONSE_REJECTION_MESSAGES[result.reason])
+        return
+      }
+      setMessage('')
+      setNote('')
+      setReason('')
+      setStatus(DEMO_SAVE_NOTICE)
       return
     }
-    setMessage('')
-    setNote('')
-    setReason('')
-    setStatus(DEMO_SAVE_NOTICE)
+
+    const idempotencyKey = pendingIdempotencyKey.current ?? crypto.randomUUID()
+    pendingIdempotencyKey.current = idempotencyKey
+    setSubmitting(true)
+    setStatus('Recording response…')
+    try {
+      const response = await fetch(`/api/proposal/${encodeURIComponent(token)}`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ draft, idempotencyKey }),
+      })
+      const body = (await response.json().catch(() => null)) as
+        | { ok: true; replay: boolean; view: ProposalPublicViewModel }
+        | { ok: false; reason?: keyof typeof PUBLIC_RESPONSE_REJECTION_MESSAGES; error?: { message?: string } }
+        | null
+      if (!body?.ok) {
+        const reason = body?.reason
+        setStatus(
+          reason && PUBLIC_RESPONSE_REJECTION_MESSAGES[reason]
+            ? PUBLIC_RESPONSE_REJECTION_MESSAGES[reason]
+            : body?.error?.message ?? 'We could not record that just now. Please try again shortly.',
+        )
+        return
+      }
+      pendingIdempotencyKey.current = null
+      setMessage('')
+      setNote('')
+      setReason('')
+      setStatus(body.replay ? 'Response already recorded.' : 'Response recorded.')
+      onLiveView(body.view)
+    } catch {
+      // Keep the idempotency key so a retry cannot create a duplicate after an ambiguous
+      // network failure.
+      setStatus('We could not record that just now. Please try again shortly.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const describedBy = (field: string) => (errors[field] ? `pp-err-${field}` : undefined)
@@ -407,8 +490,14 @@ function ResponseForm({ token }: { token: string }) {
           </>
         ) : null}
 
-        <button type="submit" className="pp-submit">
-          {tab === 'acceptance' ? 'Record acceptance' : tab === 'decline' ? 'Record decline' : 'Send'}
+        <button type="submit" className="pp-submit" disabled={submitting}>
+          {submitting
+            ? 'Recording…'
+            : tab === 'acceptance'
+              ? 'Record acceptance'
+              : tab === 'decline'
+                ? 'Record decline'
+                : 'Send'}
         </button>
       </form>
 

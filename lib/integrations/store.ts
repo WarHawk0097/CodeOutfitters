@@ -78,10 +78,17 @@ function toConnection(row: ConnectionRow): IntegrationConnection {
   };
 }
 
-/** Never a raw provider/Postgres message — capped, and adapters are documented to
- *  return only developer-authored, secret-free text in the first place. */
+/** Never expose a raw provider message. Providers occasionally echo request details,
+ * including authorization codes or bearer tokens, so redact credential-shaped fields before
+ * applying the storage/UI length cap. */
 function toSafeErrorMessage(raw: string): string {
-  return raw.length > 300 ? `${raw.slice(0, 297)}...` : raw;
+  const redacted = raw
+    .replace(
+      /(access_token|refresh_token|id_token|client_secret|authorization|code)\s*[:=]\s*["']?[^\s,&"'}]+/gi,
+      "$1=[redacted]",
+    )
+    .replace(/Bearer\s+\S+/gi, "Bearer [redacted]");
+  return redacted.length > 300 ? `${redacted.slice(0, 297)}...` : redacted;
 }
 
 function throwForPgError(error: { code?: string; message: string }): never {
@@ -306,10 +313,11 @@ export async function disconnect(workspaceId: string, connectionId: string): Pro
       const adapter = await getProviderAdapter(row.provider);
       const credentials = JSON.parse(decryptCredential(ciphertext)) as ProviderCredentials;
       await adapter.revoke(credentials);
-    } catch (error) {
+    } catch {
       // Never surfaced to the caller and never blocks the local disconnect — see the
-      // provider.ts revoke() contract note. Logged without the credential.
-      console.error("provider revoke failed during disconnect", error instanceof Error ? error.message : error);
+      // provider.ts revoke() contract note. Do not log provider details: they may echo
+      // authorization material even when the credential itself is not included.
+      console.error("provider revoke failed during disconnect");
     }
   }
 

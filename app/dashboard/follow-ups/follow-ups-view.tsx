@@ -35,7 +35,7 @@ import { useBreakpoint } from "../../../components/demo/use-breakpoint";
 import { MenuButton, type MenuItem } from "../../../components/demo/menu";
 import { Dialog, DialogCancelButton, DialogSubmitButton } from "../../../components/demo/dialog";
 import { SelectField, TextAreaField, TextField } from "../../../components/demo/field";
-import { RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
+import { LiveProviderRequired, RouteEmpty, RouteError, RouteLoading } from "../../../components/demo/route-states";
 import { NextActionCard } from "../../../components/dashboard/next-action-card";
 import { FilterMenu, RouteToolbar, SearchInput, ToolbarButton, ToolbarDivider } from "../../../components/demo/toolbar";
 import { SavedViewsBar } from "../../../components/command-center/saved-views";
@@ -44,6 +44,7 @@ import { useCommandCreateDialog } from "../../../components/command-center/use-c
 import { longDate } from "../appointments/date-utils";
 import { RecordActivity } from "@/components/dashboard/activity-ui";
 import { eventsFor, type ActivityEvent } from "@/lib/activity/model";
+import { useCommandCenterConfig } from "@/components/command-center/mode-provider";
 
 // C-D12 342-353 draws OVERDUE (red), DUE TODAY (amber) and the queue; the four states the
 // switch offers each get a tone from the canonical palette by the same grammar the rest of
@@ -88,6 +89,7 @@ type FollowUpDraft = {
 };
 
 export function FollowUpsScreen() {
+  const { live } = useCommandCenterConfig();
   const { state, status, error, retry } = useDemoQuery();
   const breakpoint = useBreakpoint();
 
@@ -194,6 +196,9 @@ export function FollowUpsScreen() {
 
   if (status === "loading") return <RouteLoading label="follow-ups" />;
   if (status === "error") return <RouteError label="follow-ups" error={error!} onRetry={retry} />;
+  if (live) {
+    return <LiveProviderRequired label="Follow-ups" detail="Task reminders and delivery are not connected in this workspace yet." />;
+  }
 
   const rowMenu = (followUp: FollowUp): MenuItem[] => [
     { id: "open", label: "Open details" },

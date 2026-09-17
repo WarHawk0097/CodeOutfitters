@@ -227,12 +227,16 @@ export function withClientActivity(
 /** Read the demo state. Deliberately returns the whole object rather than taking a
  *  selector: a selector that builds a new array on every call makes useSyncExternalStore
  *  loop forever. Derive with useMemo at the call site instead. */
-export function useDemoState(): DemoState {
+export function useDemoState(options?: { live?: boolean }): DemoState {
   // Live mode must never touch the demo store: no createSeedState(), no fixtures. `live`
   // is resolved server-side and stable for a page's lifetime (see mode-provider.tsx), so
   // switching which getters are passed here does not violate the Rules of Hooks — this
   // call is always made, in the same order, on every render.
-  const { live } = useCommandCenterConfig();
+  // Public live surfaces are outside the dashboard's config provider, so they pass their
+  // server-resolved plane explicitly. The optional override keeps this hook unconditional
+  // while preventing a live public page from evaluating the demo server snapshot.
+  const { live: configuredLive } = useCommandCenterConfig();
+  const live = options?.live ?? configuredLive;
   return useSyncExternalStore(
     live ? neverSubscribe : subscribeDemoState,
     live ? getEmptyDemoState : getDemoState,

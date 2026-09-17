@@ -2,6 +2,11 @@
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // The shared host may contain unrelated lockfiles above this worktree. Keep
+  // Turbopack's dependency-root discovery confined to this CodeOutfitters app.
+  turbopack: {
+    root: process.cwd(),
+  },
   // PGlite (local inquiry repo) ships a citext.tar.gz extension loaded at runtime
   // via a filesystem path. Bundling rewrites it to a /_next static URL that
   // PGlite's Node loader can't read (ERR_INVALID_ARG_TYPE). Keep it external so

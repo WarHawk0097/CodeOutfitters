@@ -25,7 +25,7 @@ const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
 // separate monorepo (its own vitest); `work/`, `docs/` and the review archives
 // are prose and QA scripts, not product source.
 const SOURCE_DIRS = ["app", "components", "lib", "hooks", "mocks", "workers", "ai"];
-const SOURCE_FILES = ["middleware.ts", "next.config.mjs"];
+const SOURCE_FILES = ["proxy.ts", "next.config.mjs"];
 
 function collect(dir: string, out: string[] = []): string[] {
   for (const entry of readdirSync(dir)) {

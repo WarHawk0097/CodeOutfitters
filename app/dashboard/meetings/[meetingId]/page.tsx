@@ -17,6 +17,7 @@ import { NextActionCard } from "@/components/dashboard/next-action-card";
 import { Confidence, FieldLine, FieldList, hasValue } from "@/components/meetings/insight-fields";
 import { resolveDashboardContext } from "@/lib/command-center/data";
 import { isDemoMode } from "@/lib/command-center/mode";
+import { captureStateSuffix, transcriptSourceLabel } from "@/lib/meetings/capture/label";
 import { MeetingIntelligenceSchema, PresentationIntelligenceSchema } from "@/lib/meetings/ai/schema";
 import { getLatestInsights } from "@/lib/meetings/ai/store";
 import { MEETING_STATUS_LABEL } from "@/lib/meetings/status-label";
@@ -111,6 +112,12 @@ export default async function MeetingDetailPage({
         <h2 id="meeting-transcript-heading" className={HEADING}>
           Transcript
         </h2>
+        {transcriptArtifact ? (
+          <p className="mb-2 text-[11px] text-cc-t4">
+            Transcript source: {transcriptSourceLabel(transcriptArtifact.captureSource)}
+            {captureStateSuffix(transcriptArtifact.state) ? ` — ${captureStateSuffix(transcriptArtifact.state)}` : ""}
+          </p>
+        ) : null}
         {entries.length === 0 ? (
           <p className="text-sm text-cc-t3">{MEETING_STATUS_LABEL[meeting.status]}</p>
         ) : (

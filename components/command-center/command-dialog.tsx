@@ -500,10 +500,9 @@ function SectionList({
   active: Option | null;
   onActivate: (index: number) => void;
 }) {
-  let index = -1;
   return (
     <>
-      {sections.map((section) => (
+      {sections.map((section, sectionIndex) => (
         <div key={`${section.heading}-${section.options[0]?.domId ?? ""}`} className="mb-1">
           {/* `presentation` on the heading: a listbox may only contain options, so a real
               heading element inside it would be an invalid child. The group name is carried
@@ -515,9 +514,11 @@ function SectionList({
           >
             {section.heading}
           </p>
-          {section.options.map((option) => {
-            index += 1;
-            const optionIndex = index;
+          {section.options.map((option, optionIndexWithinSection) => {
+            const optionIndex =
+              sections
+                .slice(0, sectionIndex)
+                .reduce((count, previous) => count + previous.options.length, 0) + optionIndexWithinSection;
             const selected = active?.domId === option.domId;
             return (
               <OptionRow

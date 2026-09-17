@@ -186,7 +186,7 @@ describe("withRetry", () => {
 
 describe("InMemoryRateLimiter", () => {
   it("allows up to the limit and then refuses", () => {
-    let now = 0;
+    const now = 0;
     const limiter = new InMemoryRateLimiter(2, 60_000, () => now);
 
     limiter.consume("workspace-1:user-1");
