@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { isAuthProviderOutage } from '@/lib/supabase/bounded-auth-fetch'
 import { safeReturnTo } from '@/lib/auth/return-url'
 import { destinationForAuthState, type AuthState } from '@/lib/auth/auth-state'
 import { getDashboardContext } from '@/lib/dashboard/server'
@@ -11,6 +12,7 @@ import { getDashboardContext } from '@/lib/dashboard/server'
 //   provider -> /auth/callback -> exchange -> getUser() -> membership check
 //     member                       -> validated same-origin returnTo
 //     authenticated, no membership -> /access-pending
+//     provider unreachable         -> /login?outage=1 (explicit safe state)
 //     anything else                -> /login?error=auth  (one generic message)
 //
 // Provider errors arrive as query params (`error`, `error_description`); they are
@@ -20,6 +22,8 @@ export async function GET(request: NextRequest) {
   const returnTo = safeReturnTo(searchParams.get('returnTo'))
   const fail = () =>
     NextResponse.redirect(`${origin}${destinationForAuthState('auth_error', returnTo)}`)
+  const unavailable = () =>
+    NextResponse.redirect(`${origin}/login?outage=1&returnTo=${encodeURIComponent(returnTo)}`)
 
   if (searchParams.get('error')) return fail()
 
@@ -27,13 +31,25 @@ export async function GET(request: NextRequest) {
   if (!code) return fail()
 
   const supabase = await createClient()
-  const { error } = await supabase.auth.exchangeCodeForSession(code)
-  if (error) return fail()
+  let exchangeError = true
+  try {
+    const result = await supabase.auth.exchangeCodeForSession(code)
+    exchangeError = Boolean(result.error)
+  } catch (error) {
+    if (isAuthProviderOutage(error)) return unavailable()
+    throw error
+  }
+  if (exchangeError) return fail()
 
   // Re-read the user from the auth server; never trust the exchange result alone.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  let user = null
+  try {
+    const { data } = await supabase.auth.getUser()
+    user = data.user
+  } catch (error) {
+    if (isAuthProviderOutage(error)) return unavailable()
+    throw error
+  }
   if (!user) return fail()
 
   // Password recovery: any authenticated user must reach the update-password
@@ -44,15 +60,33 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}${returnTo}`)
   }
 
-  let context = await getDashboardContext()
+  let context
+  try {
+    context = await getDashboardContext()
+  } catch (error) {
+    if (isAuthProviderOutage(error)) return unavailable()
+    throw error
+  }
 
   // No membership yet: the controlled, single-use owner bootstrap is the only
   // path that can mint one. It enforces every precondition in the database and
   // rejects every user who is not the allowlisted owner, so calling it here is
-  // safe for anyone — a denial simply leaves the user without membership.
+  // safe for anyone — a denial simply leaves the user without membership. The
+  // RPC dies with the same hosted project, so it is wrapped like every other
+  // call; a bootstrap failure during an outage lands on the outage state too.
   if (!context) {
-    await supabase.rpc('bootstrap_initial_workspace_owner')
-    context = await getDashboardContext()
+    try {
+      await supabase.rpc('bootstrap_initial_workspace_owner')
+    } catch (error) {
+      if (isAuthProviderOutage(error)) return unavailable()
+      throw error
+    }
+    try {
+      context = await getDashboardContext()
+    } catch (error) {
+      if (isAuthProviderOutage(error)) return unavailable()
+      throw error
+    }
   }
 
   const state: AuthState = context

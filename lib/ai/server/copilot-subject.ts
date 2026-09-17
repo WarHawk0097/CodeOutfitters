@@ -14,11 +14,12 @@ import "server-only";
 import { isDemoMode } from "@/lib/command-center/mode";
 import { getDashboardContext } from "@/lib/dashboard/server";
 import { createClient } from "@/lib/supabase/server";
+import { isAuthProviderOutage } from "@/lib/supabase/bounded-auth-fetch";
 import type { PermissionId, PermissionSubject } from "@/lib/ai";
 
 export type CopilotSubjectResult =
   | { ok: true; subject: PermissionSubject; workspaceName: string }
-  | { ok: false; reason: "unauthenticated" | "no_workspace" };
+  | { ok: false; reason: "unauthenticated" | "no_workspace" | "provider_outage" };
 
 /** No capability is granted, so no tool can ever be offered on this path. */
 const READ_ONLY_GRANTS: readonly PermissionId[] = [];
@@ -36,7 +37,15 @@ export async function resolveCopilotSubject(): Promise<CopilotSubjectResult> {
   // client requires environment the demo deployment deliberately does not set.
   if (isDemoMode()) return { ok: false, reason: "unauthenticated" };
 
-  const context = await getDashboardContext();
+  let context: Awaited<ReturnType<typeof getDashboardContext>> = null;
+  try {
+    context = await getDashboardContext();
+  } catch (error) {
+    // The hosted auth/data plane is unreachable. This is a third failure class:
+    // neither "sign in" nor "no membership" is true, so neither may be claimed.
+    if (isAuthProviderOutage(error)) return { ok: false, reason: "provider_outage" };
+    throw error;
+  }
   if (context) {
     return {
       ok: true,
@@ -50,8 +59,13 @@ export async function resolveCopilotSubject(): Promise<CopilotSubjectResult> {
   }
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return { ok: false, reason: user ? "no_workspace" : "unauthenticated" };
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    return { ok: false, reason: user ? "no_workspace" : "unauthenticated" };
+  } catch (error) {
+    if (isAuthProviderOutage(error)) return { ok: false, reason: "provider_outage" };
+    throw error;
+  }
 }

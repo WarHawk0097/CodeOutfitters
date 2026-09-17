@@ -75,6 +75,17 @@ export async function POST(request: Request): Promise<Response> {
   // about the contract is observable without a session.
   const identity = await resolveCopilotSubject();
   if (!identity.ok) {
+    // An unreachable auth/data plane is a service condition, not an
+    // authorization verdict: 503 with a plain message, never "sign in" and
+    // never "no active workspace".
+    if (identity.reason === "provider_outage") {
+      return jsonError(
+        503,
+        "unavailable",
+        "The workspace service is temporarily unavailable. Please try again shortly.",
+        correlationId,
+      );
+    }
     return identity.reason === "unauthenticated"
       ? jsonError(401, "unauthorized", "Sign in to continue.", correlationId)
       : jsonError(403, "forbidden", "Your account has no active workspace.", correlationId);

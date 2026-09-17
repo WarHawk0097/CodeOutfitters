@@ -204,8 +204,15 @@ describe('official production parity', () => {
     'app/(public)/contact/contact-page-client.tsx',
     'components/contact.tsx',
   ])
-  unchanged('14: login is unchanged', [
-    'app/login/page.tsx',
+  // `app/login/page.tsx` is deliberately no longer byte-locked here. The hosted
+  // Supabase project became unreachable, and the page's unguarded
+  // `getUser()`/membership calls turned that into a stalled or 500ing /login —
+  // the user-visible "click Sign in and nothing happens" bug. The page now uses
+  // the bounded auth fetch and renders an explicit outage state. The form,
+  // frame and credential modules are unchanged and stay locked; the new
+  // behaviour is contract-tested in lib/supabase/auth-outage.test.ts and
+  // lib/auth/live-auth.test.ts.
+  unchanged('14: the login form, frame and credentials are unchanged', [
     'app/login/login-form.tsx',
     'app/login/login-frame.tsx',
     'app/login/credentials.ts',

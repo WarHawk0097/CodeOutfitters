@@ -11,7 +11,10 @@ export default async function ForgotPasswordPage({
   searchParams: Promise<{ sent?: string }>
 }) {
   const sp = await searchParams
-  const sent = Boolean(sp.sent)
+  // '1' = the reset request was handed to the mail plane, '0' = the auth
+  // service was unreachable and nothing was sent (an honest failure state,
+  // never the generic confirmation).
+  const sent = sp.sent
 
   // Demo mode has no real auth plane: never touch Supabase here and never show a
   // reset form that cannot deliver mail. Offer honest direct entry, matching
@@ -44,7 +47,20 @@ export default async function ForgotPasswordPage({
           Reset password
         </h1>
 
-        {sent ? (
+        {sent === '0' ? (
+          <>
+            <p className="mt-1 text-sm text-[var(--brand-muted,#666)]">
+              The authentication service is temporarily unavailable, so no reset link was
+              sent. Please try again shortly.
+            </p>
+            <Link
+              href="/forgot-password"
+              className="mt-6 block w-full rounded-md bg-[var(--brand-green-solid,#0E7A4E)] px-4 py-2 text-center text-sm font-semibold text-white transition-transform active:scale-[0.98]"
+            >
+              Try again
+            </Link>
+          </>
+        ) : sent ? (
           <>
             <p className="mt-1 text-sm text-[var(--brand-muted,#666)]">
               If an account exists for that address, we&apos;ve sent a reset link. Check your inbox.

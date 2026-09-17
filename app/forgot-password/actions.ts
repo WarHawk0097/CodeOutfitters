@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { isAuthProviderOutage } from '@/lib/supabase/bounded-auth-fetch'
 import { publicOrigin } from '@/lib/routing/public-origin'
 
 // Password-reset request server action. Recovery is performed server-side; the
@@ -9,6 +10,11 @@ import { publicOrigin } from '@/lib/routing/public-origin'
 // session and forwards to /update-password to complete the reset. The response
 // is always the same generic confirmation regardless of whether the address
 // exists — no user-enumeration, no token logging.
+//
+// When the auth provider is unreachable the reset cannot be sent; the action
+// then lands on an explicit "sent=0" state that says the service is
+// unavailable. It never renders the generic "we've sent a link" confirmation —
+// that would be a fake success.
 export async function requestPasswordReset(formData: FormData) {
   const email = String(formData.get('email') ?? '')
 
@@ -18,11 +24,16 @@ export async function requestPasswordReset(formData: FormData) {
   const origin = publicOrigin()
 
   const supabase = await createClient()
-  // Fire-and-forget: ignore the result so timing/errors can't reveal account
-  // existence. Supabase itself does not error on unknown addresses.
-  await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${origin}/auth/callback?returnTo=/update-password`,
-  })
+  try {
+    // The result is ignored either way so timing can't reveal account
+    // existence; Supabase itself does not error on unknown addresses.
+    await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${origin}/auth/callback?returnTo=/update-password`,
+    })
+  } catch (error) {
+    if (isAuthProviderOutage(error)) redirect('/forgot-password?sent=0')
+    throw error
+  }
 
   redirect('/forgot-password?sent=1')
 }

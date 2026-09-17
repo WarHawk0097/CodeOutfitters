@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { isAuthProviderOutage } from '@/lib/supabase/bounded-auth-fetch'
 import { redirect } from 'next/navigation'
 
 // Password-update server action for the recovery destination. The password is
@@ -19,9 +20,21 @@ export async function updatePassword(
   const confirmPassword = String(formData.get('confirmPassword') ?? '')
 
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  let user = null
+  try {
+    const { data } = await supabase.auth.getUser()
+    user = data.user
+  } catch (error) {
+    // Auth provider unreachable: an explicit unavailable message — never a
+    // 500, never a message that implies the new password was rejected.
+    if (isAuthProviderOutage(error)) {
+      return {
+        status: 'error',
+        message: 'The authentication service is temporarily unavailable. Please try again shortly.',
+      }
+    }
+    throw error
+  }
   // No session (direct access, expired/consumed recovery link): fail safe,
   // never accept a password change with nothing behind it.
   if (!user) redirect('/login')
@@ -33,9 +46,21 @@ export async function updatePassword(
     return { status: 'error', message: 'Passwords do not match.' }
   }
 
-  const { error } = await supabase.auth.updateUser({ password })
+  let updateError = true
+  try {
+    const { error } = await supabase.auth.updateUser({ password })
+    updateError = Boolean(error)
+  } catch (error) {
+    if (isAuthProviderOutage(error)) {
+      return {
+        status: 'error',
+        message: 'The authentication service is temporarily unavailable. Please try again shortly.',
+      }
+    }
+    throw error
+  }
   // Never surface the raw Supabase/provider error string to the client.
-  if (error) {
+  if (updateError) {
     return { status: 'error', message: 'Could not update your password. Please try again.' }
   }
 
@@ -43,7 +68,12 @@ export async function updatePassword(
   // working after the change. A recovery-link session is single-purpose:
   // end it here and require a fresh sign-in with the new password, rather
   // than leaving a password-reset flow able to keep browsing the dashboard.
-  await supabase.auth.signOut()
+  try {
+    await supabase.auth.signOut()
+  } catch {
+    // The local session is cleared by the SSR client even if the auth server
+    // is unreachable; sign-out must never strand the flow.
+  }
 
   return { status: 'success' }
 }
