@@ -26,7 +26,6 @@ import {
   MIN_QUERY_LENGTH,
   SEARCH_SCOPE_LABELS,
   type CommandCenterSearchResult,
-  type SearchIndexUniverse,
   type SearchPermissionContext,
   type SearchScope,
 } from "../../lib/search/model";
@@ -37,11 +36,8 @@ import {
   matchCommands,
   type CommandCenterCommand,
 } from "../../lib/search/commands";
-import {
-  resolveSearchPlane,
-  SEARCH_PROVIDER_REQUIRED_REASON,
-  SEARCH_PROVIDER_REQUIRED_TITLE,
-} from "../../lib/search/provider";
+import { resolveSearchPlane } from "../../lib/search/provider";
+import { useLiveSearch } from "./search-live";
 import {
   parseRecentItems,
   recentItemTypeLabel,
@@ -62,11 +58,6 @@ export const SEARCH_INPUT_LABEL = "Search records and commands";
 
 export const SEARCH_DIALOG_DESCRIPTION =
   "Type to search leads, tasks, meetings, proposals, follow-ups and communications, or to run a command. Use the up and down arrow keys to move through results and Enter to open one.";
-
-/** Live mode's stand-in for `demoSearchUniverse` — recent items are dropped before this is
- *  ever read (see `visibleRecent`), so its only job is to avoid calling into the demo fixture
- *  path at all. */
-const EMPTY_SEARCH_UNIVERSE: SearchIndexUniverse = { ids: new Map(), routes: new Set() };
 
 /** One navigable row, whatever section it came from. Search results, commands and recent items
  *  share this shape so the arrow keys walk one list rather than three, and so Enter has exactly
@@ -119,19 +110,13 @@ export function CommandDialog({
   const descriptionId = `${baseId}-description`;
   const listId = `${baseId}-list`;
 
-  // Demo only. In live mode nothing below is reached — the provider-required notice renders
-  // instead — so the index is never built from fixtures for a live workspace.
+  // Demo only. Live mode never builds an index client-side — see search-live.ts, which asks
+  // GET /api/dashboard/search instead — so a live workspace's records are never in this tab.
   const documents = useMemo(
     () => (plane.kind === "demo" ? buildDemoSearchIndex(state) : []),
     [plane.kind, state],
   );
-  // Also demo only — `demoSearchUniverse` pulls in the lead directory by default, which live
-  // mode must never generate. `visibleRecent` below already discards this in live mode, but
-  // the call itself has to be gated too, not just its result.
-  const universe = useMemo(
-    () => (plane.kind === "demo" ? demoSearchUniverse(state) : EMPTY_SEARCH_UNIVERSE),
-    [plane.kind, state],
-  );
+  const universe = useMemo(() => demoSearchUniverse(state), [state]);
 
   const context = useMemo<SearchPermissionContext>(() => {
     const member = state.team.find((candidate) => candidate.id === DEMO_CURRENT_USER_ID);
@@ -188,10 +173,15 @@ export function CommandDialog({
   const trimmed = text.trim();
   const searching = trimmed.length >= MIN_QUERY_LENGTH;
 
-  const results = useMemo(
-    () => (searching && plane.kind === "demo" ? searchDocuments(documents, { text, scope }) : []),
-    [searching, plane.kind, documents, text, scope],
-  );
+  // Live mode's whole result set, gated to a real query so a one-character string never reaches
+  // the network. Debounced and cancelled inside the hook — see search-live.ts.
+  const liveState = useLiveSearch(live && searching, text, scope);
+
+  const results = useMemo(() => {
+    if (!searching) return [];
+    if (plane.kind === "demo") return searchDocuments(documents, { text, scope });
+    return liveState.status === "results" ? liveState.results : [];
+  }, [searching, plane.kind, documents, text, scope, liveState]);
   const resultGroups = useMemo(() => groupResults(results), [results]);
   const flatResults = useMemo(() => flattenGroups(resultGroups), [resultGroups]);
 
@@ -212,19 +202,22 @@ export function CommandDialog({
   );
 
   const sections = useMemo<Section[]>(() => {
-    if (plane.kind !== "demo") return [];
     const built: Section[] = [];
     let counter = 0;
     const nextId = () => `${baseId}-option-${counter++}`;
 
-    if (searching) {
+    // Live: nothing to list until the request resolves to `results` — the loading/error states
+    // render their own message in place of the list (see below), so no result heading with zero
+    // rows would ever actually be seen, but building one here would still be wrong to select.
+    const liveReady = plane.kind === "demo" || liveState.status === "results";
+    if (searching && liveReady) {
       for (const group of resultGroups) {
         built.push({
           heading: group.group,
           options: group.results.map((result) => resultOption(result, nextId(), openHref, remember)),
         });
       }
-    } else if (visibleRecent.length > 0) {
+    } else if (!searching && visibleRecent.length > 0) {
       built.push({
         heading: RECENT_ITEMS_NOTICE,
         options: visibleRecent.map((item) => ({
@@ -245,6 +238,7 @@ export function CommandDialog({
     return built;
   }, [
     plane.kind,
+    liveState.status,
     searching,
     resultGroups,
     visibleRecent,
@@ -314,13 +308,15 @@ export function CommandDialog({
   if (!open) return null;
 
   const announcement =
-    plane.kind !== "demo"
-      ? SEARCH_PROVIDER_REQUIRED_TITLE
-      : status === "loading"
-        ? "Loading"
-        : searching
-          ? `${results.length} ${results.length === 1 ? "result" : "results"} for ${trimmed}`
-          : `${options.length} suggestions`;
+    status === "loading"
+      ? "Loading"
+      : live && searching && liveState.status === "loading"
+        ? "Searching"
+        : live && searching && liveState.status === "error"
+          ? "Search failed"
+          : searching
+            ? `${results.length} ${results.length === 1 ? "result" : "results"} for ${trimmed}`
+            : `${options.length} suggestions`;
 
   return (
     <div className="fixed inset-0 z-[60] flex items-start justify-center p-4 pt-[8vh]">
@@ -428,10 +424,12 @@ export function CommandDialog({
           aria-label="Search results and commands"
           className="min-h-0 flex-1 overflow-y-auto px-1.5 py-1.5"
         >
-          {plane.kind !== "demo" ? (
-            <ProviderRequired />
-          ) : status === "loading" ? (
+          {status === "loading" ? (
             <p className="px-2.5 py-6 text-center text-[12.5px] text-cc-t3">Loading…</p>
+          ) : live && searching && liveState.status === "loading" ? (
+            <p className="px-2.5 py-6 text-center text-[12.5px] text-cc-t3">Searching…</p>
+          ) : live && searching && liveState.status === "error" ? (
+            <LiveSearchError />
           ) : options.length === 0 ? (
             <NoResults searching={searching} query={trimmed} />
           ) : (
@@ -599,11 +597,10 @@ function NoResults({ searching, query }: { searching: boolean; query: string }) 
   );
 }
 
-function ProviderRequired() {
+function LiveSearchError() {
   return (
-    <div className="px-3 py-6">
-      <p className="text-[13px] font-semibold text-cc-ink">{SEARCH_PROVIDER_REQUIRED_TITLE}</p>
-      <p className="mt-1 text-[12px] leading-[1.5] text-cc-t3">{SEARCH_PROVIDER_REQUIRED_REASON}</p>
-    </div>
+    <p className="px-2.5 py-6 text-center text-[12.5px] text-cc-t3">
+      Search is unavailable right now. Try again in a moment.
+    </p>
   );
 }

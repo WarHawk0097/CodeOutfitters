@@ -22,7 +22,6 @@ import {
   SEARCH_SCOPES,
 } from "../../lib/search/model";
 import { buildDemoSearchIndex } from "../../lib/search/demo-index";
-import { SEARCH_PROVIDER_REQUIRED_REASON, SEARCH_PROVIDER_REQUIRED_TITLE } from "../../lib/search/provider";
 import { RECENT_ITEMS_NOTICE } from "../../lib/search/recent-items";
 import { createSeedState } from "../../lib/demo/seed";
 
@@ -188,7 +187,7 @@ describe("universal search dialog (tests 22-40)", () => {
 
   // 34
   it("shows recent items and commands when the query is empty, rather than an empty box", () => {
-    expect(dialog).toContain("} else if (visibleRecent.length > 0) {");
+    expect(dialog).toContain("} else if (!searching && visibleRecent.length > 0) {");
     expect(dialog).toContain("heading: RECENT_ITEMS_NOTICE,");
     expect(RECENT_ITEMS_NOTICE).toBe("Recent on this browser");
     // Commands are listed under both conditions: a few alongside results, more when idle.
@@ -212,15 +211,17 @@ describe("universal search dialog (tests 22-40)", () => {
   });
 
   // 37
-  it("renders the provider-required state in live mode, with no demo records behind it", () => {
-    expect(dialog).toContain('plane.kind !== "demo" ? (\n            <ProviderRequired />');
-    expect(dialog).toContain("{SEARCH_PROVIDER_REQUIRED_TITLE}");
-    expect(dialog).toContain("{SEARCH_PROVIDER_REQUIRED_REASON}");
-    expect(SEARCH_PROVIDER_REQUIRED_TITLE.trim().length).toBeGreaterThan(0);
-    expect(SEARCH_PROVIDER_REQUIRED_REASON.trim().length).toBeGreaterThan(40);
+  it("renders live loading/error states from useLiveSearch, with no demo records behind them", () => {
+    expect(dialog).toContain("useLiveSearch(live && searching, text, scope)");
+    expect(dialog).toContain('live && searching && liveState.status === "loading"');
+    expect(dialog).toContain('live && searching && liveState.status === "error"');
+    expect(dialog).toContain("<LiveSearchError />");
     // The index itself is never built outside demo mode, so there is nothing to fall back to.
     expect(dialog).toContain('() => (plane.kind === "demo" ? buildDemoSearchIndex(state) : [])');
-    expect(dialog).toContain('const sections = useMemo<Section[]>(() => {\n    if (plane.kind !== "demo") return [];');
+    expect(dialog).toContain(
+      'const liveReady = plane.kind === "demo" || liveState.status === "results";',
+    );
+    expect(dialog).not.toContain("ProviderRequired");
   });
 
   // 38
