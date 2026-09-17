@@ -876,3 +876,22 @@ implementation summary:
 - **Not done, deliberately**: no deploy (not even Preview), no push, no Zoom/Teams, no
   audio mode, no Web Store, no paid transcription. Controlled QA (Tayyab or a QA account)
   is the next step.
+
+## Session record — 2026-09-17 (fresh gates + clean release candidate; hosted still blocked)
+
+Fresh gates run this session on the exact worktree tree, all PASS: `tsc --noEmit` exit 0;
+`vitest run` 172 files / 2491 tests, 0 failures; `eslint .` exit 0 (0 errors, 116
+pre-existing warnings); `npm run build` exit 0; `test:pglite:serial` 15/15 suites PASS.
+A clean release candidate was committed locally on `feat/leads-foundation-live`:
+`f7c4618` (live search port, superseding `feat/search-live` content) and `54f06cb`
+(Next 16.3.5 + middleware→proxy rename, extension auth + capture, live-surface honesty
+gating, secure-proposal live access layer, OAuth deadlines + redaction, 3 required
+migrations, release docs). Backup/scratch/session artifacts were classified OUT of the
+commits and preserved on disk. Security gate dispositioned per finding (gitleaks: test
+fixtures + historic anon JWT only; trivy: app deps fixed by the 16.3.5 upgrade, residual
+findings confined to the tracked legacy `command-center/` prototype workspace).
+Hosted Supabase `rsxdhwtprmuhzuocycxu` remains NXDOMAIN from 1.1.1.1/8.8.8.8 and CLI
+access is unauthorized; production `codeoutfitters.vercel.app` serves a ~2026-08-21
+stale deployment. Full evidence, provider matrix, and the three one-step human unblock
+actions (supabase login / vercel login / gh auth login): see
+`work/OCF-RELEASE-STATUS-2026-09-17-FRESH-GATES.md`. Not certified; not pushed.
