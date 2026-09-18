@@ -22,9 +22,13 @@ export default async function LoginPage({
   const sp = await searchParams
   const returnTo = safeReturnTo(sp.returnTo)
   const hasError = Boolean(sp.error)
-  // `outage=1` may still arrive from old bookmarks/actions; the page itself now
-  // detects an outage live, so the parameter carries no rendering behavior.
-  void sp.outage
+  // `outage=1` is set by the auth actions / callback when the provider could
+  // not be reached during a sign-in attempt. For an anonymous visitor the page
+  // CANNOT probe the provider itself — auth-js answers "no session" locally
+  // without a network call — so this parameter is the only way that outage
+  // becomes visible here. Rendering the honest unavailable state is what keeps
+  // the flow from looking like the form silently did nothing.
+  const hasOutage = sp.outage === '1'
 
   // Demo mode has no auth plane: never touch Supabase here (that would be a
   // Supabase request from a demo page). The form validates the published demo
@@ -43,9 +47,19 @@ export default async function LoginPage({
     )
   }
 
-  // Live mode. The bounded auth fetch guarantees the getUser() call completes;
-  // when the hosted auth provider is unreachable it fails fast and — whichever
-  // delivery contract auth-js uses, resolved `{ data, error }` or thrown —
+  // Live mode. A sign-in attempt that failed against an unreachable provider
+  // lands here with outage=1: show the explicit outage state immediately.
+  if (hasOutage) {
+    return (
+      <LoginFrame>
+        <AuthOutageNotice />
+      </LoginFrame>
+    )
+  }
+
+  // The bounded auth fetch guarantees the getUser() call completes; when the
+  // hosted auth provider is unreachable it fails fast and — whichever delivery
+  // contract auth-js uses, resolved `{ data, error }` or thrown —
   // boundedGetUser classifies it as an outage. That must render an explicit,
   // honest outage state — never an unhandled 500 (the "click Sign in and
   // nothing happens" bug) and never a fake success.

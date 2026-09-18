@@ -185,6 +185,22 @@ describe("the login page renders an explicit outage state", () => {
     expect(page).toContain("supabase.auth.getUser()");
     expect(page).toContain("action={signIn}");
   });
+
+  it("renders the outage state when an action/callback reported outage=1", () => {
+    // An anonymous visitor's /login cannot probe the provider (auth-js answers
+    // "no session" locally, no network call), so the outage=1 the actions set
+    // after a failed bounded sign-in attempt is the ONLY way the outage becomes
+    // visible. Ignoring it used to land the visitor back on the bare form —
+    // the exact "clicked sign in and nothing happened" experience.
+    expect(page).toContain("const hasOutage = sp.outage === '1'");
+    expect(page).toMatch(/if \(hasOutage\) \{[\s\S]{0,200}<AuthOutageNotice \/>/);
+    // The ignore-the-parameter regression must not come back.
+    expect(page).not.toContain("void sp.outage");
+    // Demo mode has no auth plane and must never claim an outage: the demo
+    // early-return appears before the outage branch, so a demo visit can never
+    // reach it.
+    expect(page.indexOf("isDemoMode()")).toBeLessThan(page.indexOf("if (hasOutage)"));
+  });
 });
 
 describe("the outage notice is honest and safe", () => {
