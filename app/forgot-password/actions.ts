@@ -2,7 +2,10 @@
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { isAuthProviderOutage } from '@/lib/supabase/bounded-auth-fetch'
+import {
+  isAuthProviderOutage,
+  resolvedAuthError,
+} from '@/lib/supabase/bounded-auth-fetch'
 import { publicOrigin } from '@/lib/routing/public-origin'
 
 // Password-reset request server action. Recovery is performed server-side; the
@@ -25,11 +28,14 @@ export async function requestPasswordReset(formData: FormData) {
 
   const supabase = await createClient()
   try {
-    // The result is ignored either way so timing can't reveal account
+    // The result is ignored on success so timing can't reveal account
     // existence; Supabase itself does not error on unknown addresses.
-    await supabase.auth.resetPasswordForEmail(email, {
+    const result = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${origin}/auth/callback?returnTo=/update-password`,
     })
+    // A resolved network-class error means no reset was sent — the honest
+    // "sent=0" state, never the fake "we've sent a link" confirmation.
+    if (resolvedAuthError(result)) redirect('/forgot-password?sent=0')
   } catch (error) {
     if (isAuthProviderOutage(error)) redirect('/forgot-password?sent=0')
     throw error

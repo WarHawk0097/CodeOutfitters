@@ -1,7 +1,11 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { isAuthProviderOutage } from '@/lib/supabase/bounded-auth-fetch'
+import {
+  boundedGetUser,
+  isAuthProviderOutage,
+  resolvedAuthError,
+} from '@/lib/supabase/bounded-auth-fetch'
 import { redirect } from 'next/navigation'
 
 // Password-update server action for the recovery destination. The password is
@@ -20,24 +24,16 @@ export async function updatePassword(
   const confirmPassword = String(formData.get('confirmPassword') ?? '')
 
   const supabase = await createClient()
-  let user = null
-  try {
-    const { data } = await supabase.auth.getUser()
-    user = data.user
-  } catch (error) {
+  const userResult = await boundedGetUser(() => supabase.auth.getUser())
+  if (userResult.outcome === 'outage') {
     // Auth provider unreachable: an explicit unavailable message — never a
     // 500, never a message that implies the new password was rejected.
-    if (isAuthProviderOutage(error)) {
-      return {
-        status: 'error',
-        message: 'The authentication service is temporarily unavailable. Please try again shortly.',
-      }
+    return {
+      status: 'error',
+      message: 'The authentication service is temporarily unavailable. Please try again shortly.',
     }
-    throw error
   }
-  // No session (direct access, expired/consumed recovery link): fail safe,
-  // never accept a password change with nothing behind it.
-  if (!user) redirect('/login')
+  if (userResult.outcome !== 'authenticated') redirect('/login')
 
   if (password.length < MIN_PASSWORD_LENGTH) {
     return { status: 'error', message: `Password must be at least ${MIN_PASSWORD_LENGTH} characters.` }
@@ -48,8 +44,14 @@ export async function updatePassword(
 
   let updateError = true
   try {
-    const { error } = await supabase.auth.updateUser({ password })
-    updateError = Boolean(error)
+    const result = await supabase.auth.updateUser({ password })
+    if (resolvedAuthError(result)) {
+      return {
+        status: 'error',
+        message: 'The authentication service is temporarily unavailable. Please try again shortly.',
+      }
+    }
+    updateError = Boolean(result.error)
   } catch (error) {
     if (isAuthProviderOutage(error)) {
       return {

@@ -19,7 +19,12 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { isAuthProviderOutage, withAuthFetchTimeout } from "@/lib/supabase/bounded-auth-fetch";
+import {
+  boundedGetUser,
+  isAuthProviderOutage,
+  resolvedAuthError,
+  withAuthFetchTimeout,
+} from "@/lib/supabase/bounded-auth-fetch";
 import { AuthRetryableFetchError } from "@supabase/auth-js";
 const repo = fileURLToPath(new URL("../../", import.meta.url));
 const read = (rel: string) => readFileSync(`${repo}${rel}`, "utf8");
@@ -71,6 +76,76 @@ describe("bounded auth fetch (the deadline itself)", () => {
   });
 });
 
+describe("the resolved-error contract (auth-js catches and resolves)", () => {
+  it("resolvedAuthError extracts exactly the network-class resolved error", () => {
+    expect(resolvedAuthError({ error: new AuthRetryableFetchError("fetch failed", 0) })).toBeInstanceOf(
+      AuthRetryableFetchError,
+    );
+    expect(resolvedAuthError({ error: new AuthRetryableFetchError("upstream 502", 502) })).toBeInstanceOf(
+      AuthRetryableFetchError,
+    );
+    // A 4xx API decision (wrong password, unknown email) is NOT an outage.
+    expect(resolvedAuthError({ error: new AuthRetryableFetchError("bad request", 400) })).toBeNull();
+    expect(resolvedAuthError({ error: null })).toBeNull();
+    expect(resolvedAuthError({ error: undefined })).toBeNull();
+  });
+
+  it("boundedGetUser classifies a resolved network-class error as an outage", async () => {
+    const outcome = await boundedGetUser(async () => ({
+      data: { user: null },
+      error: new AuthRetryableFetchError("fetch failed", 0),
+    }));
+    expect(outcome).toMatchObject({ outcome: "outage" });
+  });
+
+  it("boundedGetUser classifies a thrown network-class error as an outage", async () => {
+    const outcome = await boundedGetUser(async () => {
+      throw new AuthRetryableFetchError("deadline elapsed", 0);
+    });
+    expect(outcome).toMatchObject({ outcome: "outage" });
+  });
+
+  it("boundedGetUser reads a session-missing resolution as signed-out, never an outage", async () => {
+    // The exact shape auth-js resolves for getUser() with no session cookie.
+    const outcome = await boundedGetUser(async () => ({
+      data: { user: null },
+      error: Object.assign(new Error("Auth session missing!"), { name: "AuthSessionMissingError", status: 400 }),
+    }));
+    expect(outcome).toEqual({ outcome: "unauthenticated" });
+  });
+
+  it("boundedGetUser returns the user on success and rethrows non-auth errors", async () => {
+    const user = { id: "u1" };
+    const ok = await boundedGetUser(async () => ({ data: { user }, error: null }));
+    expect(ok).toEqual({ outcome: "authenticated", user });
+
+    await expect(
+      boundedGetUser(async () => {
+        throw new Error("client misconfigured");
+      }),
+    ).rejects.toThrow("client misconfigured");
+  });
+});
+
+describe("the membership read distinguishes outage from no-membership", () => {
+  it("lib/dashboard/server.ts classifies the getUser outcome and rethrows data-plane outages", () => {
+    const src = read("lib/dashboard/server.ts");
+    expect(src).toContain("boundedGetUser");
+    expect(src).toContain("outcome === 'outage'");
+    // PostgREST network failure arrives resolved with status 0 — rethrown as
+    // an outage so callers cannot read it as "no membership".
+    expect(src).toContain(".status === 0");
+    expect(src).toContain("isDataPlaneOutage(membershipsError)");
+  });
+
+  it("the attachment download fails closed with 503 on an outage, 401 only when signed out", () => {
+    const src = read("app/api/dashboard/attachments/[attachmentId]/download/route.ts");
+    expect(src).toContain("boundedGetUser");
+    expect(src).toContain("status: 503");
+    expect(src).toContain("status: 401");
+  });
+});
+
 describe("the client factories bound every auth call", () => {
   it("lib/supabase/server.ts installs the bounded fetch", () => {
     const src = read("lib/supabase/server.ts");
@@ -84,10 +159,17 @@ describe("the client factories bound every auth call", () => {
     expect(src).toContain("authFetch");
     expect(src).toContain("AbortController");
     // Fail closed: ANY auth failure on a protected route is an explicit 503 —
-    // never an authorization bypass, never a silent stall.
+    // never an authorization bypass, never a silent stall. Both delivery
+    // contracts are classified: resolved `{ data, error }` (auth-js 2.110.8)
+    // and thrown.
+    expect(src).toContain("resolvedAuthError");
     expect(src).toContain("catch {");
     expect(src).toContain("status: 503");
-    expect(src).toContain("path.startsWith('/dashboard')");
+    expect(src).toContain("needsGuard(path)");
+    // The guard covers membership-state pages, not just /dashboard: an outage
+    // must never render as "you have no access".
+    expect(src).toContain("/access-pending");
+    expect(src).toContain("/extension-auth");
   });
 });
 
@@ -162,6 +244,20 @@ describe("secondary auth surfaces degrade honestly", () => {
     const src = read("app/update-password/actions.ts");
     expect(src).toContain("temporarily unavailable");
     expect(src).toContain("isAuthProviderOutage");
+  });
+
+  it("the update-password PAGE classifies the resolved-error contract too", () => {
+    // Raw getUser() + try/catch only sees the THROWN shape; auth-js 2.110.8
+    // RESOLVES a network-class outage as { data, error } — which used to fall
+    // through to redirect('/login') and tell a signed-out-looking story to a
+    // person mid-password-reset. The page must use boundedGetUser, which
+    // handles both contracts, and must keep the explicit outage state.
+    const src = read("app/update-password/page.tsx");
+    expect(src).toContain("boundedGetUser");
+    // The unbounded, unclassified raw await is what regressed here.
+    expect(src).not.toContain("await supabase.auth.getUser()");
+    expect(src).toContain("outcome === 'outage'");
+    expect(src).toContain("temporarily unavailable");
   });
 
   it("forgot-password distinguishes sent from not-sent", () => {

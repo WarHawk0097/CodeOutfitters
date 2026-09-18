@@ -14,7 +14,7 @@ import "server-only";
 import { isDemoMode } from "@/lib/command-center/mode";
 import { getDashboardContext } from "@/lib/dashboard/server";
 import { createClient } from "@/lib/supabase/server";
-import { isAuthProviderOutage } from "@/lib/supabase/bounded-auth-fetch";
+import { boundedGetUser, isAuthProviderOutage } from "@/lib/supabase/bounded-auth-fetch";
 import type { PermissionId, PermissionSubject } from "@/lib/ai";
 
 export type CopilotSubjectResult =
@@ -59,13 +59,10 @@ export async function resolveCopilotSubject(): Promise<CopilotSubjectResult> {
   }
 
   const supabase = await createClient();
-  try {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    return { ok: false, reason: user ? "no_workspace" : "unauthenticated" };
-  } catch (error) {
-    if (isAuthProviderOutage(error)) return { ok: false, reason: "provider_outage" };
-    throw error;
-  }
+  const userResult = await boundedGetUser(() => supabase.auth.getUser());
+  if (userResult.outcome === "outage") return { ok: false, reason: "provider_outage" };
+  return {
+    ok: false,
+    reason: userResult.outcome === "authenticated" ? "no_workspace" : "unauthenticated",
+  };
 }

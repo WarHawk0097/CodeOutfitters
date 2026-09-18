@@ -1,6 +1,10 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { isAuthProviderOutage } from '@/lib/supabase/bounded-auth-fetch'
+import {
+  boundedGetUser,
+  isAuthProviderOutage,
+  resolvedAuthError,
+} from '@/lib/supabase/bounded-auth-fetch'
 import { safeReturnTo } from '@/lib/auth/return-url'
 import { destinationForAuthState, type AuthState } from '@/lib/auth/auth-state'
 import { getDashboardContext } from '@/lib/dashboard/server'
@@ -34,6 +38,9 @@ export async function GET(request: NextRequest) {
   let exchangeError = true
   try {
     const result = await supabase.auth.exchangeCodeForSession(code)
+    // auth-js resolves network-class failures into `error` instead of throwing
+    // — an outage during the exchange is "unavailable", never "bad link".
+    if (resolvedAuthError(result)) return unavailable()
     exchangeError = Boolean(result.error)
   } catch (error) {
     if (isAuthProviderOutage(error)) return unavailable()
@@ -42,15 +49,10 @@ export async function GET(request: NextRequest) {
   if (exchangeError) return fail()
 
   // Re-read the user from the auth server; never trust the exchange result alone.
-  let user = null
-  try {
-    const { data } = await supabase.auth.getUser()
-    user = data.user
-  } catch (error) {
-    if (isAuthProviderOutage(error)) return unavailable()
-    throw error
-  }
-  if (!user) return fail()
+  const userResult = await boundedGetUser(() => supabase.auth.getUser())
+  if (userResult.outcome === 'outage') return unavailable()
+  if (userResult.outcome !== 'authenticated') return fail()
+  const user = userResult.user
 
   // Password recovery: any authenticated user must reach the update-password
   // form, not the workspace-membership gate below (destinationForAuthState

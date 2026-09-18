@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { boundedGetUser } from '@/lib/supabase/bounded-auth-fetch'
 import { isUuid, isDownloadable } from '@/lib/dashboard/validation'
 import { isDemoMode } from '@/lib/command-center/mode'
 import { SupabaseInquiryStorageProvider } from '@/lib/inquiry/server/storage/supabase-inquiry-storage-provider'
@@ -34,10 +35,15 @@ export async function GET(
   if (!isUuid(attachmentId)) return notFound()
 
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const userResult = await boundedGetUser(() => supabase.auth.getUser())
+  if (userResult.outcome === 'outage') {
+    // Fail closed with an explicit availability signal — never a bare 401,
+    // which would read as "signed out" during a provider outage.
+    return NextResponse.json({ error: 'Authentication temporarily unavailable' }, { status: 503 })
+  }
+  if (userResult.outcome !== 'authenticated') {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
 
   const { data: row, error } = await supabase
     .from('inquiry_attachments')

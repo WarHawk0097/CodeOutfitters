@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { isAuthProviderOutage } from '@/lib/supabase/bounded-auth-fetch'
+import { boundedGetUser, isAuthProviderOutage } from '@/lib/supabase/bounded-auth-fetch'
 import { safeReturnTo } from '@/lib/auth/return-url'
 import { destinationForAuthState } from '@/lib/auth/auth-state'
 import { providerAvailability } from '@/lib/auth/providers'
@@ -44,55 +44,48 @@ export default async function LoginPage({
   }
 
   // Live mode. The bounded auth fetch guarantees the getUser() call completes;
-  // when the hosted auth provider is unreachable it fails fast with a
-  // network-class error. That must render an explicit, honest outage state —
-  // never an unhandled 500 (the "click Sign in and nothing happens" bug) and
-  // never a fake success.
+  // when the hosted auth provider is unreachable it fails fast and — whichever
+  // delivery contract auth-js uses, resolved `{ data, error }` or thrown —
+  // boundedGetUser classifies it as an outage. That must render an explicit,
+  // honest outage state — never an unhandled 500 (the "click Sign in and
+  // nothing happens" bug) and never a fake success.
   const supabase = await createClient()
-  let user: Awaited<ReturnType<typeof supabase.auth.getUser>>['data']['user'] = null
-  try {
-    const { data } = await supabase.auth.getUser()
-    user = data.user
-  } catch (error) {
-    if (isAuthProviderOutage(error)) {
-      return (
-        <LoginFrame>
-          <AuthOutageNotice />
-        </LoginFrame>
-      )
-    }
-    throw error
+  const userResult = await boundedGetUser(() => supabase.auth.getUser())
+  if (userResult.outcome === 'outage') {
+    return (
+      <LoginFrame>
+        <AuthOutageNotice />
+      </LoginFrame>
+    )
   }
+  const user = userResult.outcome === 'authenticated' ? userResult.user : null
 
   if (user) {
     // Authenticated: membership — not authentication — decides where they land.
-    // The membership READ goes through PostgREST, which dies with the same
-    // hosted project, so a failed check is also an outage signal. We cannot
-    // distinguish "no membership" from "membership unreachable" without a
-    // second failing request, so the visitor sees an explicit
-    // identity-confirmed notice (with a truthful post-restoration outlook)
-    // instead of a bare 500 or a misdirect to /access-pending.
+    // getDashboardContext now throws the classified outage error itself when the
+    // auth or data plane is unreachable (identity confirmed or not — the read
+    // failed after all), so a provider failure lands on the explicit
+    // identity-confirmed notice instead of a bare 500 or a misdirect to
+    // /access-pending.
     let context = null
-    let membershipCheckFailed = false
     try {
       context = await getDashboardContext()
     } catch (error) {
-      if (isAuthProviderOutage(error)) membershipCheckFailed = true
-      else throw error
-    }
-    if (membershipCheckFailed) {
-      return (
-        <LoginFrame>
-          {/* Identity was verified by the provider before it became unreachable;
-              the notice says that without echoing the address itself. Access
-              decisions are re-made when the provider answers again — nothing is
-              promised, nothing faked. */}
-          <AuthOutageNotice
-            identityConfirmed
-            pendingMessage="Once the service is restored, trying again will take you exactly as far as your access allows."
-          />
-        </LoginFrame>
-      )
+      if (isAuthProviderOutage(error)) {
+        return (
+          <LoginFrame>
+            {/* Identity was verified by the provider before it became unreachable;
+                the notice says that without echoing the address itself. Access
+                decisions are re-made when the provider answers again — nothing is
+                promised, nothing faked. */}
+            <AuthOutageNotice
+              identityConfirmed
+              pendingMessage="Once the service is restored, trying again will take you exactly as far as your access allows."
+            />
+          </LoginFrame>
+        )
+      }
+      throw error
     }
     redirect(
       destinationForAuthState(

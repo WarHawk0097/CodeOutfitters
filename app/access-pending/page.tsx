@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { isAuthProviderOutage } from '@/lib/supabase/bounded-auth-fetch'
+import { boundedGetUser, isAuthProviderOutage } from '@/lib/supabase/bounded-auth-fetch'
 import { getDashboardContext } from '@/lib/dashboard/server'
 import { isDemoMode } from '@/lib/command-center/mode'
 import { LoginFrame } from '../login/login-frame'
@@ -21,23 +21,18 @@ export default async function AccessPendingPage() {
   if (isDemoMode()) redirect('/login')
 
   const supabase = await createClient()
-  let user = null
-  try {
-    const { data } = await supabase.auth.getUser()
-    user = data.user
-  } catch (error) {
+  const userResult = await boundedGetUser(() => supabase.auth.getUser())
+  if (userResult.outcome === 'outage') {
     // Auth provider unreachable: an explicit outage state, never a 500 and
     // never a redirect that could read as "signed out".
-    if (isAuthProviderOutage(error)) {
-      return (
-        <LoginFrame>
-          <AuthOutageNotice identityConfirmed={false} />
-        </LoginFrame>
-      )
-    }
-    throw error
+    return (
+      <LoginFrame>
+        <AuthOutageNotice identityConfirmed={false} />
+      </LoginFrame>
+    )
   }
-  if (!user) redirect('/login?returnTo=%2Fdashboard')
+  if (userResult.outcome !== 'authenticated') redirect('/login?returnTo=%2Fdashboard')
+  const user = userResult.user
 
   // Membership may have been granted since the redirect; re-check before showing
   // a dead end.

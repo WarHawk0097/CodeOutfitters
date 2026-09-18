@@ -1,6 +1,7 @@
 import 'server-only'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { boundedGetUser } from '@/lib/supabase/bounded-auth-fetch'
 import { roleRank, type WorkspaceRole } from '@/lib/dashboard/roles'
 import { isUuid } from '@/lib/dashboard/validation'
 import { resolveDisplayName, initialsFor } from '@/lib/identity/display-name'
@@ -18,26 +19,39 @@ export type DashboardContext = {
 // Resolves the authenticated user and their highest-privilege active workspace.
 // All queries run through the SSR (authenticated) client, so RLS is the boundary
 // even if application logic has a bug. Returns null when unauthenticated or
-// when the user has no active membership.
+// when the user has no active membership. THROWS the classified provider-outage
+// error when the auth or data plane is unreachable: "no membership" and
+// "membership unknown" must never be confused by a caller.
 export async function getDashboardContext(): Promise<DashboardContext | null> {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return null
+  const userResult = await boundedGetUser(() => supabase.auth.getUser())
+  if (userResult.outcome === 'outage') throw userResult.error
+  if (userResult.outcome === 'unauthenticated') return null
+  const user = userResult.user
 
   // profiles has no FK PostgREST can embed on the memberships query (same reason
   // lib/tasks/server-provider.ts's displayNamesByUserId fetches it separately) —
   // one extra id-scoped lookup, RLS-bound to the caller's own row. Both depend
   // only on user.id, so they run concurrently: one network round trip, not two.
-  const [{ data: memberships }, { data: profile }] = await Promise.all([
-    supabase
-      .from('workspace_memberships')
-      .select('role, workspace_id, workspaces(name)')
-      .eq('user_id', user.id)
-      .eq('status', 'active'),
-    supabase.from('profiles').select('full_name').eq('id', user.id).maybeSingle(),
-  ])
+  const [{ data: memberships, error: membershipsError }, { data: profile, error: profileError }] =
+    await Promise.all([
+      supabase
+        .from('workspace_memberships')
+        .select('role, workspace_id, workspaces(name)')
+        .eq('user_id', user.id)
+        .eq('status', 'active'),
+      supabase.from('profiles').select('full_name').eq('id', user.id).maybeSingle(),
+    ])
+
+  // PostgREST delivers a network-class failure as a RESOLVED error (status 0 —
+  // no HTTP answer ever arrived). That is an unreachable data plane, not "no
+  // membership": rethrow as a classified outage so callers render the honest
+  // unavailable state instead of ejecting a signed-in member to /access-pending.
+  const isDataPlaneOutage = (e: unknown): boolean =>
+    Boolean(e && typeof e === 'object' && (e as { status?: unknown }).status === 0)
+  if (isDataPlaneOutage(membershipsError) || isDataPlaneOutage(profileError)) {
+    throw isDataPlaneOutage(membershipsError) ? membershipsError : profileError
+  }
 
   if (!memberships || memberships.length === 0) return null
 
@@ -76,11 +90,13 @@ export async function requireDashboardContext(returnTo: string): Promise<Dashboa
   const ctx = await getDashboardContext()
   if (ctx) return ctx
 
+  // ctx was null — either signed out, or a transient answer. Distinguish via
+  // getUser; an outage THROWS out of getDashboardContext/boundedGetUser, so a
+  // provider failure can never masquerade as "signed out" here.
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (user) redirect('/access-pending')
+  const userResult = await boundedGetUser(() => supabase.auth.getUser())
+  if (userResult.outcome === 'outage') throw userResult.error
+  if (userResult.outcome === 'authenticated') redirect('/access-pending')
   redirect(`/login?returnTo=${encodeURIComponent(returnTo)}`)
 }
 

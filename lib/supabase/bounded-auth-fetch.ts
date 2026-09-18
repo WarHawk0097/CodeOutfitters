@@ -20,6 +20,17 @@
 // classifier fixes 2 (callers branch on `isAuthProviderOutage` and render a
 // safe, truthful state). Generic messages only: no provider error strings,
 // project refs, or stack traces reach the client or logs.
+//
+// CONTRACT NOTE (verified against the installed @supabase/auth-js 2.110.8):
+// GoTrueClient methods CATCH auth errors — including AuthRetryableFetchError —
+// and RESOLVE `{ data, error }` instead of rejecting (getUser, signInWithPassword,
+// exchangeCodeForSession, resetPasswordForEmail, updateUser, ...). Only
+// non-auth errors (a misconfigured client, a bug) propagate as rejections. So
+// every caller must classify BOTH shapes: a thrown error (isAuthProviderOutage)
+// and a resolved error (resolvedAuthError). Handling only one silently drops
+// the other — that gap is exactly how the pre-fix outage collapsed into a
+// signed-out render and a wrong-credential story. boundedGetUser wraps the
+// common getUser() shape so page-level code gets a single, explicit outcome.
 
 export const SUPABASE_AUTH_TIMEOUT_MS = 4_000
 
@@ -57,4 +68,45 @@ export function isAuthProviderOutage(error: unknown): boolean {
   if (!(error instanceof Error) || error.name !== 'AuthRetryableFetchError') return false
   const status = (error as { status?: number }).status
   return status === 0 || (typeof status === 'number' && status >= 500)
+}
+
+/**
+ * Extracts an outage-class error from a RESOLVED auth result. auth-js methods
+ * return `{ data, error }`; a network-class provider failure arrives here as
+ * `error` while the method still resolves. Returns the error when it is an
+ * outage, or null when the result carries no error — or an error that is a real
+ * API decision (a credential rejection, a missing session), which callers must
+ * NOT read as an outage. Pair with `isAuthProviderOutage` for the thrown shape.
+ */
+export function resolvedAuthError<T extends { error: unknown }>(result: T): unknown {
+  const error = result?.error
+  if (error && isAuthProviderOutage(error)) return error
+  return null
+}
+
+export type GetUserOutcome<User> =
+  | { outcome: 'authenticated'; user: User }
+  | { outcome: 'unauthenticated' }
+  | { outcome: 'outage'; error: unknown }
+
+/**
+ * Runs supabase.auth.getUser() and classifies every way it can answer.
+ * Handles both delivery contracts: a resolved error (this auth-js version) and
+ * a thrown one (future-proof). A session-missing error is the library's
+ * "no active session" answer — signed out, not an outage. Any non-auth thrown
+ * error is a real bug and propagates (the error boundary owns it).
+ */
+export async function boundedGetUser<User>(
+  getUser: () => Promise<{ data: { user: User | null }; error: unknown }>,
+): Promise<GetUserOutcome<User>> {
+  try {
+    const { data, error } = await getUser()
+    const outage = resolvedAuthError({ error })
+    if (outage) return { outcome: 'outage', error: outage }
+    if (data?.user) return { outcome: 'authenticated', user: data.user }
+    return { outcome: 'unauthenticated' }
+  } catch (error) {
+    if (isAuthProviderOutage(error)) return { outcome: 'outage', error }
+    throw error
+  }
 }

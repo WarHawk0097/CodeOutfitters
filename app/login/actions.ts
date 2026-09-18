@@ -2,7 +2,10 @@
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { isAuthProviderOutage } from '@/lib/supabase/bounded-auth-fetch'
+import {
+  isAuthProviderOutage,
+  resolvedAuthError,
+} from '@/lib/supabase/bounded-auth-fetch'
 import { oauthCallbackUrl, safeReturnTo } from '@/lib/auth/return-url'
 import { destinationForAuthState } from '@/lib/auth/auth-state'
 import { getDashboardContext } from '@/lib/dashboard/server'
@@ -33,10 +36,11 @@ export async function signIn(formData: FormData) {
   const supabase = await createClient()
   try {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
+    // auth-js resolves the network-class failure into `error` rather than
+    // throwing it — check the resolved shape first, then the thrown one below.
+    if (resolvedAuthError({ error })) redirect(unavailable)
     if (error) {
-      // A network-class/5xx error is an outage, not a denial; anything else is
-      // the one generic credential rejection.
-      if (isAuthProviderOutage(error)) redirect(unavailable)
+      // Any other error is the one generic credential rejection.
       redirect(denied)
     }
   } catch (error) {
@@ -73,14 +77,12 @@ export async function signInWithProvider(formData: FormData) {
       provider,
       options: { redirectTo },
     })
+    // Resolved network-class failure: the provider cannot be reached to start
+    // the flow. Distinct from a configuration failure — only this may claim
+    // "temporarily unavailable".
+    if (resolvedAuthError(result)) redirect(unavailable)
     data = result.data
-    if (result.error) {
-      // A network-class/5xx failure is the provider being unreachable; any
-      // other error is a configuration failure. Neither is ever rendered, but
-      // only the former may claim "temporarily unavailable".
-      if (isAuthProviderOutage(result.error)) redirect(unavailable)
-      redirect(failure)
-    }
+    if (result.error) redirect(failure)
   } catch (error) {
     if (isAuthProviderOutage(error)) redirect(unavailable)
     throw error

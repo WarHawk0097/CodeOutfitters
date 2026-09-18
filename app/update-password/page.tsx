@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { isDemoMode } from '@/lib/command-center/mode'
 import { createClient } from '@/lib/supabase/server'
-import { isAuthProviderOutage } from '@/lib/supabase/bounded-auth-fetch'
+import { boundedGetUser } from '@/lib/supabase/bounded-auth-fetch'
 import { UpdatePasswordForm } from './update-password-form'
 
 export const metadata: Metadata = { title: 'Set new password — CodeOutfitters Command Center' }
@@ -35,35 +35,36 @@ export default async function UpdatePasswordPage() {
   // exchanged, or an expired/already-used link) fails safe to /login rather
   // than rendering a form with no session behind it.
   const supabase = await createClient()
-  let user = null
-  try {
-    const { data } = await supabase.auth.getUser()
-    user = data.user
-  } catch (error) {
-    // Auth provider unreachable: an explicit outage state, never a 500.
-    if (isAuthProviderOutage(error)) {
-      return (
-        <main className="flex min-h-[100dvh] items-center justify-center bg-[var(--brand-bg,#0A120E)] px-4">
-          <div className="w-full max-w-sm rounded-2xl border border-black/10 bg-white p-8 shadow-sm">
-            <h1 className="text-xl font-semibold text-[var(--brand-text,#111)]">
-              Password reset is temporarily unavailable
-            </h1>
-            <p className="mt-2 text-sm text-[var(--brand-muted,#666)]">
-              We could not reach the authentication service just now. Please try again shortly.
-            </p>
-            <Link
-              href="/login"
-              className="mt-6 block w-full rounded-md bg-[var(--brand-green-solid,#0E7A4E)] px-4 py-2 text-center text-sm font-semibold text-white transition-transform active:scale-[0.98]"
-            >
-              Back to sign in
-            </Link>
-          </div>
-        </main>
-      )
-    }
-    throw error
+  // boundedGetUser classifies BOTH auth-js delivery contracts — the resolved
+  // `{ data, error }` this version delivers (a network-class outage resolves,
+  // it does not throw) and the thrown shape. The raw try/catch below used to
+  // catch only the thrown shape, so during an outage the resolved error fell
+  // through to `redirect('/login')` — telling a signed-in person they are
+  // signed out. Same explicit outage state either way now.
+  const userResult = await boundedGetUser(() => supabase.auth.getUser())
+  if (userResult.outcome === 'outage') {
+    return (
+      <main className="flex min-h-[100dvh] items-center justify-center bg-[var(--brand-bg,#0A120E)] px-4">
+        <div className="w-full max-w-sm rounded-2xl border border-black/10 bg-white p-8 shadow-sm">
+          <h1 className="text-xl font-semibold text-[var(--brand-text,#111)]">
+            Password reset is temporarily unavailable
+          </h1>
+          <p className="mt-2 text-sm text-[var(--brand-muted,#666)]">
+            We could not reach the authentication service just now. Please try again shortly.
+          </p>
+          <Link
+            href="/login"
+            className="mt-6 block w-full rounded-md bg-[var(--brand-green-solid,#0E7A4E)] px-4 py-2 text-center text-sm font-semibold text-white transition-transform active:scale-[0.98]"
+          >
+            Back to sign in
+          </Link>
+        </div>
+      </main>
+    )
   }
-  if (!user) redirect('/login')
+  // No session (direct access, expired/consumed recovery link): fail safe,
+  // never render a form with nothing behind it.
+  if (userResult.outcome !== 'authenticated') redirect('/login')
 
   return (
     <main className="flex min-h-[100dvh] items-center justify-center bg-[var(--brand-bg,#0A120E)] px-4">

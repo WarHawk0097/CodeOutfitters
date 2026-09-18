@@ -429,7 +429,11 @@ describe("unauthenticated dashboard access (21)", () => {
     // Auth is read from the auth server, never from an unverified session blob.
     expect(source).toContain("supabase.auth.getUser()");
     expect(source).not.toMatch(/await\s+supabase\.auth\.getSession\(\)/);
-    expect(source).toMatch(/if \(!user && path\.startsWith\('\/dashboard'\)\)/);
+    // The unauthenticated redirect is guarded by needsGuard(path), which covers
+    // /dashboard (authorization) plus the membership-state pages that must also
+    // fail closed during an outage.
+    expect(source).toContain("function needsGuard(pathname: string)");
+    expect(source).toMatch(/if \(!user && needsGuard\(path\)\)/);
     expect(source).toContain("safeReturnTo(");
     // Production auth requests must be bounded: a stalled Supabase Auth fetch may
     // never consume the entire middleware execution budget. Dashboard access fails
