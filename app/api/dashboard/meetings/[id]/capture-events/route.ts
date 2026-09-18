@@ -26,7 +26,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   try {
     const data = await loadCaptureEvents(context.workspaceId, id);
     if (!data) return jsonError(404, "not_found", "That meeting does not exist.", correlationId);
-    return jsonOk(data.events, correlationId);
+    // The DERIVED snapshot (phase/recording/entryCount/lastSequence/startedAt/
+    // lastError/events) — the exact shape useCaptureEvents consumes. Raw persisted
+    // input (artifactState/meetingStatus/…) is never returned: it is the server's
+    // derivation input, not the panel's contract.
+    return jsonOk(data.snapshot, correlationId);
   } catch {
     return jsonError(503, "unavailable", NOT_AVAILABLE, correlationId);
   }

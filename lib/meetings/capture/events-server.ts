@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Meeting } from "../types";
 import { getMeeting, listArtifacts, listTranscriptEntries } from "../store";
 import { createClient } from "@/lib/supabase/server";
-import type { CaptureEventsInput } from "./events";
+import { deriveRecordingEvents, type RecordingEventsSnapshot } from "./events";
 
 // Server-side reader for the Recording Events panel. Everything here runs through the
 // session-bound authenticated client (RLS is the boundary) exactly like the meeting
@@ -13,8 +13,10 @@ import type { CaptureEventsInput } from "./events";
 
 export type CaptureEventsData = {
   meeting: Pick<Meeting, "id" | "status" | "lastError">;
-  events: CaptureEventsInput;
-};
+  /** The DERIVED user-facing snapshot (phase/recording/events/…) — exactly the body
+   *  useCaptureEvents consumes. Raw persisted state never crosses this boundary. */
+  snapshot: RecordingEventsSnapshot;
+}
 
 function statusOf(error: { code?: string; message: string } | null): void {
   // Mirrors store.ts's throwForPgError shape without duplicating its insert paths —
@@ -61,17 +63,20 @@ export async function loadCaptureEvents(
 
   // An existence probe, not a row fetch: the panel only needs to know whether AI
   // analysis has actually run for this meeting (bounded select of one column).
-  const { data: insightRows } = await session
+  // A failed probe MUST fail the read — silently coercing it to hasInsights=false
+  // would tell the panel "AI analysis pending" when the truth is unknown.
+  const { data: insightRows, error: insightsError } = await session
     .from("ai_meeting_insights")
     .select("id")
     .eq("workspace_id", workspaceId)
     .eq("meeting_id", meetingId)
     .limit(1);
+  statusOf(insightsError);
   const hasInsights = (insightRows ?? []).length > 0;
 
   return {
     meeting: { id: meeting.id, status: meeting.status, lastError: meeting.lastError },
-    events: {
+    snapshot: deriveRecordingEvents({
       meetingStatus: meeting.status,
       meetingLastError: meeting.lastError,
       artifactState: captureArtifact?.state ?? null,
@@ -81,6 +86,6 @@ export async function loadCaptureEvents(
       lastSequence: entries.length > 0 ? (entries[entries.length - 1]?.sequence ?? null) : null,
       lastEntryAt,
       hasInsights,
-    },
+    }),
   };
 }

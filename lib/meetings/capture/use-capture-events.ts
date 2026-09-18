@@ -3,21 +3,20 @@
 // use-capture-events — the Recording Events panel's data hook. Polls the
 // session-authenticated capture-events endpoint and exposes the derived snapshot.
 //
-// Polling discipline (Performance requirements):
+// Polling discipline (Performance requirements) — the timing decisions all live in
+// ./poll-policy (single home, unit-tested); this hook applies them:
 //   - one in-flight request at a time; identical ticks coalesce (inFlightRef)
 //   - AbortController per tick, aborted on unmount and on terminal state
-//   - polling STOPS at terminal phases (completed/failed/not_started — not_started
-//     still gets one initial probe, then stops, so "Recording has not started yet."
-//     is verified truth, not an assumption)
+//   - terminal phases (completed/failed) stop polling entirely; not_started gets the
+//     initial probe plus ONE bounded follow-up (so a start command landing in another
+//     tab is picked up), then polling stops — no perpetual idle polling. Explicit
+//     refresh or a visibility transition resets that probe budget on purpose.
 //   - visibility-gated: a hidden tab does not poll (document.visibilityState), and
 //     resumes with an immediate refresh when visible again
 //   - no setState after unmount (mountedRef)
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { RecordingEventsSnapshot } from "@/lib/meetings/capture/events";
-
-const ACTIVE_POLL_MS = 5000;
-const TERMINAL_PHASES = new Set(["completed", "failed", "not_started"]);
-const ONE_PROBE_PHASES = new Set(["not_started"]);
+import { decideNextPoll } from "./poll-policy";
 
 export type UseCaptureEventsResult = {
   snapshot: RecordingEventsSnapshot | null;
@@ -38,9 +37,15 @@ export function useCaptureEvents(enabled: boolean, meetingId: string): UseCaptur
   const controller = useRef<AbortController | null>(null);
   const inFlight = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Consecutive not_started probes, INCLUDING the one that just resolved. Reset by an
+  // explicit refresh or a visibility transition; enforced by decideNextPoll.
+  const notStartedProbes = useRef(0);
 
   const refresh = useCallback(() => {
-    if (mounted.current) setTick((n) => n + 1);
+    if (!mounted.current) return;
+    // An explicit user action is a fresh probe budget, not idle polling.
+    notStartedProbes.current = 0;
+    setTick((n) => n + 1);
   }, []);
 
   useEffect(() => {
@@ -61,6 +66,13 @@ export function useCaptureEvents(enabled: boolean, meetingId: string): UseCaptur
       controller.current?.abort();
       const local = new AbortController();
       controller.current = local;
+      // The ONLY place a next poll is ever armed: the policy decides, and a "stop"
+      // decision arms nothing. No other setTimeout(…poll) exists in this hook.
+      const armNextPoll = (phase: "error" | ApiSnapshot["phase"]) => {
+        const decision = decideNextPoll(phase, notStartedProbes.current);
+        if (decision.action === "stop") return;
+        timer.current = setTimeout(() => void poll(), decision.delayMs);
+      };
       try {
         const res = await fetch(`/api/dashboard/meetings/${encodeURIComponent(meetingId)}/capture-events`, {
           method: "GET",
@@ -68,7 +80,7 @@ export function useCaptureEvents(enabled: boolean, meetingId: string): UseCaptur
           headers: { "cache-control": "no-cache" },
         });
         const body = (await res.json().catch(() => null)) as
-          | { ok: true; phase: ApiSnapshot["phase"]; events: ApiSnapshot["events"]; entryCount: number; lastSequence: number | null; startedAt: string | null; lastError: string | null; recording: boolean }
+          | ({ ok: true } & ApiSnapshot)
           | { ok: false; error?: { message?: string } }
           | null;
         if (cancelled || !mounted.current) return;
@@ -76,7 +88,7 @@ export function useCaptureEvents(enabled: boolean, meetingId: string): UseCaptur
           setStatus("error");
           setError(body && "error" in body ? (body.error?.message ?? "That request failed.") : "That request failed.");
           // A failing poll does NOT spin forever: back off, keep the last good data.
-          timer.current = setTimeout(() => void poll(), ACTIVE_POLL_MS * 2);
+          armNextPoll("error");
           return;
         }
         setSnapshot({
@@ -90,22 +102,18 @@ export function useCaptureEvents(enabled: boolean, meetingId: string): UseCaptur
         });
         setStatus("ready");
         setError(null);
-        if (ONE_PROBE_PHASES.has(body.phase)) {
-          // Give a start command arriving in another tab a bounded window, then stop.
-          timer.current = setTimeout(() => void poll(), ACTIVE_POLL_MS);
-          // After the next tick not_started resolves terminal; see stop below.
-          return;
-        }
-        if (TERMINAL_PHASES.has(body.phase)) {
-          return; // terminal — stop polling entirely
-        }
-        timer.current = setTimeout(() => void poll(), ACTIVE_POLL_MS);
+        if (body.phase === "not_started") notStartedProbes.current += 1;
+        else notStartedProbes.current = 0;
+        armNextPoll(body.phase);
+        // A "stop" decision arms no timer: terminal phases and the exhausted
+        // not_started budget end polling entirely. The visibility listener below
+        // re-probes once when the tab returns, with a fresh budget.
       } catch {
         if (cancelled || !mounted.current) return;
         if (local.signal.aborted) return;
         setStatus("error");
         setError("Could not reach the server. Retrying…");
-        timer.current = setTimeout(() => void poll(), ACTIVE_POLL_MS * 2);
+        armNextPoll("error");
       } finally {
         inFlight.current = false;
       }
@@ -114,8 +122,10 @@ export function useCaptureEvents(enabled: boolean, meetingId: string): UseCaptur
     void poll();
 
     const onVisible = () => {
-      if (document.visibilityState === "visible" && !timer.current) {
-        // Tab became visible while parked at a terminal one-probe state: re-probe once.
+      if (document.visibilityState === "visible" && !timer.current && !inFlight.current) {
+        // Tab returned while parked at a terminal/exhausted state: one explicit probe
+        // with a fresh budget — user-visible attention, not idle polling.
+        notStartedProbes.current = 0;
         void poll();
       }
     };

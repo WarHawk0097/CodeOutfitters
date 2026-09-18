@@ -212,7 +212,7 @@ describe("deriveRecordingEvents — failure", () => {
 });
 
 describe("deriveRecordingEvents — ordering and dedupe", () => {
-  it("numbers events sequentially with newest first for panel order", () => {
+  it("presents NEWEST first: sequence 0 is the most recent event, the older tail hides first", () => {
     const snapshot = deriveRecordingEvents({
       ...base,
       meetingStatus: "transcript_ready",
@@ -224,9 +224,18 @@ describe("deriveRecordingEvents — ordering and dedupe", () => {
       lastEntryAt: "2026-09-18T10:03:00.000Z",
       hasInsights: true,
     });
-    const sequences = snapshot.events.map((e) => e.sequence);
+    const events = snapshot.events;
+    // The outcome (AI analysis) is the newest thing that happened; the session start
+    // is the oldest. The panel slices the FRONT, so the front must be the newest.
+    expect(events[0]!.type).toBe("ai_insights_generated");
+    expect(events[events.length - 1]!.type).toBe("capture_session_started");
+    // Sequences run 0..n-1 in array order (panel order), and ids stay unique.
+    const sequences = events.map((e) => e.sequence);
     expect(sequences).toEqual(sequences.map((_, i) => i));
-    expect(new Set(snapshot.events.map((e) => e.id)).size).toBe(snapshot.events.length);
+    expect(new Set(events.map((e) => e.id)).size).toBe(events.length);
+    // Real chronology: known timestamps never increase as you read down the array.
+    const stamps = events.map((e) => e.timestamp).filter((t): t is string => t !== null).map((t) => Date.parse(t));
+    for (let i = 1; i < stamps.length; i += 1) expect(stamps[i]!).toBeLessThanOrEqual(stamps[i - 1]!);
   });
 
   it("emits at most one event per type (idempotent under re-render)", () => {

@@ -32,7 +32,8 @@ export type RecordingEvent = {
   /** ISO timestamp when known from the persisted row; null never blocks rendering. */
   timestamp: string | null;
   description: string | null;
-  /** Presentation order within the panel (top = newest). */
+  /** Presentation order within the panel (0 = NEWEST; the panel slices off the
+   *  front and counts the tail as "earlier events"). */
   sequence: number;
 };
 
@@ -127,10 +128,13 @@ export function deriveRecordingEvents(input: CaptureEventsInput): RecordingEvent
               ? "completed"
               : "preparing";
 
-  const events: RecordingEvent[] = [];
-  let sequence = 0;
+  // Events are emitted oldest-first below (session start → … → outcome) because that
+  // is the order the lifecycle actually happened in; the snapshot is then reversed so
+  // the panel's slice(0, 6) shows the NEWEST events and counts the OLDER tail as
+  // "earlier events". sequence 0 is therefore always the most recent event.
+  const chronological: RecordingEvent[] = [];
   const push = (event: Omit<RecordingEvent, "sequence">) => {
-    events.push({ ...event, sequence: sequence++ });
+    chronological.push(event as RecordingEvent);
   };
 
   // --- Session-level events -------------------------------------------------
@@ -277,6 +281,11 @@ export function deriveRecordingEvents(input: CaptureEventsInput): RecordingEvent
       description: meetingLastError ?? "The capture could not continue.",
     });
   }
+
+  const events = chronological.map((event, index) => ({
+    ...event,
+    sequence: chronological.length - 1 - index,
+  })).reverse();
 
   return {
     phase,
