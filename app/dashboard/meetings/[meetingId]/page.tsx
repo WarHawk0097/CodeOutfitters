@@ -15,6 +15,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { NextActionCard } from "@/components/dashboard/next-action-card";
 import { Confidence, FieldLine, FieldList, hasValue } from "@/components/meetings/insight-fields";
+import { RecordingEventsPanel } from "@/components/meetings/recording-events-panel";
 import { resolveDashboardContext } from "@/lib/command-center/data";
 import { isDemoMode } from "@/lib/command-center/mode";
 import { captureStateSuffix, transcriptSourceLabel } from "@/lib/meetings/capture/label";
@@ -85,6 +86,13 @@ export default async function MeetingDetailPage({
         >
           {MEETING_STATUS_LABEL[meeting.status]}
         </span>
+      </div>
+
+      {/* Recording Events — real capture lifecycle state, polled live while a capture
+          session is active. Renders only persisted truth (see events.ts header): no
+          fabricated "Recording/Uploaded/Transcribed" without the underlying row. */}
+      <div className="mb-6">
+        <RecordingEventsPanel meetingId={meetingId} />
       </div>
 
       {/* Overview */}
